@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=uDeck Window Preview
+Name[zh_CN]=uDeck 窗口预览
+Comment=Open uDeck without changing the current desktop session
+Exec=udeck --windowed
+Icon=io.github.zhubby.uDeck
+Terminal=false
+Categories=System;
+StartupWMClass=io.github.zhubby.uDeck

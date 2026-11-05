@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<labwc_config>
+  <theme>
+    <name>PiXtrix</name>
+    <cornerRadius>6</cornerRadius>
+    <font place="ActiveWindow"><name>Noto Sans CJK SC</name><size>13</size></font>
+    <font place="InactiveWindow"><name>Noto Sans CJK SC</name><size>13</size></font>
+  </theme>
+  <keyboard>
+    <keybind key="C-A-Escape"><action name="Execute" command="udeckctl home"/></keybind>
+    <keybind key="C-A-Tab"><action name="Execute" command="udeckctl switcher"/></keybind>
+    <keybind key="C-A-s"><action name="Execute" command="udeckctl quick-settings"/></keybind>
+    <keybind key="C-A-t"><action name="Execute" command="x-terminal-emulator"/></keybind>
+    <keybind key="C-A-l"><action name="Execute" command="swaylock -f"/></keybind>
+    <keybind key="A-Tab"><action name="NextWindow"/></keybind>
+    <keybind key="A-F4"><action name="Close"/></keybind>
+    <keybind key="XF86AudioRaiseVolume"><action name="Execute" command="wpctl set-volume --limit 1.0 @DEFAULT_AUDIO_SINK@ 5%+"/></keybind>
+    <keybind key="XF86AudioLowerVolume"><action name="Execute" command="wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"/></keybind>
+    <keybind key="XF86AudioMute"><action name="Execute" command="wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"/></keybind>
+    <keybind key="XF86MonBrightnessUp"><action name="Execute" command="rpi-backlight up"/></keybind>
+    <keybind key="XF86MonBrightnessDown"><action name="Execute" command="rpi-backlight down"/></keybind>
+    <keybind key="XF86PowerOff"><action name="Execute" command="udeckctl quick-settings"/></keybind>
+  </keyboard>
+  <mouse><default/></mouse>
+  <windowRules>
+    <windowRule identifier="*" type="normal"><action name="Maximize"/></windowRule>
+    <windowRule identifier="io.github.zhubby.uDeck" serverDecoration="no"/>
+  </windowRules>
+</labwc_config>

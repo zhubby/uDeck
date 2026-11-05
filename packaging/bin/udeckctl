@@ -1,0 +1,4 @@
+#!/usr/bin/python3
+from udeck.cli import main
+
+raise SystemExit(main())

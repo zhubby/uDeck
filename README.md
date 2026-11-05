@@ -1,0 +1,96 @@
+# uDeck · 面向 uConsole 物理按键的桌面
+
+uDeck 是面向 1280×720 横屏 uConsole 的原生 Qt Quick 桌面壳：方向键导航，A 确认、B 返回、X 上下文菜单、Y 快捷设置，实体键盘输入文字，轨迹球继续可用。
+
+基于现有 Debian 13 / labwc / Wayland 添加**独立可选会话**，不刷镜像、不改驱动、不替换合成器，不修改原桌面的配置和默认登录项。第三方 Linux 应用仍使用其原生交互。
+
+当前版本：**0.1.0（uDeck v1 首版实现）**。自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
+
+## 桌面功能
+
+- 主页与应用：标准 `.desktop` 条目、系统图标、收藏、最近使用、分类和搜索。
+- 运行中：真实 Wayland / Xwayland 窗口列表、激活、请求关闭；独立会话为普通主窗口配置默认最大化。
+- 文件：浏览、新建文件夹、重命名、复制、剪切/粘贴、明确确认覆盖、移入回收站。
+- 设置：NetworkManager Wi-Fi、BlueZ 配对代理、音量/静音/输出设备、背光、电池与充电状态、电源操作。
+- 输入：前台独占独立手柄接口，失焦立即释放；八步实按校准，不猜测键位、不拦截普通键盘字母。
+
+## 安全预览
+
+建议 Python 3.13；支持 Python 3.11–3.13，Qt / PySide6 固定 6.8 系列。
+
+```sh
+python3.13 -m venv .venv
+.venv/bin/python -m pip install -e '.[dev]'
+.venv/bin/udeck --mock --windowed
+```
+
+`--mock` 不访问真实系统服务、不打开真实文件、不启动第三方应用，也不保存用户配置。
+
+无显示器冒烟检查：
+
+```sh
+QT_QPA_PLATFORM=offscreen PYTHONPATH=src .venv/bin/python -m udeck.main \
+  --mock --windowed --smoke-test --screenshot artifacts/preview-home.png
+.venv/bin/python -m pytest -q
+.venv/bin/ruff check src tests tools
+```
+
+## Debian 安装与运行
+
+在 Debian arm64 设备上的源码目录构建、安装：
+
+```sh
+sh tools/build-deb
+sudo apt-get install ./dist/udeck_0.1.0_arm64.deb
+udeck --windowed
+udeckctl doctor --json
+```
+
+安装只新增程序、依赖和会话入口；**不会重启显示管理器、切换当前会话或更改自动登录**。完整会话需在现场保存工作后，通过登录界面选择 **uDeck**；原 **Raspberry Pi Desktop on Wayland** 保留。
+
+`Ctrl+Alt+Esc` 返回 uDeck、`Ctrl+Alt+Tab` 打开窗口切换器，仅在独立 uDeck 会话中生效。
+
+## 文档
+
+- [使用、构建、安装与回退](docs/udeck/README.zh-CN.md)
+- [架构、输入边界与安全设计](docs/udeck/architecture.md)
+- [2026-11-06 实机验证与现场验收清单](docs/udeck/acceptance-2026-11-06.md)
+
+---
+
+## uConsole 硬件资料库
+
+本目录用于整理 ClockworkPi **uConsole** 的硬件、固件、系统构建和结构设计资料。整理日期：**2026-11-05（Asia/Shanghai）**。
+
+## 从这里开始
+
+- [硬件概览与阅读路线](docs/uconsole/硬件概览.md)：先理解主板、核心板、键盘、屏幕、电池及扩展模块之间的关系。
+- [资料索引](docs/uconsole/资料索引.md)：按用途查找已经下载的 PDF、PCB、源码、结构模型和网页快照。
+- [系统镜像下载入口](docs/uconsole/系统镜像索引.md)：保存官方镜像版本、下载链接和上游 MD5；大型系统镜像本体没有下载。
+- [来源、完整性与使用边界](docs/uconsole/来源与边界.md)：区分官方资料、社区资料和整理者笔记，说明尚未验证的事项。
+
+## 目录
+
+| 路径 | 内容 |
+| --- | --- |
+| `references/uconsole/clockworkpi-uConsole/` | 官方仓库完整文件快照：装配手册、原理图、显示驱动资料、PCB、键盘源码、内核补丁、工具及固件 |
+| `references/uconsole/clockworkpi-uConsole-wiki/` | 官方 GitHub Wiki 原始 Markdown 快照 |
+| `references/uconsole/wiki-offline/` | 本地化 Wiki、产品说明与可获取配图；3 张 UART 附件下载失败，保留原链接 |
+| `references/uconsole/raspberry-pi/` | CM4、CM5、参考 IO 板及相关芯片的官方资料 |
+| `references/uconsole/components/` | 相关芯片资料；共享核心的资料不等同于整机兼容证明 |
+| `references/uconsole/kernel/` | 官方镜像构建说明指定提交中的 uConsole 设备树及相关驱动节选 |
+| `references/uconsole/community-3d-models/` | 社区粗略 FreeCAD 模型及预览；不适合严格公差，也不是官方商店原件 |
+| `references/uconsole/web/` | 官方产品页、官方模型领取页和社区硬件/系统目录快照 |
+| `references/uconsole/pdf-text/` | 从 PDF 提取的可搜索文本，阅读图纸仍以原 PDF 为准 |
+
+原始文件保留上游名称和目录，不执行其中的刷写脚本。uDeck 的软件安装与设备操作边界见上方项目文档。
+
+## 校验
+
+在本目录运行：
+
+```sh
+shasum -a 256 -c references/uconsole/SHA256SUMS
+```
+
+来源 URL、仓库提交、下载时间、文件大小及校验值见 `references/uconsole/sources.json` 和 `references/uconsole/downloads.json`。

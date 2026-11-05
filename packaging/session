@@ -1,0 +1,42 @@
+#!/bin/sh
+set -eu
+children=""
+shell_pid=""
+cleanup() {
+    if [ -n "$shell_pid" ]; then
+        kill "$shell_pid" 2>/dev/null || true
+    fi
+    for child in $children; do
+        kill "$child" 2>/dev/null || true
+    done
+}
+trap cleanup EXIT
+trap 'exit 0' HUP INT TERM
+dbus-update-activation-environment --systemd WAYLAND_DISPLAY DISPLAY XAUTHORITY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP QT_IM_MODULE GDK_IM_MODULE XMODIFIERS || true
+if wlr-randr | grep -q '^DSI-1 '; then
+    wlr-randr --output DSI-1 --mode 720x1280 --transform 270 --scale 1
+fi
+if ! pgrep -u "$(id -u)" -x fcitx5 >/dev/null; then
+    fcitx5 &
+    children="$children $!"
+fi
+if ! pgrep -u "$(id -u)" -x lxpolkit >/dev/null; then
+    lxpolkit &
+    children="$children $!"
+fi
+swayidle -w timeout 600 "wlopm --off '*'" resume "wlopm --on '*'" &
+children="$children $!"
+attempt=0
+while [ "$attempt" -lt 3 ]; do
+    status=0
+    udeck &
+    shell_pid=$!
+    wait "$shell_pid" || status=$?
+    shell_pid=""
+    if [ "$status" -eq 0 ]; then
+        exit 0
+    fi
+    attempt=$((attempt + 1))
+    sleep 1
+done
+exit 1

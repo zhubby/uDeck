@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+export XDG_CURRENT_DESKTOP=uDeck:labwc
+export XDG_SESSION_DESKTOP=udeck
+export DESKTOP_SESSION=udeck
+export QT_IM_MODULE=fcitx
+export GDK_IM_MODULE=fcitx
+export XMODIFIERS=@im=fcitx
+export QT_QPA_PLATFORM=wayland
+if [ -x /usr/bin/xwayland-xauth ]; then
+    export WLR_XWAYLAND=/usr/bin/xwayland-xauth
+fi
+exec labwc -C /usr/share/udeck/labwc -S /usr/libexec/udeck/session

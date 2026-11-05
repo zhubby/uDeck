@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=uDeck
+Comment=Button-first desktop for uConsole
+Exec=/usr/bin/udeck-session
+Type=Application
+DesktopNames=uDeck;labwc;
