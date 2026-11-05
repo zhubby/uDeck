@@ -23,6 +23,7 @@ from PySide6.QtGui import (
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickImageProvider
 
+from . import __version__
 from .controller import ShellController
 from .core import ConfigStore
 from .input import Gamepad
@@ -137,7 +138,7 @@ class Control(QObject):
     @Slot(result=str)
     def Diagnose(self):
         return json.dumps({
-            "version": "0.1.0", "mock": self.controller.mock,
+            "version": __version__, "mock": self.controller.mock,
             "uptimeSeconds": round(time.monotonic() - self.started, 3),
             "firstFrameSeconds": self.first_frame,
             "page": self.controller.navigation.page,

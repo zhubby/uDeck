@@ -23,7 +23,9 @@ QML 不调用 shell 命令、不直接访问设备。耗时 D-Bus 调用和子�
 
 会话入口是 `/usr/share/wayland-sessions/udeck.desktop`。启动器使用 `labwc -C /usr/share/udeck/labwc -S /usr/libexec/udeck/session`，不覆盖 `~/.config/labwc`。独立 autostart 明确为空，防止回退执行原面板或桌面管理器。监督脚本最多重启异常退出的桌面壳三次，正常退出则结束独立会话。
 
-labwc 普通窗口规则负责默认最大化，不抢占应用内部键盘，不自动关闭其他窗口。模态对话框和全屏不改造；完整会话兼容性须现场验证。原桌面会话及 LightDM 默认值保留。
+labwc 普通窗口规则负责默认最大化，不抢占应用内部键盘，不自动关闭其他窗口。模态对话框和全屏不改造；完整会话兼容性须现场验证。原桌面会话保留；软件包不修改 LightDM 默认值，只有显式运行自动登录工具才会备份并修改默认会话。
+
+从 0.1.1 开始，桌面壳本身请求真正的 `Window.FullScreen`，而不是以最大化模拟全屏。所有 present 路径都显式恢复全屏，避免 `show()` 把返回桌面的壳恢复成普通窗口。窗口化和 mock 预览保持普通窗口。包安装仍不改变登录默认值；管理员可单独执行 `tools/configure-login.py --user USER`，在备份和校验后选择 uDeck 自动登录，不触发当前会话注销或系统重启。
 
 ## 输入所有权
 

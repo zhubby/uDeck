@@ -12,7 +12,7 @@ Window {
     title: "uDeck"
     color: "#151719"
     flags: windowedPreview ? Qt.Window : Qt.Window | Qt.FramelessWindowHint
-    visibility: windowedPreview ? Window.Windowed : Window.Maximized
+    visibility: windowedPreview ? Window.Windowed : Window.FullScreen
     property var viewState: JSON.parse(controller.snapshotJson)
     property var dialog: viewState.modal
     property color ink: "#f1eee7"
@@ -61,7 +61,10 @@ Window {
         target: controller
         function onChanged() { Qt.callLater(window.syncView) }
         function onPresent() {
-            window.show()
+            if (windowedPreview)
+                window.show()
+            else
+                window.showFullScreen()
             if (!headlessPreview) {
                 window.raise()
                 window.requestActivate()

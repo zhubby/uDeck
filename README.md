@@ -2,9 +2,9 @@
 
 uDeck 是面向 1280×720 横屏 uConsole 的原生 Qt Quick 桌面壳：方向键导航，A 确认、B 返回、X 上下文菜单、Y 快捷设置，实体键盘输入文字，轨迹球继续可用。
 
-基于现有 Debian 13 / labwc / Wayland 添加**独立可选会话**，不刷镜像、不改驱动、不替换合成器，不修改原桌面的配置和默认登录项。第三方 Linux 应用仍使用其原生交互。
+基于现有 Debian 13 / labwc / Wayland 添加**独立可选会话**，不刷镜像、不改驱动、不替换合成器。软件包不修改原桌面配置或默认登录项；开机自动进入 uDeck 通过单独授权的配置工具开启。第三方 Linux 应用仍使用其原生交互。
 
-当前版本：**0.1.0（uDeck v1 首版实现）**。自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
+当前版本：**0.1.1（uDeck v1）**。真实桌面默认全屏；自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
 
 ## 桌面功能
 
@@ -41,7 +41,7 @@ QT_QPA_PLATFORM=offscreen PYTHONPATH=src .venv/bin/python -m udeck.main \
 
 ```sh
 sh tools/build-deb
-sudo apt-get install ./dist/udeck_0.1.0_arm64.deb
+sudo apt-get install ./dist/udeck_0.1.1_arm64.deb
 udeck --windowed
 udeckctl doctor --json
 ```
@@ -50,11 +50,20 @@ udeckctl doctor --json
 
 `Ctrl+Alt+Esc` 返回 uDeck、`Ctrl+Alt+Tab` 打开窗口切换器，仅在独立 uDeck 会话中生效。
 
+如需开机自动进入全屏 uDeck，在源码目录中显式执行：
+
+```sh
+sudo python3 tools/configure-login.py --user "$(id -un)"
+```
+
+工具先备份 LightDM 配置，再设置默认和自动登录会话；不会自行注销、重启或删除原桌面。自动登录意味着能接触设备的人可以直接进入该用户桌面。保存工作后再安排重新登录或重启验证；具体配置与回退见下方记录。
+
 ## 文档
 
 - [使用、构建、安装与回退](docs/udeck/README.zh-CN.md)
 - [架构、输入边界与安全设计](docs/udeck/architecture.md)
 - [2026-11-06 实机验证与现场验收清单](docs/udeck/acceptance-2026-11-06.md)
+- [0.1.1 全屏与开机默认会话配置记录](docs/udeck/boot-2026-11-06.md)
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## 运行边界
 
-uDeck 0.1.0 是原生 PySide6 / Qt Quick 桌面壳，不包含 Electron、Chromium 或 HTTP 服务。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。
+uDeck 0.1.1 是原生 PySide6 / Qt Quick 桌面壳，不包含 Electron、Chromium 或 HTTP 服务。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。
 
 目标环境为 CM4、约 4 GiB 内存、Debian 13、Qt 6.8、labwc 0.9 系列和横屏 1280×720。不会替换官方镜像、显示驱动、内核或窗口合成器。
 
@@ -32,8 +32,8 @@ Qt 6.8 的 Python 开发环境使用 3.11–3.13，不使用系统默认的 Pyth
 
 ```sh
 sh tools/build-deb
-dpkg-deb --info dist/udeck_0.1.0_arm64.deb
-sudo apt-get install ./dist/udeck_0.1.0_arm64.deb
+dpkg-deb --info dist/udeck_0.1.1_arm64.deb
+sudo apt-get install ./dist/udeck_0.1.1_arm64.deb
 ```
 
 依赖由 Debian 提供，包括 PySide6 Qt 6.8、Qt Quick Controls、dbus-next、evdev、Gio、NetworkManager、BlueZ、PipeWire/WirePlumber、wlr-randr、swayidle/swaylock、wlopm、fcitx5 和 lxpolkit。构建不打包 358 MiB 的硬件资料、虚拟环境或测试缓存。
@@ -109,11 +109,22 @@ SSH 调试必须连接实际图形会话，使用正确的 `XDG_RUNTIME_DIR`、`
 
 ## 独立会话与回退
 
-**先保存所有应用工作，再在现场操作。** 在登录界面的会话选择中进入 uDeck。现有自动登录策略不会被程序修改；若当前设备直接自动登录，请在现场用系统原有登录设置处理，勿通过唯一 SSH 链路远程试切换。
+**先保存所有应用工作，再在现场操作。** 在登录界面的会话选择中进入 uDeck。仅安装软件包不会修改现有自动登录策略；需要开机直接进入 uDeck 时，使用下方显式配置工具。勿通过唯一 SSH 链路远程试切换会话。
+
+希望开机直接进入 uDeck 时，可在安装完成后的源码目录中显式执行：
+
+```sh
+sudo python3 tools/configure-login.py --user "$(id -un)"
+sudo lightdm --show-config
+```
+
+这是单独授权的管理操作，不是软件包安装步骤：工具在 `/var/backups/udeck/` 中备份原配置，保留其他配置与注释，原子写入 `[Seat:*]` 的 `user-session=udeck`、`autologin-session=udeck`、`autologin-user` 和零秒等待。不自动注销、重启或修改原 labwc 用户配置；有特定 seat 覆盖时拒绝静默写入。请保存工具打印的备份路径，原配置可由管理员复制回 `/etc/lightdm/lightdm.conf`。自动登录允许接触设备的人直接进入该用户桌面，是否开启应明确选择。
+
+`udeck` 的真实模式使用无边框全屏，返回主页、窗口切换器或快捷设置时保持全屏；`udeck --windowed` 与 mock 仍是普通预览窗口。开机默认会话设置与当前显示模式是两个独立步骤：设置 LightDM 不会自动替换当前已登录的桌面。设备上的本次设置及确切备份路径见 [开机配置记录](boot-2026-11-06.md)。
 
 独立会话使用自己的 labwc 配置，不读取原用户面板/桌面管理器的 autostart；按需启动 fcitx5、lxpolkit，保留 DSI-1 的 270° 横屏方向。规则请求普通主窗口默认最大化；应用自己的全屏和模态对话框行为仍由应用与 labwc 处理。当前原桌面会话存在合成器返回零尺寸的最大化异常，独立会话实际几何、全屏和模态行为仍需现场验收，不能视为已通过。
 
-退出 uDeck 后在登录界面选择原「Raspberry Pi Desktop on Wayland」即可回退。软件卸载：
+未开启自动登录时，退出 uDeck 后可在登录界面选择原「Raspberry Pi Desktop on Wayland」。已经开启 uDeck 自动登录时，先恢复工具打印的 LightDM 备份，再保存工作并在现场注销或重启；具体命令见 [开机配置记录](boot-2026-11-06.md)。卸载前也必须恢复登录配置，避免默认会话指向已移除的程序：
 
 ```sh
 sudo apt-get remove udeck
