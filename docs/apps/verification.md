@@ -91,6 +91,8 @@ Browser 是 QtWebEngine 持久 profile；Reader 是独立内存 profile、带随
 
 完整日志及机器可读检查保存在本地忽略目录 `artifacts/apps/release-evidence/`，设备副本在 `/tmp/udeck-app-validation/`；安装包在本地 `artifacts/apps/packages/`。这些是本次验证产物，不作为产品依赖分发。
 
+功能提交 `8375eb13f20e088d0673e00f8696c6b5cb9d3c8f` 已快进合并到 main 并推送；`git ls-remote --heads origin main` 独立核对到同一 SHA。主工作区原有未跟踪研究资料未纳入提交。
+
 ## 待现场验收
 
 - 实体 ABXY、方向键、全部肩键、Start/Select、轨迹球及外接手柄的实际交接；当前原生输入状态/窗口检查不替代现场按键。

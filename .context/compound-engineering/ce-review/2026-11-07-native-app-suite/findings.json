@@ -276,5 +276,13 @@
     "Software scenegraph video fallback presents at most 15 fps; hardware decoding is not established.",
     "No independent full audit of pinned upstream foliate-js."
   ],
-  "verdict": "Ready to merge"
+  "verdict": "Ready to merge",
+  "delivery": {
+    "feature_commit": "8375eb13f20e088d0673e00f8696c6b5cb9d3c8f",
+    "merged_to_main": "fast-forward",
+    "pushed_to_origin_main": true,
+    "independent_remote_main_ref_verified": true,
+    "primary_checkout_untracked_research_preserved": true,
+    "code_source_unchanged_after_device_validation": true
+  }
 }
