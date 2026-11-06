@@ -70,7 +70,7 @@ class ConfigStore:
         self.path = Path(path) if path else Path(
             os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))
         ) / "udeck/settings.json"
-        self.data = {"version": 1, "favorites": [], "recent": [], "focus": {}, "input": {},
+        self.data = {"version": 1, "favorites": [], "recent": [], "focus": {}, "input": {}, "applicationInput": {},
                      "preferences": {"showHidden": False, "category": "All"}}
         try:
             loaded = json.loads(self.path.read_text())
@@ -84,6 +84,11 @@ class ConfigStore:
                 for field in ("focus", "input"):
                     if isinstance(loaded.get(field), dict):
                         self.data[field] = loaded[field]
+                modes = loaded.get("applicationInput", {})
+                if isinstance(modes, dict):
+                    self.data["applicationInput"] = {key: mode for key, mode in modes.items()
+                                                     if isinstance(key, str) and 0 < len(key) <= 256
+                                                     and mode in ("keyboard", "pointer", "native")}
                 self.data["focus"] = {
                     key: value for key, value in self.data["focus"].items()
                     if key in PAGES and type(value) is int and 0 <= value < 100000

@@ -124,17 +124,47 @@ class Control(QObject):
         self.started = time.monotonic()
         self.first_frame = None
         self.terminal_broker = None
+        self.application_router = None
+        self.isolation = None
 
     @Slot()
     def Home(self):
+        if self.application_router:
+            self.application_router.leave_menu()
         self.controller.dispatch("home")
 
     @Slot()
     def Switcher(self):
+        if self.application_router:
+            self.application_router.leave_menu()
         self.controller.dispatch("switcher")
 
     @Slot()
+    def AppMenu(self):
+        if self.application_router:
+            self.application_router.open_menu()
+        else:
+            self.controller.notify('完整应用兼容模式需要独立 uDeck 会话')
+            self.controller.present.emit()
+
+    @Slot(str, result=bool)
+    def InputMode(self, mode):
+        return bool(self.application_router and self.application_router.set_mode(mode))
+
+    @Slot(str, result=bool)
+    def InputConfigApplied(self, token):
+        return bool(self.isolation and self.isolation.acknowledge(token))
+
+    @Slot()
+    def Lock(self):
+        self.controller.activateSetting('lock')
+
+    @Slot()
     def QuickSettings(self):
+        if self.application_router and not self.application_router.shell:
+            self.application_router.open_menu()
+            self.application_router.menu_action('quick-settings')
+            return
         self.controller.dispatch("quick-settings")
 
     @Slot(result=str)
@@ -210,16 +240,51 @@ def main(argv=None):
     from .terminal_routing import TerminalInputBroker
 
     control.terminal_broker = TerminalInputBroker(windows, pointer)
+    application_router = None
+    virtual_input = None
+    direction_reader = None
+    isolation = None
+    if gamepad and pointer and os.environ.get('UDECK_SESSION') == '1':
+        from .compatibility import ApplicationRouter
+        from .directions import DirectionReader
+        from .session_config import DirectionIsolation
+        from .virtual_input import VirtualInput
+
+        virtual_input = VirtualInput()
+        virtual_input.start()
+        isolation = DirectionIsolation(virtual_input)
+        if isolation.available:
+            application_router = ApplicationRouter(controller, windows, gamepad, virtual_input, isolation)
+            application_router.session_safe = False
+            control.application_router = application_router
+            control.isolation = isolation
+            direction_reader = DirectionReader()
+            direction_reader.direction.connect(application_router.direction)
+            direction_reader.status.connect(application_router.direction_status)
+            virtual_input.failed.connect(application_router._failed)
+            gamepad.button.connect(application_router.button)
+            gamepad.status.connect(application_router.gamepad_status)
+            pointer.shoulder.connect(application_router.shoulder)
+            controller.inputSuspended.connect(application_router.set_suspended)
+            backend.updated.connect(lambda values: application_router.session_update(values['sessionInput']) if 'sessionInput' in values else None)
+            direction_reader.start()
+    if not application_router:
+        controller.input_status({'compatibility': {
+            'available': False, 'mode': 'unavailable', 'application': '', 'windowId': '',
+            'virtualInput': bool(virtual_input and virtual_input.available), 'directionIsolation': False,
+            'directionReader': False, 'sessionSafe': False, 'configurationPending': False,
+            'error': '完整应用兼容模式需要独立 uDeck 会话；窗口预览和原桌面不接管应用输入',
+        }})
     if pointer:
-        pointer.action.connect(controller.dispatch)
+        pointer.action.connect(application_router.action if application_router else controller.dispatch)
         pointer.status.connect(controller.input_status)
         controller.foregroundChanged.connect(pointer.set_foreground)
     calibration = {"buttons": {}, "axes": {}, "keyboard": {}, "step": 0}
 
     if gamepad:
-        gamepad.action.connect(controller.dispatch)
+        gamepad.action.connect(application_router.action if application_router else controller.dispatch)
         gamepad.status.connect(controller.input_status)
-        controller.foregroundChanged.connect(gamepad.set_foreground)
+        controller.foregroundChanged.connect(application_router.window_active if application_router else gamepad.set_foreground)
 
         def calibrate():
             calibration.update({"buttons": {}, "axes": {}, "keyboard": {}, "step": 0})
@@ -317,6 +382,14 @@ def main(argv=None):
     elif options.smoke_test:
         QTimer.singleShot(2000, application.quit)
     result = application.exec()
+    if application_router:
+        application_router.close()
+    if direction_reader:
+        direction_reader.close()
+    if isolation:
+        isolation.restore()
+    if virtual_input:
+        virtual_input.close()
     if gamepad:
         gamepad.close()
     if pointer:

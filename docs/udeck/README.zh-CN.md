@@ -2,7 +2,7 @@
 
 ## 运行边界
 
-uDeck 0.1.3 是原生 PySide6 / Qt Quick 桌面壳，不包含 Electron、Chromium 或 HTTP 服务。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。
+uDeck 0.1.4 是原生 PySide6 / Qt Quick 桌面壳，不包含 Electron、Chromium 或 HTTP 服务。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。第三方应用兼容层需要独立 uDeck 会话，原桌面中运行壳不会启用。
 
 目标环境为 CM4、约 4 GiB 内存、Debian 13、Qt 6.8、labwc 0.9 系列和横屏 1280×720。不会替换官方镜像、显示驱动、内核或窗口合成器。
 
@@ -32,8 +32,8 @@ Qt 6.8 的 Python 开发环境使用 3.11–3.13，不使用系统默认的 Pyth
 
 ```sh
 sh tools/build-deb
-dpkg-deb --info dist/udeck_0.1.3_arm64.deb
-sudo apt-get install ./dist/udeck_0.1.3_arm64.deb
+dpkg-deb --info dist/udeck_0.1.4_arm64.deb
+sudo apt-get install ./dist/udeck_0.1.4_arm64.deb
 ```
 
 依赖由 Debian 提供，包括 PySide6 Qt 6.8、Qt Quick Controls、dbus-next、evdev、Gio、NetworkManager、BlueZ、PipeWire/WirePlumber、wlr-randr、swayidle/swaylock、wlopm、fcitx5 和 lxpolkit。构建不打包 358 MiB 的硬件资料、虚拟环境或测试缓存。
@@ -87,7 +87,22 @@ SSH 调试必须连接实际图形会话，使用正确的 `XDG_RUNTIME_DIR`、`
 
 标有 L/R 的实体键在固件中仍发送鼠标左/右键事件，uDeck 将它们解释为切页键，与轨迹球位置无关。轨迹球移动、鼠标点击选中、双击打开、拖动和滚轮操作全部禁用；文件和设置均由方向键选中、A 打开、B 返回、X 菜单、Y 快捷设置。关闭弹层与切回页面恢复原焦点。
 
-实体键盘正常输入文字，文本编辑时方向键用于移动光标，中文输入沿用 Qt/fcitx5。A/B/X/Y **不是**键盘字母快捷键。第三方应用中鼠标同样被屏蔽，操作依赖该应用自己的键盘或手柄支持；uDeck 不把第三方界面转换为统一的手柄焦点系统，也不向第三方应用注入 L/R 肩键。
+实体键盘正常输入文字，文本编辑时方向键用于移动光标，中文输入沿用 Qt/fcitx5。A/B/X/Y **不是**键盘字母快捷键。第三方应用中的物理鼠标仍被屏蔽；独立会话提供以下兼容操作。
+
+| 按键 | 默认按键模式 | 手动指针模式 |
+| --- | --- | --- |
+| 方向键 | 应用原生方向操作 | 移动虚拟指针，长按加速 |
+| A | Enter | 左键，按住并移动可拖动，连续短按可双击 |
+| B | Esc | Esc |
+| X | Shift+F10 | 右键 |
+| Y | 应用控制菜单 | 应用控制菜单 |
+| L / R | Shift+Tab / Tab | 向上 / 向下滚动 |
+
+Y 菜单默认选中「返回应用」，还提供模式切换、常用操作、返回桌面、快捷设置和请求关闭。B 逐层返回；退出菜单恢复原窗口，窗口已关闭则回到运行中。浏览器的地址栏、后退、刷新，编辑器的打开、保存，以及文件管理器的上级目录等由常用操作提供，B 始终保留 Esc 语义。
+
+按 app_id / WM_CLASS 保存选择；子对话框继承父应用。未知应用默认按键模式。RetroArch 默认原生输入，释放独立手柄，使用 `Ctrl+Alt+Esc` 返回桌面；uDeck Terminal 使用自己的原生交互。按键模式依赖应用自身的焦点系统，不保证方向键空间导航；处理文本和中文候选时使用按键模式。
+
+指针启用要等待独立会话的方向键拦截确认；失败留在菜单并报告原因。方向键接口断开会停止指针、恢复普通方向键。窗口切换或菜单交接时按住的按钮须松开后再按，避免误点击。虚拟指针只由手柄驱动，物理轨迹球和外接鼠标继续禁用。
 
 ### 首次实按校准
 
@@ -101,9 +116,9 @@ SSH 调试必须连接实际图形会话，使用正确的 `XDG_RUNTIME_DIR`、`
 
 本次十个物理按键的真实事件与旧版修复说明见 [0.1.2 输入修复记录](input-2026-11-06.md)；当前行为见 [0.1.3 手柄交互记录](controller-mode-2026-11-06.md)。Debian 上运行完整 QML 输入回归还需安装开发测试包 `python3-pyside6.qttest`；正常桌面运行不依赖它。
 
-壳失焦或退出即释放手柄；不通过全局 ABXY 返回桌面。在独立 uDeck 会话内：`Ctrl+Alt+Esc` 返回主页、`Ctrl+Alt+Tab` 切换窗口、`Ctrl+Alt+S` 快捷设置。窗口化运行不会向原桌面写入这些全局快捷键。
+独立会话由实际前台窗口决定手柄所有权，兼容模式接管，原生模式释放；退出、锁屏或设备断开时释放注入状态。不通过全局 ABXY 返回桌面。在独立 uDeck 会话内：`Ctrl+Alt+Esc` 返回主页、`Ctrl+Alt+Tab` 切换窗口、`Ctrl+Alt+S` 快捷设置。窗口化运行不会向原桌面写入这些全局快捷键。
 
-鼠标的屏蔽生命周期与手柄不同：打开第三方应用后仍持有鼠标接口，L/R 不再触发壳的切页。新插入的独立鼠标会重新扫描并接管；无法访问或混有普通键盘键位的接口不会被强占，原因显示在 `udeckctl doctor --json` 的 `runningShell.input.pointer.errors` 中。独立会话还通过自己的 labwc 配置禁用内置 `ClockworkPI uConsole Mouse` 的指针事件，不影响原桌面配置。
+鼠标的屏蔽生命周期与手柄不同：打开第三方应用后仍持有鼠标接口，L/R 按当前应用模式工作。新插入的独立鼠标会重新扫描并接管；无法访问或混有普通键盘键位的接口不会被强占，原因显示在 `udeckctl doctor --json` 的 `runningShell.input.pointer.errors` 中。独立会话还通过自己的 labwc 配置禁用内置 `ClockworkPI uConsole Mouse` 的指针事件，不影响原桌面配置。
 
 ## 功能使用与安全保护
 
@@ -149,6 +164,10 @@ sudo apt-get remove udeck
 udeckctl home
 udeckctl switcher
 udeckctl quick-settings
+udeckctl app-menu
+udeckctl input-mode keyboard
+udeckctl input-mode pointer
+udeckctl input-mode native
 udeckctl doctor --json
 PYTHONPATH=src python3 tools/verify-windows.py
 PYTHONPATH=src python3 tools/measure-shell.py --seconds 60 --output artifacts/performance.json
@@ -159,3 +178,5 @@ PYTHONPATH=src python3 tools/measure-shell.py --seconds 60 --output artifacts/pe
 验证安装版而非源码时去掉 `PYTHONPATH=src`，并确认没有继承其他 `PYTHONPATH`。性能输出区分内部首帧时间和包含 Python 导入的 `launchToReadySeconds`，启动目标使用后者；RSS/CPU 为壳进程的空闲采样，不是整机或完整登录会话指标。
 
 具体已测事实、局限和未完成的现场项目见 [实机验收记录](acceptance-2026-11-06.md)。
+
+0.1.4 的 `runningShell.input.compatibility` 显示前台应用、当前模式、虚拟输入、方向键接口、拦截配置及错误；原桌面显示明确的不可用原因。完整应用控制的部署和验收边界见 [应用兼容层记录](application-control-2026-11-06.md)。

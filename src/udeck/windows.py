@@ -165,10 +165,11 @@ class WindowService(QObject):
     def _global_removed(self, registry, name):
         if name == getattr(self, "manager_name", None):
             self.available = False
+            self.failed.emit('窗口管理协议已撤回')
 
     def _new_handle(self, manager, handle):
         identifier = str(self.library.wl_proxy_get_id(handle))
-        self.handles[identifier] = {"id": identifier, "proxy": handle, "name": "应用窗口", "appId": "", "active": False, "fullscreen": False, "parent": False}
+        self.handles[identifier] = {"id": identifier, "proxy": handle, "name": "应用窗口", "appId": "", "active": False, "fullscreen": False, "parent": False, "parentId": ''}
 
         def update_field(proxy, value, field):
             if identifier in self.handles:
@@ -187,6 +188,7 @@ class WindowService(QObject):
         def update_parent(proxy, parent):
             if identifier in self.handles:
                 self.handles[identifier]["parent"] = bool(parent)
+                self.handles[identifier]['parentId'] = str(self.library.wl_proxy_get_id(parent)) if parent else ''
 
         def closed(proxy):
             self.handles.pop(identifier, None)
@@ -215,6 +217,7 @@ class WindowService(QObject):
         self.library.wl_proxy_destroy(manager)
         self._retire_listener(manager)
         self.manager = None
+        self.failed.emit('窗口管理协议已结束')
 
     def _dispatch(self, *arguments):
         if self.display and self.library.wl_display_dispatch(self.display) < 0:

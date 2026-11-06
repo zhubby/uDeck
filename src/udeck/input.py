@@ -36,6 +36,7 @@ class ButtonState:
 
 class Gamepad(QObject):
     action = Signal(str)
+    button = Signal(str, bool)
     captured = Signal(int)
     axisCaptured = Signal(str)
     status = Signal(dict)
@@ -145,7 +146,11 @@ class Gamepad(QObject):
                     self.status.emit({"grabbed": False, "message": "输入事件丢失，请松开按键后重试"})
                     return
                 if event.type == ecodes.EV_KEY:
+                    was_pressed = event.code in self.router.pressed
                     action = self.router.key(event.code, event.value)
+                    mapped = self.router.mapping.get(event.code)
+                    if mapped and not self.calibrating and ((event.value == 1 and not was_pressed) or (event.value == 0 and was_pressed)):
+                        self.button.emit(mapped, event.value == 1)
                     if self.calibrating and event.value == 1 and event.code >= ecodes.BTN_MISC:
                         self.captured.emit(event.code)
                     elif action and action not in DIRECTIONS:
@@ -201,6 +206,7 @@ class Gamepad(QObject):
         self.axis_actions.clear()
         self.axis_positions.clear()
         self.held_direction = None
+        self.status.emit({'grabbed': False})
         if self.notifier:
             self.notifier.setEnabled(False)
             self.notifier.deleteLater()

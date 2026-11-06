@@ -9,6 +9,10 @@
 | `core.py` | 非循环空间导航、XDG 配置校验与私有原子保存 |
 | `input.py` | evdev 独立手柄发现、八步映射、前台 grab/release、方向长按重复和热拔插恢复 |
 | `pointer.py` | 会话内持续屏蔽独立鼠标接口，仅将已确认的内置 L/R 前台按下沿转为切页 |
+| `compatibility.py` | 按真实前台窗口选择桌面、按键、指针、原生或暂停状态，管理应用菜单与释放交接 |
+| `virtual_input.py` | 普通用户的 Wayland 虚拟键盘与指针客户端，只注入固定应用操作 |
+| `directions.py` | 只读监听已确认的内置 Keyboard；识别无修饰方向键及热拔插，不独占键盘 |
+| `session_config.py` | 私有运行时配置、指定合成器重载、F24 代次确认和异常恢复 |
 | `desktop.py` | 标准 desktop entry 读取、去重、本地化、图标元数据和 Gio 启动 |
 | `windows.py` | libwayland-client + ctypes，实现已公布的 wlr foreign-toplevel v3 客户端 |
 | `files.py` | 文件列表、名称验证、安全重命名/复制/移动、Gio 打开与回收站 |
@@ -22,7 +26,7 @@ QML 不调用 shell 命令、不直接访问设备。耗时 D-Bus 调用和子�
 
 不写新合成器，不以进程列表代替窗口列表。`zwlr_foreign_toplevel_manager_v1` 提供真实窗口的标题、app_id、状态、父子关系、激活与关闭请求；主程序维护独立 Wayland 连接，通过 QSocketNotifier 接入 Qt 事件循环。原生 Wayland 与 Xwayland 使用同一窗口协议。
 
-会话入口是 `/usr/share/wayland-sessions/udeck.desktop`。启动器使用 `labwc -C /usr/share/udeck/labwc -S /usr/libexec/udeck/session`，不覆盖 `~/.config/labwc`。独立 autostart 明确为空，防止回退执行原面板或桌面管理器。监督脚本最多重启异常退出的桌面壳三次，正常退出则结束独立会话。
+会话入口是 `/usr/share/wayland-sessions/udeck.desktop`。启动器从 `/usr/share/udeck/labwc` 生成 `$XDG_RUNTIME_DIR/udeck/labwc` 私有配置，以 `labwc -C "$UDECK_CONFIG_DIR" -S /usr/libexec/udeck/session` 启动，不覆盖 `~/.config/labwc`。独立 autostart 明确为空，防止回退执行原面板或桌面管理器。监督脚本最多重启异常退出的桌面壳三次，壳退出后先恢复普通方向键配置，正常退出则结束独立会话。
 
 labwc 普通窗口规则负责默认最大化，不抢占应用内部键盘，不自动关闭其他窗口。模态对话框和全屏不改造；完整会话兼容性须现场验证。原桌面会话保留；软件包不修改 LightDM 默认值，只有显式运行自动登录工具才会备份并修改默认会话。
 
@@ -40,9 +44,17 @@ ABXY 仅打开符合已确认 uConsole VID/PID 的独立游戏手柄事件节点
 
 鼠标接管持续到壳退出，壳失焦后仍屏蔽第三方应用的鼠标操作；手柄继续按前台所有权释放。扫描支持热拔插，事件溢出后重同步按住状态，不制造按键；权限失败报告到诊断而不强占键盘。未改变的扫描状态不重复发布 UI。关闭壳释放所有鼠标接口。独立 labwc 配置仅对精确名称 `ClockworkPI uConsole Mouse` 设置 `sendEventsMode=no`，使内置指针从会话启动即被禁用；不覆盖原桌面配置。
 
-QML 列表与滚动条不接受指针滚动/拖动，输入框不允许鼠标选字；没有项目单击、双击或位置选中逻辑。唯一的顶层鼠标区域消耗移动/滚轮/双击，将窗口化预览中的左/右按下模拟为 L/R 切页。壳内隐藏光标；不声称替第三方应用隐藏其自行绘制的光标。窗口化、mock 和 `--no-input` 不接管整个会话的鼠标。第三方应用使用自身键盘或手柄支持，不注入虚拟肩键或改造其焦点系统。
+QML 列表与滚动条不接受指针滚动/拖动，输入框不允许鼠标选字；没有项目单击、双击或位置选中逻辑。唯一的顶层鼠标区域消耗移动/滚轮/双击，将窗口化预览中的左/右按下模拟为 L/R 切页。壳内隐藏光标，第三方应用指针模式显示虚拟光标。窗口化、mock 和 `--no-input` 不接管其他应用输入。
 
-只有 Qt 窗口 active 时持有手柄；失焦、退出、设备消失和事件丢失都会释放。方向键初次移动后约 350 ms 开始重复，随后约 90 ms 一步；A/B/X/Y 不因 Linux 自动重复而重复确认。
+0.1.4 完整兼容层只在 `UDECK_SESSION=1` 且验证合成器 PID、同用户身份和准确的 `-C` 配置路径后启用。实际 foreign-toplevel 前台窗口决定手柄所有权；子窗口继承父窗口的应用配置。桌面、按键、指针模式接管独立手柄，原生模式释放；uDeck Terminal 保持自身原生路由。原桌面和窗口化运行仍按壳的前台状态接管手柄。
+
+第三方按键模式注入 Enter、Esc、Shift+F10、Shift+Tab/Tab；Y 激活桌面中的应用菜单。指针模式通过虚拟指针协议移动、点击、拖动和滚动，移动定时器只在按住方向期间运行。短按从每帧 3 px 开始，长按加速至 16 px；对角线归一化，位置限制在 1280×720 范围。实体键盘的字母、修饰组合键和输入法保持原生行为；文字及候选选择使用按键模式。
+
+指针模式仅消费四个无修饰方向键：生成独立 labwc 运行时绑定、SIGHUP 重载指定的 `LABWC_PID`，以预留 F24 执行带随机代次的本地回执；收到当前代次后才返回应用并启用指针。虚拟键盘单独定义 F24 符号，避免系统默认 FK24 无符号；不改物理键盘布局。超时留在菜单、请求恢复普通配置，拒绝迟到回执。每次重载前重新验证 PID 所有权，避免进程退出后误操作其他会话。
+
+窗口或模式交接、菜单、锁屏、会话停用、设备断开、协议失败或退出都会停止移动并释放注入状态；实体按住的输入须松开后才能操作新目标。恢复窗口时等待该窗口重新被合成器报告为 active，再发送固定应用快捷键；超时返回菜单。方向键读取不可用时禁止指针并请求恢复普通投递。logind 锁定请求保持暂停，直至明确解锁或观察到锁定状态完整结束；本机锁屏等待 swaylock 退出。
+
+壳内方向键约 350 ms 后开始重复，随后约 90 ms 一步；A/B/X/Y 不因 Linux 自动重复而重复确认。第三方按键模式沿用应用本身的焦点行为，无法操作的控件由用户明确切到指针模式。
 
 独立会话的 `Ctrl+Alt+Esc` 通过 labwc 调用 `udeckctl home`，再通过窗口协议激活桌面，不建立全局 ABXY 拦截器。
 
@@ -58,9 +70,9 @@ QML 列表与滚动条不接受指针滚动/拖动，输入框不允许鼠标选
 
 ## 本机通信与数据
 
-会话 D-Bus 名称 `io.github.zhubby.uDeck`，对象 `/io/github/zhubby/uDeck`，接口 `io.github.zhubby.uDeck.Control`。暴露 `Home`、`Switcher`、`QuickSettings`、`Diagnose`；不开放 TCP/HTTP，不允许通过 IPC 传入任意文件或执行命令。
+会话 D-Bus 名称 `io.github.zhubby.uDeck`，对象 `/io/github/zhubby/uDeck`，接口 `io.github.zhubby.uDeck.Control`。暴露 `Home`、`Switcher`、`QuickSettings`、`AppMenu`、`InputMode`、`InputConfigApplied`、`Lock`、`Diagnose`，并保留终端路由诊断；不开放 TCP/HTTP，不接受任意脚本、文件或按键序列。应用快捷键由内置 app_id / WM_CLASS 白名单配置提供。
 
-配置位于 `$XDG_CONFIG_HOME/udeck/settings.json`，未设置时为 `~/.config/udeck/settings.json`；包含 favorites、recent、focus、preferences、input。临时文件以 0600 创建，fsync 后原子替换。输入密码和配对确认只存在于瞬时内存；SSH 密码没有部署文件或日志入口。
+配置位于 `$XDG_CONFIG_HOME/udeck/settings.json`，未设置时为 `~/.config/udeck/settings.json`；包含 favorites、recent、focus、preferences、input 和按应用保存的 `applicationInput`。旧字段与校准保留，保存失败恢复当前配置。临时文件以 0600 创建，fsync 后原子替换。输入密码和配对确认只存在于瞬时内存；SSH 密码没有部署文件或日志入口。
 
 文件覆盖使用明确确认；无覆盖 rename 使用 Linux `renameat2(RENAME_NOREPLACE)`，开发机使用 macOS 对应排他 rename。大文件复制有 staging、取消、源变化检测和清理；临时目录以 0700、临时文件以 0600 创建，再保留源权限，避免复制私密文件期间被其他用户读取。拒绝复制管道/设备/套接字。跨文件系统移动的源只移入系统回收站，不以递归永久删除作为后备。
 

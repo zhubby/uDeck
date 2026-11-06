@@ -131,6 +131,17 @@ def test_buttons_only_fire_once_and_release_on_focus_loss():
     assert router.pressed == set()
 
 
+def test_gamepad_reports_real_press_and_release_for_application_drag(stock_gamepad):
+    gamepad, device, events = stock_gamepad
+    edges = []
+    gamepad.button.connect(lambda action, pressed: edges.append((action, pressed)))
+    gamepad.set_foreground(True)
+    for value in (1, 2, 1, 0):
+        events[:] = [SimpleNamespace(type=1, code=289, value=value)]
+        gamepad._read()
+    assert edges == [('accept', True), ('accept', False)]
+
+
 def test_unknown_buttons_do_not_become_keyboard_shortcuts():
     router = ButtonState({289: "accept"})
     assert router.key(30, 1) is None

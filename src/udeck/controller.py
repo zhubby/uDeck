@@ -22,6 +22,8 @@ class ShellController(QObject):
     calibrationRequested = Signal()
     calibrationDirection = Signal(str)
     foregroundChanged = Signal(bool)
+    applicationAction = Signal(str)
+    inputSuspended = Signal(bool)
     taskFinished = Signal(object)
 
     def __init__(self, backend, window_service=None, config=None, catalog=None, mock=False):
@@ -157,11 +159,15 @@ class ShellController(QObject):
     @Slot(str, str)
     def _operation_failed(self, action, message):
         self.pending_system.discard(action)
+        if action == 'lock':
+            self.inputSuspended.emit(False)
         self.notify(message)
 
     @Slot(str)
     def _system_completed(self, action):
         self.pending_system.discard(action)
+        if action == 'lock':
+            self.inputSuspended.emit(False)
         if action not in ("refresh", "bluetooth_stop"):
             self.notify("预览操作已模拟，未操作真实设备" if self.mock else "请求已处理；连接结果以设备状态为准")
         self._publish()
@@ -389,6 +395,8 @@ class ShellController(QObject):
             if kind == "progress":
                 self.cancelled.set()
             self._pop(reject=True)
+            if modal.get('source') == 'application' and not self.modal:
+                self.applicationAction.emit('return')
             return
         if kind == "menu":
             options = modal["options"]
@@ -450,7 +458,9 @@ class ShellController(QObject):
     def _apply_option(self, option):
         action = option["action"]
         item = option.get("item", {})
-        if action == "setting":
+        if action == "application-control":
+            self.applicationAction.emit(option['command'])
+        elif action == "setting":
             self.activateSetting(option["id"])
         elif action == "power-menu":
             self._menu("电源与会话", [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"]} for entry in self._settings() if entry["id"] in ("lock", "blank", "logout", "reboot", "poweroff")])
@@ -651,6 +661,8 @@ class ShellController(QObject):
             self.notify("此请求正在处理中，请稍候")
             return
         self.pending_system.add(action)
+        if action == 'lock':
+            self.inputSuspended.emit(True)
         self.backend.request(action, payload or {})
         self._publish()
 

@@ -7,7 +7,10 @@ export QT_IM_MODULE=fcitx
 export GDK_IM_MODULE=fcitx
 export XMODIFIERS=@im=fcitx
 export QT_QPA_PLATFORM=wayland
+export UDECK_SESSION=1
+UDECK_CONFIG_DIR=$(python3 -m udeck.session_config prepare)
+export UDECK_CONFIG_DIR
 if [ -x /usr/bin/xwayland-xauth ]; then
     export WLR_XWAYLAND=/usr/bin/xwayland-xauth
 fi
-exec labwc -C /usr/share/udeck/labwc -S /usr/libexec/udeck/session
+exec labwc -C "$UDECK_CONFIG_DIR" -S /usr/libexec/udeck/session

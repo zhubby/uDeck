@@ -1,7 +1,9 @@
 import asyncio
+from types import SimpleNamespace
 
 import pytest
 from dbus_next import DBusError
+from dbus_next.constants import MessageType
 
 from udeck.backend import NM, SystemBackend
 
@@ -17,6 +19,38 @@ def test_network_prompt_cancellation_uses_networkmanager_error():
         assert caught.value.type == NM + ".SecretAgent.Error.UserCanceled"
         assert backend.pending_prompts == {}
 
+    asyncio.run(scenario())
+
+
+def test_logind_lock_request_stays_suspended_until_unlock_is_confirmed(monkeypatch):
+    async def scenario():
+        backend = SystemBackend()
+        backend.login_session = '/org/freedesktop/login1/session/test'
+        backend.schedule_refresh = lambda component: None
+        properties = {'Active': True, 'LockedHint': False}
+
+        async def read_properties(*arguments):
+            return properties
+
+        backend.properties = read_properties
+        message = SimpleNamespace(message_type=MessageType.SIGNAL, path=backend.login_session,
+                                  member='Lock', body=[], interface='org.freedesktop.login1.Session')
+        backend._message(message)
+        await backend.refresh_session()
+        assert backend.state['sessionInput']['locked'] is True
+        properties['LockedHint'] = True
+        await backend.refresh_session()
+        properties['LockedHint'] = False
+        await backend.refresh_session()
+        assert backend.state['sessionInput']['locked'] is False
+        backend._message(message)
+        message.member = 'Unlock'
+        backend._message(message)
+        await backend.refresh_session()
+        assert backend.state['sessionInput']['locked'] is False
+        backend.loop.close()
+
+    monkeypatch.setenv('UDECK_SESSION', '1')
     asyncio.run(scenario())
 
 

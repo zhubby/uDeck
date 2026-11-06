@@ -133,6 +133,9 @@ class SystemBackend(QObject):
         self.agent_registered = False
         self.network_agent_registered = False
         self.discovery_active = False
+        self.login_session = None
+        self.session_lock_requested = False
+        self.session_lock_hint_seen = False
         self.bluetooth_agent = BluezAgent(self)
         self.network_agent = NetworkAgent(self)
 
@@ -176,11 +179,15 @@ class SystemBackend(QObject):
                 "type='signal',sender='org.bluez'",
                 "type='signal',interface='org.freedesktop.DBus',member='NameOwnerChanged',arg0='org.bluez'",
                 "type='signal',interface='org.freedesktop.DBus',member='NameOwnerChanged',arg0='org.freedesktop.NetworkManager'",
+                "type='signal',sender='org.freedesktop.login1'",
             ):
                 await self.call("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "AddMatch", "s", [rule])
             self.bus.export("/io/github/zhubby/uDeck/BluezAgent", self.bluetooth_agent)
             self.bus.export("/org/freedesktop/NetworkManager/SecretAgent", self.network_agent)
             await asyncio.gather(self.refresh_wifi(), self.refresh_bluetooth())
+            if os.environ.get('UDECK_SESSION') == '1':
+                await self.refresh_session()
+                self.loop.create_task(self._session_timer())
         except Exception as error:
             self.failed.emit(f"系统服务初始化失败：{error}")
         await self.refresh_audio()
@@ -191,7 +198,17 @@ class SystemBackend(QObject):
     def _message(self, message):
         if message.message_type != MessageType.SIGNAL:
             return
-        if message.member == "NameOwnerChanged":
+        if message.path == self.login_session and message.member == 'Lock':
+            self.session_lock_requested = True
+            self.publish('sessionInput', {'available': True, 'active': True, 'locked': True})
+        elif message.path == self.login_session and message.member == 'Unlock':
+            self.session_lock_requested = False
+            self.schedule_refresh('session')
+        elif message.member == 'PrepareForSleep' and message.body and message.body[0]:
+            self.publish('sessionInput', {'available': True, 'active': False, 'locked': True})
+        elif (message.path or '').startswith('/org/freedesktop/login1') and os.environ.get('UDECK_SESSION') == '1':
+            self.schedule_refresh('session')
+        elif message.member == "NameOwnerChanged":
             if message.body[0] == BLUEZ:
                 self.agent_registered = False
                 self.schedule_refresh("bluetooth")
@@ -215,6 +232,30 @@ class SystemBackend(QObject):
                 self.refresh_tasks.pop(component, None)
 
         self.refresh_tasks[component] = self.loop.create_task(refresh())
+
+    async def refresh_session(self):
+        try:
+            if not self.login_session:
+                session = os.environ.get('XDG_SESSION_ID')
+                member, signature, arguments = ('GetSession', 's', [session]) if session else ('GetSessionByPID', 'u', [os.getpid()])
+                self.login_session = (await self.call('org.freedesktop.login1', '/org/freedesktop/login1', 'org.freedesktop.login1.Manager', member, signature, arguments))[0]
+            properties = await self.properties('org.freedesktop.login1', self.login_session, 'org.freedesktop.login1.Session')
+            locked = bool(properties.get('LockedHint'))
+            if locked:
+                self.session_lock_hint_seen = True
+            elif self.session_lock_hint_seen:
+                self.session_lock_requested = False
+                self.session_lock_hint_seen = False
+            value = {'available': True, 'active': bool(properties.get('Active')), 'locked': locked or self.session_lock_requested}
+        except Exception as error:
+            value = {'available': False, 'active': False, 'locked': True, 'error': str(error)}
+        if self.state.get('sessionInput') != value:
+            self.publish('sessionInput', value)
+
+    async def _session_timer(self):
+        while True:
+            await asyncio.sleep(5)
+            await self.refresh_session()
 
     def publish(self, component, value):
         self.state[component] = value
@@ -463,7 +504,7 @@ class SystemBackend(QObject):
                 raise RuntimeError("无法确定当前登录会话")
             await self.call("org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", "TerminateSession", "s", [session])
         elif action == "lock":
-            await self.command("swaylock", "-f")
+            await self.command("swaylock", timeout=None)
         elif action == "blank":
             process = await asyncio.create_subprocess_exec("swayidle", "-w", "timeout", "1", "wlopm --off '*'", "resume", "wlopm --on '*'; kill -TERM \"$PPID\"", stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
             self.processes.add(process)

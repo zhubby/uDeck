@@ -9,6 +9,7 @@ cleanup() {
     for child in $children; do
         kill "$child" 2>/dev/null || true
     done
+    python3 -m udeck.session_config restore || true
 }
 trap cleanup EXIT
 trap 'exit 0' HUP INT TERM
@@ -33,6 +34,7 @@ while [ "$attempt" -lt 3 ]; do
     shell_pid=$!
     wait "$shell_pid" || status=$?
     shell_pid=""
+    python3 -m udeck.session_config restore || true
     if [ "$status" -eq 0 ]; then
         exit 0
     fi
