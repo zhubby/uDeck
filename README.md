@@ -4,7 +4,7 @@ uDeck 是面向 1280×720 横屏 uConsole 的原生 Qt Quick 桌面壳：方向�
 
 基于现有 Debian 13 / labwc / Wayland 添加**独立可选会话**，不刷镜像、不改驱动、不替换合成器。软件包不修改原桌面配置或默认登录项；开机自动进入 uDeck 通过单独授权的配置工具开启。第三方 Linux 应用使用其原生键盘或手柄支持，不自动获得 uDeck 的焦点导航。
 
-当前版本：**0.1.3（uDeck v1）**。真实桌面默认全屏；自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
+当前基础包版本：**0.1.4**，新增独立的 **uDeck Terminal 0.1.0**。真实桌面默认全屏；自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
 
 ## 桌面功能
 
@@ -66,6 +66,8 @@ sudo python3 tools/configure-login.py --user "$(id -un)"
 - [0.1.1 全屏与开机默认会话配置记录](docs/udeck/boot-2026-11-06.md)
 - [0.1.2 ABXY 与 L/R 修复、实按事件记录](docs/udeck/input-2026-11-06.md)
 - [0.1.3 手柄交互与会话级鼠标屏蔽](docs/udeck/controller-mode-2026-11-06.md)
+- [uDeck Terminal：构建、按键、输入交接、默认终端与恢复](docs/udeck/terminal.md)
+- [uDeck Terminal：CM4 安装验收与待验项目](docs/udeck/terminal-acceptance-2026-11-06.md)
 
 ---
 

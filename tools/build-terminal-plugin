@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+"""Build the private QML plugin with the same Qt 6.8 used by PySide6."""
+
+import argparse
+import os
+import shlex
+import shutil
+import subprocess
+from pathlib import Path
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--qmake", default=os.environ.get("QMAKE", "qmake6"))
+parser.add_argument("--output", type=Path, default=Path("build/terminal-plugin"))
+options = parser.parse_args()
+root = Path(__file__).resolve().parent.parent
+qmake = shutil.which(options.qmake)
+if not qmake:
+    raise SystemExit("Qt 6.8 qmake6 is required (Debian: qt6-base-dev, qt6-declarative-dev).")
+qmake = str(Path(qmake).resolve())
+flags = shlex.split(os.environ.get("QMAKEFLAGS", ""))
+version = subprocess.check_output([qmake, "-query", "QT_VERSION", *[flag for flag in flags if "=" not in flag]], text=True).strip()
+if not version.startswith("6.8."):
+    raise SystemExit(f"Qt {version} is incompatible with the supported PySide6 6.8 runtime.")
+output = options.output.resolve()
+output.mkdir(parents=True, exist_ok=True)
+subprocess.run([qmake, *flags, str(root / "vendor/qmltermwidget/qmltermwidget.pro"), "CONFIG+=release"], cwd=output, check=True)
+subprocess.run(["make", f"-j{min(4, os.cpu_count() or 1)}"], cwd=output, check=True)
+shutil.copyfile(root / "packaging/terminal.colorscheme", output / "QMLTermWidget/color-schemes/udeck.colorscheme")
+print(f"Built Qt {version} QML plugin: {output / 'QMLTermWidget'}")

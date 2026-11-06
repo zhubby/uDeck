@@ -16,6 +16,7 @@ chmod 755 "$staging"
 trap 'rm -rf "$staging"' EXIT HUP INT TERM
 mkdir -p "$staging/DEBIAN" "$staging/usr/bin" "$staging/usr/lib/python3/dist-packages" "$staging/usr/libexec/udeck" "$staging/usr/share/udeck" "$staging/usr/share/wayland-sessions" "$staging/usr/share/applications" "$staging/usr/share/icons/hicolor/scalable/apps" "$staging/usr/share/xdg-desktop-portal"
 cp -R "$root/src/udeck" "$staging/usr/lib/python3/dist-packages/"
+rm -rf "$staging/usr/lib/python3/dist-packages/udeck/terminal"
 find "$staging/usr/lib/python3/dist-packages" -type d -name __pycache__ -prune -exec rm -rf '{}' ';'
 cp "$root/packaging/bin/udeck" "$root/packaging/bin/udeckctl" "$root/packaging/bin/udeck-session" "$staging/usr/bin/"
 cp "$root/packaging/session" "$staging/usr/libexec/udeck/session"
@@ -33,7 +34,7 @@ Architecture: $architecture
 Maintainer: uDeck Project
 Section: x11
 Priority: optional
-Depends: python3 (>= 3.11), python3-pyside6.qtquick (>= 6.8), python3-pyside6.qtqml, python3-pyside6.qtdbus, python3-pyside6.qtquickcontrols2, python3-dbus-next, python3-evdev, python3-gi, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-window, qml6-module-qtqml-workerscript, qml6-module-qtquick-templates, qt6-wayland, labwc (>= 0.9), wlr-randr, libwayland-client0, network-manager, bluez, wireplumber, pipewire-pulse, pulseaudio-utils, libglib2.0-bin, swayidle, swaylock, wlopm, fcitx5, fcitx5-frontend-qt6, lxpolkit, dbus-user-session, xdg-desktop-portal-wlr, xdg-desktop-portal-gtk, fonts-noto-cjk
+Depends: python3 (>= 3.11), python3-pyside6.qtquick (>= 6.8), python3-pyside6.qtqml, python3-pyside6.qtdbus, python3-pyside6.qtquickcontrols2, python3-dbus-next, python3-evdev, python3-gi, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-window, qml6-module-qtqml-workerscript, qml6-module-qtquick-templates, qt6-wayland, labwc (>= 0.9), wlr-randr, libwayland-client0, network-manager, bluez, wireplumber, pipewire-pulse, pulseaudio-utils, libglib2.0-bin, swayidle, swaylock, wlopm, fcitx5, fcitx5-frontend-qt6, lxpolkit, dbus-user-session, xdg-desktop-portal-wlr, xdg-desktop-portal-gtk, fonts-noto-cjk, xdg-terminal-exec
 Description: Button-first desktop shell for ClockworkPi uConsole
  Native Qt Quick shell with application and window management, files,
  Wi-Fi, Bluetooth, audio and power controls. Adds an optional labwc

@@ -1,0 +1,22 @@
+[Desktop Entry]
+Type=Application
+Name=uDeck Terminal
+Name[zh_CN]=uDeck 终端
+Comment=Button-first terminal with local shell sessions
+Comment[zh_CN]=面向实体按键的多会话终端
+TryExec=udeck-terminal
+Exec=udeck-terminal
+Icon=io.github.zhubby.uDeck.Terminal
+Terminal=false
+Categories=System;TerminalEmulator;
+StartupNotify=true
+StartupWMClass=io.github.zhubby.uDeck.Terminal
+X-TerminalArgExec=-e
+X-TerminalArgTitle=-T
+X-TerminalArgDir=--working-directory
+Actions=NewWindow;
+
+[Desktop Action NewWindow]
+Name=New Window
+Name[zh_CN]=新建窗口
+Exec=udeck-terminal --new-window

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "udeck"
-version = "0.1.3"
+version = "0.1.4"
 description = "A button-first desktop shell for ClockworkPi uConsole"
 requires-python = ">=3.11,<3.14"
 dependencies = [
@@ -19,12 +19,15 @@ dev = ["pytest>=8", "ruff>=0.9", "build>=1", "dbus-next>=0.2.3"]
 [project.scripts]
 udeck = "udeck.main:main"
 udeckctl = "udeck.cli:main"
+udeck-terminal = "udeck.terminal.main:main"
+udeck-terminal-default = "udeck.terminal.defaults:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
 udeck = ["qml/*.qml"]
+"udeck.terminal" = ["qml/*.qml"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

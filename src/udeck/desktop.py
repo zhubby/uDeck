@@ -1,10 +1,32 @@
 import configparser
 import locale as system_locale
 import os
+import pwd
 import shlex
 import shutil
 import subprocess
 from pathlib import Path
+
+
+def terminal_command(arguments=None):
+    resolver = shutil.which("xdg-terminal-exec")
+    if resolver:
+        return [resolver, "--", *arguments] if arguments else [resolver]
+    terminal = shutil.which("x-terminal-emulator")
+    if not terminal:
+        raise RuntimeError("没有可用的默认终端，请安装 xdg-terminal-exec 或终端模拟器")
+    return [terminal, "-e", *arguments] if arguments else [terminal]
+
+
+def open_terminal(directory):
+    directory = Path(directory).absolute()
+    if not directory.is_dir():
+        raise ValueError("终端工作目录不存在")
+    # An explicit directory/command must create a window even when the terminal
+    # primary already exists; a plain launch only activates its recent window.
+    resolver = shutil.which("xdg-terminal-exec")
+    arguments = [resolver, "--dir=" + str(directory)] if resolver else terminal_command([pwd.getpwuid(os.getuid()).pw_shell or "/bin/sh"])
+    return subprocess.Popen(arguments, cwd=str(directory), start_new_session=True)
 
 
 def parse_exec(command, name="", icon="", desktop_path=""):
@@ -91,8 +113,5 @@ class DesktopCatalog:
         except ImportError:
             arguments = parse_exec(entry["exec"], entry["name"], entry["icon"], entry["desktop"])
             if entry["terminal"]:
-                terminal = shutil.which("x-terminal-emulator")
-                if not terminal:
-                    raise RuntimeError("没有可用的终端模拟器") from None
-                arguments = [terminal, "-e", *arguments]
+                arguments = terminal_command(arguments)
             subprocess.Popen(arguments, cwd=entry["workingDirectory"] or None, start_new_session=True)

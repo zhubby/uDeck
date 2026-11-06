@@ -1,0 +1,52 @@
+.TH UDECK-TERMINAL 1 "2026-11-06" "uDeck Terminal 0.1.0"
+.SH NAME
+udeck-terminal \- button-first Qt terminal emulator
+.SH SYNOPSIS
+.B udeck-terminal
+.RI [ --new-window ]
+.RI [ --working-directory " DIR" ]
+.RI [ -T " TITLE" ]
+.RI [ -e " PROGRAM ARG..." ]
+.br
+.B udeck-terminal --
+.I PROGRAM ARG...
+.SH DESCRIPTION
+Runs an independent Qt Quick terminal with one PTY per tab. Plain invocation
+activates the most recent window in the same graphical session. An explicit
+directory, title, command or --new-window creates a new window. Tasks continue
+when switching to the desktop. Closing a session requires confirmation and
+terminates its processes. Application exit does not preserve running tasks.
+.SH OPTIONS
+.TP
+.B --new-window
+Create a new window.
+.TP
+.BI --working-directory " DIR"
+Use DIR. The default is the caller's current working directory.
+.TP
+.BI -T " TITLE"
+Set the new window's initial tab title.
+.TP
+.BI -e " PROGRAM ARG..."
+Execute the remaining arguments directly, without a shell or variable expansion.
+.TP
+.B --
+Treat the remaining arguments as the program and its arguments.
+.TP
+.B --doctor
+Print read-only JSON diagnostics. Never prints session contents or environments.
+.SH KEYS
+Ctrl+Shift+T/W creates/closes a tab. Ctrl+Shift+C/V copies/pastes.
+Ctrl+Shift+F searches literal text. Ctrl+Shift+M opens the menu.
+Physical A sends Return, B sends Escape, X opens the menu, Y opens settings.
+L/R selects the previous/next tab without wrapping. Ordinary keyboard letters,
+Escape, function keys and page keys remain available to terminal applications.
+.SH FILES
+.I ~/.config/udeck/terminal.json
+stores appearance preferences only. No transcripts or passwords are persisted
+by the terminal. Programs running inside the terminal may maintain their own
+history and configuration.
+.SH SEE ALSO
+.BR udeck-terminal-default (1),
+.BR xdg-terminal-exec (1),
+.BR update-alternatives (1)

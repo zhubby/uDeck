@@ -5,13 +5,15 @@ from .input import STOCK_FINGERPRINT
 
 class PointerGuard(QObject):
     action = Signal(str)
+    shoulder = Signal(str)
     status = Signal(dict)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, *, built_in_only=False):
         super().__init__(parent)
         self.devices = {}
         self.foreground = False
         self.last_status = None
+        self.built_in_only = built_in_only
         self.timer = QTimer(self)
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self._scan)
@@ -38,6 +40,10 @@ class PointerGuard(QObject):
             device = None
             try:
                 device = InputDevice(path)
+                fingerprint = f"{device.info.vendor:04x}:{device.info.product:04x}:{device.uniq}"
+                built_in = fingerprint == STOCK_FINGERPRINT and device.name == "ClockworkPI uConsole Mouse"
+                if self.built_in_only and not built_in:
+                    continue
                 capabilities = device.capabilities()
                 keys = set(capabilities.get(1, []))
                 relative = set(capabilities.get(2, []))
@@ -51,11 +57,10 @@ class PointerGuard(QObject):
                     errors.append(f"{device.name}: 请松开鼠标按键")
                     continue
                 device.grab()
-                fingerprint = f"{device.info.vendor:04x}:{device.info.product:04x}:{device.uniq}"
                 notifier = QSocketNotifier(device.fd, QSocketNotifier.Type.Read, self)
                 notifier.activated.connect(lambda *arguments, path=path: self._read(path))
                 self.devices[path] = {"device": device, "notifier": notifier, "pressed": set(),
-                                      "shoulders": fingerprint == STOCK_FINGERPRINT and device.name == "ClockworkPI uConsole Mouse",
+                                      "shoulders": built_in,
                                       "syncing": False}
                 device = None
             except OSError as error:
@@ -93,8 +98,11 @@ class PointerGuard(QObject):
                     entry["pressed"].discard(event.code)
                 elif event.value == 1 and event.code not in entry["pressed"]:
                     entry["pressed"].add(event.code)
-                    if self.foreground and entry["shoulders"] and event.code in (272, 273):
-                        self.action.emit("previous-page" if event.code == 272 else "next-page")
+                    if entry["shoulders"] and event.code in (272, 273):
+                        action = "previous-page" if event.code == 272 else "next-page"
+                        self.shoulder.emit(action)
+                        if self.foreground:
+                            self.action.emit(action)
         except BlockingIOError:
             pass
         except OSError as error:

@@ -123,6 +123,7 @@ class Control(QObject):
         self.windows = windows
         self.started = time.monotonic()
         self.first_frame = None
+        self.terminal_broker = None
 
     @Slot()
     def Home(self):
@@ -135,6 +136,10 @@ class Control(QObject):
     @Slot()
     def QuickSettings(self):
         self.controller.dispatch("quick-settings")
+
+    @Slot(result=str)
+    def TerminalInputState(self):
+        return json.dumps(self.terminal_broker.state() if self.terminal_broker else {"available": False})
 
     @Slot(result=str)
     def Diagnose(self):
@@ -202,6 +207,9 @@ def main(argv=None):
         session_bus.registerObject(CONTROL_PATH, CONTROL_INTERFACE, control, QDBusConnection.RegisterOption.ExportAllSlots)
     gamepad = Gamepad(config.data["input"]) if not options.mock and not options.no_input else None
     pointer = PointerGuard() if not options.mock and not options.windowed and not options.no_input else None
+    from .terminal_routing import TerminalInputBroker
+
+    control.terminal_broker = TerminalInputBroker(windows, pointer)
     if pointer:
         pointer.action.connect(controller.dispatch)
         pointer.status.connect(controller.input_status)

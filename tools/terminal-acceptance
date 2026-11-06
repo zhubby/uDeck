@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+"""Record 60 seconds of installed-terminal performance; manual checks stay pending."""
+
+import argparse
+import json
+import os
+import time
+from pathlib import Path
+
+from PySide6.QtCore import QCoreApplication
+from PySide6.QtDBus import QDBusConnection, QDBusInterface, QDBusMessage
+
+from udeck.terminal.defaults import MANUAL_CHECKS
+from udeck.terminal.ipc import interface, service_name
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--output", type=Path, required=True)
+options = parser.parse_args()
+app = QCoreApplication([])
+bus = QDBusConnection.sessionBus()
+remote = interface()
+if not remote.isValid():
+    raise SystemExit("请在当前图形会话中启动已安装的 udeck-terminal，并只保留一个本地 shell。")
+
+
+def diagnostics():
+    reply = remote.call("Diagnose")
+    if reply.type() == QDBusMessage.MessageType.ErrorMessage:
+        raise SystemExit(reply.errorMessage())
+    return json.loads(reply.arguments()[0])
+
+
+first = diagnostics()
+diagnosed_boot_seconds = float(Path("/proc/uptime").read_text().split()[0])
+build_path = Path("/usr/share/udeck-terminal/build-info.json")
+build = json.loads(build_path.read_text())
+if first.get("installedBuildId") != build["buildId"]:
+    raise SystemExit("运行中的终端与已安装构建不一致；请关闭源码版或升级前的进程，再启动安装版。")
+if first["mock"] or first["windows"] != 1 or first["sessions"] != 1 or first["localShells"] != 1:
+    raise SystemExit("性能采样需要安装版、一个窗口、一个本地 shell。")
+if not first.get("firstFrameSeconds"):
+    raise SystemExit("终端尚未呈现首帧，请稍候再采样。")
+dbus = QDBusInterface("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", bus)
+reply = dbus.call("GetConnectionUnixProcessID", service_name())
+if reply.type() == QDBusMessage.MessageType.ErrorMessage:
+    raise SystemExit(reply.errorMessage())
+pid = int(reply.arguments()[0])
+ticks = os.sysconf("SC_CLK_TCK")
+page_size = os.sysconf("SC_PAGE_SIZE")
+
+
+def sample(process):
+    fields = Path(f"/proc/{process}/stat").read_text().split(") ", 1)[1].split()
+    return {"cpuTicks": int(fields[11]) + int(fields[12]), "rssBytes": int(fields[21]) * page_size,
+            "startTicks": int(fields[19])}
+
+
+def child_samples():
+    result = {}
+    for path in Path("/proc").glob("[0-9]*/stat"):
+        try:
+            fields = path.read_text().split(") ", 1)[1].split()
+            if int(fields[1]) == pid:
+                result[int(path.parent.name)] = sample(path.parent.name)
+        except (OSError, ValueError, IndexError):
+            continue
+    return result
+
+
+before = sample(pid)
+children_before = child_samples()
+first_frame = diagnosed_boot_seconds - before["startTicks"] / ticks - first["uptimeSeconds"] + first["firstFrameSeconds"]
+maximum_rss = before["rssBytes"]
+started = time.monotonic()
+for second in range(60):
+    time.sleep(1)
+    maximum_rss = max(maximum_rss, sample(pid)["rssBytes"])
+    if second % 10 == 9:
+        print(f"采样 {second + 1}/60 秒", flush=True)
+elapsed = time.monotonic() - started
+after = sample(pid)
+last = diagnostics()
+if any(last[key] != first[key] for key in ("windows", "sessions", "localShells", "installedBuildId")):
+    raise SystemExit("采样过程中会话数量变化，请重新采样。")
+if before["startTicks"] != after["startTicks"] or json.loads(build_path.read_text())["buildId"] != build["buildId"]:
+    raise SystemExit("采样过程中安装构建或进程发生变化，请重新采样。")
+children = []
+for child, metrics in child_samples().items():
+    entry = {"pid": child, **metrics}
+    baseline = children_before.get(child)
+    if baseline and baseline["startTicks"] == metrics["startTicks"]:
+        entry["cpuPercentOneCore"] = 100 * (metrics["cpuTicks"] - baseline["cpuTicks"]) / ticks / elapsed
+    children.append(entry)
+report = {"buildId": build["buildId"], "checks": dict.fromkeys(MANUAL_CHECKS, "pending"),
+          "performance": {"sampleSeconds": elapsed, "firstFrameSeconds": round(first_frame, 3),
+                          "mainEntryToFirstFrameSeconds": first["firstFrameSeconds"],
+                          "startupClock": "Linux process start ticks plus recorded first-frame offset",
+                          "rssMiB": maximum_rss / 1024**2,
+                          "idleCpuPercentOneCore": 100 * (after["cpuTicks"] - before["cpuTicks"]) / ticks / elapsed,
+                          "windowCount": first["windows"], "localShellCount": first["localShells"]},
+          "childProcesses": children, "diagnostics": last,
+          "platform": dict(zip(("system", "node", "release", "version", "machine"), os.uname(), strict=True))}
+options.output.parent.mkdir(parents=True, exist_ok=True)
+options.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+print(options.output)

@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""Build a private native terminal package on the target Debian/Qt system."""
+
+import argparse
+import gzip
+import hashlib
+import json
+import os
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--plugin", type=Path, default=root / "build/terminal-plugin/QMLTermWidget")
+parser.add_argument("--output", type=Path, default=root / "dist")
+options = parser.parse_args()
+if not shutil.which("dpkg-deb"):
+    raise SystemExit("Build on Debian, using the same Qt as the target PySide6.")
+plugin = options.plugin.resolve()
+library = plugin / "libqmltermwidget.so"
+if not library.is_file() or library.read_bytes()[:4] != b"\x7fELF":
+    raise SystemExit("A target-built ELF QMLTermWidget plugin is required.")
+architecture = subprocess.check_output(["dpkg", "--print-architecture"], text=True).strip()
+header = subprocess.check_output(["readelf", "-h", library], text=True)
+if architecture == "arm64" and "AArch64" not in header:
+    raise SystemExit("The plugin architecture does not match the target arm64 package.")
+dependencies = subprocess.check_output(["ldd", library], text=True)
+if "not found" in dependencies:
+    raise SystemExit("Native plugin has unresolved dependencies:\n" + dependencies)
+options.output.mkdir(parents=True, exist_ok=True)
+version = "0.1.0"
+with tempfile.TemporaryDirectory(prefix="udeck-terminal-deb-") as directory:
+    stage = Path(directory)
+    os.chmod(stage, 0o755)
+    for name in ("DEBIAN", "usr/bin", "usr/lib/python3/dist-packages/udeck", "usr/lib/udeck-terminal/qml",
+                 "usr/share/applications", "usr/share/icons/hicolor/scalable/apps", "usr/share/man/man1",
+                 "usr/share/doc/udeck-terminal", "usr/share/udeck-terminal"):
+        (stage / name).mkdir(parents=True, exist_ok=True)
+    shutil.copytree(root / "src/udeck/terminal", stage / "usr/lib/python3/dist-packages/udeck/terminal",
+                    ignore=shutil.ignore_patterns("__pycache__", "._*"))
+    shutil.copytree(plugin, stage / "usr/lib/udeck-terminal/qml/QMLTermWidget", ignore=shutil.ignore_patterns("._*"))
+    for name in ("udeck-terminal", "udeck-terminal-default"):
+        destination = stage / "usr/bin" / name
+        shutil.copyfile(root / "packaging/bin" / name, destination)
+        destination.chmod(0o755)
+        with gzip.GzipFile(filename=str(stage / "usr/share/man/man1" / (name + ".1.gz")), mode="wb", mtime=0) as stream:
+            stream.write((root / "packaging" / (name + ".1")).read_bytes())
+    shutil.copy(root / "packaging/io.github.zhubby.uDeck.Terminal.desktop", stage / "usr/share/applications")
+    shutil.copy(root / "packaging/terminal.svg", stage / "usr/share/icons/hicolor/scalable/apps/io.github.zhubby.uDeck.Terminal.svg")
+    for name in ("LICENSE", "LICENSE.BSD-3-clause", "LICENSE.LGPL2+", "UPSTREAM.json"):
+        shutil.copy(root / "vendor/qmltermwidget" / name, stage / "usr/share/doc/udeck-terminal" / name)
+    shutil.copytree(root / "vendor/qmltermwidget/patches", stage / "usr/share/doc/udeck-terminal/patches")
+    shutil.copy(root / "docs/udeck/terminal.md", stage / "usr/share/doc/udeck-terminal/README.zh-CN.md")
+    (stage / "usr/share/doc/udeck-terminal/copyright").write_text("""Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: uDeck Terminal
+Source: https://github.com/Swordfish90/qmltermwidget
+
+Files: src/udeck/terminal/* packaging/terminal* tools/build-terminal*
+Copyright: 2026 uDeck contributors
+License: GPL-2.0-or-later
+
+Files: vendor/qmltermwidget/*
+Copyright: See individual source files and the bundled upstream licenses
+License: GPL-2.0-or-later and LGPL-2.0-or-later and BSD-3-clause
+Comment: Original upstream notices are preserved in the corresponding source archive.
+""")
+    digest = hashlib.sha256()
+    for source in sorted((stage / "usr").rglob("*")):
+        if source.is_file():
+            digest.update(str(source.relative_to(stage)).encode())
+            digest.update(source.read_bytes())
+    build_id = digest.hexdigest()
+    (stage / "usr/share/udeck-terminal/build-info.json").write_text(json.dumps({"buildId": build_id, "version": version,
+         "architecture": architecture, "pluginSha256": hashlib.sha256(library.read_bytes()).hexdigest()}, indent=2))
+    (stage / "DEBIAN/control").write_text(f"""Package: udeck-terminal
+Version: {version}
+Architecture: {architecture}
+Maintainer: uDeck Project
+Section: x11
+Priority: optional
+Depends: udeck (>= 0.1.4), python3 (>= 3.11), python3-pyside6.qtwidgets (>= 6.8), python3-pyside6.qtquick (>= 6.8), python3-pyside6.qtquick (<< 6.9), libqt6quick6 (>= 6.8), libqt6qml6 (>= 6.8), libqt6widgets6 (>= 6.8), libstdc++6, libc6, libutempter0, xdg-terminal-exec
+Description: Independent button-first terminal for uDeck and labwc
+ Qt Quick terminal with private native QMLTermWidget, local PTY sessions,
+ multiple windows and tabs, keyboard selection, search and safe paste.
+ Default-terminal changes require explicit acceptance and a separate tool.
+""")
+    postrm = stage / "DEBIAN/postrm"
+    postrm.write_text("#!/bin/sh\nset -e\nif [ \"$1\" = remove ] || [ \"$1\" = purge ]; then\n    update-alternatives --remove x-terminal-emulator /usr/bin/udeck-terminal\nfi\n")
+    postrm.chmod(0o755)
+    output = options.output.resolve() / f"udeck-terminal_{version}_{architecture}.deb"
+    subprocess.run(["dpkg-deb", "--root-owner-group", "--build", stage, output], check=True)
+    print(f"Build ID: {build_id}")
+    print(output)

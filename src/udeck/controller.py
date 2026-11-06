@@ -8,7 +8,7 @@ from pathlib import Path
 from PySide6.QtCore import Property, QObject, QTimer, Signal, Slot
 
 from .core import PAGE_NAMES, PAGES, ConfigStore, Navigation, move_index
-from .desktop import DesktopCatalog
+from .desktop import DesktopCatalog, open_terminal
 from .files import FileOperations
 from .mock import mock_apps
 
@@ -291,6 +291,7 @@ class ShellController(QObject):
                            {"label": "剪切", "action": "cut", "item": item},
                            {"label": "移入回收站", "action": "trash", "item": item}]
             options.append({"label": "新建文件夹", "action": "mkdir"})
+            options.append({"label": "在此打开终端", "action": "open-terminal", "directory": item["path"] if item and item.get("directory") else self.data["directory"]})
             if self.clipboard:
                 options.append({"label": "粘贴到当前目录", "action": "paste"})
             options.extend([{"label": "隐藏点文件" if self.show_hidden else "显示点文件", "action": "hidden"}, {"label": "上级目录", "action": "parent"}, {"label": "刷新", "action": "refresh-files"}])
@@ -477,6 +478,11 @@ class ShellController(QObject):
             self.navigation.select(0)
         elif action == "open-file":
             self._activate(item)
+        elif action == "open-terminal":
+            if self.mock:
+                self.notify("预览：在此打开终端")
+            else:
+                self._run("打开终端", lambda: open_terminal(option["directory"]))
         elif action in ("mkdir", "rename"):
             self._text_prompt("新建文件夹" if action == "mkdir" else "重命名", "输入名称，按 A 或 Enter 确认", action, "" if action == "mkdir" else item["name"], item=item, directory=self.data["directory"])
         elif action in ("copy", "cut"):

@@ -1,0 +1,572 @@
+--- a/lib/Pty.cpp
++++ b/lib/Pty.cpp
+@@ -178,6 +178,9 @@
+   Q_ASSERT(programArguments.count() >= 1);
+   setProgram(program, programArguments.mid(1));
+ 
++  // Each window carries its caller's complete environment. Never inherit
++  // variables left over from the primary process or another session.
++  clearEnvironment();
+   addEnvironmentVariables(environment);
+ 
+   setEnv(QLatin1String("WINDOWID"), QString::number(winid));
+--- a/lib/ScreenWindow.cpp
++++ b/lib/ScreenWindow.cpp
+@@ -159,6 +159,13 @@
+     emit selectionChanged();
+ }
+ 
++void ScreenWindow::refreshSelection()
++{
++    _bufferNeedsUpdate = true;
++    emit selectionChanged();
++    emit outputChanged();
++}
++
+ void ScreenWindow::setWindowLines(int lines)
+ {
+     Q_ASSERT(lines > 0);
+@@ -265,6 +272,7 @@
+ 
+ void ScreenWindow::notifyOutputChanged()
+ {
++    if (_screen->droppedLines() > 0) emit historyLinesDropped(_screen->droppedLines());
+     // move window to the bottom of the screen and update scroll count
+     // if this window is currently tracking the bottom of the screen
+     if ( _trackOutput )
+--- a/lib/ScreenWindow.h
++++ b/lib/ScreenWindow.h
+@@ -141,6 +141,7 @@
+      * Clears the current selection
+      */
+     void clearSelection();
++    void refreshSelection();
+ 
+     /** Sets the number of lines in the window */
+     void setWindowLines(int lines);
+@@ -227,6 +228,7 @@
+     void handleCommandFromKeyboard(KeyboardTranslator::Command command);
+ 
+ signals:
++    void historyLinesDropped(int lines);
+     /**
+      * Emitted when the contents of the associated terminal screen (see screen()) changes.
+      */
+--- a/lib/Session.cpp
++++ b/lib/Session.cpp
+@@ -27,6 +27,10 @@
+ 
+ // Standard
+ #include <cstdlib>
++#include <unistd.h>
++#include <signal.h>
++#include <QSet>
++#include <QFileInfo>
+ 
+ // Qt
+ #include <QApplication>
+@@ -150,15 +154,15 @@
+ 
+ void Session::setProgram(const QString & program)
+ {
+-    _program = ShellCommand::expand(program);
++    _program = program;
+ }
+ void Session::setInitialWorkingDirectory(const QString & dir)
+ {
+-    _initialWorkingDir = ShellCommand::expand(dir);
++    _initialWorkingDir = dir;
+ }
+ void Session::setArguments(const QStringList & arguments)
+ {
+-    _arguments = ShellCommand::expand(arguments);
++    _arguments = arguments;
+ }
+ 
+ QList<TerminalDisplay *> Session::views() const
+@@ -260,27 +264,17 @@
+     // a custom shell (eg. python, etc.) available in the PATH.
+     if (exec.startsWith(QLatin1Char('/')) || exec.isEmpty())
+     {
+-        const QString defaultShell{QLatin1String("/bin/sh")};
+-
+-        QFile excheck(exec);
+-        if ( exec.isEmpty() || !excheck.exists() ) {
+-            exec = QString::fromLocal8Bit(qgetenv("SHELL"));
+-        }
+-        excheck.setFileName(exec);
+-
+-        if ( exec.isEmpty() || !excheck.exists() ) {
+-            qWarning() << "Neither default shell nor $SHELL is set to a correct path. Fallback to" << defaultShell;
+-            exec = defaultShell;
++        if (exec.isEmpty() || !QFileInfo(exec).isExecutable()) {
++            emit error(tr("Cannot execute program: %1").arg(exec));
++            return;
+         }
+     }
+ 
+     // _arguments sometimes contain ("") so isEmpty()
+     // or count() does not work as expected...
+-    QString argsTmp(_arguments.join(QLatin1Char(' ')).trimmed());
+     QStringList arguments;
+     arguments << exec;
+-    if (argsTmp.length())
+-        arguments << _arguments;
++    arguments << _arguments;
+ 
+     QString cwd = QDir::currentPath();
+     if (!_initialWorkingDir.isEmpty()) {
+@@ -309,7 +303,7 @@
+                                       _addToUtmp);
+ 
+     if (result < 0) {
+-        qDebug() << "CRASHED! result: " << result;
++        emit error(tr("Cannot start PTY: %1").arg(_shellProcess->errorString()));
+         return;
+     }
+ 
+@@ -564,31 +558,30 @@
+ 
+     if (isRunning())
+     {
+-#if defined(Q_OS_MAC)
+-        // On macOS, jump straight to SIGKILL to avoid hangs.
+-        if (sendSignal(SIGKILL))
+-        {
+-            return;
+-        }
+-#else
+-        // Try SIGHUP, and if unsuccessful, do a hard kill.
+-        // This is the sequence used by most other terminal emulators like xterm, gnome-terminal, ...
+-        if (sendSignal(SIGHUP))
+-        {
+-            return;
+-        }
++        const pid_t child = processId();
++        QSet<pid_t> groups;
++        // A PTY child owns a new session. Include its foreground and background
++        // job groups, but never signal our own or an unrelated process group.
++        if (::getsid(child) == child) {
++            groups.insert(child);
++#ifdef Q_OS_LINUX
++            const auto pids = QDir(QStringLiteral("/proc")).entryList(QDir::Dirs | QDir::NoDotAndDotDot);
++            for (const QString &name : pids) {
++                bool ok = false;
++                const pid_t pid = name.toInt(&ok);
++                if (ok && pid > 0 && ::getsid(pid) == child) {
++                    const pid_t group = ::getpgid(pid);
++                    if (group > 0 && group != ::getpgrp()) groups.insert(group);
++                }
++            }
+ #endif
+-        qWarning() << "Process " << processId() << " did not die with SIGHUP";
++        }
++        for (pid_t group : groups) ::kill(-group, SIGHUP);
++        ::kill(child, SIGHUP);
+         _shellProcess->closePty();
+-        if (!_shellProcess->waitForFinished(1000))
+-        {
+-            if (!sendSignal(SIGKILL))
+-            {
+-                qWarning() << "Process " << processId() << " did not die with SIGKILL";
+-                // Forced close.
+-                QTimer::singleShot(1, this, SIGNAL(finished()));
+-            }
+-        }
++        _shellProcess->waitForFinished(100);
++        for (pid_t group : groups) ::kill(-group, SIGKILL);
++        if (isRunning()) { ::kill(child, SIGKILL); _shellProcess->waitForFinished(100); }
+     }
+     else
+     {
+@@ -647,10 +640,8 @@
+         }
+     }
+ 
+-    if ( !_wantedClose && exitStatus != QProcess::NormalExit )
+-        message = tr("Session '%1' exited unexpectedly.").arg(_nameTitle);
+-    else
+-        emit finished();
++    Q_UNUSED(exitStatus)
++    emit finished();
+ }
+ 
+ Emulation * Session::emulation() const
+--- a/lib/Session.h
++++ b/lib/Session.h
+@@ -422,6 +422,7 @@
+      * Emitted when the terminal process exits.
+      */
+     void finished();
++    void error(QString message);
+ 
+     /**
+      * Emitted when output is received from the terminal process.
+--- a/lib/TerminalDisplay.cpp
++++ b/lib/TerminalDisplay.cpp
+@@ -30,6 +30,7 @@
+ #include <QAbstractButton>
+ #include <QApplication>
+ #include <QGuiApplication>
++#include <QInputMethod>
+ #include <QQuickWindow>
+ #include <QBoxLayout>
+ #include <QClipboard>
+@@ -70,6 +71,7 @@
+ #include "Filter.h"
+ #include "konsole_wcwidth.h"
+ #include "ScreenWindow.h"
++#include "Screen.h"
+ #include "TerminalCharacterDecoder.h"
+ 
+ using namespace Konsole;
+@@ -157,6 +159,9 @@
+     {
+         connect(_screenWindow, &ScreenWindow::outputChanged, this, &TerminalDisplay::updateLineProperties);
+         connect(_screenWindow, &ScreenWindow::outputChanged, this, &TerminalDisplay::updateImage);
++        connect(_screenWindow, &ScreenWindow::historyLinesDropped, this, [this](int lines) {
++            if (_historyActive) _historyCursor.setY(qMax(0, _historyCursor.y() - lines));
++        });
+         connect(_screenWindow, &ScreenWindow::scrollToEnd, this, &TerminalDisplay::scrollToEnd);
+         window->setWindowLines(_lines);
+     }
+@@ -1352,6 +1357,8 @@
+ 
+   // update the parts of the display which have changed
+   update(dirtyRegion);
++  if (hasActiveFocus())
++      QGuiApplication::inputMethod()->update(Qt::ImCursorRectangle | Qt::ImCursorPosition | Qt::ImSurroundingText);
+ 
+   if ( _hasBlinker && !_blinkTimer->isActive()) _blinkTimer->start( TEXT_BLINK_DELAY );
+   if (!_hasBlinker && _blinkTimer->isActive()) { _blinkTimer->stop(); _blinking = false; }
+@@ -3182,6 +3189,141 @@
+   emitSelection(false,false);
+ }
+ 
++void TerminalDisplay::pasteText(QString text)
++{
++    if (!_screenWindow || text.isEmpty()) return;
++    text.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
++    text.replace(QLatin1Char('\n'), QLatin1Char('\r'));
++    bracketText(text);
++    QKeyEvent event(QEvent::KeyPress, 0, Qt::NoModifier, text);
++    emit keyPressedSignal(&event, true);
++    _screenWindow->clearSelection();
++    scrollToEnd();
++}
++
++void TerminalDisplay::beginHistory()
++{
++    if (!_screenWindow) return;
++    _screenWindow->setTrackOutput(false);
++    _historyAnchored = false;
++    _historyActive = true;
++    _historyCursor = QPoint(0, _screenWindow->currentLine() +
++                           _screenWindow->cursorPosition().y());
++    updateHistorySelection();
++}
++
++void TerminalDisplay::moveHistory(int columns, int lines)
++{
++    if (!_screenWindow) return;
++    // Preserve content position when a bounded history has evicted old lines.
++    _historyCursor.setY(qBound(0, _historyCursor.y() + lines,
++                              _screenWindow->lineCount() - 1));
++    _historyCursor.setX(qBound(0, _historyCursor.x() + columns,
++                              _screenWindow->columnCount() - 1));
++    const int row = _historyCursor.y();
++    const int top = _screenWindow->currentLine();
++    if (row < top) _screenWindow->scrollTo(row);
++    else if (row >= top + _screenWindow->windowLines())
++        _screenWindow->scrollTo(row - _screenWindow->windowLines() + 1);
++    Character *image = _screenWindow->getImage();
++    const int offset = (row - _screenWindow->currentLine()) * _screenWindow->columnCount();
++    // Wide-character continuation cells are never selection endpoints.
++    if (_historyCursor.x() > 0 && image[offset + _historyCursor.x()].character == 0)
++        _historyCursor.rx() += columns > 0 && _historyCursor.x() + 1 < _screenWindow->columnCount() ? 1 : -1;
++    updateHistorySelection();
++}
++
++void TerminalDisplay::updateHistorySelection()
++{
++    if (!_screenWindow) return;
++    Screen *screen = _screenWindow->screen();
++    const int row = qBound(0, _historyCursor.y(), _screenWindow->lineCount() - 1);
++    const int col = qBound(0, _historyCursor.x(), _screenWindow->columnCount() - 1);
++    if (!_historyAnchored) screen->setSelectionStart(col, row, false);
++    screen->setSelectionEnd(col, row);
++    // Rebuild the selection attributes through the native viewport.
++    _screenWindow->refreshSelection();
++    updateImage();
++}
++
++void TerminalDisplay::anchorHistory()
++{
++    _historyAnchored = true;
++}
++
++QString TerminalDisplay::selectedHistoryText() const
++{
++    return _screenWindow ? _screenWindow->selectedText(true) : QString();
++}
++
++void TerminalDisplay::leaveHistory()
++{
++    if (!_screenWindow) return;
++    _historyAnchored = false;
++    _historyActive = false;
++    _screenWindow->clearSelection();
++    _screenWindow->setTrackOutput(true);
++    scrollToEnd();
++    updateImage();
++}
++
++bool TerminalDisplay::searchText(const QString &text, bool forwards)
++{
++    if (!_screenWindow || text.isEmpty()) return false;
++    const int width = _screenWindow->columnCount();
++    QVector<Character> cells(width);
++    QString logical;
++    QList<QPoint> positions;
++    QList<QPair<QPoint, QPoint>> matches;
++    const auto properties = _screenWindow->screen()->getLineProperties(0, _screenWindow->lineCount() - 1);
++    for (int row = 0; row < _screenWindow->lineCount(); ++row) {
++        _screenWindow->screen()->getImage(cells.data(), width, row, row);
++        for (int col = 0; col < width; ++col) {
++            const Character &cell = cells[col];
++            if (cell.character == 0) continue;
++            QString value;
++            if (cell.rendition & RE_EXTENDED_CHAR) {
++                ushort length = 0;
++                const uint *chars = ExtendedCharTable::instance.lookupExtendedChar(cell.character, length);
++                value = QString::fromUcs4(chars, length);
++            } else {
++                const char32_t code = cell.character;
++                value = QString::fromUcs4(&code, 1);
++            }
++            logical += value;
++            for (int unit = 0; unit < value.size(); ++unit) positions.append(QPoint(col, row));
++        }
++        if (row < properties.size() && (properties[row] & LINE_WRAPPED)) continue;
++        int at = -1;
++        while ((at = logical.indexOf(text, at + 1, Qt::CaseSensitive)) >= 0)
++            matches.append(qMakePair(positions[at], positions[at + text.size() - 1]));
++        logical.clear();
++        positions.clear();
++    }
++    if (matches.isEmpty()) return false;
++    auto chosen = forwards ? matches.first() : matches.last();
++    const int cursor = _historyCursor.y() * width + _historyCursor.x();
++    if (forwards) {
++        for (const auto &match : matches) {
++            if (match.first.y() * width + match.first.x() > cursor) { chosen = match; break; }
++        }
++    } else {
++        for (auto it = matches.crbegin(); it != matches.crend(); ++it) {
++            if (it->first.y() * width + it->first.x() < cursor) { chosen = *it; break; }
++        }
++    }
++    _historyCursor = chosen.first;
++    _historyAnchored = true;
++    _historyActive = true;
++    _screenWindow->setTrackOutput(false);
++    _screenWindow->scrollTo(chosen.first.y());
++    _screenWindow->screen()->setSelectionStart(chosen.first.x(), chosen.first.y(), false);
++    _screenWindow->screen()->setSelectionEnd(chosen.second.x(), chosen.second.y());
++    _screenWindow->refreshSelection();
++    updateImage();
++    return true;
++}
++
+ void TerminalDisplay::pasteSelection()
+ {
+   emitSelection(true,false);
+@@ -3255,8 +3397,12 @@
+ 
+ void TerminalDisplay::inputMethodQuery(QInputMethodQueryEvent *event)
+ {
+-    event->setValue(Qt::ImEnabled, true);
+-    event->setValue(Qt::ImHints, QVariant(Qt::ImhNoPredictiveText |  Qt::ImhNoAutoUppercase));
++    for (const auto query : {Qt::ImEnabled, Qt::ImHints, Qt::ImCursorRectangle,
++                             Qt::ImFont, Qt::ImCursorPosition, Qt::ImAnchorPosition,
++                             Qt::ImSurroundingText, Qt::ImCurrentSelection}) {
++        if (event->queries().testFlag(query))
++            event->setValue(query, inputMethodQuery(query));
++    }
+     event->accept();
+ }
+ 
+@@ -3265,6 +3411,10 @@
+     const QPoint cursorPos = _screenWindow ? _screenWindow->cursorPosition() : QPoint(0,0);
+     switch ( query )
+     {
++        case Qt::ImEnabled:
++                return true;
++        case Qt::ImHints:
++                return QVariant(Qt::ImhNoPredictiveText | Qt::ImhNoAutoUppercase);
+         case Qt::ImCursorRectangle:
+                 return imageToWidget(QRect(cursorPos.x(),cursorPos.y(),1,1));
+             break;
+@@ -3272,11 +3422,25 @@
+                 return font();
+             break;
+         case Qt::ImCursorPosition:
+-                // return the cursor position within the current line
+-                return cursorPos.x();
+-            break;
++        case Qt::ImAnchorPosition:
++            {
++                // Qt offsets address UTF-16 text, whereas PTY cursor columns
++                // include wide-character continuation cells and combining marks.
++                if (!_image || cursorPos.y() < 0 || cursorPos.y() >= _usedLines)
++                    return 0;
++                QString prefix;
++                QTextStream stream(&prefix);
++                PlainTextDecoder decoder;
++                decoder.begin(&stream);
++                decoder.decodeLine(&_image[loc(0,cursorPos.y())],
++                                   qBound(0, cursorPos.x(), _usedColumns), 0);
++                decoder.end();
++                return prefix.size();
++            }
+         case Qt::ImSurroundingText:
+             {
++                if (!_image || cursorPos.y() < 0 || cursorPos.y() >= _usedLines)
++                    return QString();
+                 // return the text from the current line
+                 QString lineText;
+                 QTextStream stream(&lineText);
+--- a/lib/TerminalDisplay.h
++++ b/lib/TerminalDisplay.h
+@@ -510,6 +510,14 @@
+     void autoHideMouseAfter(int delay);
+ 
+ public slots:
++    // uDeck: operate the native buffer, with cell coordinates (not mouse events).
++    void beginHistory();
++    void moveHistory(int columns, int lines);
++    void anchorHistory();
++    QString selectedHistoryText() const;
++    void leaveHistory();
++    bool searchText(const QString &text, bool forwards);
++    void pasteText(QString text);
+ 
+     /**
+      * Causes the terminal display to fetch the latest character image from the associated
+@@ -752,6 +760,10 @@
+     void tripleClickTimeout();  // resets possibleTripleClick
+ 
+ private:
++    void updateHistorySelection();
++    QPoint _historyCursor;
++    bool _historyAnchored = false;
++    bool _historyActive = false;
+ 
+     // -- Drawing helpers --
+ 
+--- a/lib/ksession.cpp
++++ b/lib/ksession.cpp
+@@ -40,6 +40,7 @@
+     connect(m_session, SIGNAL(started()), this, SIGNAL(started()));
+     connect(m_session, SIGNAL(finished()), this, SLOT(sessionFinished()));
+     connect(m_session, SIGNAL(titleChanged()), this, SIGNAL(titleChanged()));
++    connect(m_session, SIGNAL(error(QString)), this, SIGNAL(error(QString)));
+ }
+ 
+ KSession::~KSession()
+@@ -78,17 +79,16 @@
+     m_shellProgram = shellProg;
+     session->setProgram(shellProg);
+ 
+-    setenv("TERM", "xterm", 1);
+ 
+     //session->setProgram();
+ 
+-    QStringList args("");
++    QStringList args;
+     m_shellArgs = args;
+     session->setArguments(args);
+     session->setAutoClose(true);
+ 
+     session->setFlowControlEnabled(true);
+-    session->setHistoryType(HistoryTypeBuffer(1000));
++    session->setHistoryType(HistoryTypeBuffer(10000));
+ 
+     session->setDarkBackground(true);
+ 
+@@ -173,6 +173,21 @@
+     m_session->setEnvironment(environment);
+ }
+ 
++void KSession::configureEnvironment(const QStringList &environment)
++{
++    setEnvironment(environment);
++}
++
++void KSession::close()
++{
++    m_session->close();
++}
++
++void KSession::searchLiteral(const QString &text, int line, int column, bool forwards)
++{
++    search(QRegularExpression::escape(text), line, column, forwards);
++}
++
+ 
+ void KSession::setShellProgram(const QString &progname)
+ {
+@@ -249,15 +264,8 @@
+ 
+ void KSession::sendKey(int rep, int key, int mod) const
+ {
+-    //TODO implement or remove this function.
+-//    Qt::KeyboardModifier kbm = Qt::KeyboardModifier(mod);
+-
+-//    QKeyEvent qkey(QEvent::KeyPress, key, kbm);
+-
+-//    while (rep > 0){
+-//        m_session->sendKey(&qkey);
+-//        --rep;
+-    //    }
++    QKeyEvent event(QEvent::KeyPress, key, Qt::KeyboardModifiers(mod));
++    while (rep-- > 0) m_session->sendKeyEvent(&event);
+ }
+ 
+ void KSession::clearScreen()
+@@ -276,6 +284,7 @@
+     connect( history, SIGNAL(matchFound(int,int,int,int)), this, SIGNAL(matchFound(int,int,int,int)));
+     connect( history, SIGNAL(noMatchFound()), this, SIGNAL(noMatchFound()));
+     history->search();
++    history->deleteLater();
+ }
+ 
+ void KSession::setFlowControlEnabled(bool enabled)
+--- a/lib/ksession.h
++++ b/lib/ksession.h
+@@ -45,6 +45,7 @@
+     Q_PROPERTY(bool hasActiveProcess READ hasActiveProcess)
+     Q_PROPERTY(QString foregroundProcessName READ foregroundProcessName)
+     Q_PROPERTY(QString currentDir READ currentDir)
++    Q_PROPERTY(int historySize READ historySize WRITE setHistorySize NOTIFY historySizeChanged)
+ 
+ public:
+     KSession(QObject *parent = 0);
+@@ -114,6 +115,7 @@
+     QString currentDir();
+ 
+ signals:
++    void error(QString message);
+     void started();
+     void finished();
+     void copyAvailable(bool);
+@@ -135,6 +137,9 @@
+     void noMatchFound();
+ 
+ public slots:
++    void configureEnvironment(const QStringList &environment);
++    void close();
++    void searchLiteral(const QString &text, int startLine, int startColumn, bool forwards);
+     /*! Set named key binding for given widget
+      */
+     void setKeyBindings(const QString & kb);
