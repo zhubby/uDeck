@@ -143,3 +143,32 @@ def test_native_keyboard_directions_can_advance_gamepad_calibration(tmp_path):
     assert controller.navigation.zone == "content"
     controller.dispatch("back")
     assert not controller.modal
+
+
+def test_shoulders_switch_pages_without_wrapping_and_restore_selection(tmp_path):
+    controller = make_controller(tmp_path)
+    controller.dispatch("previous-page")
+    assert controller.navigation.page == "home"
+    controller.select(3)
+    controller.dispatch("next-page")
+    assert controller.navigation.page == "apps"
+    controller.select(7)
+    controller.dispatch("previous-page")
+    assert controller.navigation.page == "home"
+    assert controller.navigation.index == 3
+    controller.dispatch("next-page")
+    assert controller.navigation.index == 7
+    controller.setPage("settings")
+    controller.dispatch("next-page")
+    assert controller.navigation.page == "settings"
+
+
+def test_shoulders_do_not_switch_pages_behind_a_dialog(tmp_path):
+    controller = make_controller(tmp_path)
+    controller.dispatch("search")
+    controller.editText("中文")
+    owner = controller.modal["key"]
+    controller.dispatch("next-page")
+    assert controller.navigation.page == "home"
+    assert controller.modal["key"] == owner
+    assert controller.modal["text"] == "中文"

@@ -115,7 +115,7 @@ class Gamepad(QObject):
                                   **self._mapping_status(source), "grabbed": False})
                 self._try_grab()
                 return
-            self.status.emit({"available": False, "verified": False, "message": "未找到独立手柄；键盘与轨迹球仍可使用"})
+            self.status.emit({"available": False, "verified": False, "message": "未找到独立手柄；可用方向键、Enter、Esc 操作"})
         except (ImportError, OSError) as error:
             self.status.emit({"available": False, "verified": False, "message": str(error)})
 

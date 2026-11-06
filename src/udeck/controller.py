@@ -103,7 +103,7 @@ class ShellController(QObject):
             {"id": "battery", "name": "电池", "subtitle": f"{battery.get('capacity', 0)}% · {'正在充电' if battery.get('charging') else '电池供电'}" if battery.get("available") else "未检测到电池", "icon": "battery"},
             {"id": "input", "name": "按键与控制器", "subtitle": "ABXY 已校准" if self.data["input"].get("verified") else ("ABXY 固件映射 · 可重新校准" if self.data["input"].get("mapped") else "校准物理 ABXY；不占用普通键盘字母"), "icon": "input-gaming"},
             {"id": "lock", "name": "锁定屏幕", "subtitle": "使用登录密码解锁", "icon": "system-lock-screen"},
-            {"id": "blank", "name": "熄灭屏幕", "subtitle": "移动轨迹球或按键恢复；不是系统休眠", "icon": "video-display"},
+            {"id": "blank", "name": "熄灭屏幕", "subtitle": "按方向键或键盘恢复；不是系统休眠", "icon": "video-display"},
             {"id": "logout", "name": "注销会话", "subtitle": "返回登录界面；请先保存工作", "icon": "system-log-out"},
             {"id": "reboot", "name": "重新启动", "subtitle": "需要二次确认", "icon": "system-reboot"},
             {"id": "poweroff", "name": "关闭设备", "subtitle": "需要二次确认", "icon": "system-shutdown"},
@@ -198,6 +198,12 @@ class ShellController(QObject):
     def dispatch(self, action):
         if self.modal.get("kind") == "calibration" and action in ("up", "down", "left", "right"):
             self.calibrationDirection.emit(action)
+            return
+        if action in ("previous-page", "next-page"):
+            if not self.modal:
+                index = PAGES.index(self.navigation.page)
+                offset = -1 if action == "previous-page" else 1
+                self.setPage(PAGES[max(0, min(index + offset, len(PAGES) - 1))])
             return
         if action == "home":
             self._cancel_modals()

@@ -22,6 +22,9 @@
     <keybind key="XF86PowerOff"><action name="Execute" command="udeckctl quick-settings"/></keybind>
   </keyboard>
   <mouse><default/></mouse>
+  <libinput>
+    <device category="ClockworkPI uConsole Mouse"><sendEventsMode>no</sendEventsMode></device>
+  </libinput>
   <windowRules>
     <windowRule identifier="*" type="normal"><action name="Maximize"/></windowRule>
     <windowRule identifier="io.github.zhubby.uDeck" serverDecoration="no"/>

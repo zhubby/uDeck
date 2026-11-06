@@ -68,21 +68,23 @@ controller.close()
 
 
 @pytest.mark.parametrize(("page", "button", "expected"), [
-    ("home", "LeftButton", "launch"),
-    ("settings", "LeftButton", "menu"),
-    ("home", "RightButton", "menu"),
-    ("files", "RightButton", "menu"),
-    ("files", "LeftButton", "select"),
-    ("files", "double", "open"),
+    ("home", "LeftButton", "home"),
+    ("settings", "LeftButton", "files"),
+    ("home", "RightButton", "apps"),
+    ("files", "RightButton", "settings"),
+    ("files", "double", "no-file-open"),
     ("home", "typing", "text"),
+    ("home", "dialog", "text"),
+    ("home", "keyboard", "launch"),
+    ("files", "wheel", "no-scroll"),
 ])
-def test_lr_mouse_clicks_activate_items_or_open_context_menus(tmp_path, page, button, expected):
+def test_controller_navigation_ignores_pointer_position_and_pointer_gestures(tmp_path, page, button, expected):
     probe = """
 import json
 import sys
 from pathlib import Path
-from PySide6.QtCore import QPoint, Qt, QUrl
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtCore import QObject, QPoint, QPointF, Qt, QUrl
+from PySide6.QtGui import QGuiApplication, QWheelEvent
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtTest import QTest
 from udeck import main
@@ -93,6 +95,9 @@ from udeck.mock import MockBackend
 application = QGuiApplication([])
 controller = ShellController(MockBackend(), config=ConfigStore(Path(sys.argv[1])), mock=True)
 controller.setPage(sys.argv[2])
+controller.select(2)
+if sys.argv[3] == 'wheel':
+    controller.data['files'] *= 10
 engine = QQmlApplicationEngine()
 engine.addImageProvider('desktop', main.IconProvider())
 context = engine.rootContext()
@@ -105,6 +110,8 @@ assert engine.rootObjects()
 window = engine.rootObjects()[0]
 initial_directory = controller.data['directory']
 QTest.qWait(100)
+views = [item for item in window.contentItem().findChildren(QObject) if item.inherits('QQuickFlickable')]
+scroll_before = [item.property('contentY') for item in views]
 if sys.argv[3] == 'double':
     QTest.mouseDClick(window, Qt.MouseButton.LeftButton, pos=QPoint(110, 300))
 elif sys.argv[3] == 'typing':
@@ -112,10 +119,20 @@ elif sys.argv[3] == 'typing':
     QTest.qWait(100)
     for key in (Qt.Key.Key_J, Qt.Key.Key_K, Qt.Key.Key_U, Qt.Key.Key_I):
         QTest.keyClick(window, key)
+elif sys.argv[3] == 'dialog':
+    controller.dispatch('search')
+    QTest.qWait(100)
+    QTest.mouseClick(window, Qt.MouseButton.RightButton, pos=QPoint(110, 300))
+elif sys.argv[3] == 'keyboard':
+    QTest.keyClick(window, Qt.Key.Key_PageDown)
+    QTest.keyClick(window, Qt.Key.Key_Return)
+elif sys.argv[3] == 'wheel':
+    wheel = QWheelEvent(QPointF(110, 300), QPointF(110, 300), QPoint(0, 0), QPoint(0, -120), Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier, Qt.ScrollPhase.NoScrollPhase, False)
+    application.sendEvent(window, wheel)
 else:
     QTest.mouseClick(window, getattr(Qt.MouseButton, sys.argv[3]), pos=QPoint(110, 300))
-QTest.qWait(50)
-print(json.dumps({'modal': controller.modal.get('kind'), 'recent': controller.config.data['recent'], 'directoryChanged': controller.data['directory'] != initial_directory, 'text': controller.modal.get('text')}))
+QTest.qWait(100)
+print(json.dumps({'page': controller.navigation.page, 'modal': controller.modal.get('kind'), 'recent': controller.config.data['recent'], 'directoryChanged': controller.data['directory'] != initial_directory, 'text': controller.modal.get('text'), 'scrolled': scroll_before != [item.property('contentY') for item in views]}))
 controller.close()
 """
     result = subprocess.run(
@@ -127,13 +144,17 @@ controller.close()
     report = json.loads(result.stdout)
     if expected == "launch":
         assert report["recent"]
-    elif expected == "select":
-        assert not report["directoryChanged"]
-        assert report["modal"] is None
-    elif expected == "open":
-        assert report["directoryChanged"]
+        assert report["page"] == "apps"
     elif expected == "text":
         assert report["modal"] == "text"
-        assert report["text"] == "jkui"
+        if button == "typing":
+            assert report["text"] == "jkui"
+        assert report["page"] == page
+    elif expected == "no-file-open":
+        assert not report["directoryChanged"]
+    elif expected == "no-scroll":
+        assert report["scrolled"] is False
     else:
-        assert report["modal"] == expected
+        assert report["page"] == expected
+        assert report["modal"] is None
+        assert not report["recent"]

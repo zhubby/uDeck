@@ -87,6 +87,8 @@ Window {
             else if (event.key === Qt.Key_Escape) action = "back"
             else if (event.key === Qt.Key_F10) action = "context"
             else if (event.key === Qt.Key_F1) action = "quick-settings"
+            else if (event.key === Qt.Key_PageUp) action = "previous-page"
+            else if (event.key === Qt.Key_PageDown) action = "next-page"
             else if (event.key === Qt.Key_F && event.modifiers & Qt.ControlModifier) action = "search"
             if (action !== "" && (!event.isAutoRepeat || ["left", "right", "up", "down"].indexOf(action) >= 0)) {
                 controller.dispatch(action)
@@ -143,7 +145,6 @@ Window {
                         Image { source: "image://desktop/" + ["go-home", "view-grid", "view-list-details", "folder", "preferences-system"][index]; width: 27; height: 27; anchors.verticalCenter: parent.verticalCenter }
                         Text { textFormat: Text.PlainText; text: viewState.pageNames[index]; font.family: appFont; font.pixelSize: 24; font.weight: current ? Font.DemiBold : Font.Normal; color: current ? window.accent : window.muted }
                     }
-                    MouseArea { anchors.fill: parent; onClicked: { controller.setPage(modelData); keyboardScope.forceActiveFocus() } }
                 }
             }
         }
@@ -161,7 +162,6 @@ Window {
             anchors.right: parent.right; anchors.rightMargin: 30; y: 216
             text: viewState.mock ? "不操作真实设备" : (viewState.input.verified ? "ABXY 已校准" : (viewState.input.mapped ? "ABXY 已映射" : "ABXY 待校准"))
             font.family: appFont; font.pixelSize: 24; color: viewState.mock ? window.muted : window.accent
-            MouseArea { anchors.fill: parent; onClicked: controller.activateSetting("input") }
         }
 
         Item {
@@ -177,8 +177,9 @@ Window {
                 cellWidth: width / 5; cellHeight: 174
                 currentIndex: viewState.index
                 keyNavigationEnabled: false
+                interactive: false
                 boundsBehavior: Flickable.StopAtBounds
-                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded; interactive: false }
                 delegate: Rectangle {
                     required property var modelData
                     required property int index
@@ -191,15 +192,6 @@ Window {
                     Text { textFormat: Text.PlainText; anchors.right: parent.right; anchors.rightMargin: 18; y: 21; text: viewState.favorites.indexOf(modelData.id) >= 0 ? "★" : ""; font.pixelSize: 24; color: window.accent }
                     Text { textFormat: Text.PlainText; x: 18; y: 84; width: parent.width - 36; text: modelData.name; elide: Text.ElideRight; font.family: appFont; font.pixelSize: 24; font.weight: Font.Medium; color: window.ink }
                     Text { textFormat: Text.PlainText; x: 18; y: 120; width: parent.width - 36; text: modelData.subtitle || modelData.category || "应用"; elide: Text.ElideRight; font.family: appFont; font.pixelSize: 24; color: selected ? "#d5c8b0" : window.muted }
-                    MouseArea {
-                        anchors.fill: parent
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        onClicked: function(mouse) {
-                            controller.select(index)
-                            keyboardScope.forceActiveFocus()
-                            controller.dispatch(mouse.button === Qt.RightButton ? "context" : "accept")
-                        }
-                    }
                 }
             }
 
@@ -209,8 +201,9 @@ Window {
                 visible: viewState.page !== "home" && viewState.page !== "apps"
                 model: visible ? viewState.items : []
                 spacing: 10; currentIndex: viewState.index; keyNavigationEnabled: false
+                interactive: false
                 boundsBehavior: Flickable.StopAtBounds
-                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded; interactive: false }
                 delegate: Rectangle {
                     required property var modelData
                     required property int index
@@ -228,24 +221,6 @@ Window {
                         Rectangle { width: parent.width * (modelData.value || 0); height: parent.height; radius: 4; color: window.accent }
                     }
                     Text { textFormat: Text.PlainText; visible: modelData.value === undefined; anchors.right: parent.right; anchors.rightMargin: 25; anchors.verticalCenter: parent.verticalCenter; text: "›"; font.pixelSize: 32; color: window.muted }
-                    MouseArea {
-                        anchors.fill: parent
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        onClicked: function(mouse) {
-                            controller.select(index)
-                            keyboardScope.forceActiveFocus()
-                            if (mouse.button === Qt.RightButton)
-                                controller.dispatch("context")
-                            else if (viewState.page !== "files")
-                                controller.dispatch("accept")
-                        }
-                        onDoubleClicked: function(mouse) {
-                            if (mouse.button === Qt.LeftButton && viewState.page === "files") {
-                                controller.select(index)
-                                controller.dispatch("accept")
-                            }
-                        }
-                    }
                 }
             }
 
@@ -275,11 +250,10 @@ Window {
                     }
                     Text { textFormat: Text.PlainText; text: modelData.label; font.family: appFont; font.pixelSize: 24; color: window.muted }
                     }
-                    MouseArea { anchors.fill: parent; onClicked: controller.dispatch(({A:"accept", B:"back", X:"context", Y:"quick-settings"})[modelData.key]) }
                 }
             }
         }
-        Text { textFormat: Text.PlainText; anchors.right: parent.right; anchors.rightMargin: 30; y: parent.height - 54; text: "Ctrl + Alt + Esc  主页"; font.family: appFont; font.pixelSize: 24; color: "#828886" }
+        Text { textFormat: Text.PlainText; anchors.right: parent.right; anchors.rightMargin: 30; y: parent.height - 54; text: "L / R 切页  ·  Ctrl + Alt + Esc 主页"; font.family: appFont; font.pixelSize: 24; color: "#828886" }
 
         Rectangle {
             visible: !!viewState.toast && !dialog.kind
@@ -294,7 +268,6 @@ Window {
             visible: !!dialog.kind
             anchors.fill: parent
             color: "#b8000000"
-            MouseArea { anchors.fill: parent }
 
             Rectangle {
                 id: panel
@@ -316,8 +289,9 @@ Window {
                         height: visible ? Math.min((dialog.options || []).length * 80, Math.max(80, window.height - 160 - dialogTitle.implicitHeight - modalFooter.implicitHeight - (dialogBody.visible ? dialogBody.implicitHeight + 20 : 0) - (modalToast.visible ? modalToast.implicitHeight + 20 : 0))) : 0
                         model: visible ? dialog.options : []
                         clip: true; spacing: 5; currentIndex: dialog.index || 0; keyNavigationEnabled: false
+                        interactive: false
                         boundsBehavior: Flickable.StopAtBounds
-                        ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+                        ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded; interactive: false }
                         delegate: Rectangle {
                             required property var modelData
                             required property int index
@@ -328,7 +302,6 @@ Window {
                             opacity: modelData.disabled ? 0.45 : 1
                             Text { textFormat: Text.PlainText; x: 15; y: modelData.subtitle ? 8 : 14; width: parent.width - 30; text: modelData.label; font.family: appFont; font.pixelSize: 25; color: window.ink; elide: Text.ElideRight }
                             Text { textFormat: Text.PlainText; x: 15; y: 43; width: parent.width - 30; visible: !!modelData.subtitle; text: modelData.subtitle || ""; font.family: appFont; font.pixelSize: 24; color: window.muted; elide: Text.ElideRight }
-                            MouseArea { anchors.fill: parent; onClicked: controller.chooseModal(index) }
                         }
                     }
 
@@ -337,7 +310,7 @@ Window {
                         visible: dialog.kind === "text"
                         width: parent.width; height: 66
                         font.family: appFont; font.pixelSize: 28; color: window.ink
-                        selectByMouse: true
+                        selectByMouse: false
                         maximumLength: 4096
                         echoMode: dialog.secret ? TextInput.Password : TextInput.Normal
                         inputMethodHints: dialog.secret ? Qt.ImhSensitiveData | Qt.ImhNoPredictiveText : (dialog.numeric ? Qt.ImhDigitsOnly : Qt.ImhNone)
@@ -368,7 +341,6 @@ Window {
                                 width: (modalColumn.width - 14) / 2; height: 58; radius: 8
                                 color: selected ? "#3d3426" : "#2c3033"; border.width: selected ? 3 : 1; border.color: selected ? window.accent : "#505452"
                                 Text { textFormat: Text.PlainText; anchors.centerIn: parent; text: modelData; font.family: appFont; font.pixelSize: 25; color: window.ink }
-                                MouseArea { anchors.fill: parent; onClicked: { if (index === 0) controller.dispatch("back"); else if (dialog.kind === "confirm") controller.chooseModal(1); else controller.dispatch("accept") } }
                             }
                         }
                     }
@@ -377,6 +349,23 @@ Window {
                     Text { textFormat: Text.PlainText; id: modalToast; visible: !!viewState.toast; width: parent.width; text: viewState.toast; font.family: appFont; font.pixelSize: 24; color: window.accent; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
                 }
             }
+        }
+        MouseArea {
+            anchors.fill: parent
+            z: 1000
+            acceptedButtons: Qt.AllButtons
+            hoverEnabled: true
+            cursorShape: Qt.BlankCursor
+            preventStealing: true
+            onPressed: function(mouse) {
+                if (mouse.button === Qt.LeftButton)
+                    controller.dispatch("previous-page")
+                else if (mouse.button === Qt.RightButton)
+                    controller.dispatch("next-page")
+                mouse.accepted = true
+            }
+            onDoubleClicked: function(mouse) { mouse.accepted = true }
+            onWheel: function(wheel) { wheel.accepted = true }
         }
     }
 }

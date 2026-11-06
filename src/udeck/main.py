@@ -28,6 +28,7 @@ from .controller import ShellController
 from .core import ConfigStore
 from .input import Gamepad
 from .mock import MockBackend
+from .pointer import PointerGuard
 from .windows import APP_ID, WindowService
 
 CONTROL_PATH = "/io/github/zhubby/uDeck"
@@ -154,7 +155,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="uDeck · uConsole 按键原生桌面")
     parser.add_argument("--mock", action="store_true", help="安全预览，不操作真实硬件、应用或文件")
     parser.add_argument("--windowed", action="store_true", help="以普通窗口运行，不切换桌面会话")
-    parser.add_argument("--no-input", action="store_true", help="诊断时不打开或独占手柄设备")
+    parser.add_argument("--no-input", action="store_true", help="诊断时不接管手柄和鼠标设备")
     parser.add_argument("--screenshot", type=Path, help="保存当前窗口 PNG")
     parser.add_argument("--quit-after", type=float, default=0, metavar="SECONDS")
     parser.add_argument("--page", choices=("home", "apps", "windows", "files", "settings"), default="home")
@@ -169,6 +170,7 @@ def main(argv=None):
         os.environ.setdefault("QT_QUICK_BACKEND", "software")
     started = time.monotonic()
     application = QGuiApplication([sys.argv[0]])
+    application.setOverrideCursor(Qt.CursorShape.BlankCursor)
     application.setApplicationName(APP_ID)
     application.setDesktopFileName(APP_ID)
     application.setOrganizationName("uDeck")
@@ -199,6 +201,11 @@ def main(argv=None):
             return 1
         session_bus.registerObject(CONTROL_PATH, CONTROL_INTERFACE, control, QDBusConnection.RegisterOption.ExportAllSlots)
     gamepad = Gamepad(config.data["input"]) if not options.mock and not options.no_input else None
+    pointer = PointerGuard() if not options.mock and not options.windowed and not options.no_input else None
+    if pointer:
+        pointer.action.connect(controller.dispatch)
+        pointer.status.connect(controller.input_status)
+        controller.foregroundChanged.connect(pointer.set_foreground)
     calibration = {"buttons": {}, "axes": {}, "keyboard": {}, "step": 0}
 
     if gamepad:
@@ -273,6 +280,8 @@ def main(argv=None):
         windows.start()
         controller.present.connect(windows.activate_shell)
     backend.start()
+    if pointer:
+        pointer.start()
     controller.setPage(options.page)
 
     def capture():
@@ -302,6 +311,8 @@ def main(argv=None):
     result = application.exec()
     if gamepad:
         gamepad.close()
+    if pointer:
+        pointer.close()
     controller.close()
     backend.close()
     if windows:
