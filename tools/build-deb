@@ -17,6 +17,7 @@ trap 'rm -rf "$staging"' EXIT HUP INT TERM
 mkdir -p "$staging/DEBIAN" "$staging/usr/bin" "$staging/usr/lib/python3/dist-packages" "$staging/usr/libexec/udeck" "$staging/usr/share/udeck" "$staging/usr/share/wayland-sessions" "$staging/usr/share/applications" "$staging/usr/share/icons/hicolor/scalable/apps" "$staging/usr/share/xdg-desktop-portal"
 cp -R "$root/src/udeck" "$staging/usr/lib/python3/dist-packages/"
 rm -rf "$staging/usr/lib/python3/dist-packages/udeck/terminal"
+rm -rf "$staging/usr/lib/python3/dist-packages/udeck/apps"
 find "$staging/usr/lib/python3/dist-packages" -type d -name __pycache__ -prune -exec rm -rf '{}' ';'
 cp "$root/packaging/bin/udeck" "$root/packaging/bin/udeckctl" "$root/packaging/bin/udeck-session" "$staging/usr/bin/"
 cp "$root/packaging/session" "$staging/usr/libexec/udeck/session"

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=uDeck Music
+Name[zh_CN]=uDeck 音乐
+Comment=Native music application
+Comment[zh_CN]=原生音乐应用
+Exec=udeck-music %U
+TryExec=udeck-music
+Icon=io.github.zhubby.uDeck.Music
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+MimeType=audio/mpeg;audio/flac;audio/ogg;audio/x-wav;
+StartupWMClass=io.github.zhubby.uDeck.Music

@@ -3,6 +3,7 @@ import time
 
 from PySide6.QtCore import QObject, QTimer
 
+from .app_routing import NATIVE_APPS
 from .i18n import error_text, tr
 
 TERMINAL_APP = 'io.github.zhubby.uDeck.Terminal'
@@ -12,7 +13,7 @@ MODE_NAMES = {'keyboard': tr('按键模式'), 'pointer': tr('指针模式'), 'na
 def application_profile(identifier):
     identifier = identifier.casefold()
     kind, mode, commands = 'generic', 'keyboard', []
-    if identifier == TERMINAL_APP.casefold() or identifier in ('retroarch', 'com.libretro.retroarch', 'emulationstation', 'es-de'):
+    if identifier in {app.casefold() for app in NATIVE_APPS} or identifier in ('retroarch', 'com.libretro.retroarch', 'emulationstation', 'es-de'):
         kind, mode = 'native', 'native'
     elif identifier in ('firefox', 'firefox-esr', 'chromium', 'chromium-browser'):
         kind = 'browser'
@@ -142,7 +143,7 @@ class ApplicationRouter(QObject):
 
     def _desired(self, target):
         identifier = target.get('application', '')
-        if identifier == TERMINAL_APP:
+        if identifier in NATIVE_APPS:
             return 'native'
         mode = self.controller.config.data['applicationInput'].get(identifier, application_profile(identifier)['mode'])
         return 'keyboard' if mode == 'pointer' and not self.directions_available else mode
@@ -359,8 +360,8 @@ class ApplicationRouter(QObject):
         if not self.return_target:
             return False
         identifier = self.return_target['application']
-        if identifier == TERMINAL_APP and mode != 'native':
-            self.controller.notify(tr('uDeck 终端使用自身原生按键操作'))
+        if identifier in NATIVE_APPS and mode != 'native':
+            self.controller.notify(tr('uDeck 终端使用自身原生按键操作') if identifier == TERMINAL_APP else tr('uDeck apps manage their own input'))
             self._menu()
             return False
         previous = dict(self.controller.config.data['applicationInput'])

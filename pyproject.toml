@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "udeck"
-version = "0.1.6"
+version = "0.1.7"
 description = "A button-first desktop shell for ClockworkPi uConsole"
 requires-python = ">=3.11,<3.14"
 dependencies = [
@@ -21,6 +21,12 @@ udeck = "udeck.main:main"
 udeckctl = "udeck.cli:main"
 udeck-terminal = "udeck.terminal.main:main"
 udeck-terminal-default = "udeck.terminal.defaults:main"
+udeck-app = "udeck.apps.main:main"
+udeck-music = "udeck.apps.main:music"
+udeck-video = "udeck.apps.main:video"
+udeck-browser = "udeck.apps.main:browser"
+udeck-reader = "udeck.apps.main:reader"
+udeck-games = "udeck.apps.main:games"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -28,6 +34,7 @@ where = ["src"]
 [tool.setuptools.package-data]
 udeck = ["qml/*.qml", "locales/*.json"]
 "udeck.terminal" = ["qml/*.qml"]
+"udeck.apps" = ["qml/*.qml", "navigation.js", "reader_web/*", "reader_web/foliate/*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

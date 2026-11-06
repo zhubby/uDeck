@@ -1,0 +1,4 @@
+#!/usr/bin/python3
+from udeck.apps.main import video
+
+raise SystemExit(video())

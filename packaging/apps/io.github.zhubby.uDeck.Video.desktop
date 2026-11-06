@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=uDeck Video
+Name[zh_CN]=uDeck 视频
+Comment=Native video application
+Comment[zh_CN]=原生视频应用
+Exec=udeck-video %U
+TryExec=udeck-video
+Icon=io.github.zhubby.uDeck.Video
+Terminal=false
+Categories=AudioVideo;Video;Player;
+MimeType=video/mp4;video/x-matroska;video/webm;
+StartupWMClass=io.github.zhubby.uDeck.Video

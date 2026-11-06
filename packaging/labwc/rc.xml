@@ -11,6 +11,7 @@
     <keybind key="C-A-Tab"><action name="Execute" command="udeckctl switcher"/></keybind>
     <keybind key="C-A-s"><action name="Execute" command="udeckctl quick-settings"/></keybind>
     <keybind key="C-A-t"><action name="Execute" command="xdg-terminal-exec"/></keybind>
+    <keybind key="C-A-m"><action name="Execute" command="udeck-app games --command pause-game"/></keybind>
     <keybind key="C-A-l"><action name="Execute" command="udeckctl lock"/></keybind>
     <keybind key="A-Tab"><action name="NextWindow"/></keybind>
     <keybind key="A-F4"><action name="Close"/></keybind>

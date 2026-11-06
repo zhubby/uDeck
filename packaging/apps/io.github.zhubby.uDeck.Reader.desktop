@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=uDeck Reader
+Name[zh_CN]=uDeck 阅读器
+Comment=Native reader application
+Comment[zh_CN]=原生阅读器应用
+Exec=udeck-reader %U
+TryExec=udeck-reader
+Icon=io.github.zhubby.uDeck.Reader
+Terminal=false
+Categories=Office;Viewer;
+MimeType=application/pdf;application/epub+zip;text/plain;
+StartupWMClass=io.github.zhubby.uDeck.Reader

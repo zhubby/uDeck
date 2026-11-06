@@ -9,6 +9,9 @@ import os
 from PySide6.QtCore import QObject
 from PySide6.QtDBus import QDBusConnection, QDBusMessage
 
+from .app_routing import APP_IDS, object_path
+from .app_routing import service_name as native_service_name
+
 APP_ID = "io.github.zhubby.uDeck.Terminal"
 INTERFACE = APP_ID + ".Control"
 OBJECT_PATH = "/io/github/zhubby/uDeck/Terminal"
@@ -25,7 +28,7 @@ def service_name():
 
 
 class TerminalInputBroker(QObject):
-    def __init__(self, windows, pointer, sender=None):
+    def __init__(self, windows, pointer, sender=None, app_id=APP_ID):
         super().__init__()
         self.generation = 0
         self.active_id = ""
@@ -33,13 +36,14 @@ class TerminalInputBroker(QObject):
         self.available = bool(windows and pointer)
         self.pointer = pointer
         self.sender = sender or self._send
+        self.app_id = app_id
         if self.available:
             windows.changed.connect(self.update)
             windows.failed.connect(lambda error: self.update([]))
             pointer.shoulder.connect(self.shoulder)
 
     def update(self, windows):
-        active = next((entry for entry in windows if entry.get("active") and entry.get("appId") == APP_ID), None)
+        active = next((entry for entry in windows if entry.get("active") and entry.get("appId") == self.app_id), None)
         identifier = active["id"] if active else ""
         if identifier == self.active_id:
             return
@@ -56,6 +60,16 @@ class TerminalInputBroker(QObject):
             self.sender("Shoulder", [self.generation, "previous-tab" if action == "previous-page" else "next-tab"])
 
     def _send(self, method, arguments):
-        message = QDBusMessage.createMethodCall(service_name(), OBJECT_PATH, INTERFACE, method)
+        message = QDBusMessage.createMethodCall(native_service_name(self.app_id), object_path(self.app_id), self.app_id + ".Control", method)
         message.setArguments(arguments)
         QDBusConnection.sessionBus().asyncCall(message)
+
+
+class SuiteInputBroker:
+    def __init__(self, windows, pointer):
+        self.brokers = {app_id: TerminalInputBroker(windows, pointer, app_id=app_id)
+                        for app_id in APP_IDS.values()}
+
+    def state(self, app_id):
+        broker = self.brokers.get(app_id)
+        return broker.state() if broker else {"available": False}

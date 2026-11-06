@@ -172,6 +172,20 @@ class Control(QObject):
     def TerminalInputState(self):
         return json.dumps(self.terminal_broker.state() if self.terminal_broker else {"available": False})
 
+    @Slot(str, result=str)
+    def NativeInputState(self, app_id):
+        return json.dumps(self.suite_broker.state(app_id))
+
+    @Slot(str)
+    def ActivateNativeApp(self, app_id):
+        from .app_routing import NATIVE_APPS
+
+        if self.windows and app_id in NATIVE_APPS:
+            for entry in self.windows.entries():
+                if entry.get("appId") == app_id:
+                    self.windows.request(entry["id"], "activate")
+                    break
+
     @Slot(result=str)
     def Diagnose(self):
         return json.dumps({
@@ -239,9 +253,10 @@ def main(argv=None):
         session_bus.registerObject(CONTROL_PATH, CONTROL_INTERFACE, control, QDBusConnection.RegisterOption.ExportAllSlots)
     gamepad = Gamepad(config.data["input"]) if not options.mock and not options.no_input else None
     pointer = PointerGuard() if not options.mock and not options.windowed and not options.no_input else None
-    from .terminal_routing import TerminalInputBroker
+    from .terminal_routing import SuiteInputBroker, TerminalInputBroker
 
     control.terminal_broker = TerminalInputBroker(windows, pointer)
+    control.suite_broker = SuiteInputBroker(windows, pointer)
     application_router = None
     virtual_input = None
     direction_reader = None

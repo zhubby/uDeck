@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=uDeck Games
+Name[zh_CN]=uDeck 游戏
+Comment=Native games application
+Comment[zh_CN]=原生游戏应用
+Exec=udeck-games %U
+TryExec=udeck-games
+Icon=io.github.zhubby.uDeck.Games
+Terminal=false
+Categories=Game;Emulator;
+MimeType=
+StartupWMClass=io.github.zhubby.uDeck.Games

@@ -1,0 +1,280 @@
+{
+  "reviewer": "sequential-main",
+  "review_base": "62c4f5313c1957b5868c46617bc66a3234efc022",
+  "intent": "Implement the approved five independent native applications, review and fix, validate and install, then merge main and push.",
+  "execution": "Serial main-thread review per user AGENTS.md; no independent review agents.",
+  "review_lenses": [
+    "correctness",
+    "testing",
+    "maintainability",
+    "project-standards",
+    "python",
+    "async-ui",
+    "reliability",
+    "security",
+    "input-routing"
+  ],
+  "findings": [
+    {
+      "id": 1,
+      "severity": "P1",
+      "files": "apps/qml/MediaSurface.qml、apps/media.py",
+      "why_it_matters": "软件 scenegraph 中有有效解码帧但 VideoOutput 显示黑色。",
+      "fix_and_evidence": "软件后端改用解码帧 ImageProvider；真实窗口像素断言、字幕截图通过，Wayland 标准路径另验。",
+      "confidence": 1.0,
+      "autofix_class": "safe_auto",
+      "owner": "sequential-main",
+      "requires_verification": true,
+      "pre_existing": false,
+      "status": "fixed"
+    },
+    {
+      "id": 2,
+      "severity": "P2",
+      "files": "apps/web.py",
+      "why_it_matters": "手工构造点击不能可靠更新 WebEngine 的鼠标状态和导航历史。",
+      "fix_and_evidence": "使用 QtTest 的 QWindow/QPA 事件路径，限前台窗口、当前标签和有效坐标；真实链接、历史和 abxy 表单验证。",
+      "confidence": 1.0,
+      "autofix_class": "safe_auto",
+      "owner": "sequential-main",
+      "requires_verification": true,
+      "pre_existing": false,
+      "status": "fixed"
+    },
+    {
+      "id": 3,
+      "severity": "P2",
+      "files": "apps/web.py、apps/qml/BrowserSurface.qml",
+      "why_it_matters": "最后标签删除存在无活动标签中间态；后台生命周期枚举使用不正确。",
+      "fix_and_evidence": "先准备替代标签；使用 Qt 6.8 的 scoped 生命周期枚举；标签、返回和零 QML 错误验证。",
+      "confidence": 1.0,
+      "autofix_class": "safe_auto",
+      "owner": "sequential-main",
+      "requires_verification": true,
+      "pre_existing": false,
+      "status": "fixed"
+    },
+    {
+      "id": 4,
+      "severity": "P2",
+      "files": "apps/main.py",
+      "why_it_matters": "隔离 Browser 的磁盘缓存和 QML 对象析构晚于临时目录清理。",
+      "fix_and_evidence": "隔离 profile 改为内存；显式删除 QML engine 后再清理临时状态；独立进程全量测试。",
+      "confidence": 1.0,
+      "autofix_class": "safe_auto",
+      "owner": "sequential-main",
+      "requires_verification": true,
+      "pre_existing": false,
+      "status": "fixed"
+    },
+    {
+      "id": 5,
+      "severity": "P2",
+      "files": "apps/media.py",
+      "why_it_matters": "停止/曲末可能把可信续播位置覆盖为 0；队列返回丢失播放器层级。",
+      "fix_and_evidence": "在正确的引擎身份/状态下保存位置，曲末明确归零；队列使用导航栈，B 返回播放器。",
+      "confidence": 1.0,
+      "autofix_class": "safe_auto",
+      "owner": "sequential-main",
+      "requires_verification": true,
+      "pre_existing": false,
+      "status": "fixed"
+    },
+    {
+      "id": 6,
+      "severity": "P2",
+      "files": "apps/media.py、apps/main.py",
+      "why_it_matters": "视频结束或旧回执可能恢复用户已经手工暂停的音乐。",
+      "fix_and_evidence": "以令牌记录暂停归属，手工操作失效旧令牌；真实播放器正反令牌验证。",
+      "confidence": 1.0,
+      "autofix_class": "safe_auto",
+      "owner": "sequential-main",
+      "requires_verification": true,
+      "pre_existing": false,
+      "status": "fixed"
+    },
+    {
+      "id": 7,
+      "severity": "P2",
+      "files": "apps/reader.py、apps/reader_web/reader.js",
+      "why_it_matters": "PDF 搜索无实际高亮；旧书命令可能影响新会话；搜索摘要显示结构化对象。",
+      "fix_and_evidence": "QPdfSelection 矩形高亮、会话令牌校验、摘要合并；真实 PDF/EPUB/TXT 与来源丢失验证。",
+      "confidence": 1.0,
+      "autofix_class": "safe_auto",
+      "owner": "sequential-main",
+      "requires_verification": true,
+      "pre_existing": false,
+      "status": "fixed"
+    },
+    {
+      "id": 8,
+      "severity": "P2",
+      "files": "apps/games.py",
+      "why_it_matters": "CUE 未变化而轨道被替换时可能接受旧内容存档；损坏元数据类型未明确拒绝。",
+      "fix_and_evidence": "内容身份纳入每条轨道，支持引号与无引号 FILE；损坏/错核心/校验失败回归测试。",
+      "confidence": 1.0,
+      "autofix_class": "safe_auto",
+      "owner": "sequential-main",
+      "requires_verification": true,
+      "pre_existing": false,
+      "status": "fixed"
+    },
+    {
+      "id": 9,
+      "severity": "P2",
+      "files": "apps/games.py",
+      "why_it_matters": "文件存在或固定等待不能证明 RetroArch 完成保存/读取。",
+      "fix_and_evidence": "保存核对引擎日志字节数、稳定文件及打开句柄；读取使用 VERSION/GET_STATUS 屏障并先处理失败日志；真实设备存取和进程重启续玩验证。",
+      "confidence": 1.0,
+      "autofix_class": "safe_auto",
+      "owner": "sequential-main",
+      "requires_verification": true,
+      "pre_existing": false,
+      "status": "fixed"
+    },
+    {
+      "id": 10,
+      "severity": "P2",
+      "files": "apps/games.py",
+      "why_it_matters": "引擎可能写用户历史/核心选项，默认输入猜测可能套用到其他手柄。",
+      "fix_and_evidence": "私有运行配置限制写入；只对已验证的 uConsole VID/PID/序列/名称及实际 js 索引套用映射；QML 入口显式 Slot。",
+      "confidence": 1.0,
+      "autofix_class": "safe_auto",
+      "owner": "sequential-main",
+      "requires_verification": true,
+      "pre_existing": false,
+      "status": "fixed"
+    },
+    {
+      "id": 11,
+      "severity": "P2",
+      "files": "apps/games.py",
+      "why_it_matters": "来源断开后旧菜单仍可保存；重新连接后暂停菜单可能持续禁用。",
+      "fix_and_evidence": "来源丢失禁用操作；相同内容验证后恢复可用状态及原焦点，保持同一游戏；模拟来源移除/恢复测试。",
+      "confidence": 1.0,
+      "autofix_class": "safe_auto",
+      "owner": "sequential-main",
+      "requires_verification": true,
+      "pre_existing": false,
+      "status": "fixed"
+    },
+    {
+      "id": 12,
+      "severity": "P2",
+      "files": "apps/games.py",
+      "why_it_matters": "读档成功仍停留在前端确认页。",
+      "fix_and_evidence": "成功回执后恢复模拟器并收起前端，来源丢失时继续暂停；针对性路由测试。",
+      "confidence": 1.0,
+      "autofix_class": "safe_auto",
+      "owner": "sequential-main",
+      "requires_verification": true,
+      "pre_existing": false,
+      "status": "fixed"
+    }
+  ],
+  "verification": {
+    "local_pytest": {
+      "passed": 332,
+      "skipped": 2,
+      "warnings": 13,
+      "seconds": 94.58
+    },
+    "uconsole_full_pytest": {
+      "passed": 332,
+      "skipped": 2,
+      "warnings": 13,
+      "seconds": 215.19
+    },
+    "uconsole_skipped_tests_with_installed_terminal_plugin": {
+      "passed": 2,
+      "skipped": 0,
+      "seconds": 4.93
+    },
+    "ruff": "passed",
+    "wheel": "passed",
+    "arm64_packages": "passed",
+    "source_files_matched_before_build": 119,
+    "installed_source_files_matched": 65,
+    "package_file_overlap": 0,
+    "installed_versions": {
+      "udeck": "0.1.7",
+      "udeck-apps": "0.1.0",
+      "udeck-terminal": "0.1.1"
+    },
+    "installed_wayland_apps": [
+      {
+        "app": "music",
+        "exit": 0,
+        "qmlErrors": [],
+        "page": "player",
+        "nativeBroker": {
+          "available": true,
+          "generation": 1,
+          "enabled": true
+        }
+      },
+      {
+        "app": "video",
+        "exit": 0,
+        "qmlErrors": [],
+        "page": "player",
+        "nativeBroker": {
+          "available": true,
+          "generation": 1,
+          "enabled": true
+        }
+      },
+      {
+        "app": "reader",
+        "exit": 0,
+        "qmlErrors": [],
+        "page": "document",
+        "nativeBroker": {
+          "available": true,
+          "generation": 1,
+          "enabled": true
+        }
+      },
+      {
+        "app": "browser",
+        "exit": 0,
+        "qmlErrors": [],
+        "page": "browser",
+        "nativeBroker": {
+          "available": true,
+          "generation": 1,
+          "enabled": true
+        }
+      },
+      {
+        "app": "games",
+        "exit": 0,
+        "qmlErrors": [],
+        "page": "game-details",
+        "nativeBroker": {
+          "available": true,
+          "generation": 1,
+          "enabled": true
+        }
+      }
+    ],
+    "terminal_pid_preserved": 381833,
+    "display_restored": "DSI-1 off",
+    "foliate_pinned": "78914aef4466eb960965702401634c2cb348e9b1",
+    "foliate_files_verified_byte_for_byte": 10,
+    "udeck_deb_sha256": "ee2299c386673586764e51c9f982072908694409d95c6a6bb623cc5a202b06ed",
+    "apps_deb_sha256": "5047f60a738a1a886b9d42af425c45049789b38d82b5612948561270d1d8e787",
+    "wheel_sha256": "088c4d726640cdf48457e6ceb45e8fed40728201cbeafe740db2f6c980f22a34",
+    "vendor_whitespace": "Unmodified upstream foliate/overlayer.js has a final blank line. Authored files pass git diff --check; all nine vendor modules and LICENSE match the pinned upstream bytes."
+  },
+  "unresolved_code_findings": [],
+  "suppressed_findings": 0,
+  "residual_actionable_work": [],
+  "advisory_outputs": [
+    "Physical controls, audio listening, full IME and real-site flows remain onsite checks.",
+    "GB/Gambatte serialization does not establish other cores or game performance.",
+    "Software scenegraph video fallback presents at most 15 fps; hardware decoding is not established.",
+    "No independent full audit of pinned upstream foliate-js."
+  ],
+  "verdict": "Ready to merge"
+}
