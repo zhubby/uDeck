@@ -24,7 +24,7 @@ def mock_apps():
 
 def initial_state():
     return {
-        "wifi": {"available": False, "enabled": False, "connected": "", "networks": []},
+        "wifi": {"available": False, "enabled": False, "devices": []},
         "bluetooth": {"available": False, "powered": False, "discovering": False, "devices": []},
         "audio": {"available": False, "volume": 0, "muted": False, "outputs": []},
         "brightness": {"available": False, "value": 0},
@@ -44,12 +44,24 @@ class MockBackend(QObject):
         self.actions = []
         self.state = initial_state()
         self.state.update({
-            "wifi": {"available": True, "enabled": True, "connected": "Workshop",
-                     "networks": [
-                         {"id": "workshop", "name": "Workshop", "strength": 92, "secured": True, "connected": True, "security": "WPA2"},
-                         {"id": "studio", "name": "Studio 5G", "strength": 76, "secured": True, "connected": False, "security": "WPA3"},
-                         {"id": "guest", "name": "Guest", "strength": 54, "secured": False, "connected": False, "security": "开放网络"},
-                     ]},
+            "wifi": {"available": True, "enabled": True, "devices": [
+                {"id": "builtin", "name": "内置无线网卡", "interface": "wlan0", "kind": "builtin",
+                 "available": True, "managed": True, "deviceState": 100, "connected": "Workshop", "activeProfile": "workshop-profile",
+                 "networks": [
+                     {"id": "builtin-workshop", "name": "Workshop", "strength": 92, "secured": True, "connected": True, "saved": True, "security": "WPA2"},
+                     {"id": "builtin-guest", "name": "Guest", "strength": 54, "secured": False, "connected": False, "security": "开放网络"},
+                 ],
+                 "saved": [{"id": "workshop-profile", "name": "Workshop", "ssid": list(b"Workshop"), "keyManagement": "wpa-psk", "multiConnect": 0}]},
+                {"id": "usb", "name": "USB 无线网卡", "interface": "wlx001122334455", "kind": "usb",
+                 "available": True, "managed": True, "deviceState": 30, "connected": "",
+                 "networks": [
+                     {"id": "usb-workshop", "name": "Workshop", "strength": 98, "secured": True, "connected": False, "saved": True, "security": "WPA2"},
+                     {"id": "usb-studio", "name": "Studio 5G", "strength": 86, "secured": True, "connected": False, "security": "WPA3"},
+                     {"id": "usb-guest", "name": "Guest", "strength": 68, "secured": False, "connected": False, "security": "开放网络"},
+                 ],
+                 "saved": [{"id": "workshop-profile", "name": "Workshop", "ssid": list(b"Workshop"), "keyManagement": "wpa-psk", "multiConnect": 0,
+                            "blocked": "另一张网卡正在使用 · 可从网络列表另建连接"}]},
+            ]},
             "bluetooth": {"available": True, "powered": True, "discovering": False,
                           "devices": [{"id": "headphones", "name": "无线耳机", "paired": True, "connected": True, "trusted": True},
                                       {"id": "keyboard", "name": "蓝牙键盘", "paired": True, "connected": False, "trusted": True}]},
@@ -74,11 +86,39 @@ class MockBackend(QObject):
             self.state["brightness"]["value"] = max(0.05, min(1, payload["value"]))
         elif action == "wifi_power":
             self.state["wifi"]["enabled"] = payload["enabled"]
-        elif action == "wifi_connect":
-            for network in self.state["wifi"]["networks"]:
-                network["connected"] = network["id"] == payload["id"]
-                if network["connected"]:
-                    self.state["wifi"]["connected"] = network["name"]
+            if not payload["enabled"]:
+                for device in self.state["wifi"]["devices"]:
+                    device["connected"], device["deviceState"] = "", 30
+                    device["activeProfile"] = ""
+                    for network in device["networks"]:
+                        network["connected"] = False
+        elif action in ("wifi_scan", "wifi_connect", "wifi_connect_saved", "wifi_disconnect"):
+            device = next((entry for entry in self.state["wifi"]["devices"] if entry["id"] == payload.get("deviceId")), None)
+            if device is None:
+                self.operationFailed.emit(action, "目标无线网卡已移除")
+                return
+            if action == "wifi_disconnect":
+                device["connected"], device["deviceState"] = "", 30
+                device["activeProfile"] = ""
+                for network in device["networks"]:
+                    network["connected"] = False
+            elif action in ("wifi_connect", "wifi_connect_saved"):
+                profile = next((entry for entry in device["saved"] if entry["id"] == payload["id"]), None) if action == "wifi_connect_saved" else None
+                if profile and profile.get("blocked"):
+                    self.operationFailed.emit(action, profile["blocked"])
+                    return
+                target = profile["name"] if profile else next((entry["name"] for entry in device["networks"] if entry["id"] == payload["id"]), "")
+                if target:
+                    for network in device["networks"]:
+                        network["connected"] = network["name"] == target
+                    device["connected"], device["deviceState"] = target, 100
+                    if profile is None:
+                        profile = next((entry for entry in device["saved"] if entry["name"] == target and not entry.get("blocked")), None)
+                    if profile is None:
+                        profile = {"id": "mock:" + device["id"] + ":" + target, "name": target,
+                                   "ssid": list(target.encode()), "keyManagement": "wpa-psk", "multiConnect": 0}
+                        device["saved"].append(profile)
+                    device["activeProfile"] = profile["id"]
         elif action == "bluetooth_power":
             self.state["bluetooth"]["powered"] = payload["enabled"]
         elif action in ("bluetooth_connect", "bluetooth_disconnect", "bluetooth_pair"):
@@ -91,6 +131,12 @@ class MockBackend(QObject):
         elif action == "audio_output":
             for output in self.state["audio"]["outputs"]:
                 output["active"] = output["id"] == payload["id"]
+        if action.startswith("wifi_"):
+            devices = self.state["wifi"]["devices"]
+            for device in devices:
+                for profile in device["saved"]:
+                    busy = profile.get("multiConnect", 0) not in (2, 3) and any(other["id"] != device["id"] and other.get("activeProfile") == profile["id"] for other in devices)
+                    profile["blocked"] = "另一张网卡正在使用 · 可从网络列表另建连接" if busy else ""
         self.updated.emit(deepcopy(self.state))
         self.completed.emit(action)
 

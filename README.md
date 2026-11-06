@@ -4,14 +4,14 @@ uDeck 是面向 1280×720 横屏 uConsole 的原生 Qt Quick 桌面壳：方向�
 
 基于现有 Debian 13 / labwc / Wayland 添加**独立可选会话**，不刷镜像、不改驱动、不替换合成器。软件包不修改原桌面配置或默认登录项；开机自动进入 uDeck 通过单独授权的配置工具开启。第三方应用使用自身焦点系统，Y 菜单切换按键、指针或原生输入模式。
 
-当前基础包版本：**0.1.4**，包含第三方应用手柄兼容层，并保留独立的 **uDeck Terminal 0.1.0**。完整兼容层仅在独立 uDeck 会话启用；自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
+当前基础包版本：**0.1.5**，支持内置与 USB 多无线网卡分别管理，包含第三方应用手柄兼容层，并保留独立的 **uDeck Terminal 0.1.0**。完整兼容层仅在独立 uDeck 会话启用；自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
 
 ## 桌面功能
 
 - 主页与应用：标准 `.desktop` 条目、系统图标、收藏、最近使用、分类和搜索。
 - 运行中：真实 Wayland / Xwayland 窗口列表、激活、请求关闭；独立会话为普通主窗口配置默认最大化。
 - 文件：浏览、新建文件夹、重命名、复制、剪切/粘贴、明确确认覆盖、移入回收站。
-- 设置：NetworkManager Wi-Fi、BlueZ 配对代理、音量/静音/输出设备、背光、电池与充电状态、电源操作。
+- 设置：NetworkManager 多网卡 Wi-Fi（逐网卡扫描、连接、断开与热插拔）、BlueZ 配对代理、音量/静音/输出设备、背光、电池与充电状态、电源操作。
 - 输入：按实际前台窗口交接独立手柄，保留现有校准；普通字母和实体组合键不作按钮映射。壳内 L/R 切页；第三方按键模式中 A/B/X 为 Enter/Esc/Shift+F10，L/R 切换控件；指针模式支持点击、拖动与滚动，原生模式释放手柄。物理鼠标在壳失焦后继续屏蔽，退出壳时释放。
 
 ## 安全预览
@@ -41,7 +41,7 @@ QT_QPA_PLATFORM=offscreen PYTHONPATH=src .venv/bin/python -m udeck.main \
 
 ```sh
 sh tools/build-deb
-sudo apt-get install ./dist/udeck_0.1.4_arm64.deb
+sudo apt-get install ./dist/udeck_0.1.5_arm64.deb
 udeck --windowed
 udeckctl doctor --json
 ```
@@ -67,6 +67,7 @@ sudo python3 tools/configure-login.py --user "$(id -un)"
 - [0.1.2 ABXY 与 L/R 修复、实按事件记录](docs/udeck/input-2026-11-06.md)
 - [0.1.3 手柄交互与会话级鼠标屏蔽](docs/udeck/controller-mode-2026-11-06.md)
 - [0.1.4 应用操作、部署记录与待现场验收](docs/udeck/application-control-2026-11-06.md)
+- [0.1.5 多无线网卡使用与验证记录](docs/udeck/multi-wifi-2026-11-06.md)
 - [uDeck Terminal：构建、按键、输入交接、默认终端与恢复](docs/udeck/terminal.md)
 - [uDeck Terminal：CM4 安装验收与待验项目](docs/udeck/terminal-acceptance-2026-11-06.md)
 

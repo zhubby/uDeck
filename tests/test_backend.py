@@ -70,22 +70,22 @@ def test_wifi_enumeration_survives_secret_agent_registration_failure():
             raise AssertionError(member)
 
         async def get(destination, path, interface, name):
-            return {"WirelessEnabled": True, "DeviceType": 2, "State": 100}[name]
+            return {"WirelessEnabled": True, "DeviceType": 2, "State": 100, "ActiveConnections": []}[name]
 
         async def properties(destination, path, interface):
             if path == "/ap0":
                 return {"Ssid": list(b"Known"), "RsnFlags": 0x100, "Strength": 90}
             if interface.endswith("Device.Wireless"):
                 return {"AccessPoints": ["/ap0"], "ActiveAccessPoint": "/ap0"}
-            return {"State": 100, "StateReason": [100, 0]}
+            return {"State": 100, "StateReason": [100, 0], "Interface": "wlan0", "DeviceType": 2, "AvailableConnections": ["/profile0"]}
 
         backend.call = call
         backend.get = get
         backend.properties = properties
         await backend.refresh_wifi()
         assert backend.state["wifi"]["available"]
-        assert backend.state["wifi"]["saved"][0]["id"] == "/profile0"
-        assert backend.state["wifi"]["networks"][0]["saved"]
+        assert backend.state["wifi"]["devices"][0]["saved"][0]["id"] == "/profile0"
+        assert backend.state["wifi"]["devices"][0]["networks"][0]["saved"]
         backend.loop.close()
 
     asyncio.run(scenario())

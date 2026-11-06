@@ -61,6 +61,8 @@ QML 列表与滚动条不接受指针滚动/拖动，输入框不允许鼠标选
 ## 系统服务
 
 - NetworkManager：系统 D-Bus 获取网卡、AP、连接状态与已保存 profile；SecretAgent 在界面请求密码，取消使用 NetworkManager 的错误类型。新个人网络凭据交给 NetworkManager 管理，不写入 uDeck 配置。
+- 0.1.5 的 Wi-Fi 状态以 `devices[]` 分组，保留全局 `available/enabled`。每张网卡包含 D-Bus 路径、接口名、总线类型、连接状态、AP、兼容配置和局部错误；不再依赖单一全局网卡。扫描、连接、已保存连接和断开必须携带 `deviceId`，密码输入后重新校验设备与 AP。兼容配置来自设备的 `AvailableConnections`，单实例配置通过活动连接检查防止抢占；扫描列表可另建 UUID 独立的配置。控制器保留并刷新 Wi-Fi 菜单栈，按设备/SSID 与认证类型恢复焦点；设备移除只取消相关弹层。路由和优先级继续由 NetworkManager 管理。
+- 客户端网络仅复用 infrastructure 配置。SecretAgent 通过活动连接和唯一激活设备解析网卡，并在输入前后复核；无法确定归属时返回 NoSecrets。密码弹层分别保存配置分组和网卡归属，使配置取消只影响对应请求，设备拔出则取消属于该设备的全部 Wi-Fi 请求。
 - BlueZ：ObjectManager 追踪适配器与设备；Agent1 支持 PIN、passkey、数字确认与服务授权；显示配对码的进度更新同一弹层。独立会话请求默认代理，窗口化测试不抢换原默认代理。
 - 音频：`wpctl` 读写音量/静音；`pactl` 枚举输出、设置默认 sink，并订阅变化；复用现有 PipeWire/WirePlumber。
 - 背光/电池：读已有 sysfs；仅使用当前用户已有的背光写权限，不更改设备节点权限或以 root 启动整个壳。

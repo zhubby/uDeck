@@ -112,7 +112,7 @@ Window {
         Row {
             anchors.right: parent.right; anchors.rightMargin: 28
             y: 28; spacing: 24
-            Text { textFormat: Text.PlainText; width: Math.min(implicitWidth, 360); elide: Text.ElideRight; text: viewState.busy ? viewState.busyLabel : (viewState.wifi.connected || (viewState.wifi.enabled ? "Wi-Fi 未连接" : "Wi-Fi 关闭")); font.family: appFont; font.pixelSize: 24; color: viewState.busy ? window.accent : window.muted }
+            Text { textFormat: Text.PlainText; width: Math.min(implicitWidth, 360); elide: Text.ElideRight; text: viewState.busy ? viewState.busyLabel : viewState.wifiSummary; font.family: appFont; font.pixelSize: 24; color: viewState.busy ? window.accent : window.muted }
             Row {
                 spacing: 8
                 Rectangle {
@@ -271,22 +271,28 @@ Window {
 
             Rectangle {
                 id: panel
+                objectName: "dialogPanel"
                 anchors.centerIn: parent
                 width: Math.min(810, parent.width - 96)
-                height: Math.min(parent.height - 64, modalColumn.height + 56)
+                property real menuChromeHeight: 96 + dialogTitle.implicitHeight + modalFooter.implicitHeight
+                    + (dialogBody.visible ? dialogBody.implicitHeight + 20 : 0)
+                    + (modalToast.visible ? modalToast.implicitHeight + 20 : 0)
+                height: Math.min(parent.height - 64, dialog.kind === "menu"
+                    ? menuChromeHeight + (dialog.options || []).length * 80 : modalColumn.height + 56)
                 radius: 16; color: "#222528"; border.width: 1; border.color: "#62605a"
 
                 Column {
                     id: modalColumn
+                    objectName: "dialogContent"
                     x: 28; y: 26; width: parent.width - 56; spacing: 20
-                    Text { textFormat: Text.PlainText; id: dialogTitle; width: parent.width; text: dialog.title || ""; font.family: appFont; font.pixelSize: 32; font.weight: Font.DemiBold; color: window.ink; wrapMode: Text.Wrap }
-                    Text { textFormat: Text.PlainText; id: dialogBody; visible: !!dialog.body; width: parent.width; text: dialog.body || ""; font.family: appFont; font.pixelSize: 24; color: window.muted; wrapMode: Text.Wrap }
+                    Text { textFormat: Text.PlainText; id: dialogTitle; width: parent.width; text: dialog.title || ""; font.family: appFont; font.pixelSize: 32; font.weight: Font.DemiBold; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
+                    Text { textFormat: Text.PlainText; id: dialogBody; visible: !!dialog.body; width: parent.width; text: dialog.body || ""; font.family: appFont; font.pixelSize: 24; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: 4; elide: Text.ElideRight }
 
                     ListView {
                         id: menuList
                         visible: dialog.kind === "menu"
                         width: parent.width
-                        height: visible ? Math.min((dialog.options || []).length * 80, Math.max(80, window.height - 160 - dialogTitle.implicitHeight - modalFooter.implicitHeight - (dialogBody.visible ? dialogBody.implicitHeight + 20 : 0) - (modalToast.visible ? modalToast.implicitHeight + 20 : 0))) : 0
+                        height: visible ? Math.max(0, Math.min((dialog.options || []).length * 80, window.height - 64 - panel.menuChromeHeight)) : 0
                         model: visible ? dialog.options : []
                         clip: true; spacing: 5; currentIndex: dialog.index || 0; keyNavigationEnabled: false
                         interactive: false

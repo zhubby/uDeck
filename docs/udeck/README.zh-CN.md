@@ -2,7 +2,7 @@
 
 ## 运行边界
 
-uDeck 0.1.4 是原生 PySide6 / Qt Quick 桌面壳，不包含 Electron、Chromium 或 HTTP 服务。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。第三方应用兼容层需要独立 uDeck 会话，原桌面中运行壳不会启用。
+uDeck 0.1.5 是原生 PySide6 / Qt Quick 桌面壳，不包含 Electron、Chromium 或 HTTP 服务。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。第三方应用兼容层需要独立 uDeck 会话，原桌面中运行壳不会启用。
 
 目标环境为 CM4、约 4 GiB 内存、Debian 13、Qt 6.8、labwc 0.9 系列和横屏 1280×720。不会替换官方镜像、显示驱动、内核或窗口合成器。
 
@@ -32,8 +32,8 @@ Qt 6.8 的 Python 开发环境使用 3.11–3.13，不使用系统默认的 Pyth
 
 ```sh
 sh tools/build-deb
-dpkg-deb --info dist/udeck_0.1.4_arm64.deb
-sudo apt-get install ./dist/udeck_0.1.4_arm64.deb
+dpkg-deb --info dist/udeck_0.1.5_arm64.deb
+sudo apt-get install ./dist/udeck_0.1.5_arm64.deb
 ```
 
 依赖由 Debian 提供，包括 PySide6 Qt 6.8、Qt Quick Controls、dbus-next、evdev、Gio、NetworkManager、BlueZ、PipeWire/WirePlumber、wlr-randr、swayidle/swaylock、wlopm、fcitx5 和 lxpolkit。构建不打包 358 MiB 的硬件资料、虚拟环境或测试缓存。
@@ -127,7 +127,7 @@ Y 菜单默认选中「返回应用」，还提供模式切换、常用操作、
 - 文件：从主目录开始，X 新建、重命名、复制/剪切、粘贴或移入回收站。覆盖默认不发生，文件夹不会合并/覆盖。没有“永久删除”后备路径。
 - 移动：同文件系统使用原子 rename；跨文件系统先完整复制并检查源是否变化，再将源移入回收站。回收站不支持或源改变时保留源，明确报告“目标已复制但源仍保留”，不会调用递归永久删除源目录。
 - 回收站限制：某些挂载点不支持 Gio 回收，例如此设备的 `/tmp` tmpfs。失败时会显示系统原因并保留源文件；这不等于主目录的回收站不可用，不会改为永久删除。
-- Wi-Fi：可开关、主动扫描、选择已保存个人网络或输入密码连接；切网有明确二次确认。企业认证、VPN 和热点不在首版。
+- Wi-Fi：先选网卡，再扫描、选择已保存个人网络、输入密码连接或断开。内置和 USB 网卡独立显示状态，拔插自动刷新，B 逐层返回。总开关明确作用于全部 Wi-Fi，关闭和切网均需确认。已被另一张网卡占用的单实例配置会禁用，可从扫描列表另建连接。上网路由继续由 NetworkManager 管理；企业认证、VPN 和热点不在首版。详见 [多网卡记录](multi-wifi-2026-11-06.md)。
 - 蓝牙：配对与连接是不同状态；PIN、配对码和确认请求在弹层中处理。配对后尝试连接；失败保留“已配对/未连接”状态，不宣称功能已经可用。
 - 音量：A 打开音量菜单，进入滑杆或切换静音；输出设备菜单选择系统默认输出。
 - 亮度：左右调整后 A 应用、B 取消。最低为 5%，避免滑杆意外熄屏。熄屏另设入口，沿用 wlopm/swayidle；按方向键或键盘恢复，不是系统休眠。

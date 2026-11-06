@@ -1,0 +1,80 @@
+{
+  "reviewer": "sequential-main",
+  "review_base": "0eb31014cf4cd63ff9728374607f0fea4c422682",
+  "intent": "Review and fix adapter-scoped Wi-Fi management before the first mainline commit.",
+  "review_lenses": ["correctness", "testing", "maintainability", "project-standards", "reliability", "security", "python", "async-ui"],
+  "execution": "Sequential review in the main thread, as required by the user's AGENTS.md.",
+  "findings": [
+    {
+      "title": "Bind every SecretAgent password request to a verified adapter",
+      "severity": "P1",
+      "file": "src/udeck/backend.py",
+      "line": 100,
+      "why_it_matters": "An ambiguous or unmapped profile request opened a generic password prompt without deviceId. The prompt escaped adapter removal handling, and profile ownership was not checked again after password input.",
+      "autofix_class": "safe_auto",
+      "owner": "review-fixer",
+      "requires_verification": true,
+      "confidence": 1.0,
+      "evidence": [
+        "The original ambiguous-profile regression expected a password prompt without deviceId.",
+        "Five targeted regression cases failed before the fix: ambiguous ownership, absent ownership, unreadable ownership, unmapped single-device ownership and ownership changes during password input.",
+        "A uniquely activating connection now identifies its adapter even when the same multi-connect profile is already active on another adapter."
+      ],
+      "suggested_fix": "Resolve the live adapter before and after input, prefer the only activating device, and reject requests whose adapter cannot be determined.",
+      "pre_existing": false,
+      "status": "fixed"
+    },
+    {
+      "title": "Cancel only the matching profile's SecretAgent prompt",
+      "severity": "P2",
+      "file": "src/udeck/backend.py",
+      "line": 110,
+      "why_it_matters": "CancelGetSecrets cancelled all prompts for an adapter. A delayed cancellation from an old profile could dismiss a newer network password on that same adapter.",
+      "autofix_class": "safe_auto",
+      "owner": "review-fixer",
+      "requires_verification": true,
+      "confidence": 1.0,
+      "evidence": [
+        "The cancellation regression failed because the unrelated manual password task was already done after CancelGetSecrets.",
+        "SecretAgent prompts are now grouped by profile, while separate token-to-device metadata supports adapter removal.",
+        "The removal regression confirms the removed adapter's profile prompt is cancelled while the other adapter's prompt remains pending."
+      ],
+      "suggested_fix": "Separate profile cancellation from device cancellation using independent prompt group and device metadata.",
+      "pre_existing": false,
+      "status": "fixed"
+    },
+    {
+      "title": "Exclude hotspot and peer profiles from client connections",
+      "severity": "P2",
+      "file": "src/udeck/backend.py",
+      "line": 407,
+      "why_it_matters": "A compatible Wi-Fi profile can use AP, Ad-hoc or Mesh mode. Matching only SSID and security could activate such a profile when the user intended to join a scanned network.",
+      "autofix_class": "safe_auto",
+      "owner": "review-fixer",
+      "requires_verification": true,
+      "confidence": 1.0,
+      "evidence": [
+        "All three mode regression cases activated the existing non-infrastructure profile before the fix.",
+        "Filtering saved client profiles to infrastructure mode now causes the scanned network flow to create its own infrastructure connection."
+      ],
+      "suggested_fix": "Filter non-infrastructure modes from saved client profiles before listing or reusing them.",
+      "pre_existing": true,
+      "status": "fixed"
+    }
+  ],
+  "residual_risks": ["Physical connection, disconnection, USB unplug/replug and hardware button acceptance remain recorded in docs/udeck/multi-wifi-2026-11-06.md."],
+  "testing_gaps": ["The SSH connection uses the USB adapter, so destructive network changes and physical unplugging require onsite acceptance."],
+  "verification": {
+    "local_pytest": {"passed": 242, "skipped": 2, "warnings": 13},
+    "uconsole_pytest": {"passed": 57, "warnings": 13},
+    "ruff": "passed",
+    "qml_wifi_scenarios": 18,
+    "qml_shell_smoke": "passed",
+    "uconsole_package_sha256": "c841b08f83b2e78e45b3c57c11f905767888c8d67d6de1f995c7e64317945105",
+    "uconsole_installed_source_matches": true,
+    "uconsole_configurations_unchanged": true,
+    "uconsole_scans_completed": ["wlan0", "wlan1"]
+  },
+  "unresolved_code_findings": [],
+  "verdict": "Ready to merge"
+}
