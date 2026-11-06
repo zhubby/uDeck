@@ -11,6 +11,7 @@ Item {
     function focusWeb(){for(let i=0;i<pages.count;i++){const p=pages.itemAt(i);if(p&&p.identifier===appState.currentTab)p.forceActiveFocus()}}
     WebEngineProfile {
         id: browserProfile
+        property var downloads: ({})
         offTheRecord:true
         httpCacheMaximumSize:64*1024*1024
         persistentCookiesPolicy:WebEngineProfile.AllowPersistentCookies
@@ -21,7 +22,26 @@ Item {
                 cachePath=controller.profilePath+"/cache"
                 offTheRecord=false
             }
-            controller.configureProfile(browserProfile)
+        }
+        onDownloadRequested: function(download) {
+            const destination=controller.confirmDownload(download.downloadFileName, download.url.toString(), download.view?download.view.identifier:"")
+            if(!destination.directory){download.cancel();return}
+            download.downloadDirectory=destination.directory
+            download.downloadFileName=destination.name
+            downloads[download.id]=download
+            controller.downloadStarted(download.id, destination.directory+"/"+destination.name)
+            download.accept()
+        }
+        onDownloadFinished: function(download) {
+            delete downloads[download.id]
+            controller.downloadFinished(download.id, download.state, download.interruptReasonString)
+        }
+    }
+    Connections {
+        target:controller
+        function onCancelDownload(identifier) {
+            const download=browserProfile.downloads[identifier]
+            if(download)download.cancel()
         }
     }
     ColumnLayout {
@@ -79,7 +99,7 @@ Item {
                             else if(action==="reload")web.reload()
                             else if(action==="stop")web.stop()
                             else if(action==="permission")web.grantFeaturePermission(d.origin,d.feature,d.allow)
-                            else if(action==="reading")web.runJavaScript("(document.querySelector('article,main,[role=main]')||document.body).innerText",function(text){controller.readingReady(web.identifier,text||"")})
+                            else if(action==="reading")web.runJavaScript("(document.querySelector('article,main,[role=main]')||document.body).innerText",function(text){controller.readingReady(web.identifier,text||"",d.generation)})
                             else if(action==="mode"){
                                 if(d.mode==="text")web.forceActiveFocus()
                                 else web.runJavaScript("document.activeElement && document.activeElement.blur()")
@@ -92,7 +112,7 @@ Item {
                                     }else{pointer.x=Math.max(0,Math.min(viewport.width-pointer.width,pointer.x+(d.action==="left"?-26:d.action==="right"?26:0)));pointer.y=Math.max(0,Math.min(viewport.height-pointer.height,pointer.y+(d.action==="up"?-26:d.action==="down"?26:0)))}
                                 } else if(d.mode==="text")controller.webKey(d.action)
                                 else web.runJavaScript(controller.navigationScript(d.action),function(result){
-                                    if(d.action==="accept"&&result&&web.identifier===appState.currentTab&&!appState.menu.title){
+                                    if(d.action==="accept"&&result&&controller.acceptsWebResult(web.identifier,d.generation)){
                                         if(result.x!==undefined){const point=web.mapToItem(null,result.x,result.y);controller.webClick(web.identifier,point.x,point.y)}
                                         controller.webInput(web.identifier,result.editing===true)
                                     }

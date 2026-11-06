@@ -24,7 +24,10 @@ class BookServer:
         self.entries = {}
         path = Path(item["path"])
         if path.suffix.lower() == ".epub":
-            self.archive = zipfile.ZipFile(path)
+            try:
+                self.archive = zipfile.ZipFile(path)
+            except zipfile.BadZipFile as error:
+                raise ValueError(tr("Invalid EPUB archive")) from error
             infos = self.archive.infolist()
             if len(infos) > 20000 or sum(i.file_size for i in infos) > 1024 * 1024 * 1024:
                 self.archive.close()

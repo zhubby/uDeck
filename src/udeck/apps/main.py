@@ -51,7 +51,8 @@ class AppControl(QObject):
     def Open(self, payload):
         try:
             request = json.loads(payload)
-            if (not isinstance(request, dict) or not isinstance(request.get("command", ""), str)
+            if (not isinstance(request, dict)
+                    or (request.get("command") is not None and not isinstance(request["command"], str))
                     or not isinstance(request.get("files", []), list)
                     or not all(isinstance(value, str) for value in request.get("files", []))):
                 raise ValueError("Expected an object with a command string and a list of file paths")
@@ -187,7 +188,7 @@ def main(argv=None):
     remote = QDBusInterface(service, path, interface, bus)
     if not options.isolated and remote.isValid():
         result = remote.call("Diagnose" if options.doctor else "Open", *([] if options.doctor else [
-            json.dumps({"files": options.files, "command": options.command})]))
+            json.dumps({"files": options.files, "command": options.command or ""})]))
         if result.type() == QDBusMessage.MessageType.ErrorMessage:
             print(result.errorMessage(), file=sys.stderr)
             return 1

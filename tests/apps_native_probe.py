@@ -12,8 +12,9 @@ import wave
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from unittest.mock import patch
 
-from PySide6.QtCore import QObject, Qt, QUrl
+from PySide6.QtCore import QObject, Qt, QTimer, QUrl
 from PySide6.QtGui import QPageSize, QPainter, QPdfWriter
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtTest import QTest
@@ -23,6 +24,7 @@ from PySide6.QtWidgets import QApplication
 from udeck.apps.main import AppControl, make_controller
 from udeck.apps.media import FrameImages
 from udeck.apps.reader import PdfImages
+from udeck.i18n import render, tr
 
 
 def fixtures(root):
@@ -178,6 +180,12 @@ def run(app, root, language="en", width=1280, height=720):
         assert controller.media.player.videoSink().videoFrame().isValid()
         assert len(controller.media.player.subtitleTracks())==1
         controller.set_track(True,0)
+        wait(lambda: "Original uDeck subtitle" in controller.media.player.videoSink().subtitleText())
+        assert "Original uDeck subtitle" in controller.subtitle_text(), "Software video lost embedded captions"
+        wait(lambda: any("Original uDeck subtitle" in str(obj.property("text"))
+                         for obj in window.findChildren(QObject) if obj.inherits("QQuickText")))
+        capture("embedded-captions")
+        completed.append("embedded-captions-visible-in-software-scenegraph")
         controller.media.player.pause()
         controller.seek(4)
         wait(lambda: controller.media.player.position()>=3900)
@@ -207,6 +215,23 @@ def run(app, root, language="en", width=1280, height=720):
         completed.append("external-srt-survives-hidden-controls")
         completed.extend(["real-video-frames", "embedded-subtitle-track", "seek", "pause-and-save", "confirmed-resume"])
     elif app == "reader":
+        pdf_item = next(i for i in controller.library.items if i["format"] == "PDF")
+        txt_item = next(i for i in controller.library.items if i["format"] == "TXT")
+        controller.open_item(pdf_item["id"])
+        wait(lambda: controller.reader_ready)
+        controller.turn_pdf(1)
+        controller.set_zoom(1.5, False)
+        controller.pdfPan(75, 160)
+        controller.context()
+        controller.contents_menu()
+        controller.open_item(txt_item["id"])
+        assert not controller.menus, "The new book kept callbacks belonging to the previous document"
+        saved_pdf = controller.store.data["positions"][pdf_item["id"]]
+        assert saved_pdf["page"] == 1 and saved_pdf["zoom"] == 1.5
+        assert saved_pdf["x"] == 75 and saved_pdf["y"] == 160, saved_pdf
+        controller.back()
+        assert controller.page == "library" and not controller.history
+        completed.append("direct-open-keeps-last-pdf-position-and-closes-old-menus")
         for extension in ("TXT", "EPUB", "PDF"):
             item=next(i for i in controller.library.items if i["format"]==extension)
             controller.open_item(item["id"])
@@ -253,6 +278,21 @@ def run(app, root, language="en", width=1280, height=720):
         item=next(i for i in controller.library.items if i["format"]=="TXT")
         controller.open_item(item["id"])
         wait(lambda: controller.reader_ready)
+        previous_position = dict(controller.position)
+        controller.context()
+        previous_book = controller.book
+        (content / "Z malformed.epub").write_bytes(b"Not an EPUB archive")
+        controller.library.refresh()
+        wait(lambda: not controller.library.pending)
+        broken = next(i for i in controller.library.items if i["title"] == "Z malformed")
+        controller.attempt(lambda: controller.open_item(broken["id"]))
+        assert "Invalid EPUB" in render(controller.error, "en")
+        assert previous_book.closed and not controller.menus and controller.page == "library"
+        assert controller.store.data["positions"][item["id"]] == previous_position
+        completed.append("malformed-epub-is-recoverable-and-preserves-last-position")
+        controller.error = ""
+        controller.open_item(item["id"])
+        wait(lambda: controller.reader_ready)
         controller.context()
         old_book=controller.book
         content.rename(root/"detached")
@@ -266,6 +306,18 @@ def run(app, root, language="en", width=1280, height=720):
                 pass
             def do_GET(self):
                 requests.append(self.path)
+                if self.path == "/download":
+                    data = b"Original uDeck download fixture\n"
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/octet-stream")
+                    self.send_header("Content-Disposition", 'attachment; filename="original-udeck.txt"')
+                    self.send_header("Content-Length", str(len(data)))
+                    self.end_headers()
+                    try:
+                        self.wfile.write(data)
+                    except (BrokenPipeError, ConnectionResetError):
+                        pass
+                    return
                 data=(b'<title>Original web test</title><main><h1>Original page</h1><a href="/second">Next page</a><form action="/submit"><input id="draft" name="draft"/></form><p>Meadow reading text.</p></main>'
                       if self.path!="/second" else b'<title>Second original page</title><main><p>Second page reached</p></main>')
                 self.send_response(200)
@@ -288,7 +340,7 @@ def run(app, root, language="en", width=1280, height=720):
         controller.setTab(0)
         assert controller.current_tab==first_tab and controller.active_tab().can_back
         controller.command("back")
-        wait(lambda: controller.active_tab().title=="Original web test")
+        wait(lambda: controller.active_tab().title=="Original web test" and not controller.active_tab().loading)
         controller.set_mode("reading")
         wait(lambda: controller.web_mode=="reading")
         assert "Meadow reading text" in controller.reading_text
@@ -297,8 +349,11 @@ def run(app, root, language="en", width=1280, height=720):
         controller.dispatch("right")
         capture("pointer")
         controller.set_mode("navigation")
+        QTest.qWait(100)
         controller.dispatch("down")
+        QTest.qWait(60)
         controller.dispatch("down")
+        QTest.qWait(60)
         controller.dispatch("accept")
         wait(lambda: controller.web_mode == "text")
         QTest.qWait(100)
@@ -308,6 +363,37 @@ def run(app, root, language="en", width=1280, height=720):
         wait(lambda: any("/submit?draft=abxy" in path for path in requests))
         completed.append("real-form-text-keeps-ordinary-abxy-letters")
         controller.set_mode("navigation")
+        with patch("PySide6.QtCore.QStandardPaths.writableLocation", return_value=str(root / "downloads")):
+            decisions = []
+            def download(confirm):
+                timer = QTimer()
+                def decide():
+                    if controller.menus and controller.menus[-1]["title"] == tr("Download this file?"):
+                        timer.stop()
+                        decisions.append(list((root / "downloads").glob("*")))
+                        capture("download-confirm" if confirm else "download-cancel")
+                        controller.choose(0) if confirm else controller.dispatch("back")
+                timer.timeout.connect(decide)
+                timer.start(20)
+                before = len(decisions)
+                controller.navigate(f"http://127.0.0.1:{server.server_port}/download")
+                wait(lambda: len(decisions) > before)
+                timer.stop()
+            download(False)
+            QTest.qWait(150)
+            assert decisions == [[]] and not (root / "downloads").exists()
+            download(True)
+            downloaded = root / "downloads/original-udeck.txt"
+            wait(lambda: downloaded.exists() and not controller.downloads)
+            assert downloaded.read_bytes() == b"Original uDeck download fixture\n"
+            assert decisions == [[], []]
+            download(True)
+            wait(lambda: len(list((root / "downloads").glob("*"))) == 2 and not controller.downloads)
+            assert decisions[-1] == [downloaded]
+            assert all(path.read_bytes() == downloaded.read_bytes() for path in (root / "downloads").glob("*"))
+            controller.clear_menus()
+        completed.extend(["real-download-cancel-writes-nothing", "real-download-consent-and-original-bytes",
+                          "repeated-download-preserves-existing-file"])
         controller.closeTab(controller.web_tabs[1].identifier)
         controller.closeTab(controller.current_tab)
         assert len(controller.web_tabs)==1

@@ -1,0 +1,110 @@
+{
+  "run_id": "2026-11-07-native-app-suite-followup",
+  "review_base": "62c4f53",
+  "reviewed_feature": "8375eb13f20e088d0673e00f8696c6b5cb9d3c8f",
+  "fix_base": "4abcd0e45f1b844849f95ef2ed9ececeb83cdb32",
+  "mode": "interactive-with-user-authorized-fixes-and-delivery",
+  "execution": "Sequential main-thread review; no subagents, per user AGENTS.md",
+  "report": "docs/apps/review-followup-2026-11-07.md",
+  "findings": [
+    {
+      "id": "R1", "severity": "P1", "file": "src/udeck/apps/main.py", "line": 51,
+      "title": "Default relaunch request is rejected by the existing instance",
+      "reviewers": ["correctness", "api-contract", "testing"],
+      "confidence": 1.0, "pre_existing": false, "autofix_class": "safe_auto", "owner": "review-fixer",
+      "requires_verification": true, "status": "fixed",
+      "evidence": ["The launcher serializes argparse's default command as null, but AppControl.Open required a string", "test_normal_second_launcher_request_presents_existing_app failed before the fix and passes after it"],
+      "fix": "Accept absent/null optional commands, reject invalid non-null types, and send an empty command from the new launcher"
+    },
+    {
+      "id": "R2", "severity": "P2", "file": "src/udeck/apps/web.py", "line": 178,
+      "title": "Stale web callbacks override a newer mode or page",
+      "reviewers": ["correctness", "async-races", "testing"],
+      "confidence": 1.0, "pre_existing": false, "autofix_class": "safe_auto", "owner": "review-fixer",
+      "requires_verification": true, "status": "fixed",
+      "evidence": ["Late reading extraction restored reading mode after cancellation", "Expanded generation test also reproduced the direct Back path bypassing invalidation", "Five navigation/mode cancellation scenarios, current-generation success and duplicate-result rejection now pass"],
+      "fix": "Validate current tab, generation and menu ownership before applying JavaScript results; invalidate on navigation and mode changes"
+    },
+    {
+      "id": "R3", "severity": "P1", "file": "src/udeck/apps/games.py", "line": 414,
+      "title": "Opening another game replaces the identity of the running session",
+      "reviewers": ["correctness", "reliability", "testing"],
+      "confidence": 1.0, "pre_existing": false, "autofix_class": "safe_auto", "owner": "review-fixer",
+      "requires_verification": true, "status": "fixed",
+      "evidence": ["test_new_open_request_cannot_replace_identity_of_running_game reproduced current-item replacement while RetroArch was running", "The regression now preserves the first identity and reports an error"],
+      "fix": "Reject a new item before mutating identity whenever the emulator process is running"
+    },
+    {
+      "id": "R4", "severity": "P1", "file": "src/udeck/apps/games.py", "line": 502,
+      "title": "Save-and-return intent survives a rejected save or terminated session",
+      "reviewers": ["correctness", "async-races", "reliability", "testing"],
+      "confidence": 1.0, "pre_existing": false, "autofix_class": "safe_auto", "owner": "review-fixer",
+      "requires_verification": true, "status": "fixed",
+      "evidence": ["A rejected auto-save left exit_after_save true and the earlier manual save then quit the emulator", "test_game_exit_clears_save_and_return_intent failed during the second review and passed after lifecycle cleanup"],
+      "fix": "Set exit intent only after accepting the auto-save request, and clear it on emulator exit"
+    },
+    {
+      "id": "R5", "severity": "P2", "file": "src/udeck/apps/games.py", "line": 332,
+      "title": "Resume is allowed during pending save/load operations",
+      "reviewers": ["correctness", "async-races", "testing"],
+      "confidence": 1.0, "pre_existing": false, "autofix_class": "safe_auto", "owner": "review-fixer",
+      "requires_verification": true, "status": "fixed",
+      "evidence": ["test_pending_load_keeps_game_paused_and_keeps_menu reproduced an unwanted PAUSE_TOGGLE and early menu removal", "The real RetroArch probe now checks resume rejection during both pending save and load"],
+      "fix": "Reject resume while an operation is pending and clear the menu only after successful resume"
+    },
+    {
+      "id": "R6", "severity": "P1", "file": "src/udeck/apps/qml/BrowserSurface.qml", "line": 26,
+      "title": "Downloads fail at the Qt Quick binding and outlive the valid request window",
+      "reviewers": ["correctness", "api-contract", "async-races", "security", "testing"],
+      "confidence": 1.0, "pre_existing": false, "autofix_class": "safe_auto", "owner": "review-fixer",
+      "requires_verification": true, "status": "fixed",
+      "evidence": ["Real native probe logged: QQuickWebEngineDownloadRequest* cannot be converted", "Qt 6.8 documents immediate destruction of requests unaccepted when downloadRequested returns", "Real native probe now checks cancellation with zero writes, exact downloaded bytes, duplicate-name preservation and confirmation screenshots", "Controller tests cover close, back, clearing menus, tab switching, overlapping requests, filename confinement and owned-menu cleanup"],
+      "fix": "Keep Qt Quick requests in QML; pass primitive data to a modal Qt event-loop confirmation; accept/cancel before signal return and clean up progress by download id"
+    },
+    {
+      "id": "R7", "severity": "P2", "file": "src/udeck/apps/reader.py", "line": 75,
+      "title": "Directly opening another book loses the last position and retains old menus",
+      "reviewers": ["correctness", "async-races", "reliability", "testing"],
+      "confidence": 1.0, "pre_existing": false, "autofix_class": "safe_auto", "owner": "review-fixer",
+      "requires_verification": true, "status": "fixed",
+      "evidence": ["Native PDF-to-TXT test failed because the new book kept the old contents menu", "The same native test now checks saved page, zoom, x/y pan and one-step library return", "Switching to a malformed EPUB also preserves the previous book's stored position"],
+      "fix": "Persist the old document before closing it, clear document-owned menus/search and replace the document navigation level"
+    },
+    {
+      "id": "R8", "severity": "P2", "file": "src/udeck/apps/books.py", "line": 30,
+      "title": "A malformed EPUB escapes the application error boundary",
+      "reviewers": ["correctness", "reliability", "testing"],
+      "confidence": 1.0, "pre_existing": false, "autofix_class": "safe_auto", "owner": "review-fixer",
+      "requires_verification": true, "status": "fixed",
+      "evidence": ["Opening a non-ZIP .epub raised zipfile.BadZipFile, outside AppController.attempt's catch tuple", "test_malformed_epub_reports_a_format_error failed before the boundary conversion and now passes", "Native Reader probe checks the recoverable format error and preserved prior position"],
+      "fix": "Translate BadZipFile to an explicit localized ValueError at the archive-open boundary"
+    },
+    {
+      "id": "R9", "severity": "P2", "file": "src/udeck/apps/media.py", "line": 547,
+      "title": "Software video hides embedded subtitles",
+      "reviewers": ["correctness", "testing", "project-standards"],
+      "confidence": 1.0, "pre_existing": false, "autofix_class": "safe_auto", "owner": "review-fixer",
+      "requires_verification": true, "status": "fixed",
+      "evidence": ["Native video fixture delivered QVideoSink subtitleText while controller.subtitle_text() remained empty", "The failing real fixture now asserts player text and visible QML text, and captures the composed embedded captions"],
+      "fix": "Expose QVideoSink subtitle text and change notifications to the existing overlay in software rendering mode"
+    }
+  ],
+  "applied_fixes": ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9"],
+  "residual_actionable_work": [],
+  "advisory_only": [
+    "Native automation does not establish physical controls, audio quality or arbitrary external websites",
+    "The upstream foliate-js modules were not modified or independently fully security-audited"
+  ],
+  "bounded_rereview": {"rounds": 2, "additional_reproduced_boundary": "R4 exit lifecycle", "unresolved": []},
+  "verification": {
+    "local_pytest": {"passed": 350, "skipped": 2, "seconds": 96.45, "skip_reason": "Linux Terminal native plugin unavailable on macOS"},
+    "ruff": "passed",
+    "wheel": {"file": "udeck-0.1.8-py3-none-any.whl", "sha256": "162b2089302c321205eabc367a779da35b24e40111eff4e917ee3b80e3afea00", "source_files_matched": 65},
+    "device_pytest": {"passed": 352, "skipped": 0, "seconds": 226.06, "terminal_native_plugin": "/usr/lib/udeck-terminal/qml"},
+    "real_retroarch": {"core": "Gambatte", "state_bytes": 26672, "pending_save_load_resume_rejection": "passed", "errors": []},
+    "device_browser_zh": {"width": 960, "height": 600, "download_cancel_bytes_duplicate_preservation": "passed", "qml_errors": []},
+    "packages": {"source_manifest_files_matched": 118, "overlap": false, "udeck": "0.1.8", "udeck_apps": "0.1.1", "installed_source_files_matched": 55},
+    "installed_validation": {"applications": 5, "platform": "Wayland", "relaunch_same_pid": true, "legacy_null_command": "passed", "qml_errors": [], "native_input_route": "available and enabled", "app_exit_codes": [0, 0, 0, 0, 0], "terminal_pid_preserved": 381833, "display_restored": "DSI-1 off"}
+  },
+  "verdict": "ready to merge; all nine confirmed findings fixed and verified"
+}

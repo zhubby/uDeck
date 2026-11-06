@@ -2,9 +2,21 @@
 
 import re
 import uuid
+from pathlib import Path
 from urllib.parse import quote_plus, urlsplit
 
-from PySide6.QtCore import Property, QAbstractListModel, QModelIndex, QObject, Qt, Signal, Slot
+from PySide6.QtCore import (
+    Property,
+    QAbstractListModel,
+    QCoreApplication,
+    QEventLoop,
+    QModelIndex,
+    QObject,
+    QStandardPaths,
+    Qt,
+    Signal,
+    Slot,
+)
 
 from ..i18n import tr
 from .controller import AppController
@@ -69,11 +81,17 @@ class TabModel(QAbstractListModel):
 
 class BrowserController(AppController):
     tabsChanged = Signal()
+    cancelDownload = Signal(int)
 
     def __init__(self, directory=None, language_path=None):
         super().__init__("browser", directory, language_path)
         self.page = "browser"
         self.web_mode, self.reading_text = "navigation", ""
+        self.web_generation = 0
+        self.reading_request = None
+        self.download_prompt = None
+        self.downloads = {}
+        self.closed.connect(self.cancel_download_prompt)
         self.web_tabs = []
         self.tab_model = TabModel(self.web_tabs, self)
         self.current_tab = ""
@@ -108,6 +126,7 @@ class BrowserController(AppController):
     def new_tab(self, url="about:blank"):
         if len(self.web_tabs) >= 12:
             raise ValueError(tr("Close a tab before opening another (12 tab limit)"))
+        self.invalidate_web_actions()
         tab = BrowserTab(url, parent=self)
         self.current_tab = tab.identifier
         self.tab = len(self.web_tabs)
@@ -120,6 +139,7 @@ class BrowserController(AppController):
         tab = next((t for t in self.web_tabs if t.identifier == identifier), None)
         if not tab:
             return
+        self.invalidate_web_actions()
         index = self.web_tabs.index(tab)
         if len(self.web_tabs) == 1:
             self.new_tab()
@@ -136,6 +156,7 @@ class BrowserController(AppController):
     @Slot(int)
     def setTab(self, index):
         if 0 <= index < len(self.web_tabs):
+            self.invalidate_web_actions()
             self.tab = index
             self.current_tab = self.web_tabs[index].identifier
             self.web_mode = "navigation"
@@ -144,10 +165,23 @@ class BrowserController(AppController):
     def send(self, operation, **values):
         import json
 
-        self.webAction.emit(operation, json.dumps({"id": self.current_tab, **values}))
+        if operation in ("reload", "stop", "forward", "back"):
+            self.invalidate_web_actions()
+        self.webAction.emit(operation, json.dumps({"id": self.current_tab,
+                                                  "generation": self.web_generation, **values}))
+
+    def invalidate_web_actions(self):
+        self.web_generation += 1
+        self.reading_request = None
+
+    @Slot(str, int, result=bool)
+    def acceptsWebResult(self, identifier, generation):
+        return identifier == self.current_tab and generation == self.web_generation and not self.menus
 
     def navigate(self, text):
-        self.send("navigate", url=address_url(text))
+        url = address_url(text)
+        self.invalidate_web_actions()
+        self.send("navigate", url=url)
         self.web_mode = "navigation"
 
     @Slot(str, str, str, bool, bool, str)
@@ -155,15 +189,19 @@ class BrowserController(AppController):
         tab = next((t for t in self.web_tabs if t.identifier == identifier), None)
         if tab is None:
             return
+        if identifier == self.current_tab and (url != tab.url or loading and not tab.loading):
+            self.invalidate_web_actions()
         tab.url, tab.title, tab.loading, tab.can_back, tab.error = url, title, loading, can_back, error
         if not loading and not error and url.startswith(("https://", "http://")):
             self.store.data["history"] = [{"url": url, "title": title}] + [
                 e for e in self.store.data["history"] if e.get("url") != url][:199]
         self.publish()
 
-    @Slot(str, str)
-    def readingReady(self, identifier, text):
-        if identifier == self.current_tab:
+    @Slot(str, str, int)
+    def readingReady(self, identifier, text, generation=-1):
+        if (self.acceptsWebResult(identifier, generation)
+                and self.reading_request == generation):
+            self.reading_request = None
             self.reading_text = text
             self.web_mode = "reading"
             self.publish()
@@ -238,8 +276,10 @@ class BrowserController(AppController):
                                       ("Virtual pointer", "pointer"), ("Text input", "text"))])
 
     def set_mode(self, mode):
+        self.invalidate_web_actions()
         self.clear_menus()
         if mode == "reading":
+            self.reading_request = self.web_generation
             self.send("reading")
         else:
             self.web_mode = mode
@@ -340,35 +380,79 @@ class BrowserController(AppController):
     @Slot(str, result=str)
     def navigationScript(self, action):
         import json
-        from pathlib import Path
 
         return "(" + Path(__file__).with_name("navigation.js").read_text() + ")(" + json.dumps(action) + ")"
 
-    @Slot(QObject)
-    def configureProfile(self, profile):
-        profile.downloadRequested.connect(self.download_requested)
-
-    def download_requested(self, download):
-        from pathlib import Path
-
-        from PySide6.QtCore import QStandardPaths
-
+    @Slot(str, str, str, result="QVariantMap")
+    def confirmDownload(self, filename, url, identifier):
+        if self.download_prompt or identifier != self.current_tab:
+            return {}
         root = Path(QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DownloadLocation))
-        name = Path(download.downloadFileName()).name or "download"
-        if (root / name).exists():
-            name = Path(name).stem + "-" + uuid.uuid4().hex[:8] + Path(name).suffix
+        name = Path(filename.replace("\\", "/")).name
+        if name in ("", ".", ".."):
+            name = "download"
+        def unused_name():
+            candidate = name
+            while (root / candidate).exists():
+                candidate = Path(name).stem + "-" + uuid.uuid4().hex[:8] + Path(name).suffix
+            return candidate
+        proposed_name = unused_name()
+        result = {}
         def accept():
             root.mkdir(parents=True, exist_ok=True)
-            download.setDownloadDirectory(str(root))
-            download.setDownloadFileName(name)
-            download.accept()
+            result.update(directory=str(root), name=unused_name() if (root / proposed_name).exists() else proposed_name)
             self.pop_menu()
-            self.menu(tr("Download"), [(tr("Cancel download"), lambda: (download.cancel(), self.pop_menu()))], str(root / name))
-        self.menu(tr("Download this file?"), [(tr("Download"), accept),
-                                             (tr("Cancel"), lambda: (download.cancel(), self.pop_menu()))],
-                  str(root / name))
-        def finished():
-            if download.isFinished():
-                self.notice = tr("Download: {state}", state=download.state().name)
-                self.publish()
-        download.isFinishedChanged.connect(finished)
+        self.menu(tr("Download this file?"), [(tr("Download"), accept), (tr("Cancel"), self.pop_menu)],
+                  url + "\n" + str(root / proposed_name), owner=identifier)
+        menu = self.menus[-1]
+        loop = QEventLoop(self)
+        self.download_prompt = loop
+        def dismissed():
+            if identifier != self.current_tab or not any(entry is menu for entry in self.menus):
+                loop.quit()
+        self.changed.connect(dismissed)
+        application = QCoreApplication.instance()
+        application.aboutToQuit.connect(loop.quit)
+        try:
+            # Qt deletes an unaccepted request when downloadRequested returns.
+            # Keep that QML handler alive while the existing modal receives input.
+            loop.exec()
+        finally:
+            self.changed.disconnect(dismissed)
+            application.aboutToQuit.disconnect(loop.quit)
+            self.download_prompt = None
+            self.remove_download_menu(menu)
+            loop.deleteLater()
+        return result
+
+    def cancel_download_prompt(self):
+        if self.download_prompt:
+            self.download_prompt.quit()
+
+    def remove_download_menu(self, menu):
+        if any(entry is menu for entry in self.menus):
+            self.menus.remove(menu)
+            for row in menu["options"]:
+                self._callbacks.pop(row["id"], None)
+            self.publish()
+
+    @Slot(int, str)
+    def downloadStarted(self, identifier, path):
+        self.menu(tr("Download"), [(tr("Cancel download"), lambda: self.cancelDownload.emit(identifier))], path)
+        self.downloads[identifier] = self.menus[-1]
+
+    @Slot(int, int, str)
+    def downloadFinished(self, identifier, state, reason):
+        menu = self.downloads.pop(identifier, None)
+        if menu is None:
+            return
+        self.remove_download_menu(menu)
+        self.notice = (tr("Download complete") if state == 2 else tr("Download canceled") if state == 3
+                       else tr("Download failed: {error}", error=reason))
+        self.publish()
+
+    def close(self):
+        self.cancel_download_prompt()
+        for identifier in list(self.downloads):
+            self.cancelDownload.emit(identifier)
+        super().close()

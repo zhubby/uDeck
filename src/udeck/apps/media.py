@@ -156,6 +156,7 @@ class MediaController(AppController):
         self.media.player.setVideoSink(sink)
         if self.media.software:
             sink.videoFrameChanged.connect(self.media.video_frame)
+            sink.subtitleTextChanged.connect(self.media.changed)
 
     @Slot(float)
     def seek(self, seconds):
@@ -544,6 +545,10 @@ class MediaController(AppController):
         self.pop_menu()
 
     def subtitle_text(self):
+        sink = self.media.player.videoSink()
+        if (not self.external_cues and self.media.software and sink
+                and self.media.player.activeSubtitleTrack() >= 0):
+            return sink.subtitleText()
         position = self.media.player.position() / 1000
         return "\n".join(text for start, end, text in self.external_cues if start <= position < end)
 

@@ -9,6 +9,7 @@ import sys
 import time
 from pathlib import Path
 
+import pytest
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
@@ -64,6 +65,8 @@ def run(root):
     engine.pause()
     wait(lambda:engine.status=="paused")
     engine.save("1")
+    with pytest.raises(RuntimeError, match="wait for the current operation"):
+        engine.resume()
     wait(lambda:"saved:1" in events)
     state,metadata=saves.load("1",file_hash(path),file_hash(checks["core"]))
     assert state.stat().st_size>1000
@@ -72,6 +75,8 @@ def run(root):
     engine.pause()
     wait(lambda:engine.status=="paused")
     engine.load("1")
+    with pytest.raises(RuntimeError, match="wait for the current operation"):
+        engine.resume()
     wait(lambda:"loaded" in events)
     engine.save("auto")
     wait(lambda:"saved:auto" in events)

@@ -74,7 +74,12 @@ class ReaderController(AppController):
 
     def open_item(self, identifier):
         item = self.library.require(identifier)
+        self.save_position()
+        self.persist()
+        self.clear_menus()
         self.close_document()
+        if self.page == "document":
+            super().back()
         self.current = item
         self.position = dict(self.store.data["positions"].get(identifier, {}))
         self.reader_ready, self.reader_label, self.contents = False, "", []
@@ -392,6 +397,8 @@ class ReaderController(AppController):
             self.book = None
         self.reader_url = ""
         self.reader_ready = False
+        self.search_query, self.search_results = "", []
+        self.notice = ""
         self.pdf_highlights = []
         self.pdf.close()
 

@@ -330,6 +330,8 @@ class RetroEngine(QObject):
             self.send("PAUSE_TOGGLE")
 
     def resume(self):
+        if self.pending:
+            raise RuntimeError(tr("Pause the game and wait for the current operation"))
         if self.status == "paused":
             self.send("PAUSE_TOGGLE")
 
@@ -410,6 +412,8 @@ class GamesController(AppController):
         return SaveStore(self.store.path.parent / "game-saves" / self.current["id"])
 
     def open_item(self, identifier):
+        if self.engine.running():
+            raise RuntimeError(tr("A game is already running"))
         self.current = self.library.require(identifier)
         self.checks = preflight(self.current, self.store.data["preferences"])
         self.enter("game-details")
@@ -456,8 +460,8 @@ class GamesController(AppController):
     def resume_game(self):
         if self.source_missing:
             raise OSError(tr("The source is disconnected"))
-        self.clear_menus()
         self.engine.resume()
+        self.clear_menus()
         self.desktop("Home") if not self.window else self.window.showMinimized()
 
     def slots_menu(self, load):
@@ -497,8 +501,8 @@ class GamesController(AppController):
 
     def save_exit(self):
         self.library.require(self.current["id"])
-        self.exit_after_save = True
         self.engine.save("auto")
+        self.exit_after_save = True
 
     def confirm_quit(self):
         self.menu(tr("Return without saving?"), [(tr("Confirm"), self.engine.quit), (tr("Cancel"), self.pop_menu)])
@@ -514,6 +518,7 @@ class GamesController(AppController):
         self.publish()
 
     def game_exited(self, code):
+        self.exit_after_save = False
         self.clear_menus()
         self.page = "game-details"
         if self.game_started:
