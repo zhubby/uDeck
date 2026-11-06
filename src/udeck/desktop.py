@@ -7,6 +7,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from .i18n import tr
+
 
 def terminal_command(arguments=None):
     resolver = shutil.which("xdg-terminal-exec")
@@ -14,14 +16,14 @@ def terminal_command(arguments=None):
         return [resolver, "--", *arguments] if arguments else [resolver]
     terminal = shutil.which("x-terminal-emulator")
     if not terminal:
-        raise RuntimeError("没有可用的默认终端，请安装 xdg-terminal-exec 或终端模拟器")
+        raise RuntimeError(tr('没有可用的默认终端，请安装 xdg-terminal-exec 或终端模拟器'))
     return [terminal, "-e", *arguments] if arguments else [terminal]
 
 
 def open_terminal(directory):
     directory = Path(directory).absolute()
     if not directory.is_dir():
-        raise ValueError("终端工作目录不存在")
+        raise ValueError(tr('终端工作目录不存在'))
     # An explicit directory/command must create a window even when the terminal
     # primary already exists; a plain launch only activates its recent window.
     resolver = shutil.which("xdg-terminal-exec")
@@ -43,7 +45,7 @@ def parse_exec(command, name="", icon="", desktop_path=""):
             token = token.replace(field, "")
         result.append(token.replace("\x00", "%"))
     if not result:
-        raise ValueError("应用没有可执行命令")
+        raise ValueError(tr('应用没有可执行命令'))
     return result
 
 
@@ -85,10 +87,11 @@ class DesktopCatalog:
                         continue
                     locale_keys = [self.locale, self.locale.split("_")[0]]
                     name = next((section[f"Name[{key}]"] for key in locale_keys if f"Name[{key}]" in section), section.get("Name", path.stem))
+                    comment = next((section[f"Comment[{key}]"] for key in locale_keys if f"Comment[{key}]" in section), section.get("Comment", ""))
                     categories = section.get("Categories", "").split(";")
                     category = next((value for value in categories if value in ("Development", "Game", "Graphics", "Network", "Office", "AudioVideo", "System", "Utility")), "Other")
                     entries.append({
-                        "id": identifier, "name": name, "subtitle": section.get("Comment", ""),
+                        "id": identifier, "name": name, "subtitle": comment,
                         "icon": section.get("Icon", "application-x-executable"),
                         "category": category, "desktop": str(path), "exec": section.get("Exec", ""),
                         "terminal": section.get("Terminal", "false").lower() == "true",
@@ -109,7 +112,7 @@ class DesktopCatalog:
 
             application = Gio.DesktopAppInfo.new_from_filename(entry["desktop"])
             if application is None or not application.launch([], None):
-                raise RuntimeError("系统拒绝启动应用")
+                raise RuntimeError(tr('系统拒绝启动应用'))
         except ImportError:
             arguments = parse_exec(entry["exec"], entry["name"], entry["icon"], entry["desktop"])
             if entry["terminal"]:

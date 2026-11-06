@@ -2,7 +2,9 @@
 
 ## 运行边界
 
-uDeck 0.1.5 是原生 PySide6 / Qt Quick 桌面壳，不包含 Electron、Chromium 或 HTTP 服务。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。第三方应用兼容层需要独立 uDeck 会话，原桌面中运行壳不会启用。
+uDeck 0.1.6 是原生 PySide6 / Qt Quick 桌面壳，不包含 Electron、Chromium 或 HTTP 服务。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。第三方应用兼容层需要独立 uDeck 会话，原桌面中运行壳不会启用。
+
+首次默认英文。在 `Settings → Language` 或 `Y → Language` 选择 `English` / `简体中文`，立即切换并保存。已安装的 Terminal 0.1.1 同步界面语言，保留会话和输出。详见 [中英文界面记录](i18n-2026-11-06.md)。
 
 目标环境为 CM4、约 4 GiB 内存、Debian 13、Qt 6.8、labwc 0.9 系列和横屏 1280×720。不会替换官方镜像、显示驱动、内核或窗口合成器。
 
@@ -32,8 +34,8 @@ Qt 6.8 的 Python 开发环境使用 3.11–3.13，不使用系统默认的 Pyth
 
 ```sh
 sh tools/build-deb
-dpkg-deb --info dist/udeck_0.1.5_arm64.deb
-sudo apt-get install ./dist/udeck_0.1.5_arm64.deb
+dpkg-deb --info dist/udeck_0.1.6_arm64.deb
+sudo apt-get install ./dist/udeck_0.1.6_arm64.deb
 ```
 
 依赖由 Debian 提供，包括 PySide6 Qt 6.8、Qt Quick Controls、dbus-next、evdev、Gio、NetworkManager、BlueZ、PipeWire/WirePlumber、wlr-randr、swayidle/swaylock、wlopm、fcitx5 和 lxpolkit。构建不打包 358 MiB 的硬件资料、虚拟环境或测试缓存。
@@ -122,7 +124,7 @@ Y 菜单默认选中「返回应用」，还提供模式切换、常用操作、
 
 ## 功能使用与安全保护
 
-- 应用：X 加入/取消收藏、搜索、分类。读取 XDG applications，尊重用户覆盖、Hidden/NoDisplay、OnlyShowIn/NotShowIn 和 TryExec，按系统区域设置读取本地化名称；优先使用 Gio 启动及处理终端应用。
+- 应用：X 加入/取消收藏、搜索、分类。读取 XDG applications，尊重用户覆盖、Hidden/NoDisplay、OnlyShowIn/NotShowIn 和 TryExec，按界面语言读取应用提供的本地化名称和说明；优先使用 Gio 启动及处理终端应用。
 - 窗口：只列举真实 foreign-toplevel 窗口；A 激活，X 请求关闭。请求关闭允许应用显示保存确认，并非杀死进程。
 - 文件：从主目录开始，X 新建、重命名、复制/剪切、粘贴或移入回收站。覆盖默认不发生，文件夹不会合并/覆盖。没有“永久删除”后备路径。
 - 移动：同文件系统使用原子 rename；跨文件系统先完整复制并检查源是否变化，再将源移入回收站。回收站不支持或源改变时保留源，明确报告“目标已复制但源仍保留”，不会调用递归永久删除源目录。

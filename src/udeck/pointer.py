@@ -1,12 +1,13 @@
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
+from .i18n import error_text, tr
 from .input import STOCK_FINGERPRINT
 
 
 class PointerGuard(QObject):
     action = Signal(str)
     shoulder = Signal(str)
-    status = Signal(dict)
+    status = Signal(object)
 
     def __init__(self, parent=None, *, built_in_only=False):
         super().__init__(parent)
@@ -32,7 +33,7 @@ class PointerGuard(QObject):
         try:
             paths = set(list_devices())
         except OSError as error:
-            self._report([str(error)])
+            self._report([error_text(error)])
             return
         for path in set(self.devices) - paths:
             self._remove(path)
@@ -51,10 +52,10 @@ class PointerGuard(QObject):
                 if 272 not in keys or not ({0, 1} <= relative or {0, 1} <= absolute):
                     continue
                 if any(0 < code < 256 for code in keys):
-                    errors.append(f"{device.name}: 混合键盘接口不能独占")
+                    errors.append(tr('{value0}: 混合键盘接口不能独占', value0=device.name))
                     continue
                 if device.active_keys():
-                    errors.append(f"{device.name}: 请松开鼠标按键")
+                    errors.append(tr('{value0}: 请松开鼠标按键', value0=device.name))
                     continue
                 device.grab()
                 notifier = QSocketNotifier(device.fd, QSocketNotifier.Type.Read, self)
@@ -107,7 +108,7 @@ class PointerGuard(QObject):
             pass
         except OSError as error:
             self._remove(path)
-            self._report([str(error)])
+            self._report([error_text(error)])
 
     def _remove(self, path):
         entry = self.devices.pop(path)

@@ -29,6 +29,7 @@ def run():
     parser.add_argument("screenshot", type=Path)
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=720)
+    parser.add_argument("--language", choices=("en", "zh_CN"), default="en")
     options = parser.parse_args()
     application = QGuiApplication([])
     families = QFontDatabase.families()
@@ -36,6 +37,7 @@ def run():
     application.setFont(QFont(family))
     temporary = tempfile.TemporaryDirectory(prefix="udeck-wifi-preview-")
     controller = ShellController(MockBackend(), config=ConfigStore(Path(temporary.name) / "settings.json"), mock=True)
+    controller.setLanguage(options.language)
     controller.setPage("settings")
     controller.select(3)
     if options.scenario == "single":

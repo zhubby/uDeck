@@ -8,10 +8,11 @@ import pytest
 
 @pytest.mark.parametrize("scenario", ["adapters", "networks", "confirm", "saved", "off", "single", "empty", "unplug", "long-name"])
 @pytest.mark.parametrize(("width", "height"), [(1280, 720), (960, 600)])
-def test_wifi_flows_fit_the_screen_and_route_back_without_qml_warnings(tmp_path, scenario, width, height):
+@pytest.mark.parametrize("language", ["en", "zh_CN"])
+def test_wifi_flows_fit_the_screen_and_route_back_without_qml_warnings(tmp_path, scenario, width, height, language):
     screenshot = tmp_path / f"wifi-{scenario}.png"
     result = subprocess.run(
-        [sys.executable, "tests/wifi_qml_probe.py", scenario, str(screenshot), "--width", str(width), "--height", str(height)],
+        [sys.executable, "tests/wifi_qml_probe.py", scenario, str(screenshot), "--width", str(width), "--height", str(height), "--language", language],
         env={**os.environ, "QT_QPA_PLATFORM": "offscreen", "QT_QUICK_BACKEND": "software", "QT_QUICK_CONTROLS_STYLE": "Basic", "PYTHONPATH": "src"},
         capture_output=True, text=True, timeout=20,
     )

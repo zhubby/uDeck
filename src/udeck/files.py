@@ -9,6 +9,8 @@ import threading
 import uuid
 from pathlib import Path
 
+from .i18n import tr
+
 
 class InvalidName(ValueError):
     pass
@@ -30,17 +32,17 @@ def rename_noreplace(source, target):
         function.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_uint]
         result = function(*arguments, 4)
     else:
-        raise OSError(errno.ENOTSUP, "当前文件系统不支持安全的无覆盖重命名")
+        raise OSError(errno.ENOTSUP, tr('当前文件系统不支持安全的无覆盖重命名'))
     if result:
         error = ctypes.get_errno()
         if error in (errno.EEXIST, errno.ENOTEMPTY):
-            raise CollisionError("同名项目已存在，未覆盖任何文件")
+            raise CollisionError(tr('同名项目已存在，未覆盖任何文件'))
         raise OSError(error, os.strerror(error), str(target))
 
 
 def validate_name(name):
     if not name.strip() or name in (".", "..") or "/" in name or "\x00" in name:
-        raise InvalidName("名称不能为空，也不能包含路径分隔符")
+        raise InvalidName(tr('名称不能为空，也不能包含路径分隔符'))
     return name
 
 
@@ -55,9 +57,9 @@ class FileOperations:
                 is_directory = entry.is_dir()
                 information = entry.lstat()
                 size = information.st_size
-                subtitle = "文件夹" if is_directory else self.format_size(size)
+                subtitle = tr('文件夹') if is_directory else self.format_size(size)
                 if entry.is_symlink():
-                    subtitle += " · 链接"
+                    subtitle += tr(' · 链接')
                 result.append({
                     "id": str(entry), "path": str(entry), "name": entry.name,
                     "directory": is_directory, "subtitle": subtitle,
@@ -65,7 +67,7 @@ class FileOperations:
                 })
             except OSError:
                 result.append({"id": str(entry), "path": str(entry), "name": entry.name,
-                               "directory": False, "subtitle": "不可访问", "icon": "dialog-warning"})
+                               "directory": False, "subtitle": tr('不可访问'), "icon": "dialog-warning"})
         return sorted(result, key=lambda entry: (not entry["directory"], entry["name"].casefold()))
 
     @staticmethod
@@ -79,7 +81,7 @@ class FileOperations:
     def mkdir(self, directory, name):
         target = Path(directory) / validate_name(name)
         if os.path.lexists(target):
-            raise CollisionError("同名项目已存在")
+            raise CollisionError(tr('同名项目已存在'))
         target.mkdir()
         return target
 
@@ -89,7 +91,7 @@ class FileOperations:
         if source == target:
             return target
         if os.path.lexists(target):
-            raise CollisionError("同名项目已存在，请使用其他名称")
+            raise CollisionError(tr('同名项目已存在，请使用其他名称'))
         rename_noreplace(source, target)
         return target
 
@@ -99,14 +101,14 @@ class FileOperations:
         target = directory / source.name
         cancelled = cancelled or threading.Event()
         if source == target or (source.is_dir() and not source.is_symlink() and directory.resolve().is_relative_to(source.resolve())):
-            raise ValueError("不能复制到原位置或自己的子目录")
+            raise ValueError(tr('不能复制到原位置或自己的子目录'))
         if os.path.lexists(target):
             if not replace:
-                raise CollisionError("目标已存在，是否覆盖同名文件？")
+                raise CollisionError(tr('目标已存在，是否覆盖同名文件？'))
             if target.is_dir() and not target.is_symlink():
-                raise ValueError("不能覆盖文件夹，请先重命名")
+                raise ValueError(tr('不能覆盖文件夹，请先重命名'))
         if cancelled.is_set():
-            raise InterruptedError("操作已取消")
+            raise InterruptedError(tr('操作已取消'))
         if move:
             try:
                 if replace and not (source.is_dir() and not source.is_symlink()):
@@ -127,7 +129,7 @@ class FileOperations:
 
         def copy_entry(origin, destination):
             if cancelled.is_set():
-                raise InterruptedError("操作已取消")
+                raise InterruptedError(tr('操作已取消'))
             versions[origin] = version(origin)
             mode = versions[origin][2]
             if stat.S_ISLNK(mode):
@@ -142,23 +144,23 @@ class FileOperations:
                 with os.fdopen(descriptor, "rb") as reader:
                     information = os.fstat(reader.fileno())
                     if not stat.S_ISREG(information.st_mode) or information.st_ino != versions[origin][1]:
-                        raise RuntimeError("源文件发生变化，已取消复制")
+                        raise RuntimeError(tr('源文件发生变化，已取消复制'))
                     writer_descriptor = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
                     with os.fdopen(writer_descriptor, "wb") as writer:
                         while chunk := reader.read(1024 * 1024):
                             if cancelled.is_set():
-                                raise InterruptedError("操作已取消")
+                                raise InterruptedError(tr('操作已取消'))
                             writer.write(chunk)
                 shutil.copystat(origin, destination, follow_symlinks=False)
             else:
-                raise ValueError("不复制设备、套接字或管道文件")
+                raise ValueError(tr('不复制设备、套接字或管道文件'))
 
         try:
             copy_entry(source, staging)
             if cancelled.is_set():
-                raise InterruptedError("操作已取消")
+                raise InterruptedError(tr('操作已取消'))
             if any(version(path) != original for path, original in versions.items()):
-                raise RuntimeError("源项目在复制期间发生变化，源文件已保留，请重试")
+                raise RuntimeError(tr('源项目在复制期间发生变化，源文件已保留，请重试'))
             if replace and not (staging.is_dir() and not staging.is_symlink()):
                 os.replace(staging, target)
             else:
@@ -166,10 +168,10 @@ class FileOperations:
             if move:
                 try:
                     if cancelled.is_set() or any(version(path) != original for path, original in versions.items()):
-                        raise RuntimeError("源项目已改变或操作已取消")
+                        raise RuntimeError(tr('源项目已改变或操作已取消'))
                     self.trash(source)
                 except Exception as error:
-                    raise RuntimeError(f"目标已复制，但源项目仍保留；跨文件系统移动仅使用回收站，不会永久删除源文件。\n{error}") from error
+                    raise RuntimeError(tr('目标已复制，但源项目仍保留；跨文件系统移动仅使用回收站，不会永久删除源文件。\n{value0}', value0=error)) from error
             return target
         finally:
             if staging.is_dir() and not staging.is_symlink():
@@ -188,5 +190,5 @@ class FileOperations:
             subprocess.run(["gio", action, "--", str(path)], check=True, capture_output=True,
                            text=True, errors="replace", timeout=30)
         except subprocess.CalledProcessError as error:
-            reason = (error.stderr or "").strip() or f"GIO 退出状态 {error.returncode}"
-            raise RuntimeError(f"系统文件服务失败：{reason}") from error
+            reason = (error.stderr or "").strip() or tr('GIO 退出状态 {value0}', value0=error.returncode)
+            raise RuntimeError(tr('系统文件服务失败：{value0}', value0=reason)) from error

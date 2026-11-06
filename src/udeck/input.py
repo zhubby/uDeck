@@ -2,6 +2,8 @@ import sys
 
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
+from .i18n import error_text, tr
+
 DIRECTIONS = {"left", "right", "up", "down"}
 BUTTON_ACTIONS = {"accept", "back", "context", "quick-settings"}
 ACTIONS = DIRECTIONS | BUTTON_ACTIONS
@@ -39,7 +41,7 @@ class Gamepad(QObject):
     button = Signal(str, bool)
     captured = Signal(int)
     axisCaptured = Signal(str)
-    status = Signal(dict)
+    status = Signal(object)
 
     def __init__(self, profile=None, parent=None):
         super().__init__(parent)
@@ -116,9 +118,9 @@ class Gamepad(QObject):
                                   **self._mapping_status(source), "grabbed": False})
                 self._try_grab()
                 return
-            self.status.emit({"available": False, "verified": False, "message": "未找到独立手柄；可用方向键、Enter、Esc 操作"})
+            self.status.emit({"available": False, "verified": False, "message": tr('未找到独立手柄；可用方向键、Enter、Esc 操作')})
         except (ImportError, OSError) as error:
-            self.status.emit({"available": False, "verified": False, "message": str(error)})
+            self.status.emit({"available": False, "verified": False, "message": error_text(error)})
 
     def _try_grab(self):
         if self.device is None or self.grabbed or not self.foreground:
@@ -132,7 +134,7 @@ class Gamepad(QObject):
             self.status.emit({"grabbed": True})
         except OSError:
             self._close()
-            self.status.emit({"grabbed": False, "message": "未能获取手柄输入；请确认设备已连接，且未被其他程序占用"})
+            self.status.emit({"grabbed": False, "message": tr('未能获取手柄输入；请确认设备已连接，且未被其他程序占用')})
 
     def _read(self, *arguments):
         try:
@@ -143,7 +145,7 @@ class Gamepad(QObject):
                     continue
                 if event.type == ecodes.EV_SYN and event.code == ecodes.SYN_DROPPED:
                     self._close()
-                    self.status.emit({"grabbed": False, "message": "输入事件丢失，请松开按键后重试"})
+                    self.status.emit({"grabbed": False, "message": tr('输入事件丢失，请松开按键后重试')})
                     return
                 if event.type == ecodes.EV_KEY:
                     was_pressed = event.code in self.router.pressed
@@ -175,7 +177,7 @@ class Gamepad(QObject):
             pass
         except (OSError, AttributeError):
             self._close()
-            self.status.emit({"available": False, "grabbed": False, "message": "手柄已断开"})
+            self.status.emit({"available": False, "grabbed": False, "message": tr('手柄已断开')})
 
     def _update_direction(self):
         key_directions = [self.router.mapping.get(code) for code in sorted(self.router.pressed)]

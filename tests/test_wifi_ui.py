@@ -38,8 +38,8 @@ def test_adapter_menu_lists_both_devices_and_connected_summary(controller):
     adapters = [option for option in controller.modal["options"] if option["action"] == "wifi-device"]
     assert len(adapters) == 2
     assert {option["deviceId"] for option in adapters} == {"builtin", "usb"}
-    assert "2 张网卡" in json.loads(controller.snapshotJson)["wifiSummary"]
-    assert "1 已连接" in json.loads(controller.snapshotJson)["wifiSummary"]
+    assert "2 adapters" in json.loads(controller.snapshotJson)["wifiSummary"]
+    assert "1 connected" in json.loads(controller.snapshotJson)["wifiSummary"]
 
 
 def test_back_restores_usb_selection_and_parent_settings_page(controller):
@@ -178,7 +178,7 @@ def test_mock_connection_on_usb_preserves_builtin_connection(controller):
     devices = {device["id"]: device for device in controller.data["wifi"]["devices"]}
     assert devices["builtin"]["connected"] == "Workshop"
     assert devices["usb"]["connected"]
-    assert "2 已连接" in json.loads(controller.snapshotJson)["wifiSummary"]
+    assert "2 connected" in json.loads(controller.snapshotJson)["wifiSummary"]
 
 
 def test_connected_adapter_without_visible_ssid_can_still_be_disconnected(controller):
@@ -188,7 +188,7 @@ def test_connected_adapter_without_visible_ssid_can_still_be_disconnected(contro
     controller.chooseModal(index)
     assert "已连接" in controller.modal["body"]
     assert any(option["action"] == "wifi-disconnect" for option in controller.modal["options"])
-    assert "1 已连接" in json.loads(controller.snapshotJson)["wifiSummary"]
+    assert "1 connected" in json.loads(controller.snapshotJson)["wifiSummary"]
 
 
 def test_mock_releases_saved_profile_when_its_adapter_disconnects(controller):

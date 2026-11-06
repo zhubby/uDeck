@@ -1,5 +1,6 @@
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
+from .i18n import error_text, tr
 from .input import STOCK_FINGERPRINT
 
 ARROWS = {103: 'up', 108: 'down', 105: 'left', 106: 'right'}
@@ -8,8 +9,8 @@ MODIFIERS = {29, 97, 42, 54, 56, 100, 125, 126}
 
 class DirectionReader(QObject):
     direction = Signal(str, bool)
-    failed = Signal(str)
-    status = Signal(dict)
+    failed = Signal(object)
+    status = Signal(object)
 
     def __init__(self):
         super().__init__()
@@ -48,11 +49,11 @@ class DirectionReader(QObject):
                 self.available = True
                 self._status()
                 return
-            self._status('未找到内置 Keyboard 方向键接口')
+            self._status(tr('未找到内置 Keyboard 方向键接口'))
         except (ImportError, OSError) as error:
             self._disconnect()
-            self._status(str(error))
-            self.failed.emit(str(error))
+            self._status(error_text(error))
+            self.failed.emit(error_text(error))
 
     def _status(self, error=''):
         status = {'available': self.available, 'error': error}
@@ -98,8 +99,8 @@ class DirectionReader(QObject):
             pass
         except OSError as error:
             self._disconnect()
-            self._status(str(error))
-            self.failed.emit(str(error))
+            self._status(error_text(error))
+            self.failed.emit(error_text(error))
 
     def _disconnect(self):
         self.available = False

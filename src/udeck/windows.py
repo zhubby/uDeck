@@ -3,6 +3,8 @@ import sys
 
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
+from .i18n import error_text, tr
+
 APP_ID = "io.github.zhubby.uDeck"
 
 
@@ -30,8 +32,8 @@ class Array(ctypes.Structure):
 
 
 class WindowService(QObject):
-    changed = Signal(list)
-    failed = Signal(str)
+    changed = Signal(object)
+    failed = Signal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -70,7 +72,7 @@ class WindowService(QObject):
             self._interfaces()
             self.display = self.library.wl_display_connect(None)
             if not self.display:
-                raise RuntimeError("无法连接 Wayland 会话")
+                raise RuntimeError(tr('无法连接 Wayland 会话'))
             self.registry = self.library.wl_proxy_marshal_flags(self.display, 1, ctypes.byref(self.registry_interface), 1, 0, ctypes.c_void_p())
             self._listen(self.registry, [
                 ((ctypes.c_uint32, ctypes.c_char_p, ctypes.c_uint32), self._global),
@@ -78,15 +80,15 @@ class WindowService(QObject):
             ])
             for _iteration in range(2):
                 if self.library.wl_display_roundtrip(self.display) < 0:
-                    raise RuntimeError("Wayland 协议握手失败")
+                    raise RuntimeError(tr('Wayland 协议握手失败'))
             self.available = bool(self.manager and self.seat)
             if not self.available:
-                raise RuntimeError("当前会话未提供窗口控制协议")
+                raise RuntimeError(tr('当前会话未提供窗口控制协议'))
             self.notifier = QSocketNotifier(self.library.wl_display_get_fd(self.display), QSocketNotifier.Type.Read, self)
             self.notifier.activated.connect(self._dispatch)
         except (OSError, RuntimeError) as error:
             self.close()
-            self.failed.emit(str(error))
+            self.failed.emit(error_text(error))
 
     def _message_array(self, entries):
         messages = (Message * len(entries))()
@@ -165,11 +167,11 @@ class WindowService(QObject):
     def _global_removed(self, registry, name):
         if name == getattr(self, "manager_name", None):
             self.available = False
-            self.failed.emit('窗口管理协议已撤回')
+            self.failed.emit(tr('窗口管理协议已撤回'))
 
     def _new_handle(self, manager, handle):
         identifier = str(self.library.wl_proxy_get_id(handle))
-        self.handles[identifier] = {"id": identifier, "proxy": handle, "name": "应用窗口", "appId": "", "active": False, "fullscreen": False, "parent": False, "parentId": ''}
+        self.handles[identifier] = {"id": identifier, "proxy": handle, "name": tr('应用窗口'), "appId": "", "active": False, "fullscreen": False, "parent": False, "parentId": ''}
 
         def update_field(proxy, value, field):
             if identifier in self.handles:
@@ -209,7 +211,7 @@ class WindowService(QObject):
 
     def entries(self):
         return [{key: value for key, value in window.items() if key != "proxy"} | {
-            "subtitle": window["appId"] or "应用窗口", "icon": window["appId"] or "application-x-executable",
+            "subtitle": window["appId"] or tr('应用窗口'), "icon": window["appId"] or "application-x-executable",
         } for window in self.handles.values() if window["appId"] != APP_ID]
 
     def _finished(self, manager):
@@ -217,17 +219,17 @@ class WindowService(QObject):
         self.library.wl_proxy_destroy(manager)
         self._retire_listener(manager)
         self.manager = None
-        self.failed.emit('窗口管理协议已结束')
+        self.failed.emit(tr('窗口管理协议已结束'))
 
     def _dispatch(self, *arguments):
         if self.display and self.library.wl_display_dispatch(self.display) < 0:
             self.close()
-            self.failed.emit("与窗口管理器的连接已断开")
+            self.failed.emit(tr('与窗口管理器的连接已断开'))
 
     def request(self, identifier, operation):
         window = self.handles.get(str(identifier))
         if not window or not self.available:
-            raise RuntimeError("窗口已关闭或窗口协议不可用")
+            raise RuntimeError(tr('窗口已关闭或窗口协议不可用'))
         proxy = window["proxy"]
         opcode = {"activate": 4, "close": 5, "maximize": 0}[operation]
         arguments = [ctypes.c_void_p(self.seat)] if operation == "activate" else []

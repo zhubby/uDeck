@@ -30,7 +30,7 @@ dependencies = subprocess.check_output(["ldd", library], text=True)
 if "not found" in dependencies:
     raise SystemExit("Native plugin has unresolved dependencies:\n" + dependencies)
 options.output.mkdir(parents=True, exist_ok=True)
-version = "0.1.0"
+version = "0.1.1"
 with tempfile.TemporaryDirectory(prefix="udeck-terminal-deb-") as directory:
     stage = Path(directory)
     os.chmod(stage, 0o755)
@@ -80,7 +80,7 @@ Architecture: {architecture}
 Maintainer: uDeck Project
 Section: x11
 Priority: optional
-Depends: udeck (>= 0.1.4), python3 (>= 3.11), python3-pyside6.qtwidgets (>= 6.8), python3-pyside6.qtquick (>= 6.8), python3-pyside6.qtquick (<< 6.9), libqt6quick6 (>= 6.8), libqt6qml6 (>= 6.8), libqt6widgets6 (>= 6.8), libstdc++6, libc6, libutempter0, xdg-terminal-exec
+Depends: udeck (>= 0.1.6), python3 (>= 3.11), python3-pyside6.qtwidgets (>= 6.8), python3-pyside6.qtquick (>= 6.8), python3-pyside6.qtquick (<< 6.9), libqt6quick6 (>= 6.8), libqt6qml6 (>= 6.8), libqt6widgets6 (>= 6.8), libstdc++6, libc6, libutempter0, xdg-terminal-exec
 Description: Independent button-first terminal for uDeck and labwc
  Qt Quick terminal with private native QMLTermWidget, local PTY sessions,
  multiple windows and tabs, keyboard selection, search and safe paste.

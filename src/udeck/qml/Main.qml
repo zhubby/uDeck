@@ -4,6 +4,7 @@ import QtQuick.Controls
 
 Window {
     id: window
+    function tr(source) { return controller.translate(source, viewState.language) }
     width: 1280
     height: 720
     minimumWidth: 960
@@ -106,7 +107,7 @@ Window {
             }
             Text { textFormat: Text.PlainText; text: "uDeck"; font.family: appFont; font.pixelSize: 31; font.weight: Font.DemiBold; color: window.ink }
             Rectangle { width: 1; height: 24; color: "#414448"; anchors.verticalCenter: parent.verticalCenter }
-            Text { textFormat: Text.PlainText; text: viewState.mock ? "安全预览" : "uConsole"; font.family: appFont; font.pixelSize: 24; color: window.muted; anchors.verticalCenter: parent.verticalCenter }
+            Text { textFormat: Text.PlainText; text: viewState.mock ? window.tr("安全预览") : "uConsole"; font.family: appFont; font.pixelSize: 24; color: window.muted; anchors.verticalCenter: parent.verticalCenter }
         }
 
         Row {
@@ -154,13 +155,15 @@ Window {
             font.family: appFont; font.pixelSize: 34; font.weight: Font.DemiBold; color: window.ink
         }
         Text { textFormat: Text.PlainText;
-            x: 30; y: 214; width: parent.width - 285
+            x: 30; y: 214; width: parent.width - 80 - inputStatus.width
             text: viewState.description; elide: Text.ElideMiddle
             font.family: appFont; font.pixelSize: 24; color: window.muted
         }
         Text { textFormat: Text.PlainText;
+            id: inputStatus
             anchors.right: parent.right; anchors.rightMargin: 30; y: 216
-            text: viewState.mock ? "不操作真实设备" : (viewState.input.verified ? "ABXY 已校准" : (viewState.input.mapped ? "ABXY 已映射" : "ABXY 待校准"))
+            width: Math.min(implicitWidth, parent.width * 0.35); elide: Text.ElideRight
+            text: viewState.mock ? window.tr("不操作真实设备") : (viewState.input.verified ? window.tr("ABXY 已校准") : (viewState.input.mapped ? window.tr("ABXY 已映射") : window.tr("ABXY 待校准")))
             font.family: appFont; font.pixelSize: 24; color: viewState.mock ? window.muted : window.accent
         }
 
@@ -191,7 +194,7 @@ Window {
                     Image { x: 18; y: 17; width: 56; height: 56; source: "image://desktop/" + encodeURIComponent(modelData.icon || "application-x-executable"); sourceSize.width: 80; sourceSize.height: 80 }
                     Text { textFormat: Text.PlainText; anchors.right: parent.right; anchors.rightMargin: 18; y: 21; text: viewState.favorites.indexOf(modelData.id) >= 0 ? "★" : ""; font.pixelSize: 24; color: window.accent }
                     Text { textFormat: Text.PlainText; x: 18; y: 84; width: parent.width - 36; text: modelData.name; elide: Text.ElideRight; font.family: appFont; font.pixelSize: 24; font.weight: Font.Medium; color: window.ink }
-                    Text { textFormat: Text.PlainText; x: 18; y: 120; width: parent.width - 36; text: modelData.subtitle || modelData.category || "应用"; elide: Text.ElideRight; font.family: appFont; font.pixelSize: 24; color: selected ? "#d5c8b0" : window.muted }
+                    Text { textFormat: Text.PlainText; x: 18; y: 120; width: parent.width - 36; text: modelData.subtitle || viewState.categoryNames[modelData.category] || window.tr("应用"); elide: Text.ElideRight; font.family: appFont; font.pixelSize: 24; color: selected ? "#d5c8b0" : window.muted }
                 }
             }
 
@@ -227,16 +230,18 @@ Window {
             Column {
                 visible: viewState.items.length === 0
                 anchors.centerIn: parent; spacing: 14
-                Text { textFormat: Text.PlainText; anchors.horizontalCenter: parent.horizontalCenter; text: viewState.busy ? "正在准备内容" : "这里还没有项目"; font.family: appFont; font.pixelSize: 30; color: window.ink }
-                Text { textFormat: Text.PlainText; anchors.horizontalCenter: parent.horizontalCenter; text: viewState.page === "files" ? "按 X 新建文件夹或刷新" : (viewState.page === "windows" ? "启动应用后，窗口会显示在这里" : "按 X 调整分类或搜索条件"); font.family: appFont; font.pixelSize: 24; color: window.muted }
+                Text { textFormat: Text.PlainText; anchors.horizontalCenter: parent.horizontalCenter; text: viewState.busy ? window.tr("正在准备内容") : window.tr("这里还没有项目"); font.family: appFont; font.pixelSize: 30; color: window.ink }
+                Text { textFormat: Text.PlainText; anchors.horizontalCenter: parent.horizontalCenter; text: viewState.page === "files" ? window.tr("按 X 新建文件夹或刷新") : (viewState.page === "windows" ? window.tr("启动应用后，窗口会显示在这里") : window.tr("按 X 调整分类或搜索条件")); font.family: appFont; font.pixelSize: 24; color: window.muted }
             }
         }
 
         Rectangle { x: 28; width: parent.width - 56; height: 1; y: parent.height - 74; color: "#363a3d" }
         Row {
+            id: footerControls
+            objectName: "footerControls"
             x: 30; y: parent.height - 56; spacing: 27
             Repeater {
-                model: [{key: "A", label: "确认"}, {key: "B", label: "返回"}, {key: "X", label: "更多"}, {key: "Y", label: "快捷设置"}]
+                model: [{key: "A", label: window.tr("确认")}, {key: "B", label: window.tr("返回")}, {key: "X", label: window.tr("更多")}, {key: "Y", label: window.tr("快捷设置")}]
                 delegate: Item {
                     required property var modelData
                     width: keyRow.width; height: 34
@@ -253,7 +258,17 @@ Window {
                 }
             }
         }
-        Text { textFormat: Text.PlainText; anchors.right: parent.right; anchors.rightMargin: 30; y: parent.height - 54; text: "L / R 切页  ·  Ctrl + Alt + Esc 主页"; font.family: appFont; font.pixelSize: 24; color: "#828886" }
+        Text {
+            objectName: "footerShortcuts"
+            textFormat: Text.PlainText
+            x: footerControls.x + footerControls.width + 20
+            width: Math.max(0, parent.width - x - 30)
+            y: parent.height - (parent.width < 1150 ? 62 : 54)
+            text: parent.width < 1150 ? window.tr("L / R 切页\nCtrl + Alt + Esc 主页") : window.tr("L / R 切页  ·  Ctrl + Alt + Esc 主页")
+            horizontalAlignment: Text.AlignRight
+            font.family: appFont; font.pixelSize: parent.width < 1150 ? 20 : 24
+            color: "#828886"
+        }
 
         Rectangle {
             visible: !!viewState.toast && !dialog.kind
@@ -339,7 +354,7 @@ Window {
                         visible: dialog.kind === "confirm" || dialog.kind === "text"
                         width: parent.width; spacing: 14
                         Repeater {
-                            model: ["取消", "确认"]
+                            model: [window.tr("取消"), window.tr("确认")]
                             delegate: Rectangle {
                                 required property string modelData
                                 required property int index
@@ -351,7 +366,7 @@ Window {
                         }
                     }
 
-                    Text { textFormat: Text.PlainText; id: modalFooter; text: dialog.kind === "text" ? "实体键盘输入 · A 确认 · B 取消" : dialog.kind === "calibration" ? "按指定物理按钮 · Esc 取消" : "A 确认 · B 返回"; font.family: appFont; font.pixelSize: 24; color: window.muted }
+                    Text { textFormat: Text.PlainText; id: modalFooter; text: dialog.kind === "text" ? window.tr("实体键盘输入 · A 确认 · B 取消") : dialog.kind === "calibration" ? window.tr("按指定物理按钮 · Esc 取消") : window.tr("A 确认 · B 返回"); font.family: appFont; font.pixelSize: 24; color: window.muted }
                     Text { textFormat: Text.PlainText; id: modalToast; visible: !!viewState.toast; width: parent.width; text: viewState.toast; font.family: appFont; font.pixelSize: 24; color: window.accent; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
                 }
             }

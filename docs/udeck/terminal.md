@@ -12,11 +12,13 @@ python3 tools/build-terminal-plugin
 QT_QPA_PLATFORM=offscreen UDECK_REQUIRE_NATIVE=1 PYTHONPATH=src python3 -m pytest -q
 sh tools/build-deb
 python3 tools/build-terminal-deb
-sudo apt-get install ./dist/udeck_0.1.4_arm64.deb ./dist/udeck-terminal_0.1.0_arm64.deb
+sudo apt-get install ./dist/udeck_0.1.6_arm64.deb ./dist/udeck-terminal_0.1.1_arm64.deb
 udeck-terminal
 ```
 
-插件安装在 `/usr/lib/udeck-terminal/qml/QMLTermWidget`，不占用系统公共 QML 模块目录。`udeck-terminal` 包依赖 `udeck >= 0.1.4` 以复用输入基础代码，运行不依赖 uDeck 桌面进程。基础包不拥有 `udeck/terminal`，避免重复文件归属。源码安装的 Python wheel 包含 Python/QML 文件，仍需要单独构建原生插件；wheel 不携带任意平台的二进制。
+插件安装在 `/usr/lib/udeck-terminal/qml/QMLTermWidget`，不占用系统公共 QML 模块目录。`udeck-terminal` 0.1.1 包依赖 `udeck >= 0.1.6` 以复用输入基础代码和中英文词条，运行不依赖 uDeck 桌面进程。基础包不拥有 `udeck/terminal`，避免重复文件归属。源码安装的 Python wheel 包含 Python/QML 文件与翻译词条，仍需要单独构建原生插件；wheel 不携带任意平台的二进制。
+
+语言跟随 uDeck 的 `Settings → Language` 设置，首次默认英文。已打开的 0.1.1 终端会在一秒内同步切换菜单和提示，不重建 PTY，也不翻译命令、输出、窗口标题或粘贴内容。旧版本中正在运行的终端保留原进程，关闭后再次启动才加载新版本。
 
 安全界面预览不启动 shell，也不写用户配置：
 

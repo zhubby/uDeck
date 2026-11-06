@@ -17,6 +17,8 @@ from PySide6.QtCore import (
     Slot,
 )
 
+from ..core import ConfigStore
+from ..i18n import LANGUAGES, render, tr
 from .core import LaunchRequest
 
 
@@ -33,7 +35,7 @@ class SessionModel(QAbstractListModel):
 
     def data(self, index, role):
         if index.isValid() and 0 <= index.row() < len(self.items):
-            return self.items[index.row()].get({Qt.UserRole + 1: "id", Qt.UserRole + 2: "title"}.get(role, ""))
+            return render(self.items[index.row()].get({Qt.UserRole + 1: "id", Qt.UserRole + 2: "title"}.get(role, "")), self.parent().language)
         return None
 
     def append(self, item):
@@ -56,10 +58,11 @@ class TerminalController(QObject):
     quickSettings = Signal()
     clipboardRequested = Signal()
 
-    def __init__(self, request, preferences, *, mock=False, parent=None):
+    def __init__(self, request, preferences, *, mock=False, parent=None, language=None):
         super().__init__(parent)
         self.preferences = preferences
         self.mock = mock
+        self.language = language or ConfigStore(preferences.path.with_name("settings.json")).data["preferences"]["language"]
         self.tabs = SessionModel(self)
         self.requests = {}
         self.native_sessions = {}
@@ -80,13 +83,27 @@ class TerminalController(QObject):
 
     @Property(str, notify=changed)
     def snapshotJson(self):
-        return json.dumps({"tabs": self.tabs.items, "current": self.current, "mode": self.mode,
+        return json.dumps(render({"tabs": self.tabs.items, "current": self.current, "mode": self.mode,
+                           "language": self.language,
                            "index": self.index, "anchored": self.anchored,
                            "fontSize": self.preferences.font_size,
                            "colorScheme": self.preferences.color_scheme,
                            "query": self.query, "message": self.message,
                            "pastePreview": self._paste_preview(),
-                           "options": self._options()}, ensure_ascii=False)
+                           "options": self._options()}, self.language), ensure_ascii=False)
+
+    @Slot(str, str, result=str)
+    def translate(self, source, language):
+        return render(tr(source), self.language)
+
+    @Slot(str)
+    def setLanguage(self, language):
+        if not isinstance(language, str) or language not in LANGUAGES or language == self.language:
+            return
+        self.language = language
+        if self.tabs.items:
+            self.tabs.dataChanged.emit(self.tabs.index(0), self.tabs.index(len(self.tabs.items) - 1), [Qt.UserRole + 2])
+        self.changed.emit()
 
     def _paste_preview(self):
         # Escape controls so a preview cannot conceal an embedded Escape or NUL.
@@ -95,23 +112,23 @@ class TerminalController(QObject):
 
     def _options(self):
         if self.mode == "menu":
-            return ["新建标签", "历史与复制", "搜索文字", "粘贴", "终端设置", "返回桌面", "关闭标签", "关闭窗口"]
+            return [tr('新建标签'), tr('历史与复制'), tr('搜索文字'), tr('粘贴'), tr('终端设置'), tr('返回桌面'), tr('关闭标签'), tr('关闭窗口')]
         if self.mode == "settings":
-            return ["减小字号", "增大字号", "切换深浅配色", "返回输入"]
+            return [tr('减小字号'), tr('增大字号'), tr('切换深浅配色'), tr('返回输入')]
         if self.mode in ("close", "paste"):
-            return ["取消", "确认关闭" if self.mode == "close" else "粘贴"]
+            return [tr('取消'), tr('确认关闭') if self.mode == "close" else tr('粘贴')]
         if self.mode == "error":
-            return ["返回"]
+            return [tr('返回')]
         return []
 
     def add_session(self, request):
         if len(self.requests) >= 32:
-            self.showError("每个窗口最多 32 个会话，请关闭部分标签或新建窗口")
+            self.showError(tr('每个窗口最多 32 个会话，请关闭部分标签或新建窗口'))
             return
         identifier = uuid.uuid4().hex
         self.requests[identifier] = request
         self.current = identifier
-        self.tabs.append({"id": identifier, "title": request.title or "本地 shell"})
+        self.tabs.append({"id": identifier, "title": request.title or tr('本地 shell')})
         self.changed.emit()
 
     @Slot()
@@ -139,7 +156,7 @@ class TerminalController(QObject):
     def updateTitle(self, identifier, title):
         for position, item in enumerate(self.tabs.items):
             if item["id"] == identifier and not self.requests[identifier].title:
-                item["title"] = title[:160] or "本地 shell"
+                item["title"] = title[:160] or tr('本地 shell')
                 self.tabs.dataChanged.emit(self.tabs.index(position), self.tabs.index(position), [Qt.UserRole + 2])
                 self.changed.emit()
                 break
@@ -178,13 +195,17 @@ class TerminalController(QObject):
     def _ask_close(self, identifiers):
         self.closing = identifiers
         self.mode, self.index = "close", 0
-        self.message = "关闭将结束所选会话及其中的任务。"
+        self.message = tr('关闭将结束所选会话及其中的任务。')
         self.changed.emit()
 
     @Slot(str)
     def showError(self, message):
         self.mode, self.index, self.message = "error", 0, message
         self.changed.emit()
+
+    @Slot()
+    def componentFailed(self):
+        self.showError(tr('终端原生组件加载失败，请检查 udeck-terminal 安装和 Qt 版本。'))
 
     @Slot(str)
     def preparePaste(self, text):
@@ -195,7 +216,7 @@ class TerminalController(QObject):
         if paste_needs_confirmation(text):
             self.pending_text = text
             self.mode, self.index = "paste", 0
-            self.message = f"粘贴 {len(text)} 个字符？包含换行或控制字符。"
+            self.message = tr('粘贴 {value0} 个字符？包含换行或控制字符。', value0=len(text))
             self.changed.emit()
         else:
             self.mode = "input"
@@ -305,7 +326,7 @@ class TerminalController(QObject):
             try:
                 self.preferences.save()
             except OSError as error:
-                self.showError(f"设置保存失败：{error}")
+                self.showError(tr('设置保存失败：{value0}', value0=error))
         elif mode == "paste":
             text, self.pending_text = self.pending_text, ""
             self.mode = "input"

@@ -10,6 +10,7 @@ from PySide6.QtCore import Q_RETURN_ARG, QMetaObject
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
+from udeck.core import ConfigStore
 from udeck.terminal.core import LaunchRequest, TerminalPreferences
 from udeck.terminal.main import Coordinator
 
@@ -46,6 +47,21 @@ with tempfile.TemporaryDirectory(prefix="udeck-application-test-") as folder:
         controller.newTab()
         wait(lambda: len(controller.native_sessions) == 2)
         assert QMetaObject.invokeMethod(sessions[0], "getShellPID", Q_RETURN_ARG(int)) == first_pid
+        session_objects = dict(controller.native_sessions)
+        controller.selectTab(first_id)
+        controller.command("menu")
+        configuration = ConfigStore(directory / "settings.json")
+        configuration.data["preferences"]["language"] = "zh_CN"
+        configuration.save()
+        wait(lambda: controller.language == "zh_CN")
+        assert controller.native_sessions == session_objects
+        assert QMetaObject.invokeMethod(sessions[0], "getShellPID", Q_RETURN_ARG(int)) == first_pid
+        assert window.title() == "中文 任务"
+        configuration.data["preferences"]["language"] = "en"
+        configuration.save()
+        wait(lambda: controller.language == "en")
+        assert controller.native_sessions == session_objects
+        controller.dispatch("back")
         controller.selectTab(first_id)
         previous = (directory / "counter").read_text()
         window.showMinimized()

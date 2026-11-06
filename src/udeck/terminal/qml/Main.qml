@@ -6,6 +6,7 @@ import QtQuick.Window
 
 Window {
     id: window
+    function tr(source) { return controller.translate(source, state.language) }
     width: 1280
     height: 720
     minimumWidth: 640
@@ -91,7 +92,7 @@ Window {
                         MouseArea { anchors.fill: parent; onClicked: controller.selectTab(parent.identifier) }
                     }
                 }
-                Text { text: "L / R  会话"; color: window.muted; font.pixelSize: 14 }
+                Text { text: window.tr("L / R  会话"); color: window.muted; font.pixelSize: 14 }
             }
         }
         Item {
@@ -112,10 +113,11 @@ Window {
                         item.hostController = controller
                         item.fontSize = Qt.binding(function() { return window.state.fontSize })
                         item.paletteName = Qt.binding(function() { return window.state.colorScheme })
+                        if (useMock) item.language = Qt.binding(function() { return window.state.language })
                         item.start(JSON.parse(controller.sessionSpec(identifier)))
                         Qt.callLater(window.focusInput)
                     }
-                    onStatusChanged: if (status === Loader.Error) controller.showError("终端原生组件加载失败，请检查 udeck-terminal 安装和 Qt 版本。")
+                    onStatusChanged: if (status === Loader.Error) controller.componentFailed()
                 }
             }
         }
@@ -127,7 +129,7 @@ Window {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
                 anchors.leftMargin: 18
-                text: window.state.mode === "history" ? (window.state.anchored ? "选择中  ·  方向键扩选    A 复制    B 取消" : "历史浏览  ·  方向键定位    A 设置起点    B 返回") : "A 回车    B Esc    X 操作    Y 设置    Ctrl+Shift+T 新建"
+                text: window.state.mode === "history" ? (window.state.anchored ? window.tr("选择中  ·  方向键扩选    A 复制    B 取消") : window.tr("历史浏览  ·  方向键定位    A 设置起点    B 返回")) : window.tr("A 回车    B Esc    X 操作    Y 设置    Ctrl+Shift+T 新建")
                 color: window.muted
                 font.pixelSize: 15
             }
@@ -160,7 +162,7 @@ Window {
                 anchors.fill: parent
                 anchors.margins: 24
                 spacing: 14
-                Text { text: ({menu:"终端操作",settings:"终端设置",close:"结束会话？",paste:"确认粘贴",search:"搜索文字",error:"无法完成操作"})[window.state.mode] || ""; color: window.ink; font.pixelSize: 24; font.bold: true }
+                Text { text: ({menu:window.tr("终端操作"),settings:window.tr("终端设置"),close:window.tr("结束会话？"),paste:window.tr("确认粘贴"),search:window.tr("搜索文字"),error:window.tr("无法完成操作")})[window.state.mode] || ""; color: window.ink; font.pixelSize: 24; font.bold: true }
                 Text { visible: window.state.mode === "close" || window.state.mode === "error" || window.state.mode === "paste"; text: window.state.message; color: window.muted; font.pixelSize: 17; wrapMode: Text.Wrap; Layout.fillWidth: true }
                 ScrollView {
                     visible: window.state.mode === "paste"
@@ -173,7 +175,7 @@ Window {
                     visible: window.state.mode === "search"
                     Layout.fillWidth: true
                     text: window.state.query
-                    placeholderText: "普通文字匹配 · Enter 下一处 · ↑ 上一处"
+                    placeholderText: window.tr("普通文字匹配 · Enter 下一处 · ↑ 上一处")
                     font.pixelSize: 20
                     onTextEdited: controller.setQuery(text)
                     Keys.onPressed: function(event) {
@@ -207,7 +209,7 @@ Window {
                         MouseArea { anchors.fill: parent; onClicked: { while (window.state.index < index) controller.dispatch("down"); while (window.state.index > index) controller.dispatch("up"); controller.dispatch("accept") } }
                     }
                 }
-                Text { text: "方向键选择 · A / Enter 确认 · B / Esc 返回"; color: window.muted; font.pixelSize: 14 }
+                Text { text: window.tr("方向键选择 · A / Enter 确认 · B / Esc 返回"); color: window.muted; font.pixelSize: 14 }
             }
         }
     }

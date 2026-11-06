@@ -17,6 +17,7 @@ from PySide6.QtQuick import QQuickWindow  # noqa: F401 - register the native QML
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from ..core import ConfigStore
+from ..i18n import render, tr
 from . import APP_ID, INTERFACE, OBJECT_PATH, __version__
 from .controller import TerminalController
 from .core import TerminalPreferences, parse_launch
@@ -38,6 +39,12 @@ class Coordinator(QObject):
         super().__init__()
         self.application, self.options = application, options
         self.preferences, self.started = preferences, started
+        self.language_path = preferences.path.with_name("settings.json")
+        self.language = ConfigStore(self.language_path).data["preferences"]["language"]
+        self.language_timer = QTimer(self)
+        self.language_timer.setInterval(1000)
+        self.language_timer.timeout.connect(self.refresh_language)
+        self.language_timer.start()
         self.installed_build_id = None
         if Path(__file__).resolve() == Path("/usr/lib/python3/dist-packages/udeck/terminal/main.py"):
             try:
@@ -66,7 +73,7 @@ class Coordinator(QObject):
         if not request.new_window and self.recent:
             self.activate(self.recent["window"])
             return
-        controller = TerminalController(request, self.preferences, mock=self.options.mock)
+        controller = TerminalController(request, self.preferences, mock=self.options.mock, language=self.language)
         context = QQmlContext(self.engine.rootContext())
         context.setContextProperty("controller", controller)
         context.setContextProperty("windowed", self.options.windowed or self.options.mock)
@@ -84,6 +91,13 @@ class Coordinator(QObject):
         window.activeChanged.connect(self.focus_changed)
         window.frameSwapped.connect(self.record_frame)
         self.activate(window)
+
+    def refresh_language(self):
+        language = ConfigStore(self.language_path).data["preferences"]["language"]
+        if language != self.language:
+            self.language = language
+            for entry in self.windows:
+                entry["controller"].setLanguage(language)
 
     def activate(self, window):
         window.showNormal() if self.options.windowed or self.options.mock else window.showFullScreen()
@@ -154,6 +168,7 @@ class Coordinator(QObject):
                 "qmlErrors": self.errors}
 
     def close(self):
+        self.language_timer.stop()
         if self.inputs:
             self.inputs.close()
         # Destroy native delegates before their controllers/context disappear.
@@ -194,29 +209,29 @@ def main(argv=None):
         request.executable()
         if not options.mock:
             if not bus.isConnected():
-                raise RuntimeError("无法连接图形会话 D-Bus；请从已登录的桌面启动终端。")
+                raise RuntimeError(tr('无法连接图形会话 D-Bus；请从已登录的桌面启动终端。'))
             if forward(request):
                 return 0
             registered = bus.registerService(service_name())
             if not registered:
                 if forward(request):
                     return 0
-                raise RuntimeError("终端进程启动冲突，请重试")
+                raise RuntimeError(tr('终端进程启动冲突，请重试'))
             if not plugin_paths():
-                raise RuntimeError("缺少 QMLTermWidget 原生插件。请安装完整的 udeck-terminal 软件包，或运行 tools/build-terminal-plugin。")
+                raise RuntimeError(tr('缺少 QMLTermWidget 原生插件。请安装完整的 udeck-terminal 软件包，或运行 tools/build-terminal-plugin。'))
         if options.mock:
             temporary = tempfile.TemporaryDirectory(prefix="udeck-terminal-preview-")
         preferences = TerminalPreferences(Path(temporary.name) / "preferences.json" if temporary else None)
         coordinator = Coordinator(application, options, preferences, started)
         control = TerminalControl(coordinator)
         if registered and not bus.registerObject(OBJECT_PATH, INTERFACE, control, QDBusConnection.RegisterOption.ExportAllSlots):
-            raise RuntimeError("无法注册终端 D-Bus 接口")
+            raise RuntimeError(tr('无法注册终端 D-Bus 接口'))
         coordinator.open(request)
         def capture():
             if options.screenshot and coordinator.recent:
                 options.screenshot.parent.mkdir(parents=True, exist_ok=True)
                 if not coordinator.recent["window"].grabWindow().save(str(options.screenshot)):
-                    coordinator.errors.append("截图保存失败")
+                    coordinator.errors.append(tr('截图保存失败'))
 
         def smoke():
             controller = coordinator.recent["controller"]
@@ -237,9 +252,11 @@ def main(argv=None):
         result = application.exec()
         return 2 if coordinator.errors else result
     except (OSError, ValueError, RuntimeError) as error:
-        print(f"uDeck Terminal: {error}", file=sys.stderr)
+        language = coordinator.language if coordinator else ConfigStore().data["preferences"]["language"]
+        message = render(error, language)
+        print(f"uDeck Terminal: {message}", file=sys.stderr)
         if os.environ.get("QT_QPA_PLATFORM") != "offscreen":
-            QMessageBox.critical(None, "uDeck Terminal", str(error))
+            QMessageBox.critical(None, "uDeck Terminal", message)
         return 2
     finally:
         if coordinator:

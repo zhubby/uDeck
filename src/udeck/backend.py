@@ -4,6 +4,7 @@ import json
 import os
 import threading
 import uuid
+from copy import deepcopy
 from pathlib import Path
 
 from dbus_next import BusType, DBusError, Message, MessageType, Variant
@@ -11,6 +12,7 @@ from dbus_next.aio import MessageBus
 from dbus_next.service import ServiceInterface, method
 from PySide6.QtCore import QObject, Signal
 
+from .i18n import error_text, tr
 from .mock import initial_state
 from .wifi import wifi_identity, wifi_label, wifi_security
 
@@ -34,11 +36,11 @@ def unwrap(value):
 def validate_wifi_password(password, security):
     value = str(password)
     if not value or "\x00" in value:
-        raise ValueError("Wi-Fi 密码不能为空或包含空字符")
+        raise ValueError(tr('Wi-Fi 密码不能为空或包含空字符'))
     if security == "WPA3":
         return value
     if not 8 <= len(value.encode()) <= 63 and not (len(value) == 64 and all(character in "0123456789abcdefABCDEF" for character in value)):
-        raise ValueError("WPA2 密码需为 8–63 字节，或 64 位十六进制 PSK")
+        raise ValueError(tr('WPA2 密码需为 8–63 字节，或 64 位十六进制 PSK'))
     return value
 
 
@@ -53,35 +55,35 @@ class BluezAgent(ServiceInterface):
 
     @method()
     async def RequestPinCode(self, device: "o") -> "s":
-        response = await self.backend.ask("text", "蓝牙 PIN", "请输入设备要求的 PIN", secret=True)
+        response = await self.backend.ask("text", tr('蓝牙 PIN'), tr('请输入设备要求的 PIN'), secret=True)
         return str(response)
 
     @method()
     def DisplayPinCode(self, device: "o", pincode: "s"):
-        self.backend.information("蓝牙配对", f"请在另一台设备输入 PIN：{pincode}")
+        self.backend.information(tr('蓝牙配对'), tr('请在另一台设备输入 PIN：{value0}', value0=pincode))
 
     @method()
     async def RequestPasskey(self, device: "o") -> "u":
-        response = await self.backend.ask("text", "蓝牙配对码", "输入 0–999999 的数字配对码", numeric=True)
+        response = await self.backend.ask("text", tr('蓝牙配对码'), tr('输入 0–999999 的数字配对码'), numeric=True)
         if not str(response).isdigit() or not 0 <= int(response) <= 999999:
-            raise DBusError("org.bluez.Error.Rejected", "配对码无效")
+            raise DBusError("org.bluez.Error.Rejected", tr('配对码无效'))
         return int(response)
 
     @method()
     def DisplayPasskey(self, device: "o", passkey: "u", entered: "q"):
-        self.backend.information("蓝牙配对", f"请在另一台设备输入：{passkey:06d} · 已输入 {entered} 位")
+        self.backend.information(tr('蓝牙配对'), tr('请在另一台设备输入：{value0:06d} · 已输入 {value1} 位', value0=passkey, value1=entered))
 
     @method()
     async def RequestConfirmation(self, device: "o", passkey: "u"):
-        await self.backend.ask("confirm", "确认蓝牙配对", f"两台设备是否都显示 {passkey:06d}？")
+        await self.backend.ask("confirm", tr('确认蓝牙配对'), tr('两台设备是否都显示 {value0:06d}？', value0=passkey))
 
     @method()
     async def RequestAuthorization(self, device: "o"):
-        await self.backend.ask("confirm", "蓝牙配对请求", "允许这台设备与 uConsole 配对？")
+        await self.backend.ask("confirm", tr('蓝牙配对请求'), tr('允许这台设备与 uConsole 配对？'))
 
     @method()
     async def AuthorizeService(self, device: "o", service_uuid: "s"):
-        await self.backend.ask("confirm", "蓝牙服务授权", f"允许已配对设备使用服务 {service_uuid}？")
+        await self.backend.ask("confirm", tr('蓝牙服务授权'), tr('允许已配对设备使用服务 {value0}？', value0=service_uuid))
 
     @method()
     def Cancel(self):
@@ -96,14 +98,14 @@ class NetworkAgent(ServiceInterface):
     @method()
     async def GetSecrets(self, connection: "a{sa{sv}}", connection_path: "o", setting_name: "s", hints: "as", flags: "u") -> "a{sa{sv}}":
         if setting_name != "802-11-wireless-security":
-            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", "仅支持个人 Wi-Fi 网络")
+            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr('仅支持个人 Wi-Fi 网络'))
         device_id = await self.backend._wifi_secret_device(connection_path)
         device = next(entry for entry in self.backend.state["wifi"]["devices"] if entry["id"] == device_id)
-        password = await self.backend.ask("text", "Wi-Fi 密码", wifi_label(device),
+        password = await self.backend.ask("text", tr('Wi-Fi 密码'), wifi_label(device),
                                           secret=True, cancel_error=NETWORK_CANCEL,
                                           group="network:" + connection_path, deviceId=device_id)
         if await self.backend._wifi_secret_device(connection_path) != device_id:
-            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", "无法确认请求密码的无线网卡，请重新连接")
+            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr('无法确认请求密码的无线网卡，请重新连接'))
         return {setting_name: {"psk": Variant("s", str(password))}}
 
     @method()
@@ -120,10 +122,10 @@ class NetworkAgent(ServiceInterface):
 
 
 class SystemBackend(QObject):
-    updated = Signal(dict)
-    failed = Signal(str)
-    operationFailed = Signal(str, str)
-    prompt = Signal(dict)
+    updated = Signal(object)
+    failed = Signal(object)
+    operationFailed = Signal(str, object)
+    prompt = Signal(object)
     completed = Signal(str)
 
     def __init__(self, parent=None):
@@ -163,7 +165,7 @@ class SystemBackend(QObject):
 
     async def call(self, destination, path, interface, member, signature="", body=None, timeout=30):
         if self.bus is None:
-            raise RuntimeError("系统 D-Bus 尚未连接")
+            raise RuntimeError(tr('系统 D-Bus 尚未连接'))
         response = await asyncio.wait_for(self.bus.call(Message(
             destination=destination, path=path, interface=interface,
             member=member, signature=signature, body=body or [],
@@ -201,7 +203,7 @@ class SystemBackend(QObject):
                 await self.refresh_session()
                 self.loop.create_task(self._session_timer())
         except Exception as error:
-            self.failed.emit(f"系统服务初始化失败：{error}")
+            self.failed.emit(tr('系统服务初始化失败：{value0}', value0=error))
         await self.refresh_audio()
         self.refresh_hardware()
         self.loop.create_task(self._watch_audio())
@@ -271,7 +273,7 @@ class SystemBackend(QObject):
                 self.session_lock_hint_seen = False
             value = {'available': True, 'active': bool(properties.get('Active')), 'locked': locked or self.session_lock_requested}
         except Exception as error:
-            value = {'available': False, 'active': False, 'locked': True, 'error': str(error)}
+            value = {'available': False, 'active': False, 'locked': True, 'error': error_text(error)}
         if self.state.get('sessionInput') != value:
             self.publish('sessionInput', value)
 
@@ -282,7 +284,9 @@ class SystemBackend(QObject):
 
     def publish(self, component, value):
         self.state[component] = value
-        self.updated.emit({component: value})
+        # Python object signals preserve deferred messages. Detach the payload
+        # so queued UI deliveries cannot share mutable service state.
+        self.updated.emit(deepcopy({component: value}))
 
     async def refresh_wifi(self):
         async with self.wifi_refresh_lock:
@@ -296,7 +300,7 @@ class SystemBackend(QObject):
                     await self.call(NM, NM_ROOT + "/AgentManager", NM + ".AgentManager", "RegisterWithCapabilities", "su", ["io.github.zhubby.uDeck", 0])
                     self.network_agent_registered = True
                 except Exception as error:
-                    agent_error = str(error)
+                    agent_error = error_text(error)
             enabled = await self.get(NM, NM_ROOT, NM, "WirelessEnabled")
             paths = (await self.call(NM, NM_ROOT, NM, "GetDevices"))[0]
             saved = await self._saved_wifi()
@@ -317,9 +321,9 @@ class SystemBackend(QObject):
                 self.cancel_prompts("network", device_id=device_id)
             self.wifi_profile_devices = {profile: device for profile, device in self.wifi_profile_devices.items() if device in present}
             self.publish("wifi", {"available": bool(devices), "enabled": enabled, "devices": devices,
-                                  "error": "" if devices else "未检测到无线网卡", "agentError": agent_error})
+                                  "error": "" if devices else tr('未检测到无线网卡'), "agentError": agent_error})
         except Exception as error:
-            self.publish("wifi", {"available": False, "enabled": False, "devices": [], "error": str(error)})
+            self.publish("wifi", {"available": False, "enabled": False, "devices": [], "error": error_text(error)})
 
     async def _read_wifi_device(self, path, saved, usage, previous):
         result = {"id": path, **wifi_identity(previous.get("interface", "")), "available": False,
@@ -349,7 +353,7 @@ class SystemBackend(QObject):
                          "strength": information.get("Strength", 0), "security": security,
                          "saved": any(profile["ssid"] == list(ssid_bytes) and profile["keyManagement"] in (keys or [""]) for profile in profiles),
                          "keyManagement": keys,
-                         "secured": security != "开放网络", "unsupported": security in ("企业网络", "不支持的加密"),
+                         "secured": security != tr('开放网络'), "unsupported": security in (tr('企业网络'), tr('不支持的加密')),
                          "connected": access_point == wireless.get("ActiveAccessPoint") and device_state == 100,
                          "connecting": access_point == wireless.get("ActiveAccessPoint") and 40 <= device_state < 100}
                 deduplication_key = (ssid_bytes, security)
@@ -358,7 +362,7 @@ class SystemBackend(QObject):
                     networks[deduplication_key] = entry
             entries = sorted(networks.values(), key=lambda entry: (not entry["connected"], -entry["strength"]))
             reason = device.get("StateReason", [device_state, 0])[1]
-            failure = f"连接失败 · NetworkManager 原因代码 {reason}" if device_state == 120 else ""
+            failure = tr('连接失败 · NetworkManager 原因代码 {value0}', value0=reason) if device_state == 120 else ""
             result.update({"available": True, "networks": entries,
                            "connected": next((entry["name"] for entry in entries if entry["connected"]), ""),
                            "connecting": next((entry["name"] for entry in entries if entry["connecting"]), ""), "error": failure})
@@ -367,7 +371,7 @@ class SystemBackend(QObject):
                 if profile:
                     result["connected"] = bytes(profile["ssid"]).decode("utf-8", errors="replace")
         except Exception as error:
-            result["error"] = "无法读取网卡 · " + str(error)
+            result["error"] = tr('无法读取网卡 · ') + error_text(error)
         return result
 
     async def _wifi_profile_usage(self):
@@ -391,9 +395,9 @@ class SystemBackend(QObject):
             blocked = ""
             if profile["multiConnect"] not in (2, 3):
                 if usage is None:
-                    blocked = "暂时无法确认此配置是否正在使用"
+                    blocked = tr('暂时无法确认此配置是否正在使用')
                 elif usage.get(profile["id"], set()) - {device_id}:
-                    blocked = "另一张网卡正在使用 · 可从网络列表另建连接"
+                    blocked = tr('另一张网卡正在使用 · 可从网络列表另建连接')
             result.append({**profile, "blocked": blocked})
         return result
 
@@ -420,7 +424,7 @@ class SystemBackend(QObject):
             objects = unwrap((await self.call(BLUEZ, "/", "org.freedesktop.DBus.ObjectManager", "GetManagedObjects"))[0])
             self.adapter = next((path for path, interfaces in objects.items() if BLUEZ + ".Adapter1" in interfaces), None)
             if not self.adapter:
-                self.publish("bluetooth", {"available": False, "powered": False, "devices": [], "discovering": False, "error": "没有蓝牙适配器"})
+                self.publish("bluetooth", {"available": False, "powered": False, "devices": [], "discovering": False, "error": tr('没有蓝牙适配器')})
                 return
             if not self.agent_registered:
                 await self.call(BLUEZ, "/org/bluez", BLUEZ + ".AgentManager1", "RegisterAgent", "os", ["/io/github/zhubby/uDeck/BluezAgent", "KeyboardDisplay"])
@@ -432,14 +436,14 @@ class SystemBackend(QObject):
             for path, interfaces in objects.items():
                 information = interfaces.get(BLUEZ + ".Device1")
                 if information is not None and information.get("Adapter") == self.adapter:
-                    devices.append({"id": path, "name": information.get("Alias") or information.get("Name") or information.get("Address", "蓝牙设备"),
+                    devices.append({"id": path, "name": information.get("Alias") or information.get("Name") or information.get("Address", tr('蓝牙设备')),
                                     "paired": information.get("Paired", False), "connected": information.get("Connected", False),
                                     "trusted": information.get("Trusted", False), "resolved": information.get("ServicesResolved", False)})
             self.publish("bluetooth", {"available": True, "powered": adapter.get("Powered", False),
                                        "discovering": adapter.get("Discovering", False),
                                        "devices": sorted(devices, key=lambda device: (not device["connected"], not device["paired"], device["name"]))})
         except Exception as error:
-            self.publish("bluetooth", {"available": False, "powered": False, "devices": [], "discovering": False, "error": str(error)})
+            self.publish("bluetooth", {"available": False, "powered": False, "devices": [], "discovering": False, "error": error_text(error)})
 
     async def command(self, *arguments, timeout=10):
         process = await asyncio.create_subprocess_exec(*arguments, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
@@ -447,7 +451,7 @@ class SystemBackend(QObject):
         try:
             output, errors = await asyncio.wait_for(process.communicate(), timeout)
             if process.returncode:
-                raise RuntimeError(f"{arguments[0]} 执行失败")
+                raise RuntimeError(tr('{value0} 执行失败', value0=arguments[0]))
             return output.decode(errors="replace")
         finally:
             if process.returncode is None:
@@ -464,7 +468,7 @@ class SystemBackend(QObject):
             outputs = [{"id": sink["name"], "name": sink.get("description", sink["name"]), "active": sink["name"] == default} for sink in sinks]
             self.publish("audio", {"available": True, "volume": min(1, volume), "muted": "MUTED" in volume_information, "outputs": outputs})
         except Exception as error:
-            self.publish("audio", {"available": False, "volume": 0, "muted": False, "outputs": [], "error": str(error)})
+            self.publish("audio", {"available": False, "volume": 0, "muted": False, "outputs": [], "error": error_text(error)})
 
     async def _watch_audio(self):
         try:
@@ -516,7 +520,7 @@ class SystemBackend(QObject):
                 pass
             except Exception as error:
                 if not self.closing:
-                    self.operationFailed.emit(action, str(error))
+                    self.operationFailed.emit(action, error_text(error))
 
         future.add_done_callback(complete)
 
@@ -560,7 +564,7 @@ class SystemBackend(QObject):
         elif action == "audio_output":
             valid_outputs = {output["id"] for output in self.state["audio"].get("outputs", [])}
             if payload["id"] not in valid_outputs:
-                raise ValueError("音频设备已移除")
+                raise ValueError(tr('音频设备已移除'))
             await self.command("pactl", "set-default-sink", payload["id"])
             await self.refresh_audio()
         elif action == "brightness":
@@ -571,10 +575,10 @@ class SystemBackend(QObject):
             await self.call("org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", "Reboot" if action == "reboot" else "PowerOff", "b", [True])
         elif action == "logout":
             if os.environ.get("XDG_SESSION_DESKTOP") != "udeck":
-                raise RuntimeError("仅能从独立 uDeck 会话注销；窗口预览不会注销原桌面")
+                raise RuntimeError(tr('仅能从独立 uDeck 会话注销；窗口预览不会注销原桌面'))
             session = os.environ.get("XDG_SESSION_ID")
             if not session:
-                raise RuntimeError("无法确定当前登录会话")
+                raise RuntimeError(tr('无法确定当前登录会话'))
             await self.call("org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", "TerminateSession", "s", [session])
         elif action == "lock":
             await self.command("swaylock", timeout=None)
@@ -585,7 +589,7 @@ class SystemBackend(QObject):
             await asyncio.gather(self.refresh_wifi(), self.refresh_bluetooth(), self.refresh_audio())
             self.refresh_hardware()
         else:
-            raise ValueError("未知系统操作")
+            raise ValueError(tr('未知系统操作'))
 
     async def _stop_discovery_later(self):
         await asyncio.sleep(30)
@@ -605,7 +609,7 @@ class SystemBackend(QObject):
                     if properties.get("State") == 1:
                         activating_devices.update(properties.get("Devices", []))
         except Exception as error:
-            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", "无法确认请求密码的无线网卡，请重新选择网卡连接") from error
+            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr('无法确认请求密码的无线网卡，请重新选择网卡连接')) from error
         # SecretAgent names a profile, so prefer its one activating device.
         if len(activating_devices) == 1:
             device_id = next(iter(activating_devices))
@@ -618,31 +622,31 @@ class SystemBackend(QObject):
         else:
             device_id = None
         if device_id is None:
-            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", "无法确认请求密码的无线网卡，请重新选择网卡连接")
+            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr('无法确认请求密码的无线网卡，请重新选择网卡连接'))
         await self._require_wifi_device(device_id)
         return device_id
 
     async def _require_wifi_device(self, device_id):
         known = next((entry for entry in self.state["wifi"].get("devices", []) if entry["id"] == device_id), None)
         if known is None or device_id not in (await self.call(NM, NM_ROOT, NM, "GetDevices"))[0]:
-            raise RuntimeError("目标无线网卡已移除，请重新选择网卡")
+            raise RuntimeError(tr('目标无线网卡已移除，请重新选择网卡'))
         device = await self.properties(NM, device_id, NM + ".Device")
         if device.get("DeviceType") != 2 or device.get("Interface") != known["interface"]:
-            raise RuntimeError("目标无线网卡已改变，请重新选择网卡")
+            raise RuntimeError(tr('目标无线网卡已改变，请重新选择网卡'))
         if not device.get("Managed", True):
-            raise RuntimeError("此网卡未由系统管理")
+            raise RuntimeError(tr('此网卡未由系统管理'))
         if not await self.get(NM, NM_ROOT, NM, "WirelessEnabled"):
-            raise RuntimeError("请先开启全部 Wi-Fi")
+            raise RuntimeError(tr('请先开启全部 Wi-Fi'))
         return device
 
     async def _require_wifi_access_point(self, device_id, network):
         device = await self._require_wifi_device(device_id)
         wireless = await self.properties(NM, device_id, NM + ".Device.Wireless")
         if network["id"] not in wireless.get("AccessPoints", []):
-            raise RuntimeError("此网卡已搜索不到该网络，请重新搜索")
+            raise RuntimeError(tr('此网卡已搜索不到该网络，请重新搜索'))
         information = await self.properties(NM, network["id"], NM + ".AccessPoint")
         if list(information.get("Ssid", [])) != network["ssid"] or wifi_security(information)[0] != network["security"]:
-            raise RuntimeError("网络已改变，请重新搜索")
+            raise RuntimeError(tr('网络已改变，请重新搜索'))
         return device
 
     async def _execute_wifi(self, action, payload):
@@ -666,20 +670,20 @@ class SystemBackend(QObject):
             usage = await self._wifi_profile_usage()
             profile = next((entry for entry in self._wifi_device_profiles(device_id, device, profiles, usage) if entry["id"] == payload["id"]), None)
             if profile is None or profile.get("unsupported"):
-                raise RuntimeError("此网卡无法使用该已保存网络，请重新选择")
+                raise RuntimeError(tr('此网卡无法使用该已保存网络，请重新选择'))
             if profile["blocked"]:
                 raise RuntimeError(profile["blocked"])
             self.wifi_profile_devices[profile["id"]] = device_id
             await self.call(NM, NM_ROOT, NM, "ActivateConnection", "ooo", [profile["id"], device_id, "/"])
         else:
-            raise ValueError("未知 Wi-Fi 操作")
+            raise ValueError(tr('未知 Wi-Fi 操作'))
         await self.refresh_wifi()
 
     async def _wifi_connect(self, device_id, identifier):
         device = next((entry for entry in self.state["wifi"].get("devices", []) if entry["id"] == device_id), {})
         network = next((entry for entry in device.get("networks", []) if entry["id"] == identifier), None)
         if network is None or network.get("unsupported"):
-            raise RuntimeError("此网卡已搜索不到该网络，或不支持此认证方式")
+            raise RuntimeError(tr('此网卡已搜索不到该网络，或不支持此认证方式'))
         properties = await self._require_wifi_access_point(device_id, network)
         profiles = await self._saved_wifi()
         usage = await self._wifi_profile_usage()
@@ -700,7 +704,7 @@ class SystemBackend(QObject):
             "ipv4": {"method": Variant("s", "auto")}, "ipv6": {"method": Variant("s", "auto")},
         }
         if network["secured"]:
-            password = await self.ask("text", "连接 " + network["name"], wifi_label(device) + "\n输入 Wi-Fi 密码；凭据交由系统管理",
+            password = await self.ask("text", tr('连接 ') + network["name"], wifi_label(device) + tr('\n输入 Wi-Fi 密码；凭据交由系统管理'),
                                       secret=True, cancel_error=NETWORK_CANCEL, group="network:" + device_id, deviceId=device_id)
             password = validate_wifi_password(password, network["security"])
             settings["802-11-wireless-security"] = {"key-mgmt": Variant("s", "sae" if network["security"] == "WPA3" else "wpa-psk"), "psk": Variant("s", str(password))}
@@ -718,10 +722,10 @@ class SystemBackend(QObject):
         try:
             answer = await asyncio.wait_for(future, 120)
             if answer is None or (kind == "confirm" and answer is not True):
-                raise DBusError(cancel_error, "用户取消")
+                raise DBusError(cancel_error, tr('用户取消'))
             return answer
         except TimeoutError as error:
-            raise DBusError(cancel_error, "确认超时") from error
+            raise DBusError(cancel_error, tr('确认超时')) from error
         finally:
             self.pending_prompts.pop(token, None)
             self.prompt_groups.pop(token, None)

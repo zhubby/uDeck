@@ -3,8 +3,10 @@ import os
 import tempfile
 from pathlib import Path
 
+from .i18n import language_code, tr
+
 PAGES = ("home", "apps", "windows", "files", "settings")
-PAGE_NAMES = ("主页", "应用", "运行中", "文件", "设置")
+PAGE_NAMES = (tr('主页'), tr('应用'), tr('运行中'), tr('文件'), tr('设置'))
 
 
 def move_index(index, direction, count, columns=1):
@@ -32,7 +34,7 @@ class Navigation:
 
     def set_page(self, page):
         if page not in PAGES:
-            raise ValueError("未知页面")
+            raise ValueError(tr('未知页面'))
         self.positions[self.page] = self.index
         self.page = page
         self.index = max(0, int(self.positions.get(page, 0)))
@@ -71,7 +73,7 @@ class ConfigStore:
             os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))
         ) / "udeck/settings.json"
         self.data = {"version": 1, "favorites": [], "recent": [], "focus": {}, "input": {}, "applicationInput": {},
-                     "preferences": {"showHidden": False, "category": "All"}}
+                     "preferences": {"showHidden": False, "category": "All", "language": "en"}}
         try:
             loaded = json.loads(self.path.read_text())
             if isinstance(loaded, dict):
@@ -95,6 +97,7 @@ class ConfigStore:
                 }
                 preferences = loaded.get("preferences", {})
                 if isinstance(preferences, dict):
+                    self.data["preferences"]["language"] = language_code(preferences.get("language"))
                     if type(preferences.get("showHidden")) is bool:
                         self.data["preferences"]["showHidden"] = preferences["showHidden"]
                     if isinstance(preferences.get("category"), str):

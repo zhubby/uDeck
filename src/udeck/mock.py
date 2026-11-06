@@ -2,17 +2,19 @@ from copy import deepcopy
 
 from PySide6.QtCore import QObject, QTimer, Signal
 
+from .i18n import tr
+
 MOCK_APPS = [
-    ("terminal", "终端", "Terminal", "utilities-terminal", "System"),
-    ("code", "代码编辑器", "Visual Studio Code", "visual-studio-code", "Development"),
-    ("firefox", "浏览器", "Firefox", "firefox", "Network"),
-    ("files", "文件管理", "个人文件与存储", "system-file-manager", "Utility"),
-    ("retroarch", "RetroArch", "模拟器与游戏", "com.libretro.RetroArch", "Game"),
-    ("notes", "文本编辑器", "Mousepad", "accessories-text-editor", "Utility"),
-    ("monitor", "系统监视器", "运行状态", "utilities-system-monitor", "System"),
-    ("calculator", "计算器", "日常计算", "accessories-calculator", "Utility"),
-    ("viewer", "图片查看器", "图片与照片", "image-x-generic", "Graphics"),
-    ("geany", "Geany", "轻量开发环境", "geany", "Development"),
+    ("terminal", tr('终端'), "Terminal", "utilities-terminal", "System"),
+    ("code", tr('代码编辑器'), "Visual Studio Code", "visual-studio-code", "Development"),
+    ("firefox", tr('浏览器'), "Firefox", "firefox", "Network"),
+    ("files", tr('文件管理'), tr('个人文件与存储'), "system-file-manager", "Utility"),
+    ("retroarch", "RetroArch", tr('模拟器与游戏'), "com.libretro.RetroArch", "Game"),
+    ("notes", tr('文本编辑器'), "Mousepad", "accessories-text-editor", "Utility"),
+    ("monitor", tr('系统监视器'), tr('运行状态'), "utilities-system-monitor", "System"),
+    ("calculator", tr('计算器'), tr('日常计算'), "accessories-calculator", "Utility"),
+    ("viewer", tr('图片查看器'), tr('图片与照片'), "image-x-generic", "Graphics"),
+    ("geany", "Geany", tr('轻量开发环境'), "geany", "Development"),
 ]
 
 
@@ -33,10 +35,10 @@ def initial_state():
 
 
 class MockBackend(QObject):
-    updated = Signal(dict)
-    failed = Signal(str)
-    operationFailed = Signal(str, str)
-    prompt = Signal(dict)
+    updated = Signal(object)
+    failed = Signal(object)
+    operationFailed = Signal(str, object)
+    prompt = Signal(object)
     completed = Signal(str)
 
     def __init__(self, parent=None):
@@ -45,29 +47,29 @@ class MockBackend(QObject):
         self.state = initial_state()
         self.state.update({
             "wifi": {"available": True, "enabled": True, "devices": [
-                {"id": "builtin", "name": "内置无线网卡", "interface": "wlan0", "kind": "builtin",
+                {"id": "builtin", "name": tr('内置无线网卡'), "interface": "wlan0", "kind": "builtin",
                  "available": True, "managed": True, "deviceState": 100, "connected": "Workshop", "activeProfile": "workshop-profile",
                  "networks": [
                      {"id": "builtin-workshop", "name": "Workshop", "strength": 92, "secured": True, "connected": True, "saved": True, "security": "WPA2"},
-                     {"id": "builtin-guest", "name": "Guest", "strength": 54, "secured": False, "connected": False, "security": "开放网络"},
+                     {"id": "builtin-guest", "name": "Guest", "strength": 54, "secured": False, "connected": False, "security": tr('开放网络')},
                  ],
                  "saved": [{"id": "workshop-profile", "name": "Workshop", "ssid": list(b"Workshop"), "keyManagement": "wpa-psk", "multiConnect": 0}]},
-                {"id": "usb", "name": "USB 无线网卡", "interface": "wlx001122334455", "kind": "usb",
+                {"id": "usb", "name": tr('USB 无线网卡'), "interface": "wlx001122334455", "kind": "usb",
                  "available": True, "managed": True, "deviceState": 30, "connected": "",
                  "networks": [
                      {"id": "usb-workshop", "name": "Workshop", "strength": 98, "secured": True, "connected": False, "saved": True, "security": "WPA2"},
                      {"id": "usb-studio", "name": "Studio 5G", "strength": 86, "secured": True, "connected": False, "security": "WPA3"},
-                     {"id": "usb-guest", "name": "Guest", "strength": 68, "secured": False, "connected": False, "security": "开放网络"},
+                     {"id": "usb-guest", "name": "Guest", "strength": 68, "secured": False, "connected": False, "security": tr('开放网络')},
                  ],
                  "saved": [{"id": "workshop-profile", "name": "Workshop", "ssid": list(b"Workshop"), "keyManagement": "wpa-psk", "multiConnect": 0,
-                            "blocked": "另一张网卡正在使用 · 可从网络列表另建连接"}]},
+                            "blocked": tr('另一张网卡正在使用 · 可从网络列表另建连接')}]},
             ]},
             "bluetooth": {"available": True, "powered": True, "discovering": False,
-                          "devices": [{"id": "headphones", "name": "无线耳机", "paired": True, "connected": True, "trusted": True},
-                                      {"id": "keyboard", "name": "蓝牙键盘", "paired": True, "connected": False, "trusted": True}]},
+                          "devices": [{"id": "headphones", "name": tr('无线耳机'), "paired": True, "connected": True, "trusted": True},
+                                      {"id": "keyboard", "name": tr('蓝牙键盘'), "paired": True, "connected": False, "trusted": True}]},
             "audio": {"available": True, "volume": 0.46, "muted": False,
-                      "outputs": [{"id": "speaker", "name": "内置扬声器", "active": True},
-                                  {"id": "headphones", "name": "无线耳机", "active": False}]},
+                      "outputs": [{"id": "speaker", "name": tr('内置扬声器'), "active": True},
+                                  {"id": "headphones", "name": tr('无线耳机'), "active": False}]},
             "brightness": {"available": True, "value": 0.72},
             "battery": {"available": True, "capacity": 83, "charging": False},
         })
@@ -95,7 +97,7 @@ class MockBackend(QObject):
         elif action in ("wifi_scan", "wifi_connect", "wifi_connect_saved", "wifi_disconnect"):
             device = next((entry for entry in self.state["wifi"]["devices"] if entry["id"] == payload.get("deviceId")), None)
             if device is None:
-                self.operationFailed.emit(action, "目标无线网卡已移除")
+                self.operationFailed.emit(action, tr('目标无线网卡已移除'))
                 return
             if action == "wifi_disconnect":
                 device["connected"], device["deviceState"] = "", 30
@@ -136,7 +138,7 @@ class MockBackend(QObject):
             for device in devices:
                 for profile in device["saved"]:
                     busy = profile.get("multiConnect", 0) not in (2, 3) and any(other["id"] != device["id"] and other.get("activeProfile") == profile["id"] for other in devices)
-                    profile["blocked"] = "另一张网卡正在使用 · 可从网络列表另建连接" if busy else ""
+                    profile["blocked"] = tr('另一张网卡正在使用 · 可从网络列表另建连接') if busy else ""
         self.updated.emit(deepcopy(self.state))
         self.completed.emit(action)
 
