@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>uDeck · Application design studio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="studio" aria-label="Design review controls">
+    <a class="studio-brand" href="../README.md"><span>uDeck</span> Application studies <small>01 / Button first</small></a>
+    <div class="studio-tools">
+      <label>Application <select id="application"><option value="music">Music</option><option value="video">Video</option><option value="browser">Browser</option><option value="reader">Reader</option><option value="games">Games</option></select></label>
+      <label>Scenario <select id="scenario"><option value="ready">Ready</option><option value="empty">Empty library</option><option value="loading">Loading</option><option value="error">Cannot open</option><option value="removed">Source removed</option></select></label>
+      <label>Language <select id="language"><option value="en">English</option><option value="zh_CN">简体中文</option></select></label>
+      <button id="help-toggle" aria-label="Show prototype controls">?</button>
+    </div>
+  </header>
+  <main class="review-workspace">
+    <div id="device" class="device" aria-label="uDeck application prototype">
+      <div id="app" class="app"></div>
+    </div>
+  </main>
+  <aside class="review-note">Interactive design prototype · Sample content · No decoder, remote website or emulator is running. <span>↑ ↓ ← → Navigate · Enter A · Esc B · F2 X · F3 Y · PageUp / PageDown L / R · F6 Language · F1 Apps</span></aside>
+  <div id="review-help" hidden>
+    <section class="help-card" role="dialog" aria-modal="true" aria-label="Prototype controls">
+      <h1>One device. Five ways to use it.</h1>
+      <p>This review build exercises the interface and its return paths. Music, video and games use original sample artwork; playback, websites, documents and save states are simulated.</p>
+      <dl><dt>Direction keys</dt><dd>Move focus / seek / turn pages, as shown in the footer</dd><dt>Enter / Esc</dt><dd>A Confirm / B Back</dd><dt>F2 / F3</dt><dd>X Actions / Y App settings</dd><dt>PageUp / PageDown</dt><dd>L / R tabs, tracks or pages</dd><dt>F6 / F1</dt><dd>Switch English / Chinese · Choose an app</dd><dt>Letters</dt><dd>Always remain text input. A/B/X/Y letters are never intercepted.</dd></dl>
+      <p>Use the review toolbar for empty, loading, error and unplugged-source states. In capture mode: <code>?app=music&lang=en&capture=1</code>.</p>
+      <button id="help-close">Start exploring</button>
+    </section>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
