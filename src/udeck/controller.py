@@ -20,6 +20,7 @@ class ShellController(QObject):
     changed = Signal()
     present = Signal()
     calibrationRequested = Signal()
+    calibrationDirection = Signal(str)
     foregroundChanged = Signal(bool)
     taskFinished = Signal(object)
 
@@ -100,7 +101,7 @@ class ShellController(QObject):
             {"id": "wifi", "name": "Wi-Fi", "subtitle": wifi.get("connected") or ("未连接" if wifi.get("enabled") else "已关闭"), "icon": "network-wireless", "disabled": not wifi.get("available")},
             {"id": "bluetooth", "name": "蓝牙", "subtitle": "已开启" if bluetooth.get("powered") else "已关闭", "icon": "bluetooth", "disabled": not bluetooth.get("available")},
             {"id": "battery", "name": "电池", "subtitle": f"{battery.get('capacity', 0)}% · {'正在充电' if battery.get('charging') else '电池供电'}" if battery.get("available") else "未检测到电池", "icon": "battery"},
-            {"id": "input", "name": "按键与控制器", "subtitle": "ABXY 已校准 · 方向键仍需现场验收" if self.data["input"].get("verified") else "校准物理 ABXY；不占用普通键盘字母", "icon": "input-gaming"},
+            {"id": "input", "name": "按键与控制器", "subtitle": "ABXY 已校准" if self.data["input"].get("verified") else ("ABXY 固件映射 · 可重新校准" if self.data["input"].get("mapped") else "校准物理 ABXY；不占用普通键盘字母"), "icon": "input-gaming"},
             {"id": "lock", "name": "锁定屏幕", "subtitle": "使用登录密码解锁", "icon": "system-lock-screen"},
             {"id": "blank", "name": "熄灭屏幕", "subtitle": "移动轨迹球或按键恢复；不是系统休眠", "icon": "video-display"},
             {"id": "logout", "name": "注销会话", "subtitle": "返回登录界面；请先保存工作", "icon": "system-log-out"},
@@ -195,6 +196,9 @@ class ShellController(QObject):
 
     @Slot(str)
     def dispatch(self, action):
+        if self.modal.get("kind") == "calibration" and action in ("up", "down", "left", "right"):
+            self.calibrationDirection.emit(action)
+            return
         if action == "home":
             self._cancel_modals()
             self.setPage("home")

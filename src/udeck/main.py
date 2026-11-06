@@ -199,7 +199,7 @@ def main(argv=None):
             return 1
         session_bus.registerObject(CONTROL_PATH, CONTROL_INTERFACE, control, QDBusConnection.RegisterOption.ExportAllSlots)
     gamepad = Gamepad(config.data["input"]) if not options.mock and not options.no_input else None
-    calibration = {"buttons": {}, "axes": {}, "step": 0}
+    calibration = {"buttons": {}, "axes": {}, "keyboard": {}, "step": 0}
 
     if gamepad:
         gamepad.action.connect(controller.dispatch)
@@ -207,9 +207,9 @@ def main(argv=None):
         controller.foregroundChanged.connect(gamepad.set_foreground)
 
         def calibrate():
-            calibration.update({"buttons": {}, "axes": {}, "step": 0})
+            calibration.update({"buttons": {}, "axes": {}, "keyboard": {}, "step": 0})
             gamepad.calibrating = True
-            controller._push({"kind": "calibration", "title": "按键校准 · 上", "body": "请按下物理方向键「上」。\n每次按下后松开；只接收独立手柄事件，Esc 取消。"})
+            controller._push({"kind": "calibration", "title": "按键校准 · 上", "body": "请按下物理方向键「上」并松开。\n方向键支持原生键盘事件；ABXY 仅接收独立手柄事件。Esc 取消。"})
 
         def captured(kind, code):
             if controller.modal.get("kind") != "calibration":
@@ -221,6 +221,9 @@ def main(argv=None):
             actions = ("up", "down", "left", "right", "accept", "back", "context", "quick-settings")
             labels = ("上", "下", "左", "右", "A", "B", "X", "Y")
             action = actions[calibration["step"]]
+            if kind == "keyboard" and (code != action or action not in ("up", "down", "left", "right")):
+                controller.notify("请按屏幕指定的方向；ABXY 步骤只接收独立手柄事件")
+                return
             if kind == "axes" and action not in ("up", "down", "left", "right"):
                 controller.notify("此步骤请按下 ABXY 按钮，而非方向键")
                 return
@@ -228,7 +231,7 @@ def main(argv=None):
             calibration["step"] += 1
             if calibration["step"] == 8:
                 gamepad.calibrating = False
-                config.data["input"] = gamepad.set_profile(calibration["buttons"], calibration["axes"])
+                config.data["input"] = gamepad.set_profile(calibration["buttons"], calibration["axes"], list(calibration["keyboard"]))
                 try:
                     config.save()
                 except OSError as error:
@@ -239,12 +242,13 @@ def main(argv=None):
                 controller.notify("方向键与 ABXY 映射已保存；请继续实测长按、返回和文字输入")
             else:
                 label = labels[calibration["step"]]
-                controller.modal.update({"title": "按键校准 · " + label, "body": "请按下物理「" + label + "」并松开。\n只接收独立手柄事件，Esc 取消。"})
+                controller.modal.update({"title": "按键校准 · " + label, "body": "请按下物理「" + label + "」并松开。\n方向键支持原生键盘事件；ABXY 仅接收独立手柄事件。Esc 取消。"})
                 controller._publish()
 
         controller.calibrationRequested.connect(calibrate)
         gamepad.captured.connect(lambda code: captured("buttons", code))
         gamepad.axisCaptured.connect(lambda code: captured("axes", code))
+        controller.calibrationDirection.connect(lambda direction: captured("keyboard", direction))
         controller.changed.connect(lambda: setattr(gamepad, "calibrating", controller.modal.get("kind") == "calibration"))
     engine = QQmlApplicationEngine()
     engine.addImageProvider("desktop", IconProvider())

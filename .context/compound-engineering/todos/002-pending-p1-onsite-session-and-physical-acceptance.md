@@ -18,7 +18,7 @@ The desktop is implemented and installed. Fullscreen display is verified in the 
 - A minimal nested/headless compositor also exits 139 without uDeck rules, so it does not substitute for a real login test.
 - Version 0.1.1 remains fullscreen after Home, Switcher and QuickSettings. Owned native Wayland and Xwayland windows were confirmed visibly above the shell, closed, and followed by a return to fullscreen Home.
 - LightDM's effective default and automatic-login session are now `udeck`, with the original configuration backed up. The current session has not been restarted; original desktop processes remain underneath the fullscreen shell until the next login.
-- Physical direction/ABXY events, long holds, IME/trackball mixing, real radio connections, audio playback, screen lock/blank, logout/reboot/shutdown and original-desktop return remain untested.
+- Real physical direction/ABXY and L/R press/release events were collected on 2026-11-06. Long holds, complete shell action flows, IME/trackball mixing, real radio connections, audio playback, screen lock/blank, logout/reboot/shutdown and original-desktop return still require acceptance.
 
 ## Proposed Solutions
 
@@ -41,3 +41,4 @@ Wait for an onsite test window and explicit readiness before session/radio/power
 
 - 2026-11-06: Created from the software-delivery handoff. All physical and disruptive acceptance remains pending; no such action was performed automatically.
 - 2026-11-06: Per user request, installed 0.1.1, verified genuine fullscreen with output screenshots and foreign-toplevel state, and explicitly configured automatic login with a verified backup. Both native Wayland and Xwayland owned-window visibility checks passed. No logout, display-manager restart or reboot was performed; independent-session and physical acceptance remain pending.
+- 2026-11-06: The user pressed ten prompted physical keys. Captured keyboard directions 103/108/105/106, joystick ABXY 289/290/288/291 and mouse L/R 272/273. Traced failures to empty routing, calibration ignoring native keyboard directions and incomplete pointer activation/context menus; see `docs/udeck/input-2026-11-06.md`. Raw hardware events do not establish completion of the remaining functional checklist.

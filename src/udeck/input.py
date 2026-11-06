@@ -3,7 +3,10 @@ import sys
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
 DIRECTIONS = {"left", "right", "up", "down"}
-ACTIONS = DIRECTIONS | {"accept", "back", "context", "quick-settings"}
+BUTTON_ACTIONS = {"accept", "back", "context", "quick-settings"}
+ACTIONS = DIRECTIONS | BUTTON_ACTIONS
+STOCK_FINGERPRINT = "1eaf:0024:20230713"
+STOCK_BUTTONS = {289: "accept", 290: "back", 288: "context", 291: "quick-settings"}
 
 
 class ButtonState:
@@ -45,11 +48,7 @@ class Gamepad(QObject):
         self.foreground = False
         self.grabbed = False
         self.calibrating = False
-        self.router = ButtonState(self.profile.get("buttons", {}))
-        axes = self.profile.get("axes", {})
-        self.axes = {key: value for key, value in (axes.items() if isinstance(axes, dict) else [])
-                     if key in {f"{code}:{sign}" for code in (0, 1, 16, 17) for sign in (-1, 1)}
-                     and isinstance(value, str) and value in DIRECTIONS}
+        self._load_profile(self.profile)
         self.axis_actions = {}
         self.axis_positions = {}
         self.held_direction = None
@@ -59,8 +58,24 @@ class Gamepad(QObject):
         self.reconnect.setInterval(2000)
         self.reconnect.timeout.connect(self._connect)
 
+    def _load_profile(self, profile):
+        self.router = ButtonState(profile.get("buttons", {}))
+        axes = profile.get("axes", {})
+        self.axes = {key: value for key, value in (axes.items() if isinstance(axes, dict) else [])
+                     if key in {f"{code}:{sign}" for code in (0, 1, 16, 17) for sign in (-1, 1)}
+                     and isinstance(value, str) and value in DIRECTIONS}
+        keyboard = profile.get("keyboardDirections", [])
+        self.keyboard_directions = {value for value in (keyboard if isinstance(keyboard, list) else [])
+                                    if isinstance(value, str) and value in DIRECTIONS}
+
+    def _mapping_status(self, source):
+        actions = set(self.router.mapping.values()) | set(self.axes.values())
+        return {"mapped": BUTTON_ACTIONS <= actions, "mappingSource": source,
+                "verified": source == "calibrated" and ACTIONS <= actions | self.keyboard_directions}
+
     def set_foreground(self, foreground):
         self.foreground = foreground
+        self.status.emit({"foreground": foreground})
         if foreground:
             self._connect()
             self.reconnect.start()
@@ -84,14 +99,20 @@ class Gamepad(QObject):
                     continue
                 self.device = candidate
                 self.fingerprint = f"{candidate.info.vendor:04x}:{candidate.info.product:04x}:{candidate.uniq}"
+                effective = self.profile
+                source = "calibrated"
                 if self.profile.get("fingerprint") not in (None, self.fingerprint):
-                    self.router = ButtonState({})
-                    self.axes = {}
+                    effective = {}
+                    source = "unconfigured"
+                elif not self.profile:
+                    effective = {"buttons": STOCK_BUTTONS} if self.fingerprint == STOCK_FINGERPRINT and STOCK_BUTTONS.keys() <= set(buttons) else {}
+                    source = "stock" if effective else "unconfigured"
+                self._load_profile(effective)
                 self.notifier = QSocketNotifier(candidate.fd, QSocketNotifier.Type.Read, self)
                 self.notifier.activated.connect(self._read)
                 self.status.emit({"available": True, "name": candidate.name,
                                   "fingerprint": self.fingerprint,
-                                  "verified": ACTIONS <= set(self.router.mapping.values()) | set(self.axes.values()), "grabbed": False})
+                                  **self._mapping_status(source), "grabbed": False})
                 self._try_grab()
                 return
             self.status.emit({"available": False, "verified": False, "message": "未找到独立手柄；键盘与轨迹球仍可使用"})
@@ -166,11 +187,12 @@ class Gamepad(QObject):
             self.action.emit(self.held_direction)
             self.repeat.setInterval(90)
 
-    def set_profile(self, mapping, axes=None):
-        self.axes = axes or {}
-        self.profile = {"buttons": mapping, "axes": self.axes, "fingerprint": getattr(self, "fingerprint", "")}
-        self.router = ButtonState(mapping)
-        self.status.emit({"verified": True})
+    def set_profile(self, mapping, axes=None, keyboard_directions=None):
+        self.profile = {"buttons": mapping, "axes": axes or {},
+                        "keyboardDirections": keyboard_directions or [],
+                        "fingerprint": getattr(self, "fingerprint", "")}
+        self._load_profile(self.profile)
+        self.status.emit(self._mapping_status("calibrated"))
         return self.profile
 
     def _close(self):

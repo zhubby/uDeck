@@ -4,7 +4,7 @@ uDeck 是面向 1280×720 横屏 uConsole 的原生 Qt Quick 桌面壳：方向�
 
 基于现有 Debian 13 / labwc / Wayland 添加**独立可选会话**，不刷镜像、不改驱动、不替换合成器。软件包不修改原桌面配置或默认登录项；开机自动进入 uDeck 通过单独授权的配置工具开启。第三方 Linux 应用仍使用其原生交互。
 
-当前版本：**0.1.1（uDeck v1）**。真实桌面默认全屏；自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
+当前版本：**0.1.2（uDeck v1）**。真实桌面默认全屏；自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
 
 ## 桌面功能
 
@@ -12,7 +12,7 @@ uDeck 是面向 1280×720 横屏 uConsole 的原生 Qt Quick 桌面壳：方向�
 - 运行中：真实 Wayland / Xwayland 窗口列表、激活、请求关闭；独立会话为普通主窗口配置默认最大化。
 - 文件：浏览、新建文件夹、重命名、复制、剪切/粘贴、明确确认覆盖、移入回收站。
 - 设置：NetworkManager Wi-Fi、BlueZ 配对代理、音量/静音/输出设备、背光、电池与充电状态、电源操作。
-- 输入：前台独占独立手柄接口，失焦立即释放；八步实按校准，不猜测键位、不拦截普通键盘字母。
+- 输入：前台独占独立手柄接口，失焦立即释放；已实测的官方固件自带 ABXY 映射，也支持原生方向键与手柄混合校准，不拦截普通键盘字母。L 单击应用或设置，R 打开项目菜单；文件仍支持单击选择、双击打开。
 
 ## 安全预览
 
@@ -41,7 +41,7 @@ QT_QPA_PLATFORM=offscreen PYTHONPATH=src .venv/bin/python -m udeck.main \
 
 ```sh
 sh tools/build-deb
-sudo apt-get install ./dist/udeck_0.1.1_arm64.deb
+sudo apt-get install ./dist/udeck_0.1.2_arm64.deb
 udeck --windowed
 udeckctl doctor --json
 ```
@@ -64,6 +64,7 @@ sudo python3 tools/configure-login.py --user "$(id -un)"
 - [架构、输入边界与安全设计](docs/udeck/architecture.md)
 - [2026-11-06 实机验证与现场验收清单](docs/udeck/acceptance-2026-11-06.md)
 - [0.1.1 全屏与开机默认会话配置记录](docs/udeck/boot-2026-11-06.md)
+- [0.1.2 ABXY 与 L/R 修复、实按事件记录](docs/udeck/input-2026-11-06.md)
 
 ---
 

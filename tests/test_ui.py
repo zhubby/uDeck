@@ -131,3 +131,15 @@ def test_one_failed_system_action_does_not_release_another_pending_action(tmp_pa
     controller.backend.operationFailed.emit("volume", "output disappeared")
     assert controller.pending_system == {"wifi_connect"}
     assert controller.toast == "output disappeared"
+
+
+def test_native_keyboard_directions_can_advance_gamepad_calibration(tmp_path):
+    controller = make_controller(tmp_path)
+    controller._push({"kind": "calibration", "title": "上"})
+    captured = []
+    controller.calibrationDirection.connect(captured.append)
+    controller.dispatch("up")
+    assert captured == ["up"]
+    assert controller.navigation.zone == "content"
+    controller.dispatch("back")
+    assert not controller.modal

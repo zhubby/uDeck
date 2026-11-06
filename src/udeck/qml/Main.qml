@@ -159,7 +159,7 @@ Window {
         }
         Text { textFormat: Text.PlainText;
             anchors.right: parent.right; anchors.rightMargin: 30; y: 216
-            text: viewState.mock ? "不操作真实设备" : (viewState.input.verified ? "ABXY 已校准" : "ABXY 待校准")
+            text: viewState.mock ? "不操作真实设备" : (viewState.input.verified ? "ABXY 已校准" : (viewState.input.mapped ? "ABXY 已映射" : "ABXY 待校准"))
             font.family: appFont; font.pixelSize: 24; color: viewState.mock ? window.muted : window.accent
             MouseArea { anchors.fill: parent; onClicked: controller.activateSetting("input") }
         }
@@ -193,8 +193,12 @@ Window {
                     Text { textFormat: Text.PlainText; x: 18; y: 120; width: parent.width - 36; text: modelData.subtitle || modelData.category || "应用"; elide: Text.ElideRight; font.family: appFont; font.pixelSize: 24; color: selected ? "#d5c8b0" : window.muted }
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: { controller.select(index); keyboardScope.forceActiveFocus() }
-                        onDoubleClicked: { controller.select(index); controller.dispatch("accept") }
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        onClicked: function(mouse) {
+                            controller.select(index)
+                            keyboardScope.forceActiveFocus()
+                            controller.dispatch(mouse.button === Qt.RightButton ? "context" : "accept")
+                        }
                     }
                 }
             }
@@ -226,8 +230,21 @@ Window {
                     Text { textFormat: Text.PlainText; visible: modelData.value === undefined; anchors.right: parent.right; anchors.rightMargin: 25; anchors.verticalCenter: parent.verticalCenter; text: "›"; font.pixelSize: 32; color: window.muted }
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: { controller.select(index); keyboardScope.forceActiveFocus() }
-                        onDoubleClicked: { controller.select(index); controller.dispatch("accept") }
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        onClicked: function(mouse) {
+                            controller.select(index)
+                            keyboardScope.forceActiveFocus()
+                            if (mouse.button === Qt.RightButton)
+                                controller.dispatch("context")
+                            else if (viewState.page !== "files")
+                                controller.dispatch("accept")
+                        }
+                        onDoubleClicked: function(mouse) {
+                            if (mouse.button === Qt.LeftButton && viewState.page === "files") {
+                                controller.select(index)
+                                controller.dispatch("accept")
+                            }
+                        }
                     }
                 }
             }

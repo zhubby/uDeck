@@ -2,7 +2,7 @@
 
 ## 运行边界
 
-uDeck 0.1.1 是原生 PySide6 / Qt Quick 桌面壳，不包含 Electron、Chromium 或 HTTP 服务。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。
+uDeck 0.1.2 是原生 PySide6 / Qt Quick 桌面壳，不包含 Electron、Chromium 或 HTTP 服务。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。
 
 目标环境为 CM4、约 4 GiB 内存、Debian 13、Qt 6.8、labwc 0.9 系列和横屏 1280×720。不会替换官方镜像、显示驱动、内核或窗口合成器。
 
@@ -32,8 +32,8 @@ Qt 6.8 的 Python 开发环境使用 3.11–3.13，不使用系统默认的 Pyth
 
 ```sh
 sh tools/build-deb
-dpkg-deb --info dist/udeck_0.1.1_arm64.deb
-sudo apt-get install ./dist/udeck_0.1.1_arm64.deb
+dpkg-deb --info dist/udeck_0.1.2_arm64.deb
+sudo apt-get install ./dist/udeck_0.1.2_arm64.deb
 ```
 
 依赖由 Debian 提供，包括 PySide6 Qt 6.8、Qt Quick Controls、dbus-next、evdev、Gio、NetworkManager、BlueZ、PipeWire/WirePlumber、wlr-randr、swayidle/swaylock、wlopm、fcitx5 和 lxpolkit。构建不打包 358 MiB 的硬件资料、虚拟环境或测试缓存。
@@ -82,15 +82,19 @@ SSH 调试必须连接实际图形会话，使用正确的 `XDG_RUNTIME_DIR`、`
 
 内容第一行向上进入顶部导航，再按下回到内容焦点。关闭弹层恢复原页和选中位置；目录返回以项目路径恢复选中项，而不只恢复旧行号。网格固定五列；列表、菜单和弹层随焦点滚动。
 
-轨迹球单击选择、双击打开，弹层按钮可单击执行。实体键盘正常输入文字，文本编辑时方向键用于移动光标，中文输入沿用 Qt/fcitx5。A/B/X/Y **不是**键盘字母快捷键。
+L/R 是鼠标左/右键，不是手柄肩键。轨迹球指向应用、运行中窗口或设置后，L 单击即可打开，R 单击打开当前项目的上下文菜单；文件页 L 单击选择、双击打开，R 打开文件菜单。弹层按钮可单击执行。实体键盘正常输入文字，文本编辑时方向键用于移动光标，中文输入沿用 Qt/fcitx5。A/B/X/Y **不是**键盘字母快捷键。
 
 ### 首次实按校准
 
+固件 fingerprint 为 `1eaf:0024:20230713` 且公布相应按钮能力时，首次运行自动采用已实按确认的 A=289、B=290、X=288、Y=291 映射，显示「ABXY 已映射」。这不代表已完成整机验收。保存过的自定义映射优先；不同设备或未知固件仍需校准。
+
 1. 用键盘或轨迹球进入「设置 → 按键与控制器」。
 2. 依屏幕顺序实按并松开：上、下、左、右、A、B、X、Y。
-3. 只采集已确认 VID/PID 的独立手柄接口；键盘、鼠标和 Consumer Control 接口不被独占。
+3. 方向键可通过正常 Qt 键盘事件完成校准；ABXY 只采集已确认 VID/PID 的独立手柄接口。校准记录 `keyboardDirections`，键盘、鼠标和 Consumer Control 接口不被独占。
 4. 如果 ABXY 只产生 j/k/u/i 等字母，切换设备原有手柄模式后重新校准。本程序不会刷固件。
 5. 校准后继续实测长按重复、中文输入、轨迹球和第三方应用。映射文件存在不等于这些验收已通过。
+
+本次十个物理按键的真实事件与修复说明见 [0.1.2 输入修复记录](input-2026-11-06.md)。Debian 上运行完整 QML 点击回归还需安装开发测试包 `python3-pyside6.qttest`；正常桌面运行不依赖它。
 
 壳失焦或退出即释放手柄；不通过全局 ABXY 返回桌面。在独立 uDeck 会话内：`Ctrl+Alt+Esc` 返回主页、`Ctrl+Alt+Tab` 切换窗口、`Ctrl+Alt+S` 快捷设置。窗口化运行不会向原桌面写入这些全局快捷键。
 
