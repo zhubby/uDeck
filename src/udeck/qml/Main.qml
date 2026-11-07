@@ -398,15 +398,17 @@ Window {
                         delegate: Rectangle {
                             required property var modelData
                             required property int index
-                            width: menuList.width - 10; height: modelData.subtitle ? 75 : 64; radius: 8
+                            width: menuList.width - 10; height: modelData.wrapSubtitle ? 106 : modelData.subtitle ? 75 : 64; radius: 8
                             color: dialog.index === index ? window.colors.menuSelected : "transparent"
                             border.width: dialog.index === index ? 3 : 0
                             border.color: window.accent
                             opacity: modelData.disabled ? 0.45 : 1
                             Text { textFormat: Text.PlainText; x: 15; y: modelData.subtitle ? 8 : 14; width: parent.width - 30; text: modelData.label; font.family: window.fontFamily; font.pixelSize: 25; color: window.ink; elide: Text.ElideRight }
-                            Text { textFormat: Text.PlainText; x: 15; y: 43; width: parent.width - 30; visible: !!modelData.subtitle; text: modelData.subtitle || ""; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted; elide: Text.ElideRight }
+                            Text { textFormat: Text.PlainText; x: 15; y: 43; width: parent.width - 30; visible: !!modelData.subtitle; text: modelData.subtitle || ""; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted; wrapMode: modelData.wrapSubtitle ? Text.WrapAnywhere : Text.NoWrap; maximumLineCount: modelData.wrapSubtitle ? 2 : 1; elide: Text.ElideRight }
                         }
                     }
+
+                    Text { visible: !!dialog.error; width: parent.width; text: dialog.error || ""; textFormat: Text.PlainText; font.family: window.fontFamily; font.pixelSize: 22; color: window.colors.error; wrapMode: Text.Wrap; maximumLineCount: 2 }
 
                     TextField { palette: window.colors.controls;
                         id: editor
@@ -415,7 +417,7 @@ Window {
                         font.family: window.fontFamily; font.pixelSize: 28; color: window.ink
                         selectByMouse: false
                         maximumLength: 4096
-                        echoMode: dialog.secret ? TextInput.Password : TextInput.Normal
+                        echoMode: dialog.secret && !dialog.reveal ? TextInput.Password : TextInput.Normal
                         inputMethodHints: dialog.secret ? Qt.ImhSensitiveData | Qt.ImhNoPredictiveText : (dialog.numeric ? Qt.ImhDigitsOnly : Qt.ImhNone)
                         background: Rectangle { radius: 8; color: window.colors.input; border.width: 2; border.color: window.accent }
                         onTextEdited: controller.editText(text)
@@ -453,7 +455,8 @@ Window {
                         fontFamily: window.fontFamily; textColor: window.muted; fontSize: 22
                         hints: dialog.kind === "calibration" ? [{keys: ["keyboard_escape"], label: window.tr("取消")}] : [
                             {keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr("确认")},
-                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(dialog.kind === "text" ? "取消" : "返回")}]
+                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(dialog.kind === "text" ? "取消" : "返回")}].concat(dialog.kind === "text" && dialog.secret ? [
+                            {keys: ["gamecube_button_x"], label: window.tr(dialog.reveal ? "Hide password" : "Show password")} ] : [])
                     }
                     Text { textFormat: Text.PlainText; id: modalToast; visible: !!viewState.toast; width: parent.width; text: viewState.toast; font.family: window.fontFamily; font.pixelSize: 24; color: window.accent; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
                 }

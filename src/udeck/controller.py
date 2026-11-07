@@ -16,12 +16,13 @@ from .files import FileOperations
 from .i18n import LANGUAGES, error_text, render, tr
 from .mock import mock_apps
 from .wifi import wifi_indicators, wifi_label, wifi_status, wifi_summary
+from .wifi_controller import WifiControls
 
 CATEGORY_NAMES = {"All": tr('全部应用'), "Development": tr('开发'), "Network": tr('网络'), "System": tr('系统'),
                   "Utility": tr('工具'), "Game": tr('游戏'), "Graphics": tr('图形'), "Office": tr('办公'), "AudioVideo": tr('影音'), "Other": tr('其他')}
 
 
-class ShellController(QObject):
+class ShellController(WifiControls, QObject):
     changed = Signal()
     present = Signal()
     calibrationRequested = Signal()
@@ -243,7 +244,11 @@ class ShellController(QObject):
         removed_audio = False
         for index in range(len(self._modals) - 1, -1, -1):
             device_id = self._modals[index].get("deviceId")
-            if device_id and device_id not in devices:
+            if device_id and (device_id not in devices or self._modals[index].get("wifiEpoch", "") != self.data["wifi"].get("epoch", "")):
+                self._remove_modal(index, reject=True)
+                removed = True
+            elif (device_id and self._modals[index].get("profileUuid") and self._modals[index].get("kind") != "menu"
+                  and not any(profile.get("uuid") == self._modals[index]["profileUuid"] for profile in devices[device_id].get("saved", []))):
                 self._remove_modal(index, reject=True)
                 removed = True
             elif ((self._modals[index].get("cardId") and self._modals[index]["cardId"] not in cards)
@@ -264,6 +269,9 @@ class ShellController(QObject):
                 device = devices[modal["deviceId"]]
                 options = self._wifi_device_options(device) if source == "wifi-device" else self._wifi_saved_options(device)
                 modal["body"] = wifi_status(device, self.data["wifi"].get("enabled")) if source == "wifi-device" else wifi_label(device)
+            elif source in ("wifi-network", "wifi-profiles", "wifi-details"):
+                device = devices[modal["deviceId"]]
+                options = self._refresh_wifi_network(modal, device)
             elif source == "bluetooth":
                 options = self._bluetooth_options()
             elif source in ("audio-input", "audio-output"):
@@ -308,7 +316,13 @@ class ShellController(QObject):
         self.pending_system.discard(action)
         if action == 'lock':
             self.inputSuspended.emit(False)
-        if action not in ("refresh", "bluetooth_stop"):
+        if action == "wifi_update_password":
+            self.notify(tr("Password saved. It will be used the next time you join."))
+        elif action == "wifi_set_autoconnect":
+            self.notify(tr("Auto-join preference saved"))
+        elif action == "wifi_forget":
+            self.notify(tr("Saved configuration forgotten"))
+        elif action not in ("refresh", "bluetooth_stop", "wifi_connect", "wifi_connect_saved", "wifi_reconnect", "wifi_scan", "wifi_cancel_connect"):
             self.notify(tr('预览操作已模拟，未操作真实设备') if self.mock else tr('请求已处理；连接结果以设备状态为准'))
         self._publish()
 
@@ -552,54 +566,6 @@ class ShellController(QObject):
                 for profile in card["profiles"]] or [
                     {"id": "empty", "label": tr("Bluetooth audio mode is unavailable"), "action": "none", "disabled": True}]
 
-    def _wifi_options(self):
-        information = self.data["wifi"]
-        if not information.get("available"):
-            return [{"id": "unavailable", "label": information.get("error") or tr('未检测到无线网卡'), "action": "none", "disabled": True}]
-        options = [{"id": "power", "label": tr('关闭全部 Wi-Fi') if information["enabled"] else tr('开启全部 Wi-Fi'),
-                    "subtitle": tr('影响所有无线网卡'), "action": "wifi-power"}]
-        options += [{"id": device["id"], "deviceId": device["id"], "label": wifi_label(device),
-                     "subtitle": wifi_status(device, information["enabled"]), "action": "wifi-device", "icon": "network-wireless"}
-                    for device in information.get("devices", [])]
-        return options
-
-    def _wifi_device(self, device_id):
-        device = next((device for device in self.data["wifi"].get("devices", []) if device["id"] == device_id), None)
-        if device is None:
-            raise RuntimeError(tr('目标无线网卡已移除，请重新选择'))
-        return device
-
-    def _wifi_usable(self, device):
-        return self.data["wifi"].get("enabled") and device.get("available") and device.get("managed", True) and device.get("deviceState") not in (10, 20)
-
-    def _wifi_device_options(self, device):
-        usable = self._wifi_usable(device)
-        device_id = device["id"]
-        options = [
-            {"id": "scan", "label": tr('搜索网络'), "action": "system", "systemAction": "wifi_scan", "payload": {"deviceId": device_id}, "disabled": not usable},
-            {"id": "saved", "label": tr('已保存的网络'), "subtitle": tr('{value0} 个兼容配置', value0=len(device.get('saved', []))), "action": "wifi-saved", "deviceId": device_id, "disabled": not usable},
-        ]
-        if device.get("connected") or 40 <= device.get("deviceState", 0) <= 100:
-            options.append({"id": "disconnect", "label": tr('断开此网卡'), "action": "wifi-disconnect", "deviceId": device_id, "disabled": not usable})
-        if device.get("error"):
-            options.append({"id": "failure", "label": device["error"], "action": "none", "disabled": True})
-        for network in device.get("networks", []):
-            ssid = bytes(network.get("ssid", network["name"].encode()))
-            status = tr('已连接 · ') if network.get("connected") else tr('正在连接 · ') if network.get("connecting") else tr('已保存 · ') if network.get("saved") else ""
-            options.append({"id": f"network:{ssid.hex()}:{network['security']}", "label": network["name"],
-                            "subtitle": status + tr('{strength}% · {security}', strength=network["strength"], security=network["security"]),
-                            "action": "wifi-connect", "deviceId": device_id, "network": network,
-                            "disabled": not usable or network.get("unsupported", False)})
-        if not device.get("networks"):
-            options.append({"id": "empty", "label": tr('尚未发现网络') if usable else wifi_status(device, self.data["wifi"].get("enabled")), "action": "none", "disabled": True})
-        return options
-
-    def _wifi_saved_options(self, device):
-        return [{"id": profile["id"], "label": profile["name"], "subtitle": profile.get("blocked") or (tr('暂不支持此认证方式') if profile.get("unsupported") else tr('已保存')),
-                 "action": "wifi-saved-connect", "deviceId": device["id"], "profile": profile,
-                 "reason": profile.get("blocked"), "disabled": not self._wifi_usable(device) or profile.get("unsupported", False) or bool(profile.get("blocked"))}
-                for profile in device.get("saved", [])] or [{"id": "empty", "label": tr('没有兼容的已保存网络'), "action": "none", "disabled": True}]
-
     def _bluetooth_options(self):
         information = self.data["bluetooth"]
         if not information.get("available"):
@@ -609,6 +575,8 @@ class ShellController(QObject):
         return options
 
     def _push(self, modal):
+        if modal.get("deviceId"):
+            modal.setdefault("wifiEpoch", self.data["wifi"].get("epoch", ""))
         self.navigation.open_modal()
         self._modals.append({"key": uuid.uuid4().hex, "index": 0, **modal})
         self._text = modal.get("text", "")
@@ -663,7 +631,7 @@ class ShellController(QObject):
                     self.notify(option.get("reason") or tr('此项目当前不可用'))
                     return
                 keep_parent = modal.get("source") == "quick-settings" and option.get("id") == "theme"
-                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "language", "theme", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
+                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "language", "theme", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
                     self._pop()
                 self._execute_option(option)
         elif kind == "confirm":
@@ -678,7 +646,17 @@ class ShellController(QObject):
                     self.backend.reply(modal["token"], accepted)
                 elif accepted:
                     self._execute_option(modal["option"])
+        elif kind == "text" and action == "context" and modal.get("secret"):
+            modal["reveal"] = not modal.get("reveal", False)
         elif kind == "text" and action == "accept":
+            if modal.get("wifiSecurity"):
+                from .wifi_backend import validate_wifi_password
+                try:
+                    validate_wifi_password(self._text, modal["wifiSecurity"])
+                except ValueError as error:
+                    modal["error"] = error_text(error)
+                    self._publish()
+                    return
             text = self._text
             self._pop()
             self._submit_text(modal, text)
@@ -787,37 +765,8 @@ class ShellController(QObject):
                 self.data["files"] = [entry for entry in self.data["files"] if entry["id"] != item["id"]]
             else:
                 self._run(tr('移入回收站'), lambda: self.operations.trash(item["path"]), lambda result: self._browse(self.data["directory"]))
-        elif action == "wifi-power":
-            enabled = not self.data["wifi"].get("enabled")
-            if enabled:
-                self._system("wifi_power", {"enabled": True})
-            else:
-                self._confirm(tr('关闭全部 Wi-Fi？'), tr('这会断开所有无线网卡的连接，并可能中断 SSH。'),
-                              {"action": "system", "systemAction": "wifi_power", "payload": {"enabled": False}})
-        elif action == "wifi-device":
-            device = self._wifi_device(option["deviceId"])
-            self._menu(wifi_label(device), self._wifi_device_options(device), source="wifi-device", deviceId=device["id"],
-                       body=wifi_status(device, self.data["wifi"].get("enabled")))
-        elif action == "wifi-disconnect":
-            device = self._wifi_device(option["deviceId"])
-            self._confirm(tr('断开此网卡？'), wifi_label(device) + tr('\n只断开这张网卡，可能中断经由它的 SSH 连接。'),
-                          {"action": "system", "systemAction": "wifi_disconnect", "payload": {"deviceId": device["id"]}}, deviceId=device["id"])
-        elif action == "wifi-connect":
-            device = self._wifi_device(option["deviceId"])
-            network = option["network"]
-            if network.get("connected"):
-                self.notify(tr('此网络当前已连接'))
-            else:
-                self._confirm(tr('连接 {name}？', name=network["name"]), wifi_label(device) + tr('\n切换这张网卡的网络可能中断 SSH。'),
-                              {"action": "system", "systemAction": "wifi_connect", "payload": {"id": network["id"], "deviceId": device["id"]}}, deviceId=device["id"])
-        elif action == "wifi-saved":
-            device = self._wifi_device(option["deviceId"])
-            self._menu(tr('已保存的网络'), self._wifi_saved_options(device), source="wifi-saved", deviceId=device["id"], body=wifi_label(device))
-        elif action == "wifi-saved-connect":
-            device = self._wifi_device(option["deviceId"])
-            profile = option["profile"]
-            self._confirm(tr('连接 {name}？', name=profile["name"]), wifi_label(device) + tr('\n切换这张网卡的网络可能中断 SSH。'),
-                          {"action": "system", "systemAction": "wifi_connect_saved", "payload": {"id": profile["id"], "deviceId": device["id"]}}, deviceId=device["id"])
+        elif action.startswith("wifi-"):
+            self._apply_wifi_option(option)
         elif action == "device":
             device = option["device"]
             options = []
@@ -849,6 +798,8 @@ class ShellController(QObject):
     def _submit_text(self, modal, text):
         if modal.get("token"):
             self.backend.reply(modal["token"], text)
+        elif modal.get("purpose") == "wifi-password":
+            self._system("wifi_update_password", {**modal["payload"], "password": text})
         elif modal["purpose"] == "search":
             self.query = text.strip()
             self.navigation.select(0)
@@ -949,13 +900,15 @@ class ShellController(QObject):
         self._publish()
 
     def _system(self, action, payload=None):
-        if (action in self.pending_system or (action.startswith("wifi_") and any(pending.startswith("wifi_") for pending in self.pending_system))
+        if (action in self.pending_system or (action.startswith("wifi_") and action != "wifi_cancel_connect" and any(pending.startswith("wifi_") for pending in self.pending_system))
                 or (action in AUDIO_ACTIONS and self.pending_system & AUDIO_ACTIONS)):
             self.notify(tr('此请求正在处理中，请稍候'))
             return
         self.pending_system.add(action)
         if action == 'lock':
             self.inputSuspended.emit(True)
+        if action.startswith("wifi_"):
+            payload = {"wifiEpoch": self.data["wifi"].get("epoch", ""), **(payload or {})}
         self.backend.request(action, payload or {})
         self._publish()
 

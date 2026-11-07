@@ -1,5 +1,4 @@
 import asyncio
-import getpass
 import json
 import math
 import os
@@ -17,34 +16,13 @@ from .audio import AUDIO_ACTIONS, audio_state
 from .battery import read_battery
 from .i18n import error_text, tr
 from .mock import initial_state
-from .wifi import wifi_identity, wifi_label, wifi_security
+from .wifi import wifi_label
+from .wifi_backend import NETWORK_CANCEL, NM, NM_ROOT, WifiBackend, unwrap, validate_wifi_password
 
-NM = "org.freedesktop.NetworkManager"
-NM_ROOT = "/org/freedesktop/NetworkManager"
 BLUEZ = "org.bluez"
 PROPERTIES = "org.freedesktop.DBus.Properties"
-NETWORK_CANCEL = NM + ".SecretAgent.Error.UserCanceled"
 
 
-def unwrap(value):
-    if isinstance(value, Variant):
-        return unwrap(value.value)
-    if isinstance(value, dict):
-        return {key: unwrap(item) for key, item in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [unwrap(item) for item in value]
-    return value
-
-
-def validate_wifi_password(password, security):
-    value = str(password)
-    if not value or "\x00" in value:
-        raise ValueError(tr('Wi-Fi 密码不能为空或包含空字符'))
-    if security == "WPA3":
-        return value
-    if not 8 <= len(value.encode()) <= 63 and not (len(value) == 64 and all(character in "0123456789abcdefABCDEF" for character in value)):
-        raise ValueError(tr('WPA2 密码需为 8–63 字节，或 64 位十六进制 PSK'))
-    return value
 
 
 class BluezAgent(ServiceInterface):
@@ -104,12 +82,21 @@ class NetworkAgent(ServiceInterface):
             raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr('仅支持个人 Wi-Fi 网络'))
         device_id = await self.backend._wifi_secret_device(connection_path)
         device = next(entry for entry in self.backend.state["wifi"]["devices"] if entry["id"] == device_id)
+        epoch = self.backend.wifi_epoch
+        profile = next((entry for entry in await self.backend._saved_wifi() if entry["id"] == connection_path), None)
+        if not profile:
+            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr("This saved configuration was removed or is incompatible with the adapter"))
+        settings = unwrap(connection)
+        security = "WPA3" if settings.get(setting_name, {}).get("key-mgmt") == "sae" else "WPA2"
         password = await self.backend.ask("text", tr('Wi-Fi 密码'), wifi_label(device),
-                                          secret=True, cancel_error=NETWORK_CANCEL,
-                                          group="network:" + connection_path, deviceId=device_id)
+                                          secret=True, wifiSecurity=security, cancel_error=NETWORK_CANCEL,
+                                          group="network:" + connection_path, deviceId=device_id, profileUuid=profile["uuid"])
+        current = next((entry for entry in await self.backend._saved_wifi() if entry["id"] == connection_path), None)
+        if self.backend.wifi_epoch != epoch or not current or current["revision"] != profile["revision"]:
+            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr("The saved configuration changed. Reopen it and try again."))
         if await self.backend._wifi_secret_device(connection_path) != device_id:
             raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr('无法确认请求密码的无线网卡，请重新连接'))
-        return {setting_name: {"psk": Variant("s", str(password))}}
+        return {setting_name: {"psk": Variant("s", validate_wifi_password(password, security))}}
 
     @method()
     def CancelGetSecrets(self, connection_path: "o", setting_name: "s"):
@@ -124,7 +111,7 @@ class NetworkAgent(ServiceInterface):
         pass
 
 
-class SystemBackend(QObject):
+class SystemBackend(WifiBackend, QObject):
     updated = Signal(object)
     failed = Signal(object)
     operationFailed = Signal(str, object)
@@ -146,7 +133,7 @@ class SystemBackend(QObject):
         self.wifi_operation_lock = asyncio.Lock()
         self.audio_refresh_lock = asyncio.Lock()
         self.audio_operation_lock = asyncio.Lock()
-        self.wifi_profile_devices = {}
+        self._init_wifi()
         self.processes = set()
         self.closing = False
         self.agent_registered = False
@@ -233,8 +220,7 @@ class SystemBackend(QObject):
                 self.schedule_refresh("bluetooth")
             elif message.body[0] == NM:
                 self.network_agent_registered = False
-                self.wifi_profile_devices.clear()
-                self.cancel_prompts("network")
+                self._reset_wifi()
                 self.schedule_refresh("wifi")
         elif (message.path or "").startswith(NM_ROOT):
             if message.member == "DeviceRemoved" and message.body:
@@ -292,143 +278,6 @@ class SystemBackend(QObject):
         # Python object signals preserve deferred messages. Detach the payload
         # so queued UI deliveries cannot share mutable service state.
         self.updated.emit(deepcopy({component: value}))
-
-    async def refresh_wifi(self):
-        async with self.wifi_refresh_lock:
-            await self._refresh_wifi()
-
-    async def _refresh_wifi(self):
-        try:
-            agent_error = ""
-            if not self.network_agent_registered:
-                try:
-                    await self.call(NM, NM_ROOT + "/AgentManager", NM + ".AgentManager", "RegisterWithCapabilities", "su", ["io.github.zhubby.uDeck", 0])
-                    self.network_agent_registered = True
-                except Exception as error:
-                    agent_error = error_text(error)
-            enabled = await self.get(NM, NM_ROOT, NM, "WirelessEnabled")
-            paths = (await self.call(NM, NM_ROOT, NM, "GetDevices"))[0]
-            saved = await self._saved_wifi()
-            usage = await self._wifi_profile_usage()
-            previous = {entry["id"]: entry for entry in self.state["wifi"].get("devices", [])}
-            devices = []
-            for device_path in paths:
-                try:
-                    if await self.get(NM, device_path, NM + ".Device", "DeviceType") != 2:
-                        continue
-                except Exception:
-                    if device_path not in previous:
-                        continue
-                devices.append(await self._read_wifi_device(device_path, saved, usage, previous.get(device_path, {})))
-            devices.sort(key=lambda entry: ({"builtin": 0, "usb": 1}.get(entry["kind"], 2), entry["interface"], entry["id"]))
-            present = {entry["id"] for entry in devices}
-            for device_id in previous.keys() - present:
-                self.cancel_prompts("network", device_id=device_id)
-            self.wifi_profile_devices = {profile: device for profile, device in self.wifi_profile_devices.items() if device in present}
-            self.publish("wifi", {"available": bool(devices), "enabled": enabled, "devices": devices,
-                                  "error": "" if devices else tr('未检测到无线网卡'), "agentError": agent_error})
-        except Exception as error:
-            self.publish("wifi", {"available": False, "enabled": False, "devices": [], "error": error_text(error)})
-
-    async def _read_wifi_device(self, path, saved, usage, previous):
-        result = {"id": path, **wifi_identity(previous.get("interface", "")), "available": False,
-                  "managed": True, "deviceState": 0, "connected": "", "connecting": "",
-                  "strength": None, "networks": [], "saved": [], "error": ""}
-        try:
-            device = await self.properties(NM, path, NM + ".Device")
-            result.update(wifi_identity(device.get("Interface", "")))
-            device_state = device.get("State", 0)
-            result.update({"managed": device.get("Managed", True), "deviceState": device_state,
-                           "activeConnection": device.get("ActiveConnection", "/")})
-            profiles = self._wifi_device_profiles(path, device, saved, usage)
-            result["saved"] = profiles
-            wireless = await self.properties(NM, path, NM + ".Device.Wireless")
-            networks = {}
-            active_ap = wireless.get("ActiveAccessPoint", "/")
-            access_points = list(wireless.get("AccessPoints", []))
-            if active_ap != "/" and active_ap not in access_points:
-                access_points.append(active_ap)
-            for access_point in access_points:
-                try:
-                    information = await self.properties(NM, access_point, NM + ".AccessPoint")
-                except Exception:
-                    continue
-                if access_point == active_ap and device_state == 100:
-                    result["strength"] = information.get("Strength")
-                ssid_bytes = bytes(information.get("Ssid", []))
-                if not ssid_bytes:
-                    continue
-                name = ssid_bytes.decode("utf-8", errors="replace")
-                security, keys = wifi_security(information)
-                entry = {"id": access_point, "name": name, "ssid": list(ssid_bytes),
-                         "strength": information.get("Strength", 0), "security": security,
-                         "saved": any(profile["ssid"] == list(ssid_bytes) and profile["keyManagement"] in (keys or [""]) for profile in profiles),
-                         "keyManagement": keys,
-                         "secured": security != tr('开放网络'), "unsupported": security in (tr('企业网络'), tr('不支持的加密')),
-                         "connected": access_point == wireless.get("ActiveAccessPoint") and device_state == 100,
-                         "connecting": access_point == wireless.get("ActiveAccessPoint") and 40 <= device_state < 100}
-                deduplication_key = (ssid_bytes, security)
-                existing = networks.get(deduplication_key)
-                if not existing or (entry["connected"], entry["connecting"], entry["strength"]) > (existing["connected"], existing["connecting"], existing["strength"]):
-                    networks[deduplication_key] = entry
-            entries = sorted(networks.values(), key=lambda entry: (not entry["connected"], -entry["strength"]))
-            reason = device.get("StateReason", [device_state, 0])[1]
-            failure = tr('连接失败 · NetworkManager 原因代码 {value0}', value0=reason) if device_state == 120 else ""
-            result.update({"available": True, "networks": entries,
-                           "connected": next((entry["name"] for entry in entries if entry["connected"]), ""),
-                           "connecting": next((entry["name"] for entry in entries if entry["connecting"]), ""), "error": failure})
-            if device_state == 100 and not result["connected"] and usage is not None:
-                profile = next((profile for profile in saved if path in usage.get(profile["id"], set())), None)
-                if profile:
-                    result["connected"] = bytes(profile["ssid"]).decode("utf-8", errors="replace")
-        except Exception as error:
-            result["error"] = tr('无法读取网卡 · ') + error_text(error)
-        return result
-
-    async def _wifi_profile_usage(self):
-        try:
-            usage = {}
-            for path in await self.get(NM, NM_ROOT, NM, "ActiveConnections"):
-                properties = await self.properties(NM, path, NM + ".Connection.Active")
-                if properties.get("State") != 4:
-                    usage.setdefault(properties["Connection"], set()).update(properties.get("Devices", []))
-            return usage
-        except Exception:
-            # Unknown usage must never permit moving a single-instance profile.
-            return None
-
-    def _wifi_device_profiles(self, device_id, device, profiles, usage):
-        compatible = set(device.get("AvailableConnections", []))
-        result = []
-        for profile in profiles:
-            if profile["id"] not in compatible:
-                continue
-            blocked = ""
-            if profile["multiConnect"] not in (2, 3):
-                if usage is None:
-                    blocked = tr('暂时无法确认此配置是否正在使用')
-                elif usage.get(profile["id"], set()) - {device_id}:
-                    blocked = tr('另一张网卡正在使用 · 可从网络列表另建连接')
-            result.append({**profile, "blocked": blocked})
-        return result
-
-    async def _saved_wifi(self):
-        profiles = []
-        connections = (await self.call(NM, NM_ROOT + "/Settings", NM + ".Settings", "ListConnections"))[0]
-        for path in connections:
-            try:
-                settings = unwrap((await self.call(NM, path, NM + ".Settings.Connection", "GetSettings"))[0])
-                wireless = settings.get("802-11-wireless")
-                if not wireless or wireless.get("mode", "infrastructure") != "infrastructure":
-                    continue
-                key = settings.get("802-11-wireless-security", {}).get("key-mgmt", "")
-                ssid = list(wireless.get("ssid", []))
-                profiles.append({"id": path, "name": settings.get("connection", {}).get("id", bytes(ssid).decode("utf-8", errors="replace")),
-                                 "ssid": ssid, "keyManagement": key, "multiConnect": settings.get("connection", {}).get("multi-connect", 0),
-                                 "unsupported": key not in ("", "wpa-psk", "sae")})
-            except Exception:
-                continue
-        return profiles
 
     async def refresh_bluetooth(self):
         try:
@@ -571,6 +420,8 @@ class SystemBackend(QObject):
     def request(self, action, payload=None):
         if not self.thread or self.closing:
             return
+        if action.startswith("wifi_"):
+            payload = {"wifiEpoch": self.wifi_epoch, **(payload or {})}
         future = asyncio.run_coroutine_threadsafe(self._execute(action, payload or {}), self.loop)
 
         def complete(result):
@@ -586,7 +437,9 @@ class SystemBackend(QObject):
         future.add_done_callback(complete)
 
     async def _execute(self, action, payload):
-        if action.startswith("wifi_"):
+        if action == "wifi_cancel_connect":
+            await self._execute_wifi(action, payload)
+        elif action.startswith("wifi_"):
             async with self.wifi_operation_lock:
                 await self._execute_wifi(action, payload)
         elif action in AUDIO_ACTIONS:
@@ -650,119 +503,6 @@ class SystemBackend(QObject):
             await self.refresh_bluetooth()
         except Exception:
             pass
-
-    async def _wifi_secret_device(self, connection_path):
-        active_devices, activating_devices = set(), set()
-        try:
-            for path in await self.get(NM, NM_ROOT, NM, "ActiveConnections"):
-                properties = await self.properties(NM, path, NM + ".Connection.Active")
-                if properties.get("Connection") == connection_path and properties.get("State") != 4:
-                    active_devices.update(properties.get("Devices", []))
-                    if properties.get("State") == 1:
-                        activating_devices.update(properties.get("Devices", []))
-        except Exception as error:
-            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr('无法确认请求密码的无线网卡，请重新选择网卡连接')) from error
-        # SecretAgent names a profile, so prefer its one activating device.
-        if len(activating_devices) == 1:
-            device_id = next(iter(activating_devices))
-        elif not activating_devices:
-            device_id = self.wifi_profile_devices.get(connection_path)
-            if device_id is None and len(active_devices) == 1:
-                device_id = next(iter(active_devices))
-            if active_devices - {device_id}:
-                device_id = None
-        else:
-            device_id = None
-        if device_id is None:
-            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr('无法确认请求密码的无线网卡，请重新选择网卡连接'))
-        await self._require_wifi_device(device_id)
-        return device_id
-
-    async def _require_wifi_device(self, device_id):
-        known = next((entry for entry in self.state["wifi"].get("devices", []) if entry["id"] == device_id), None)
-        if known is None or device_id not in (await self.call(NM, NM_ROOT, NM, "GetDevices"))[0]:
-            raise RuntimeError(tr('目标无线网卡已移除，请重新选择网卡'))
-        device = await self.properties(NM, device_id, NM + ".Device")
-        if device.get("DeviceType") != 2 or device.get("Interface") != known["interface"]:
-            raise RuntimeError(tr('目标无线网卡已改变，请重新选择网卡'))
-        if not device.get("Managed", True):
-            raise RuntimeError(tr('此网卡未由系统管理'))
-        if not await self.get(NM, NM_ROOT, NM, "WirelessEnabled"):
-            raise RuntimeError(tr('请先开启全部 Wi-Fi'))
-        return device
-
-    async def _require_wifi_access_point(self, device_id, network):
-        device = await self._require_wifi_device(device_id)
-        wireless = await self.properties(NM, device_id, NM + ".Device.Wireless")
-        if network["id"] not in wireless.get("AccessPoints", []):
-            raise RuntimeError(tr('此网卡已搜索不到该网络，请重新搜索'))
-        information = await self.properties(NM, network["id"], NM + ".AccessPoint")
-        if list(information.get("Ssid", [])) != network["ssid"] or wifi_security(information)[0] != network["security"]:
-            raise RuntimeError(tr('网络已改变，请重新搜索'))
-        return device
-
-    async def _execute_wifi(self, action, payload):
-        if action == "wifi_power":
-            await self.set_property(NM, NM_ROOT, NM, "WirelessEnabled", "b", bool(payload["enabled"]))
-            if not payload["enabled"]:
-                self.cancel_prompts("network")
-        elif action in ("wifi_scan", "wifi_disconnect"):
-            device_id = payload.get("deviceId")
-            await self._require_wifi_device(device_id)
-            if action == "wifi_scan":
-                await self.call(NM, device_id, NM + ".Device.Wireless", "RequestScan", "a{sv}", [{}])
-            else:
-                await self.call(NM, device_id, NM + ".Device", "Disconnect")
-        elif action == "wifi_connect":
-            await self._wifi_connect(payload.get("deviceId"), payload["id"])
-        elif action == "wifi_connect_saved":
-            device_id = payload.get("deviceId")
-            device = await self._require_wifi_device(device_id)
-            profiles = await self._saved_wifi()
-            usage = await self._wifi_profile_usage()
-            profile = next((entry for entry in self._wifi_device_profiles(device_id, device, profiles, usage) if entry["id"] == payload["id"]), None)
-            if profile is None or profile.get("unsupported"):
-                raise RuntimeError(tr('此网卡无法使用该已保存网络，请重新选择'))
-            if profile["blocked"]:
-                raise RuntimeError(profile["blocked"])
-            self.wifi_profile_devices[profile["id"]] = device_id
-            await self.call(NM, NM_ROOT, NM, "ActivateConnection", "ooo", [profile["id"], device_id, "/"])
-        else:
-            raise ValueError(tr('未知 Wi-Fi 操作'))
-        await self.refresh_wifi()
-
-    async def _wifi_connect(self, device_id, identifier):
-        device = next((entry for entry in self.state["wifi"].get("devices", []) if entry["id"] == device_id), {})
-        network = next((entry for entry in device.get("networks", []) if entry["id"] == identifier), None)
-        if network is None or network.get("unsupported"):
-            raise RuntimeError(tr('此网卡已搜索不到该网络，或不支持此认证方式'))
-        properties = await self._require_wifi_access_point(device_id, network)
-        profiles = await self._saved_wifi()
-        usage = await self._wifi_profile_usage()
-        for profile in self._wifi_device_profiles(device_id, properties, profiles, usage):
-            if profile["ssid"] == network["ssid"] and not profile["blocked"] and not profile["unsupported"]:
-                if profile["keyManagement"] in (network["keyManagement"] or [""]):
-                    self.wifi_profile_devices[profile["id"]] = device_id
-                    await self.call(NM, NM_ROOT, NM, "ActivateConnection", "ooo", [profile["id"], device_id, identifier])
-                    return
-        name = network["name"]
-        if any(profile["ssid"] == network["ssid"] for profile in profiles):
-            name += " (" + device["interface"] + ")"
-        settings = {
-            "connection": {"id": Variant("s", name), "uuid": Variant("s", str(uuid.uuid4())),
-                           "type": Variant("s", "802-11-wireless"), "autoconnect": Variant("b", True),
-                           "permissions": Variant("as", [f"user:{getpass.getuser()}:"])},
-            "802-11-wireless": {"ssid": Variant("ay", bytes(network["ssid"])), "mode": Variant("s", "infrastructure")},
-            "ipv4": {"method": Variant("s", "auto")}, "ipv6": {"method": Variant("s", "auto")},
-        }
-        if network["secured"]:
-            password = await self.ask("text", tr('连接 ') + network["name"], wifi_label(device) + tr('\n输入 Wi-Fi 密码；凭据交由系统管理'),
-                                      secret=True, cancel_error=NETWORK_CANCEL, group="network:" + device_id, deviceId=device_id)
-            password = validate_wifi_password(password, network["security"])
-            settings["802-11-wireless-security"] = {"key-mgmt": Variant("s", "sae" if network["security"] == "WPA3" else "wpa-psk"), "psk": Variant("s", str(password))}
-        await self._require_wifi_access_point(device_id, network)
-        result = await self.call(NM, NM_ROOT, NM, "AddAndActivateConnection", "a{sa{sv}}oo", [settings, device_id, identifier])
-        self.wifi_profile_devices[result[0]] = device_id
 
     async def ask(self, kind, title, body, cancel_error="org.bluez.Error.Rejected", group="bluez", **options):
         token = uuid.uuid4().hex

@@ -71,7 +71,7 @@ def test_scan_keeps_device_menu_open_and_uses_usb_payload(controller, monkeypatc
     monkeypatch.setattr(controller.backend, "request", record)
     open_usb(controller)
     choose(controller, "system")
-    assert requests == [("wifi_scan", {"deviceId": "usb"})]
+    assert requests == [("wifi_scan", {"deviceId": "usb", "wifiEpoch": controller.data["wifi"]["epoch"]})]
     assert controller.modal["source"] == "wifi-device"
     assert controller.modal["deviceId"] == "usb"
 
@@ -81,6 +81,7 @@ def test_connect_confirmation_keeps_target_and_network_menu(controller, monkeypa
     monkeypatch.setattr(controller.backend, "request", lambda action, payload: requests.append((action, payload)))
     open_usb(controller)
     choose(controller, "wifi-connect")
+    choose(controller, "wifi-join")
     assert controller.modal["kind"] == "confirm"
     assert controller.modal["deviceId"] == "usb"
     assert "USB" in controller.modal["body"]
@@ -88,7 +89,7 @@ def test_connect_confirmation_keeps_target_and_network_menu(controller, monkeypa
     controller.dispatch("accept")
     assert requests[0][0] == "wifi_connect"
     assert requests[0][1]["deviceId"] == "usb"
-    assert controller.modal["source"] == "wifi-device"
+    assert controller.modal["source"] == "wifi-network"
 
 
 def test_global_off_requires_confirmation_and_leaves_devices_visible(controller):
@@ -127,6 +128,7 @@ def test_unplug_returns_to_adapters_and_dismisses_only_target_overlays(controlle
 def test_refresh_updates_parent_menu_under_network_confirmation(controller):
     open_usb(controller)
     choose(controller, "wifi-connect")
+    choose(controller, "wifi-join")
     wifi = deepcopy(controller.data["wifi"])
     usb = next(device for device in wifi["devices"] if device["id"] == "usb")
     usb["connected"] = usb["networks"][0]["name"]
@@ -135,7 +137,7 @@ def test_refresh_updates_parent_menu_under_network_confirmation(controller):
     controller.backend.updated.emit({"wifi": wifi})
     assert controller.modal["kind"] == "confirm"
     controller.dispatch("back")
-    assert controller.modal["source"] == "wifi-device"
+    assert controller.modal["source"] == "wifi-network"
     assert "已连接" in controller.modal["body"]
 
 
@@ -173,6 +175,7 @@ def test_usb_insertion_preserves_the_open_builtin_menu_and_adapter_focus(control
 def test_mock_connection_on_usb_preserves_builtin_connection(controller):
     open_usb(controller)
     choose(controller, "wifi-connect")
+    choose(controller, "wifi-join")
     controller.dispatch("right")
     controller.dispatch("accept")
     devices = {device["id"]: device for device in controller.data["wifi"]["devices"]}

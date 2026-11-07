@@ -164,6 +164,7 @@ def test_scanning_without_a_present_target_never_falls_back(network_backend, pay
 def test_saved_profiles_are_filtered_by_device_compatibility(network_backend):
     backend, manager = network_backend
     manager.devices[USB]["AvailableConnections"] = []
+    manager.profiles[PROFILE]["connection"]["interface-name"] = "wlan7"
     asyncio.run(backend.refresh_wifi())
     devices = {device["id"]: device for device in backend.state["wifi"]["devices"]}
     assert len(devices[BUILTIN]["saved"]) == 1

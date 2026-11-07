@@ -1,3 +1,4 @@
+import uuid
 from copy import deepcopy
 
 from PySide6.QtCore import QObject, QTimer, Signal
@@ -81,6 +82,8 @@ class MockBackend(QObject):
                         "voltage": 3.9, "current": 0.8, "power": 3.12},
         })
         self._mock_audio = deepcopy(self.state["audio"])
+        self.state["wifi"]["epoch"] = "mock-networkmanager"
+        self._refresh_mock_wifi()
 
     def start(self):
         QTimer.singleShot(0, lambda: self.updated.emit(deepcopy(self.state)))
@@ -107,35 +110,12 @@ class MockBackend(QObject):
                     device["activeProfile"] = ""
                     for network in device["networks"]:
                         network["connected"] = False
-        elif action in ("wifi_scan", "wifi_connect", "wifi_connect_saved", "wifi_disconnect"):
-            device = next((entry for entry in self.state["wifi"]["devices"] if entry["id"] == payload.get("deviceId")), None)
-            if device is None:
-                self.operationFailed.emit(action, tr('目标无线网卡已移除'))
+        elif action.startswith("wifi_"):
+            try:
+                self._mock_wifi_action(action, payload)
+            except (RuntimeError, ValueError) as error:
+                self.operationFailed.emit(action, str(error))
                 return
-            if action == "wifi_disconnect":
-                device["connected"], device["deviceState"] = "", 30
-                device["strength"] = None
-                device["activeProfile"] = ""
-                for network in device["networks"]:
-                    network["connected"] = False
-            elif action in ("wifi_connect", "wifi_connect_saved"):
-                profile = next((entry for entry in device["saved"] if entry["id"] == payload["id"]), None) if action == "wifi_connect_saved" else None
-                if profile and profile.get("blocked"):
-                    self.operationFailed.emit(action, profile["blocked"])
-                    return
-                target = profile["name"] if profile else next((entry["name"] for entry in device["networks"] if entry["id"] == payload["id"]), "")
-                if target:
-                    for network in device["networks"]:
-                        network["connected"] = network["name"] == target
-                    device["connected"], device["deviceState"] = target, 100
-                    device["strength"] = next((network["strength"] for network in device["networks"] if network["connected"]), None)
-                    if profile is None:
-                        profile = next((entry for entry in device["saved"] if entry["name"] == target and not entry.get("blocked")), None)
-                    if profile is None:
-                        profile = {"id": "mock:" + device["id"] + ":" + target, "name": target,
-                                   "ssid": list(target.encode()), "keyManagement": "wpa-psk", "multiConnect": 0}
-                        device["saved"].append(profile)
-                    device["activeProfile"] = profile["id"]
         elif action == "bluetooth_power":
             self.state["bluetooth"]["powered"] = payload["enabled"]
             if not payload["enabled"]:
@@ -194,13 +174,91 @@ class MockBackend(QObject):
         active = next((output for output in self.state["audio"]["outputs"] if output["active"]), {})
         self.state["audio"].update(volume=active.get("volume") or 0, muted=active.get("muted", False))
         if action.startswith("wifi_"):
-            devices = self.state["wifi"]["devices"]
-            for device in devices:
-                for profile in device["saved"]:
-                    busy = profile.get("multiConnect", 0) not in (2, 3) and any(other["id"] != device["id"] and other.get("activeProfile") == profile["id"] for other in devices)
-                    profile["blocked"] = tr('另一张网卡正在使用 · 可从网络列表另建连接') if busy else ""
+            self._refresh_mock_wifi()
         self.updated.emit(deepcopy(self.state))
         self.completed.emit(action)
+
+    def _refresh_mock_wifi(self):
+        from .wifi import network_key
+        devices = self.state["wifi"]["devices"]
+        for device in devices:
+            device.setdefault("scan", {})
+            device.setdefault("operation", {})
+            device.setdefault("addresses", {"ip": [], "gateway": [], "dns": []})
+            for network in device["networks"]:
+                network.setdefault("ssid", list(network["name"].encode()))
+                network.setdefault("keyManagement", ["sae" if network["security"] == "WPA3" else "wpa-psk"] if network.get("secured") else [])
+                network.setdefault("securityId", "wpa3" if network["security"] == "WPA3" else "wpa2" if network.get("secured") else "open")
+                network["key"] = network_key(network["ssid"], network["securityId"])
+            for profile in device["saved"]:
+                profile.setdefault("uuid", profile["id"])
+                profile.setdefault("revision", "initial")
+                profile.setdefault("autoconnect", True)
+                profile["active"] = profile["id"] == device.get("activeProfile")
+                others = any(other["id"] != device["id"] and other.get("activeProfile") == profile["id"] for other in devices)
+                profile["mutationBlocked"] = tr("Another adapter is using this saved configuration") if others else ""
+                profile["blocked"] = profile["mutationBlocked"] if profile.get("multiConnect", 0) not in (2, 3) else ""
+            device["activeProfileUuid"] = next((p["uuid"] for p in device["saved"] if p["active"]), "")
+            for network in device["networks"]:
+                network["saved"] = any(profile["ssid"] == network["ssid"] for profile in device["saved"])
+
+    def _mock_wifi_action(self, action, payload):
+        device = next((entry for entry in self.state["wifi"]["devices"] if entry["id"] == payload.get("deviceId")), None)
+        if device is None:
+            raise RuntimeError(tr('目标无线网卡已移除'))
+        profile = next((p for p in device["saved"] if p.get("uuid") == payload.get("profileUuid") or p["id"] == payload.get("id")), None)
+        if action in ("wifi_forget", "wifi_update_password", "wifi_set_autoconnect"):
+            if not profile or profile.get("revision") != payload.get("revision"):
+                raise RuntimeError(tr("The saved configuration changed. Reopen it and try again."))
+            if profile.get("mutationBlocked"):
+                raise RuntimeError(profile["mutationBlocked"])
+            if action == "wifi_forget":
+                if profile["active"]:
+                    self._mock_wifi_action("wifi_disconnect", {"deviceId": device["id"]})
+                for item in self.state["wifi"]["devices"]:
+                    item["saved"] = [p for p in item["saved"] if p.get("uuid") != profile["uuid"]]
+            else:
+                for item in self.state["wifi"]["devices"]:
+                    for saved in item["saved"]:
+                        if saved.get("uuid") == profile["uuid"]:
+                            if action == "wifi_set_autoconnect":
+                                saved["autoconnect"] = payload["enabled"]
+                            saved["revision"] = uuid.uuid4().hex
+        elif action == "wifi_cancel_connect":
+            operation = device.get("operation", {})
+            if operation.get("id") != payload.get("operationId") or operation.get("status") not in ("preparing", "connecting"):
+                raise RuntimeError(tr("This join request is no longer active"))
+            preparing = operation["status"] == "preparing"
+            operation.update(status="cancelled", message=tr("Joining cancelled"))
+            if not preparing and not device.get("connected"):
+                device["deviceState"] = 30
+                for network in device["networks"]:
+                    network["connecting"] = False
+        elif action == "wifi_disconnect":
+            device.update(connected="", deviceState=30, strength=None, activeProfile="", operation={})
+            for network in device["networks"]:
+                network["connected"] = False
+        elif action == "wifi_scan":
+            device["scan"] = {"status": "complete"}
+        elif action in ("wifi_connect", "wifi_connect_saved", "wifi_reconnect"):
+            if profile and profile.get("blocked"):
+                raise RuntimeError(profile["blocked"])
+            network = next((entry for entry in device["networks"] if entry.get("key") == payload.get("networkKey") or entry["id"] == payload.get("id") or (profile and entry["ssid"] == profile["ssid"])), None)
+            if not network and not profile:
+                raise RuntimeError(tr('此网卡已搜索不到该网络，请重新搜索'))
+            if not profile:
+                profile = next((p for p in device["saved"] if p["ssid"] == network["ssid"] and not p.get("blocked")), None)
+            if not profile:
+                profile = {"id": "mock:" + device["id"] + ":" + network["name"], "name": network["name"],
+                           "ssid": network["ssid"], "keyManagement": (network["keyManagement"] or [""])[0], "multiConnect": 0}
+                profile["uuid"] = profile["id"]
+                device["saved"].append(profile)
+            target = bytes(profile["ssid"]).decode("utf-8", errors="replace")
+            device.update(connected=target, deviceState=100, activeProfile=profile["id"],
+                          strength=network["strength"] if network else None,
+                          operation={"id": uuid.uuid4().hex, "profileUuid": profile["uuid"], "networkKey": network["key"] if network else "", "status": "connected", "message": tr("Joined network")})
+            for entry in device["networks"]:
+                entry["connected"] = entry is network
 
     def reply(self, token, value):
         pass

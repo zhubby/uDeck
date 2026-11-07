@@ -90,3 +90,36 @@ def wifi_security(information):
     security = tr('企业网络') if enterprise else "WPA3" if flags & 0x400 else "WPA2" if flags & 0x100 else tr('不支持的加密') if information.get("Flags", 0) & 1 else tr('开放网络')
     keys = (["wpa-psk"] if flags & 0x100 else []) + (["sae"] if flags & 0x400 else [])
     return security, keys
+
+
+def security_code(information):
+    flags = information.get("WpaFlags", 0) | information.get("RsnFlags", 0)
+    if flags & 0x200 and not flags & 0x500:
+        return "enterprise"
+    if flags & 0x400:
+        return "wpa3"
+    if flags & 0x100:
+        return "wpa2"
+    return "unsupported" if information.get("Flags", 0) & 1 else "open"
+
+
+def network_key(ssid, security):
+    return bytes(ssid).hex() + ":" + security
+
+
+def wifi_failure(reason):
+    if reason == 7:
+        return tr("Wi-Fi credentials are required or were rejected")
+    if reason in (8, 9, 10, 11):
+        return tr("Wi-Fi authentication or negotiation failed")
+    if reason in (5, 6, 15, 16, 17):
+        return tr("Could not obtain a network address")
+    if reason == 53:
+        return tr("The network is no longer in range")
+    return tr("Wi-Fi connection failed (system reason {reason})", reason=reason)
+
+
+def wifi_phase(state):
+    return tr("Preparing to join") if state == 40 else tr("Configuring Wi-Fi") if state == 50 else (
+        tr("Waiting for credentials") if state == 60 else tr("Obtaining a network address") if state == 70 else
+        tr("Checking the connection") if state in (80, 90) else tr("Joining network"))

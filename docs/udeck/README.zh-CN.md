@@ -2,9 +2,9 @@
 
 ## 运行边界
 
-uDeck 0.1.6 是原生 PySide6 / Qt Quick 桌面壳，不包含 Electron、Chromium 或 HTTP 服务。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。第三方应用兼容层需要独立 uDeck 会话，原桌面中运行壳不会启用。
+uDeck 0.1.16 是原生 PySide6 / Qt Quick 桌面壳，不包含 Electron、Chromium 或 HTTP 服务。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。第三方应用兼容层需要独立 uDeck 会话，原桌面中运行壳不会启用。
 
-首次默认英文。在 `Settings → Language` 或 `Y → Language` 选择 `English` / `简体中文`，立即切换并保存。已安装的 Terminal 0.1.1 同步界面语言，保留会话和输出。详见 [中英文界面记录](i18n-2026-11-06.md)。
+首次默认英文。在 `Settings → Language` 或 `Y → Language` 选择 `English` / `简体中文`，立即切换并保存。已安装的 Terminal 0.1.4 同步界面语言，保留会话和输出。详见 [中英文界面记录](i18n-2026-11-06.md)。
 
 目标环境为 CM4、约 4 GiB 内存、Debian 13、Qt 6.8、labwc 0.9 系列和横屏 1280×720。不会替换官方镜像、显示驱动、内核或窗口合成器。
 
@@ -26,7 +26,7 @@ QT_QPA_PLATFORM=offscreen PYTHONPATH=src .venv/bin/python -m udeck.main \
 .venv/bin/ruff check src tests tools
 ```
 
-Qt 6.8 的 Python 开发环境使用 3.11–3.13，不使用系统默认的 Python 3.15 来安装该版本 PySide6。中文字体优先 Noto Sans CJK SC，macOS 预览回退 PingFang SC。
+Qt 6.8 的 Python 开发环境使用 3.11–3.13，不使用系统默认的 Python 3.15 来安装该版本 PySide6。界面英文使用 Saira Semi Condensed，中文使用 LXGW 文楷屏幕版；字体随包提供，缺字时回退到系统字体。
 
 ## Debian 软件包
 
@@ -34,8 +34,8 @@ Qt 6.8 的 Python 开发环境使用 3.11–3.13，不使用系统默认的 Pyth
 
 ```sh
 sh tools/build-deb
-dpkg-deb --info dist/udeck_0.1.6_arm64.deb
-sudo apt-get install ./dist/udeck_0.1.6_arm64.deb
+dpkg-deb --info dist/udeck_0.1.16_arm64.deb
+sudo apt-get install ./dist/udeck_0.1.16_arm64.deb
 ```
 
 依赖由 Debian 提供，包括 PySide6 Qt 6.8、Qt Quick Controls、dbus-next、evdev、Gio、NetworkManager、BlueZ、PipeWire/WirePlumber、wlr-randr、swayidle/swaylock、wlopm、fcitx5 和 lxpolkit。构建不打包 358 MiB 的硬件资料、虚拟环境或测试缓存。
@@ -129,7 +129,7 @@ Y 菜单默认选中「返回应用」，还提供模式切换、常用操作、
 - 文件：从主目录开始，X 新建、重命名、复制/剪切、粘贴或移入回收站。覆盖默认不发生，文件夹不会合并/覆盖。没有“永久删除”后备路径。
 - 移动：同文件系统使用原子 rename；跨文件系统先完整复制并检查源是否变化，再将源移入回收站。回收站不支持或源改变时保留源，明确报告“目标已复制但源仍保留”，不会调用递归永久删除源目录。
 - 回收站限制：某些挂载点不支持 Gio 回收，例如此设备的 `/tmp` tmpfs。失败时会显示系统原因并保留源文件；这不等于主目录的回收站不可用，不会改为永久删除。
-- Wi-Fi：先选网卡，再扫描、选择已保存个人网络、输入密码连接或断开。内置和 USB 网卡独立显示状态，拔插自动刷新，B 逐层返回。总开关明确作用于全部 Wi-Fi，关闭和切网均需确认。已被另一张网卡占用的单实例配置会禁用，可从扫描列表另建连接。上网路由继续由 NetworkManager 管理；企业认证、VPN 和热点不在首版。详见 [多网卡记录](multi-wifi-2026-11-06.md)。
+- Wi-Fi：先选网卡，在网络上按 A 打开加入、重新加入、断开、自动连接、修改密码、遗忘和详情菜单；同名多配置先选具体配置。遗忘默认取消，确认后先断开再删除所选配置；修改密码只保存，X 显示／隐藏本次输入，由用户选择何时重新加入。保存列表在 Wi-Fi 关闭或不在范围内时仍可管理。内置与 USB 网卡独立显示，B 逐层返回并保留焦点；另一卡占用的配置禁止修改，从扫描列表可新建独立配置。路由继续由系统管理。详见 [多网卡记录](multi-wifi-2026-11-06.md)、[管理交付记录](wifi-management-2026-11-07.md)和[设计规范](../design/wifi-management.md)。
 - 蓝牙：配对与连接是不同状态；PIN、配对码和确认请求在弹层中处理。配对后尝试连接；失败保留“已配对/未连接”状态，不宣称功能已经可用。
 - 音量：A 打开音量菜单，进入滑杆或切换静音；输出设备菜单选择系统默认输出。
 - 音频输出与麦克风：设置或 Y 快捷设置中选择输出和麦克风输入，蓝牙设备有明确标记。麦克风支持输入音量和静音，扬声器回录 Monitor 不会作为麦克风显示。蓝牙音频模式可在播放与通话配置之间切换；通话模式可能降低播放音质，切换前需确认。设备断开后自动刷新，各操作始终绑定所选设备。系统默认设备不覆盖应用自身显式指定的设备。

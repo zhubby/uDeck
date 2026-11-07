@@ -62,6 +62,8 @@ def run():
         controller.chooseModal(next(index for index, option in enumerate(controller.modal["options"]) if option.get("deviceId") == "usb"))
         if options.scenario in ("confirm", "long-name"):
             choose(controller, "wifi-connect")
+            if options.scenario == "confirm":
+                choose(controller, "wifi-join")
         elif options.scenario == "saved":
             choose(controller, "wifi-saved")
         elif options.scenario == "unplug":
@@ -83,7 +85,7 @@ def run():
     options.screenshot.parent.mkdir(parents=True, exist_ok=True)
     assert window.grabWindow().save(str(options.screenshot))
     # Exercise actual QML key routing back through the stack after capturing.
-    for _ in range(4):
+    for _ in range(6):
         if not controller.modal:
             break
         QTest.keyClick(window, Qt.Key.Key_Escape)
