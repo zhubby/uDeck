@@ -6,7 +6,8 @@ import QtWebEngine
 
 Item {
     id: surface
-    property var host
+    required property var colors
+    required property var host
     property var appState:host?host.state:({currentTab:"",webMode:"navigation",menu:{}})
     function focusWeb(){for(let i=0;i<pages.count;i++){const p=pages.itemAt(i);if(p&&p.identifier===appState.currentTab)p.forceActiveFocus()}}
     WebEngineProfile {
@@ -47,18 +48,18 @@ Item {
     ColumnLayout {
         anchors.fill:parent;spacing:0
         Rectangle {
-            Layout.fillWidth:true;Layout.preferredHeight:64;color:"#252b2d"
+            Layout.fillWidth:true;Layout.preferredHeight:64;color:surface.colors.panel
             RowLayout {
                 anchors.fill:parent;anchors.margins:10;spacing:10
-                SuiteButton{text:"‹";implicitHeight:44;onActivated:controller.command("back")}
-                SuiteButton{text:"›";implicitHeight:44;onActivated:controller.command("forward")}
-                SuiteButton{text:appState.loading?"×":"↻";implicitHeight:44;onActivated:controller.command(appState.loading?"stop":"reload")}
+                SuiteButton{colors:surface.colors;text:"‹";implicitHeight:44;onActivated:controller.command("back")}
+                SuiteButton{colors:surface.colors;text:"›";implicitHeight:44;onActivated:controller.command("forward")}
+                SuiteButton{colors:surface.colors;text:appState.loading?"×":"↻";implicitHeight:44;onActivated:controller.command(appState.loading?"stop":"reload")}
                 Rectangle {
-                    Layout.fillWidth:true;Layout.fillHeight:true;color:"#171b1d";radius:8;border.color:"#6d6a5e"
-                    Text{anchors.fill:parent;anchors.margins:10;text:appState.url==="about:blank"?(host?host.tr("Address or search"):""):appState.url||"";color:"#f1eee7";font.pixelSize:20;elide:Text.ElideMiddle}
+                    Layout.fillWidth:true;Layout.fillHeight:true;color:surface.colors.background;radius:8;border.color:surface.colors.inputBorder
+                    Text{anchors.fill:parent;anchors.margins:10;text:appState.url==="about:blank"?(host?host.tr("Address or search"):""):appState.url||"";color:surface.colors.text;font.pixelSize:20;elide:Text.ElideMiddle}
                     MouseArea{anchors.fill:parent;onClicked:controller.command("address")}
                 }
-                Text{text:host?host.tr(({navigation:"Link navigation",reading:"Reading",pointer:"Virtual pointer",text:"Text input"})[appState.webMode]||"Link navigation"):"";color:"#edb866";font.pixelSize:17}
+                Text{text:host?host.tr(({navigation:"Link navigation",reading:"Reading",pointer:"Virtual pointer",text:"Text input"})[appState.webMode]||"Link navigation"):"";color:surface.colors.accent;font.pixelSize:17}
             }
         }
         Item {
@@ -123,27 +124,27 @@ Item {
                 }
             }
             Rectangle {
-                anchors.fill:parent;visible:appState.url==="about:blank";color:"#171b1d"
+                anchors.fill:parent;visible:appState.url==="about:blank";color:surface.colors.background
                 Column {
                     anchors.centerIn:parent;width:Math.min(parent.width-80,700);spacing:22
-                    Text{text:"uDeck Browser";color:"#f1eee7";font.pixelSize:40}
-                    Text{width:parent.width;text:host?host.tr("Open a website or search the web. Your tabs, bookmarks and history stay on this device."):"";color:"#a8acae";font.pixelSize:24;wrapMode:Text.Wrap}
-                    SuiteButton{text:"A  "+(host?host.tr("Address or search"):"");selected:true;onActivated:controller.command("address")}
-                    SuiteButton{text:host?host.tr("Bookmarks"):"";onActivated:controller.command("bookmarks")}
+                    Text{text:"uDeck Browser";color:surface.colors.text;font.pixelSize:40}
+                    Text{width:parent.width;text:host?host.tr("Open a website or search the web. Your tabs, bookmarks and history stay on this device."):"";color:surface.colors.muted;font.pixelSize:24;wrapMode:Text.Wrap}
+                    SuiteButton{colors:surface.colors;text:"A  "+(host?host.tr("Address or search"):"");selected:true;onActivated:controller.command("address")}
+                    SuiteButton{colors:surface.colors;text:host?host.tr("Bookmarks"):"";onActivated:controller.command("bookmarks")}
                 }
             }
-            ScrollView {
+            ScrollView { palette: surface.colors.controls;
                 id:readingScroll;anchors.fill:parent;visible:appState.webMode==="reading";clip:true
                 background:Rectangle{color:"#ece7da"}
                 TextArea{readOnly:true;text:appState.readingText||"";color:"#282722";font.pixelSize:Math.round(24*(appState.zoom||1));wrapMode:TextEdit.Wrap;leftPadding:50;rightPadding:50;topPadding:30;bottomPadding:40;background:null}
             }
             Rectangle {
-                id:pointer;visible:appState.webMode==="pointer";x:viewport.width/2;y:viewport.height/2;width:22;height:22;radius:11;color:"#40edb866";border.color:"#edb866";border.width:3;z:4
+                id:pointer;visible:appState.webMode==="pointer";x:viewport.width/2;y:viewport.height/2;width:22;height:22;radius:11;color:"#40edb866";border.color:surface.colors.accent;border.width:3;z:4
                 Rectangle{anchors.centerIn:parent;width:4;height:4;radius:2;color:"white"}
             }
             Rectangle {
-                anchors.left:parent.left;anchors.right:parent.right;anchors.top:parent.top;height:loadError.implicitHeight+24;visible:!!appState.webError;color:"#542e2a";z:5
-                Text{id:loadError;anchors.fill:parent;anchors.margins:12;text:appState.webError||"";color:"#f1eee7";font.pixelSize:20;wrapMode:Text.Wrap;maximumLineCount:3;elide:Text.ElideRight}
+                anchors.left:parent.left;anchors.right:parent.right;anchors.top:parent.top;height:loadError.implicitHeight+24;visible:!!appState.webError;color:surface.colors.errorSurface;z:5
+                Text{id:loadError;anchors.fill:parent;anchors.margins:12;text:appState.webError||"";color:surface.colors.dark?surface.colors.error:surface.colors.text;font.pixelSize:20;wrapMode:Text.Wrap;maximumLineCount:3;elide:Text.ElideRight}
             }
         }
     }

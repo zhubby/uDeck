@@ -7,18 +7,19 @@ import QtWebEngine
 
 Item {
     id: surface
-    property var host
+    required property var colors
+    required property var host
     property var appState:host?host.state:({current:{},position:{}})
     property bool pdf:appState.current.format==="PDF"
     WebEngineProfile { id: bookProfile; offTheRecord:true; storageName:"" }
     ColumnLayout {
         anchors.fill: parent; spacing: 0
         Rectangle {
-            Layout.fillWidth: true; Layout.preferredHeight: 52; color:"#252b2d"
+            Layout.fillWidth: true; Layout.preferredHeight: 52; color:surface.colors.panel
             RowLayout {
                 anchors.fill:parent;anchors.leftMargin:28;anchors.rightMargin:28
-                Text { Layout.fillWidth:true;text:appState.current.title||"";color:"#f1eee7";font.pixelSize:22;elide:Text.ElideRight }
-                Text { text:surface.pdf?((appState.pdfPage+1)+" / "+appState.pdfPages+"  ·  "+(appState.pdfFit?(host?host.tr("Fit width"):""):Math.round(appState.pdfZoom*100)+"%")):(appState.readerLabel||"");color:"#a8acae";font.pixelSize:19 }
+                Text { Layout.fillWidth:true;text:appState.current.title||"";color:surface.colors.text;font.pixelSize:22;elide:Text.ElideRight }
+                Text { text:surface.pdf?((appState.pdfPage+1)+" / "+appState.pdfPages+"  ·  "+(appState.pdfFit?(host?host.tr("Fit width"):""):Math.round(appState.pdfZoom*100)+"%")):(appState.readerLabel||"");color:surface.colors.muted;font.pixelSize:19 }
             }
         }
         Item {
@@ -46,8 +47,8 @@ Item {
                         }
                     }
                 }
-                ScrollBar.vertical:ScrollBar{}
-                ScrollBar.horizontal:ScrollBar{}
+                ScrollBar.vertical:ScrollBar{palette:surface.colors.controls;}
+                ScrollBar.horizontal:ScrollBar{palette:surface.colors.controls;}
                 onContentXChanged:controller.pdfPan(contentX,contentY)
                 onContentYChanged:controller.pdfPan(contentX,contentY)
             }
@@ -68,8 +69,8 @@ Item {
             }
         }
         Rectangle {
-            Layout.fillWidth:true;Layout.preferredHeight:40;color:"#252b2d"
-            Text{anchors.centerIn:parent;text:surface.pdf?(host?host.tr("Directions pan · L / R change page"):""):Math.round((appState.position.fraction||0)*100)+"%";color:"#a8acae";font.pixelSize:17}
+            Layout.fillWidth:true;Layout.preferredHeight:40;color:surface.colors.panel
+            Text{anchors.centerIn:parent;text:surface.pdf?(host?host.tr("Directions pan · L / R change page"):""):Math.round((appState.position.fraction||0)*100)+"%";color:surface.colors.muted;font.pixelSize:17}
         }
     }
     Connections {

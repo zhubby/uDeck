@@ -10,6 +10,7 @@ import threading
 import time
 import wave
 import zipfile
+from copy import deepcopy
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from unittest.mock import patch
@@ -24,6 +25,7 @@ from PySide6.QtWidgets import QApplication
 from udeck.apps.main import AppControl, make_controller
 from udeck.apps.media import FrameImages
 from udeck.apps.reader import PdfImages
+from udeck.core import ConfigStore
 from udeck.i18n import render, tr
 
 
@@ -103,6 +105,30 @@ def run(app, root, language="en", width=1280, height=720):
         path = root / (name + ".png")
         assert window.grabWindow().save(str(path))
     completed = []
+
+    def theme_cycle():
+        current = deepcopy(controller.current)
+        page = controller.page
+        views = [v for v in window.findChildren(QObject) if v.inherits("QQuickWebEngineView")]
+        urls = [v.property("url") for v in views]
+        player = controller.media.player if app in ("music", "video") else None
+        book = controller.book if app == "reader" else None
+        reader_url = controller.reader_url if app == "reader" else None
+        for theme in ("dark", "classic"):
+            configuration = ConfigStore(root / "settings.json")
+            configuration.data["preferences"]["theme"] = theme
+            configuration.save()
+            wait(lambda theme=theme: controller.theme == theme)
+            assert controller.current == current and controller.page == page
+            assert [v for v in window.findChildren(QObject) if v.inherits("QQuickWebEngineView")] == views
+            assert [v.property("url") for v in views] == urls
+            if player:
+                assert controller.media.player is player
+            if book:
+                assert controller.book is book and not book.closed
+                assert controller.reader_url == reader_url
+            capture("theme-" + theme)
+        completed.append("global-theme-preserves-native-content")
     if controller.library:
         controller.library.add(content)
         wait(lambda: not controller.library.pending)
@@ -172,6 +198,7 @@ def run(app, root, language="en", width=1280, height=720):
         wait(lambda: controller.current["id"] == first["id"] and controller.media.player.position() > 0)
         completed.append("real-end-of-file-queue-transition")
         completed.extend(["real-mp3-aac-wav-playback", "language-preserves-playback-and-draft"])
+        theme_cycle()
     elif app == "video":
         item=controller.library.items[0]
         controller.open_item(item["id"])
@@ -214,6 +241,7 @@ def run(app, root, language="en", width=1280, height=720):
         capture("external-captions")
         completed.append("external-srt-survives-hidden-controls")
         completed.extend(["real-video-frames", "embedded-subtitle-track", "seek", "pause-and-save", "confirmed-resume"])
+        theme_cycle()
     elif app == "reader":
         pdf_item = next(i for i in controller.library.items if i["format"] == "PDF")
         txt_item = next(i for i in controller.library.items if i["format"] == "TXT")
@@ -293,6 +321,7 @@ def run(app, root, language="en", width=1280, height=720):
         controller.error = ""
         controller.open_item(item["id"])
         wait(lambda: controller.reader_ready)
+        theme_cycle()
         controller.context()
         old_book=controller.book
         content.rename(root/"detached")
@@ -394,6 +423,7 @@ def run(app, root, language="en", width=1280, height=720):
             controller.clear_menus()
         completed.extend(["real-download-cancel-writes-nothing", "real-download-consent-and-original-bytes",
                           "repeated-download-preserves-existing-file"])
+        theme_cycle()
         controller.closeTab(controller.web_tabs[1].identifier)
         controller.closeTab(controller.current_tab)
         assert len(controller.web_tabs)==1

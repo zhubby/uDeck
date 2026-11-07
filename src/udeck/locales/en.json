@@ -638,5 +638,11 @@
   "Wait until the document is ready": "Wait until the document is ready",
   "Unsupported file format: {name}": "Unsupported file format: {name}",
   "All tracks": "All tracks",
-  "Current track": "Current track"
+  "Current track": "Current track",
+  "Theme": "Theme",
+  "Interface theme": "Interface theme",
+  "Classic": "Classic",
+  "Dark": "Dark",
+  "Current theme": "Current theme",
+  "Could not save theme settings: {error}": "Could not save theme settings: {error}"
 }

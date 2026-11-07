@@ -1,0 +1,251 @@
+"""Render both themes and exercise live global changes in all native windows."""
+
+import argparse
+import json
+import os
+import tempfile
+import time
+from copy import deepcopy
+from pathlib import Path
+from types import SimpleNamespace
+
+from PySide6.QtCore import QObject, Qt, QUrl
+from PySide6.QtGui import QFont, QFontDatabase
+from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtTest import QTest
+from PySide6.QtWebEngineQuick import QtWebEngineQuick
+from PySide6.QtWidgets import QApplication
+from shiboken6 import delete
+
+from udeck import main
+from udeck.apps.main import make_controller
+from udeck.apps.media import FrameImages
+from udeck.apps.reader import PdfImages
+from udeck.controller import ShellController
+from udeck.core import ConfigStore
+from udeck.i18n import tr
+from udeck.mock import MockBackend
+from udeck.terminal.core import LaunchRequest, TerminalPreferences
+from udeck.terminal.main import Coordinator
+
+
+def run():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("output", type=Path)
+    parser.add_argument("--language", choices=("en", "zh_CN"), default="en")
+    parser.add_argument("--width", type=int, default=1280)
+    parser.add_argument("--height", type=int, default=720)
+    options = parser.parse_args()
+    os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
+    QtWebEngineQuick.initialize()
+    application = QApplication([])
+    application.setQuitOnLastWindowClosed(False)
+    family = next((font for font in ("Noto Sans CJK SC", "PingFang SC", "WenQuanYi Micro Hei")
+                   if font in QFontDatabase.families()), application.font().family())
+    application.setFont(QFont(family))
+    options.output.mkdir(parents=True, exist_ok=True)
+    errors, captures, apps = [], [], []
+
+    def wait(condition):
+        deadline = time.monotonic() + 8
+        while not condition() and time.monotonic() < deadline:
+            QTest.qWait(20)
+        assert condition(), errors
+
+    def capture(window, name):
+        QTest.qWait(80)
+        assert window.grabWindow().save(str(options.output / (name + ".png")))
+        captures.append(name)
+
+    def engine_for(controller, path, shell=False):
+        engine = QQmlApplicationEngine()
+        engine.warnings.connect(lambda warnings: errors.extend(w.toString() for w in warnings))
+        context = engine.rootContext()
+        context.setContextProperty("controller", controller)
+        if shell:
+            engine.addImageProvider("desktop", main.IconProvider())
+            context.setContextProperty("appFont", family)
+            context.setContextProperty("windowedPreview", True)
+            context.setContextProperty("headlessPreview", True)
+        else:
+            context.setContextProperty("windowed", True)
+            if controller.app in ("music", "video"):
+                engine.addImageProvider("video", FrameImages(controller))
+            elif controller.app == "reader":
+                engine.addImageProvider("pdf", PdfImages(controller))
+        engine.load(QUrl.fromLocalFile(str(path)))
+        assert engine.rootObjects(), errors
+        window = engine.rootObjects()[0]
+        window.setWidth(options.width)
+        window.setHeight(options.height)
+        return engine, window
+
+    def text_field(window):
+        return next(item for item in window.findChildren(QObject)
+                    if item.inherits("QQuickTextField") and item.property("visible"))
+
+    def verify_colors(window, theme):
+        expected = "#0b0e12" if theme == "dark" else "#151719" if window.title() == "uDeck" else None
+        if expected:
+            assert window.color().name() == expected
+        colors = window.findChild(QObject, "themeColors")
+        assert colors.property("theme") == theme
+
+        def luminance(color):
+            rgb = [color.redF(), color.greenF(), color.blueF()]
+            return sum((c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4) * weight
+                       for c, weight in zip(rgb, (0.2126, 0.7152, 0.0722), strict=True))
+
+        def contrast(a, b):
+            low, high = sorted((luminance(colors.property(a)), luminance(colors.property(b))))
+            return (high + 0.05) / (low + 0.05)
+
+        for surface in ("background", "panel", "dialog", "selected"):
+            for text in ("text", "muted"):
+                assert contrast(text, surface) >= 4.5, (theme, text, surface)
+            assert contrast("accent", surface) >= 3
+            if theme == "dark":
+                assert contrast("border", surface) >= 3
+
+    root = Path(main.__file__).parent
+    with tempfile.TemporaryDirectory(prefix="udeck-theme-preview-") as directory:
+        path = Path(directory)
+        config_path = path / "settings.json"
+        shell = ShellController(MockBackend(), config=ConfigStore(config_path), mock=True)
+        shell.setLanguage(options.language)
+        engine, window = engine_for(shell, root / "qml/Main.qml", shell=True)
+        shell.setPage("settings")
+        position = next(i for i, item in enumerate(shell._items()) if item["id"] == "theme")
+        shell.select(position)
+        shell.dispatch("accept")
+        QTest.qWait(50)
+        owner = shell.modal["key"]
+        QTest.keyClick(window, Qt.Key.Key_Down)
+        QTest.keyClick(window, Qt.Key.Key_Return)
+        assert shell.theme == "dark" and shell.modal["key"] == owner
+        verify_colors(window, "dark")
+        QTest.keyClick(window, Qt.Key.Key_Escape)
+        assert shell.navigation.index == position and not shell.modal
+        listing = window.findChild(QObject, "itemList")
+        QTest.qWait(30)
+        listing.setProperty("contentY", listing.property("contentY") + 30)
+        scroll = listing.property("contentY")
+        shell.setTheme("classic")
+        QTest.qWait(30)
+        assert abs(listing.property("contentY") - scroll) < 1, (scroll, listing.property("contentY"))
+
+        coordinator = Coordinator(application, SimpleNamespace(mock=True, no_input=True, windowed=True),
+                                  TerminalPreferences(path / "terminal.json"), 0)
+        # Production apps are separate processes. The terminal's pointer guard
+        # must not wrap foreign WebEngine/Quick Controls objects in this harness.
+        application.removeEventFilter(coordinator)
+        for _ in range(2):
+            coordinator.open(LaunchRequest(str(path), [], "", {}, new_window=True))
+        terminal_ids = [entry["controller"].current for entry in coordinator.windows]
+        for index, entry in enumerate(coordinator.windows):
+            entry["window"].setWidth(options.width)
+            entry["window"].setHeight(options.height)
+            if index:
+                entry["controller"].preparePaste("printf 'keep 中文'\necho done")
+            else:
+                entry["controller"].command("menu")
+        terminal_before = [json.loads(e["controller"].snapshotJson) for e in coordinator.windows]
+        for app in ("music", "video", "browser", "reader", "games"):
+            controller = make_controller(app, path / app, config_path)
+            controller.isolated = True
+            app_engine, app_window = engine_for(controller, root / "apps/qml/Main.qml")
+            controller.window = app_window
+            controller.start()
+            apps.append((controller, app_engine, app_window))
+
+        app_before = {}
+        for theme in ("classic", "dark"):
+            shell.setTheme(theme)
+            wait(lambda theme=theme: all(c.theme == theme for c, _, _ in apps) and coordinator.theme == theme)
+            for page in ("home", "settings"):
+                shell.setPage(page)
+                if page == "settings":
+                    shell.select(position)
+                capture(window, f"shell-{theme}-{page}")
+            shell.activateSetting("theme")
+            capture(window, f"shell-{theme}-theme")
+            shell.dispatch("back")
+            shell.activateSetting("poweroff")
+            capture(window, f"shell-{theme}-confirmation")
+            shell.dispatch("back")
+            verify_colors(window, theme)
+            for controller, _, app_window in apps:
+                if theme == "dark":
+                    before = deepcopy(app_before[controller.app])
+                    after = controller.snapshot()
+                    before.pop("theme")
+                    after.pop("theme")
+                    assert before == after
+                    field = text_field(app_window)
+                    assert field.property("text") == "keep 中文 {draft}"
+                    assert field.property("cursorPosition") == 4
+                    controller.pop_menu()
+                verify_colors(app_window, theme)
+                capture(app_window, f"{controller.app}-{theme}-library")
+                controller.prompt(tr("Folder path"), lambda _: None, "keep 中文 {draft}")
+                QTest.qWait(30)
+                field = text_field(app_window)
+                field.setProperty("cursorPosition", 4)
+                assert field.property("color").name() == app_window.findChild(QObject, "themeColors").property("text").name()
+                capture(app_window, f"{controller.app}-{theme}-input")
+                app_before[controller.app] = deepcopy(controller.snapshot())
+            for index, entry in enumerate(coordinator.windows):
+                terminal, terminal_window = entry["controller"], entry["window"]
+                assert terminal.current == terminal_ids[index]
+                before, after = deepcopy(terminal_before[index]), json.loads(terminal.snapshotJson)
+                before.pop("theme")
+                after.pop("theme")
+                assert before == after
+                verify_colors(terminal_window, theme)
+                capture(terminal_window, f"terminal-{theme}-{'paste' if index else 'menu'}")
+
+        menu_scrolls = []
+        for controller, _, app_window in apps:
+            controller.pop_menu()
+            controller.menu("Long menu", [(f"Option {index}", lambda: None) for index in range(16)])
+            controller.menus[-1]["index"] = 8
+            controller.publish()
+            QTest.qWait(40)
+            menu = app_window.findChild(QObject, "menuList")
+            menu.setProperty("contentY", menu.property("contentY") + 15)
+            menu_scrolls.append((menu, menu.property("contentY")))
+        shell.setTheme("classic")
+        wait(lambda: all(c.theme == "classic" for c, _, _ in apps))
+        for menu, scroll in menu_scrolls:
+            assert abs(menu.property("contentY") - scroll) < 1
+        shell.setTheme("dark")
+        shell.activateSetting("wifi")
+        capture(window, "shell-dark-wifi")
+        shell.dispatch("back")
+        shell._text_prompt(tr("Wi-Fi 密码"), "A very long wireless network name 中文", "wifi", secret=True)
+        QTest.qWait(30)
+        editor = text_field(window)
+        editor.setProperty("text", "keep secret 中文")
+        editor.setProperty("cursorPosition", 4)
+        capture(window, "shell-dark-password")
+        shell.setTheme("classic")
+        assert text_field(window) is editor and editor.property("cursorPosition") == 4
+        assert editor.property("text") == "keep secret 中文"
+        shell.dispatch("back")
+        for controller, app_engine, app_window in apps:
+            controller.close()
+            app_window.setProperty("allowClose", True)
+            app_window.close()
+            delete(app_engine)
+        errors.extend(coordinator.errors)
+        coordinator.close()
+        delete(coordinator.engine)
+        delete(engine)
+        shell.close()
+    assert not errors, errors
+    print(json.dumps({"captures": captures, "qmlErrors": errors, "liveWindows": 8,
+                      "sessionsPreserved": True, "nativeSessions": False}))
+
+
+if __name__ == "__main__":
+    run()

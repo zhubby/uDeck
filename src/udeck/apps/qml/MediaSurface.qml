@@ -6,10 +6,11 @@ import QtMultimedia
 
 Item {
     id: surface
-    property var host
+    required property var colors
+    required property var host
     property var appState: host ? host.state : ({current:{},media:{}})
     function tr(s){return host?host.tr(s):s}
-    Rectangle { anchors.fill: parent; color: appState.app==="video"?"black":"#171b1d" }
+    Rectangle { anchors.fill: parent; color: appState.app==="video"?"black":surface.colors.background }
     VideoOutput {
         anchors.fill: parent
         visible: appState.app==="video"&&!controller.softwareRendering
@@ -24,30 +25,30 @@ Item {
     RowLayout {
         anchors.fill: parent; anchors.margins: host && host.width<1100?40:64; spacing: 48
         visible: appState.app==="music"
-        Artwork { Layout.preferredWidth: host && host.width<1100?280:350; Layout.preferredHeight: width; cover: appState.current.cover||""; kind: "music" }
+        Artwork { colors: surface.colors; Layout.preferredWidth: host && host.width<1100?280:350; Layout.preferredHeight: width; cover: appState.current.cover||""; kind: "music" }
         ColumnLayout {
             Layout.fillWidth: true; spacing: 20
-            Text { text: surface.tr("Now playing"); color: "#a8acae"; font.pixelSize: 20 }
-            Text { Layout.fillWidth: true; text: appState.current.title||""; color: "#f1eee7"; font.pixelSize: 36; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
-            Text { Layout.fillWidth: true; text: appState.current.artist||appState.current.album||""; color: "#a8acae"; font.pixelSize: 24; wrapMode: Text.Wrap }
-            Text { text: (appState.current.format||"")+"  ·  "+(appState.media.output||""); color: "#a8acae"; font.pixelSize: 18 }
+            Text { text: surface.tr("Now playing"); color: surface.colors.muted; font.pixelSize: 20 }
+            Text { Layout.fillWidth: true; text: appState.current.title||""; color: surface.colors.text; font.pixelSize: 36; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
+            Text { Layout.fillWidth: true; text: appState.current.artist||appState.current.album||""; color: surface.colors.muted; font.pixelSize: 24; wrapMode: Text.Wrap }
+            Text { text: (appState.current.format||"")+"  ·  "+(appState.media.output||""); color: surface.colors.muted; font.pixelSize: 18 }
             Item { Layout.preferredHeight: 12 }
-            Slider { Layout.fillWidth: true; from: 0; to: appState.media.duration||1; value: appState.media.position||0; onMoved: controller.seek(value) }
-            Text { text: host?host.time(appState.media.position)+" / "+host.time(appState.media.duration):""; color: "#a8acae"; font.pixelSize: 20 }
+            Slider { palette: surface.colors.controls; Layout.fillWidth: true; from: 0; to: appState.media.duration||1; value: appState.media.position||0; onMoved: controller.seek(value) }
+            Text { text: host?host.time(appState.media.position)+" / "+host.time(appState.media.duration):""; color: surface.colors.muted; font.pixelSize: 20 }
             RowLayout {
                 spacing: 14
-                SuiteButton { text: "⏮"; selected: appState.control===0; onActivated: controller.command("previous") }
-                SuiteButton { text: appState.media.playing?surface.tr("Pause"):surface.tr("Play"); selected: appState.control===1; onActivated: controller.command("play-pause") }
-                SuiteButton { text: "⏭"; selected: appState.control===2; onActivated: controller.command("next") }
+                SuiteButton { colors: surface.colors; text: "⏮"; selected: appState.control===0; onActivated: controller.command("previous") }
+                SuiteButton { colors: surface.colors; text: appState.media.playing?surface.tr("Pause"):surface.tr("Play"); selected: appState.control===1; onActivated: controller.command("play-pause") }
+                SuiteButton { colors: surface.colors; text: "⏭"; selected: appState.control===2; onActivated: controller.command("next") }
             }
-            Text { text: surface.tr("Shuffle")+": "+(appState.shuffle?surface.tr("On"):surface.tr("Off"))+"   ·   "+surface.tr("Repeat")+": "+(appState.repeatLabel||surface.tr("Off")); color: "#a8acae"; font.pixelSize: 18 }
+            Text { text: surface.tr("Shuffle")+": "+(appState.shuffle?surface.tr("On"):surface.tr("Off"))+"   ·   "+surface.tr("Repeat")+": "+(appState.repeatLabel||surface.tr("Off")); color: surface.colors.muted; font.pixelSize: 18 }
         }
     }
     Rectangle {
         anchors.top: parent.top; width: parent.width; height: 100
         visible: appState.app==="video" && appState.controlsVisible
         gradient: Gradient { GradientStop{position:0;color:"#c9000000"} GradientStop{position:1;color:"transparent"} }
-        Text { anchors.fill: parent; anchors.margins: 28; text: appState.current.title||""; color: "#f1eee7"; font.pixelSize: 28; elide: Text.ElideRight }
+        Text { anchors.fill: parent; anchors.margins: 28; text: appState.current.title||""; color: surface.colors.text; font.pixelSize: 28; elide: Text.ElideRight }
     }
     Text {
         anchors.horizontalCenter:parent.horizontalCenter;anchors.bottom:parent.bottom
@@ -59,22 +60,22 @@ Item {
     Rectangle {
         anchors.bottom: parent.bottom; width: parent.width; height: 150
         visible: appState.app==="video" && appState.controlsVisible
-        color: "#d1171b1d"
+        color: surface.colors.videoControls
         ColumnLayout {
             anchors.fill: parent; anchors.margins: 20; spacing: 10
             RowLayout {
-                Slider { Layout.fillWidth: true; from:0;to:appState.media.duration||1;value:appState.media.position||0;onMoved:controller.seek(value) }
-                Text { text:host?host.time(appState.media.position)+" / "+host.time(appState.media.duration):"";color:"#f1eee7";font.pixelSize:20 }
+                Slider { palette: surface.colors.controls; Layout.fillWidth: true; from:0;to:appState.media.duration||1;value:appState.media.position||0;onMoved:controller.seek(value) }
+                Text { text:host?host.time(appState.media.position)+" / "+host.time(appState.media.duration):"";color:surface.colors.text;font.pixelSize:20 }
             }
             RowLayout {
                 spacing: 18
-                SuiteButton { text: surface.tr("Previous chapter"); selected: appState.control===0; onActivated: controller.command("previous") }
-                SuiteButton { text: appState.media.playing?surface.tr("Pause"):surface.tr("Play"); selected: appState.control===1; onActivated: controller.command("play-pause") }
-                SuiteButton { text: surface.tr("Next chapter"); selected: appState.control===2; onActivated: controller.command("next") }
+                SuiteButton { colors: surface.colors; text: surface.tr("Previous chapter"); selected: appState.control===0; onActivated: controller.command("previous") }
+                SuiteButton { colors: surface.colors; text: appState.media.playing?surface.tr("Pause"):surface.tr("Play"); selected: appState.control===1; onActivated: controller.command("play-pause") }
+                SuiteButton { colors: surface.colors; text: surface.tr("Next chapter"); selected: appState.control===2; onActivated: controller.command("next") }
                 Item { Layout.fillWidth: true }
-                Text { text: "X  "+surface.tr("Options")+"    B  "+surface.tr("Back"); color:"#a8acae";font.pixelSize:18 }
+                Text { text: "X  "+surface.tr("Options")+"    B  "+surface.tr("Back"); color:surface.colors.muted;font.pixelSize:18 }
             }
         }
     }
-    Text { anchors.centerIn: parent; visible: appState.media.loading||false; text: surface.tr("Loading…"); color: "#f1eee7"; font.pixelSize: 28 }
+    Text { anchors.centerIn: parent; visible: appState.media.loading||false; text: surface.tr("Loading…"); color: surface.colors.text; font.pixelSize: 28 }
 }

@@ -638,5 +638,11 @@
   "Wait until the document is ready": "请等待文档加载完成",
   "Unsupported file format: {name}": "不支持此文件格式：{name}",
   "All tracks": "全部曲目",
-  "Current track": "当前曲目"
+  "Current track": "当前曲目",
+  "Theme": "主题",
+  "Interface theme": "界面主题",
+  "Classic": "经典",
+  "Dark": "黑暗",
+  "Current theme": "当前主题",
+  "Could not save theme settings: {error}": "主题设置保存失败：{error}"
 }

@@ -7,6 +7,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Property, QObject, QTimer, Signal, Slot
 
+from .appearance import THEMES
 from .core import PAGE_NAMES, PAGES, ConfigStore, Navigation, move_index
 from .desktop import DesktopCatalog, open_terminal
 from .files import FileOperations
@@ -34,6 +35,7 @@ class ShellController(QObject):
         self.window_service = window_service
         self.config = config or ConfigStore()
         self.language = self.config.data["preferences"]["language"]
+        self.theme = self.config.data["preferences"]["theme"]
         self.mock = mock
         self.navigation = Navigation(self.config.data["focus"])
         self.catalog = catalog or DesktopCatalog(locale=self.language)
@@ -108,6 +110,7 @@ class ShellController(QObject):
             {"id": "battery", "name": tr('电池'), "subtitle": tr('{value0}% · {value1}', value0=battery.get('capacity', 0), value1=tr('正在充电') if battery.get('charging') else tr('电池供电')) if battery.get("available") else tr('未检测到电池'), "icon": "battery"},
             {"id": "input", "name": tr('按键与控制器'), "subtitle": tr('ABXY 已校准') if self.data["input"].get("verified") else (tr('ABXY 固件映射 · 可重新校准') if self.data["input"].get("mapped") else tr('校准物理 ABXY；不占用普通键盘字母')), "icon": "input-gaming"},
             {"id": "language", "name": tr('语言'), "subtitle": LANGUAGES[self.language], "icon": "preferences-desktop-locale"},
+            {"id": "theme", "name": tr('Theme'), "subtitle": THEMES[self.theme], "icon": "preferences-desktop-theme"},
             {"id": "lock", "name": tr('锁定屏幕'), "subtitle": tr('使用登录密码解锁'), "icon": "system-lock-screen"},
             {"id": "blank", "name": tr('熄灭屏幕'), "subtitle": tr('按方向键或键盘恢复；不是系统休眠'), "icon": "video-display"},
             {"id": "logout", "name": tr('注销会话'), "subtitle": tr('返回登录界面；请先保存工作'), "icon": "system-log-out"},
@@ -123,7 +126,7 @@ class ShellController(QObject):
         descriptions = {"home": tr('收藏与最近使用') if self.config.data["favorites"] or self.config.data["recent"] else tr('选择应用，开始使用你的掌机'), "apps": tr('{value0} 个应用', value0=len(items)) + (tr(' · 搜索：{value0}', value0=self.query) if self.query else tr(' · X 筛选与操作')), "windows": tr('选择一个窗口，继续工作'), "files": self.data["directory"], "settings": tr('常用控制，直接完成')}
         return json.dumps(render({
             **self.data, "mock": self.mock, "page": self.navigation.page,
-            "language": self.language,
+            "language": self.language, "theme": self.theme,
             "categoryNames": CATEGORY_NAMES,
             "pageNames": list(PAGE_NAMES), "pages": list(PAGES),
             "title": titles[self.navigation.page], "description": descriptions[self.navigation.page],
@@ -140,6 +143,35 @@ class ShellController(QObject):
     def _language_options(self):
         return [{"id": code, "label": name, "subtitle": tr('当前语言') if code == self.language else "",
                  "action": "language", "language": code} for code, name in LANGUAGES.items()]
+
+    def _theme_options(self):
+        return [{"id": code, "label": name, "subtitle": tr("Current theme") if code == self.theme else "",
+                 "action": "theme", "theme": code} for code, name in THEMES.items()]
+
+    @Slot(str, result=bool)
+    def setTheme(self, theme):
+        if not isinstance(theme, str) or theme not in THEMES:
+            return False
+        if theme == self.theme:
+            return True
+        previous = self.theme
+        self.config.data["preferences"]["theme"] = theme
+        try:
+            self.config.save()
+        except OSError as error:
+            self.config.data["preferences"]["theme"] = previous
+            self.notify(tr("Could not save theme settings: {error}", error=error_text(error)))
+            return False
+        self.theme = theme
+        self._refresh_open_menu()
+        self._publish()
+        return True
+
+    def _quick_options(self):
+        controls = {"volume", "brightness", "output", "wifi", "bluetooth", "battery", "input", "language", "theme"}
+        return [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"],
+                 "disabled": entry.get("disabled", False)} for entry in self._settings() if entry["id"] in controls] + [
+            {"label": tr('电源与会话'), "action": "power-menu"}, {"label": tr('运行中应用'), "action": "switcher"}]
 
     @Slot(str, result=bool)
     def setLanguage(self, language):
@@ -219,6 +251,10 @@ class ShellController(QObject):
                 modal["body"] = wifi_status(device, self.data["wifi"].get("enabled")) if source == "wifi-device" else wifi_label(device)
             elif source == "bluetooth":
                 options = self._bluetooth_options()
+            elif source == "theme":
+                options = self._theme_options()
+            elif source == "quick-settings":
+                options = self._quick_options()
             else:
                 continue
             old_options = modal["options"]
@@ -305,7 +341,7 @@ class ShellController(QObject):
         if action == "quick-settings":
             if self.modal.get("source") == "quick-settings":
                 return
-            self._menu(tr('快捷设置'), [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"], "disabled": entry.get("disabled", False)} for entry in self._settings()[:8]] + [{"label": tr('电源与会话'), "action": "power-menu"}, {"label": tr('运行中应用'), "action": "switcher"}], source="quick-settings")
+            self._menu(tr('快捷设置'), self._quick_options(), source="quick-settings")
             self.present.emit()
             return
         if self.modal:
@@ -393,6 +429,9 @@ class ShellController(QObject):
         if identifier == "language":
             self._menu(tr('界面语言'), self._language_options(), source="language",
                        index=list(LANGUAGES).index(self.language))
+        elif identifier == "theme":
+            self._menu(tr('Interface theme'), self._theme_options(), source="theme",
+                       index=list(THEMES).index(self.theme))
         elif identifier == "volume":
             self._menu(tr('音量'), [{"label": tr('调整音量'), "action": "setting", "id": "volume-level"}, {"label": tr('取消静音') if self.data["audio"].get("muted") else tr('静音'), "action": "system", "systemAction": "mute"}])
         elif identifier in ("volume-level", "brightness"):
@@ -535,7 +574,8 @@ class ShellController(QObject):
                 if option.get("disabled"):
                     self.notify(option.get("reason") or tr('此项目当前不可用'))
                     return
-                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "language"):
+                keep_parent = modal.get("source") == "quick-settings" and option.get("id") == "theme"
+                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "language", "theme") and not keep_parent:
                     self._pop()
                 self._execute_option(option)
         elif kind == "confirm":
@@ -589,6 +629,8 @@ class ShellController(QObject):
         item = option.get("item", {})
         if action == "language":
             self.setLanguage(option["language"])
+        elif action == "theme":
+            self.setTheme(option["theme"])
         elif action == "application-control":
             self.applicationAction.emit(option['command'])
         elif action == "setting":

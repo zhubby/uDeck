@@ -58,11 +58,13 @@ class TerminalController(QObject):
     quickSettings = Signal()
     clipboardRequested = Signal()
 
-    def __init__(self, request, preferences, *, mock=False, parent=None, language=None):
+    def __init__(self, request, preferences, *, mock=False, parent=None, language=None, theme=None):
         super().__init__(parent)
         self.preferences = preferences
         self.mock = mock
-        self.language = language or ConfigStore(preferences.path.with_name("settings.json")).data["preferences"]["language"]
+        interface = ConfigStore(preferences.path.with_name("settings.json")).data["preferences"]
+        self.language = language or interface["language"]
+        self.theme = theme or interface["theme"]
         self.tabs = SessionModel(self)
         self.requests = {}
         self.native_sessions = {}
@@ -84,7 +86,7 @@ class TerminalController(QObject):
     @Property(str, notify=changed)
     def snapshotJson(self):
         return json.dumps(render({"tabs": self.tabs.items, "current": self.current, "mode": self.mode,
-                           "language": self.language,
+                           "language": self.language, "theme": self.theme,
                            "index": self.index, "anchored": self.anchored,
                            "fontSize": self.preferences.font_size,
                            "colorScheme": self.preferences.color_scheme,
@@ -104,6 +106,11 @@ class TerminalController(QObject):
         if self.tabs.items:
             self.tabs.dataChanged.emit(self.tabs.index(0), self.tabs.index(len(self.tabs.items) - 1), [Qt.UserRole + 2])
         self.changed.emit()
+
+    def setTheme(self, theme):
+        if theme != self.theme:
+            self.theme = theme
+            self.changed.emit()
 
     def _paste_preview(self):
         # Escape controls so a preview cannot conceal an embedded Escape or NUL.

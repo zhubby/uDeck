@@ -23,7 +23,8 @@ class AppController(QObject):
         self.app = app
         self.store = AppState(app, directory)
         self.config_path = language_path
-        self.language = ConfigStore(language_path).data["preferences"]["language"]
+        preferences = ConfigStore(language_path).data["preferences"]
+        self.language, self.theme = preferences["language"], preferences["theme"]
         self.library = Library(app, self.store, self) if app != "browser" else None
         self.window = None
         self.inputs = None
@@ -50,9 +51,9 @@ class AppController(QObject):
         self.publish()
 
     def poll(self):
-        language = ConfigStore(self.config_path).data["preferences"]["language"]
-        if language != self.language:
-            self.language = language
+        preferences = ConfigStore(self.config_path).data["preferences"]
+        if (preferences["language"], preferences["theme"]) != (self.language, self.theme):
+            self.language, self.theme = preferences["language"], preferences["theme"]
             self.publish()
         if self.library:
             self.library.check_sources()
@@ -84,7 +85,7 @@ class AppController(QObject):
         if self.selected not in {row["id"] for row in rows}:
             self.selected = rows[min(previous_index, len(rows) - 1)]["id"] if rows else ""
         self._rows = rows
-        return {"app": self.app, "language": self.language, "page": self.page,
+        return {"app": self.app, "language": self.language, "theme": self.theme, "page": self.page,
                 "tabs": self.tabs(), "tab": self.tab, "cards": rows, "selected": self.selected,
                 "current": self.current or {}, "filter": self.filter, "folder": self.folder,
                 "menu": {k: v for k, v in self.menus[-1].items() if k != "submit"} if self.menus else {}, "error": self.error,

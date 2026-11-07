@@ -57,6 +57,12 @@ with tempfile.TemporaryDirectory(prefix="udeck-application-test-") as folder:
         assert controller.native_sessions == session_objects
         assert QMetaObject.invokeMethod(sessions[0], "getShellPID", Q_RETURN_ARG(int)) == first_pid
         assert window.title() == "中文 任务"
+        for theme in ("dark", "classic"):
+            configuration.data["preferences"]["theme"] = theme
+            configuration.save()
+            wait(lambda theme=theme: controller.theme == theme)
+            assert controller.native_sessions == session_objects
+            assert QMetaObject.invokeMethod(sessions[0], "getShellPID", Q_RETURN_ARG(int)) == first_pid
         configuration.data["preferences"]["language"] = "en"
         configuration.save()
         wait(lambda: controller.language == "en")

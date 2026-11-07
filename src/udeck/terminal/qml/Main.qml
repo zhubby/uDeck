@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
+import "../../qml" as Shared
 
 Window {
     id: window
@@ -13,13 +14,17 @@ Window {
     minimumHeight: 360
     visible: true
     visibility: windowed ? Window.Windowed : Window.FullScreen
-    color: "#151719"
+    color: window.colors.background
     title: (state.tabs.find(function(tab) { return tab.id === state.current }) || {}).title || "uDeck Terminal"
     property var state: JSON.parse(controller.snapshotJson)
+    property var optionModel: []
+    property string optionsStamp: ""
+    property alias colors: themeColors
+    Shared.ThemePalette { id: themeColors; theme: window.state.theme; profile: "terminal" }
     property bool allowClose: false
-    property color ink: "#f1eee7"
-    property color muted: "#a8acae"
-    property color accent: "#edb866"
+    property color ink: window.colors.text
+    property color muted: window.colors.muted
+    property color accent: window.colors.accent
     onClosing: function(event) {
         event.accepted = allowClose
         if (!allowClose) controller.requestCloseWindow()
@@ -34,10 +39,16 @@ Window {
         else if (state.mode === "search") searchBox.forceActiveFocus()
         else modalKeys.forceActiveFocus()
     }
+    function syncOptions() {
+        const stamp = JSON.stringify(state.options)
+        if (stamp !== optionsStamp) { optionsStamp=stamp; optionModel=state.options }
+    }
+    Component.onCompleted: syncOptions()
     Connections {
         target: controller
         function onChanged() {
             window.state = JSON.parse(controller.snapshotJson)
+            window.syncOptions()
             Qt.callLater(window.focusInput)
         }
         function onClosed() { window.allowClose = true; window.close() }
@@ -55,7 +66,7 @@ Window {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 48
-            color: "#202426"
+            color: window.colors.header
             RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 18
@@ -78,7 +89,7 @@ Window {
                         required property int index
                         width: Math.max(100, Math.min(240, titleText.implicitWidth + 42))
                         height: tabbar.height
-                        color: identifier === window.state.current ? "#303537" : "transparent"
+                        color: identifier === window.state.current ? window.colors.selectedTab : "transparent"
                         Text {
                             id: titleText
                             anchors.centerIn: parent
@@ -124,7 +135,7 @@ Window {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 38
-            color: "#202426"
+            color: window.colors.header
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
@@ -149,14 +160,14 @@ Window {
             if (actions[event.key]) { controller.dispatch(actions[event.key]); event.accepted = true }
             else event.accepted = window.state.mode !== "search"
         }
-        Rectangle { anchors.fill: parent; color: "#b0000000" }
+        Rectangle { anchors.fill: parent; color: window.colors.scrim }
         Rectangle {
             width: Math.min(parent.width - 48, 680)
             height: Math.min(parent.height - 60, contents.implicitHeight + 48)
             anchors.centerIn: parent
             radius: 14
-            color: "#24292b"
-            border.color: "#48504f"
+            color: window.colors.dialog
+            border.color: window.colors.dialogBorder
             ColumnLayout {
                 id: contents
                 anchors.fill: parent
@@ -164,13 +175,13 @@ Window {
                 spacing: 14
                 Text { text: ({menu:window.tr("终端操作"),settings:window.tr("终端设置"),close:window.tr("结束会话？"),paste:window.tr("确认粘贴"),search:window.tr("搜索文字"),error:window.tr("无法完成操作")})[window.state.mode] || ""; color: window.ink; font.pixelSize: 24; font.bold: true }
                 Text { visible: window.state.mode === "close" || window.state.mode === "error" || window.state.mode === "paste"; text: window.state.message; color: window.muted; font.pixelSize: 17; wrapMode: Text.Wrap; Layout.fillWidth: true }
-                ScrollView {
+                ScrollView { palette: window.colors.controls;
                     visible: window.state.mode === "paste"
                     Layout.fillWidth: true
                     Layout.preferredHeight: Math.min(160, preview.implicitHeight + 16)
-                    TextArea { id: preview; text: window.state.pastePreview; readOnly: true; wrapMode: TextEdit.Wrap; font.pixelSize: 16; color: window.ink; background: Rectangle { color: "#151719" } }
+                    TextArea { palette: window.colors.controls; id: preview; text: window.state.pastePreview; readOnly: true; wrapMode: TextEdit.Wrap; font.pixelSize: 16; color: window.ink; background: Rectangle { color: window.colors.background } }
                 }
-                TextField {
+                TextField { palette: window.colors.controls;
                     id: searchBox
                     visible: window.state.mode === "search"
                     Layout.fillWidth: true
@@ -194,7 +205,7 @@ Window {
                     clip: true
                     interactive: false
                     spacing: 4
-                    model: window.state.options
+                    model: window.optionModel
                     currentIndex: window.state.index
                     onCurrentIndexChanged: Qt.callLater(function() { optionsList.positionViewAtIndex(optionsList.currentIndex, ListView.Contain) })
                     delegate: Rectangle {
@@ -203,7 +214,7 @@ Window {
                         width: optionsList.width
                         height: 42
                         radius: 6
-                        color: index === window.state.index ? "#3f4239" : "transparent"
+                        color: index === window.state.index ? window.colors.menuSelected : "transparent"
                         border.color: index === window.state.index ? window.accent : "transparent"
                         Text { anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left; anchors.leftMargin: 12; text: parent.modelData; color: window.ink; font.pixelSize: 18 }
                         MouseArea { anchors.fill: parent; onClicked: { while (window.state.index < index) controller.dispatch("down"); while (window.state.index > index) controller.dispatch("up"); controller.dispatch("accept") } }

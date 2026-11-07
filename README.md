@@ -4,7 +4,7 @@ uDeck 是面向 1280×720 横屏 uConsole 的原生 Qt Quick 桌面壳：方向�
 
 基于现有 Debian 13 / labwc / Wayland 添加**独立可选会话**，不刷镜像、不改驱动、不替换合成器。软件包不修改原桌面配置或默认登录项；开机自动进入 uDeck 通过单独授权的配置工具开启。第三方应用使用自身焦点系统，Y 菜单切换按键、指针或原生输入模式。
 
-当前基础包版本：**0.1.6**，默认英文，可在设置中切换简体中文；支持内置与 USB 多无线网卡分别管理，包含第三方应用手柄兼容层，并保留独立的 **uDeck Terminal 0.1.1**。完整兼容层仅在独立 uDeck 会话启用；自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
+当前基础包版本：**0.1.9**，原生应用包与独立终端均为 **0.1.2**。默认英文与经典主题，可在设置中切换简体中文及黑暗主题；支持内置与 USB 多无线网卡分别管理，包含第三方应用手柄兼容层。完整兼容层仅在独立 uDeck 会话启用；自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
 
 ## 桌面功能
 
@@ -13,6 +13,7 @@ uDeck 是面向 1280×720 横屏 uConsole 的原生 Qt Quick 桌面壳：方向�
 - 文件：浏览、新建文件夹、重命名、复制、剪切/粘贴、明确确认覆盖、移入回收站。
 - 设置：NetworkManager 多网卡 Wi-Fi（逐网卡扫描、连接、断开与热插拔）、BlueZ 配对代理、音量/静音/输出设备、背光、电池与充电状态、电源操作。
 - 语言：`Settings → Language` 提供 `English` 和 `简体中文`；切换立即生效并保存，内置终端同步界面语言，保留终端会话和原始输出。
+- 主题：`Settings → Theme` 和快捷设置提供 `Classic / 经典`、`Dark / 黑暗`；原生应用与终端窗口在一秒内跟随，网页、阅读夜间模式和终端文字配色独立保留。
 - 输入：按实际前台窗口交接独立手柄，保留现有校准；普通字母和实体组合键不作按钮映射。壳内 L/R 切页；第三方按键模式中 A/B/X 为 Enter/Esc/Shift+F10，L/R 切换控件；指针模式支持点击、拖动与滚动，原生模式释放手柄。物理鼠标在壳失焦后继续屏蔽，退出壳时释放。
 
 ## 安全预览
@@ -42,7 +43,7 @@ QT_QPA_PLATFORM=offscreen PYTHONPATH=src .venv/bin/python -m udeck.main \
 
 ```sh
 sh tools/build-deb
-sudo apt-get install ./dist/udeck_0.1.6_arm64.deb
+sudo apt-get install ./dist/udeck_0.1.9_arm64.deb
 udeck --windowed
 udeckctl doctor --json
 ```
@@ -70,6 +71,7 @@ sudo python3 tools/configure-login.py --user "$(id -un)"
 - [0.1.4 应用操作、部署记录与待现场验收](docs/udeck/application-control-2026-11-06.md)
 - [0.1.5 多无线网卡使用与验证记录](docs/udeck/multi-wifi-2026-11-06.md)
 - [0.1.6 中英文界面、翻译约定与验证记录](docs/udeck/i18n-2026-11-06.md)
+- [0.1.9 全局主题、配色与验证记录](docs/udeck/themes-2026-11-07.md)
 - [uDeck Terminal：构建、按键、输入交接、默认终端与恢复](docs/udeck/terminal.md)
 - [uDeck Terminal：CM4 安装验收与待验项目](docs/udeck/terminal-acceptance-2026-11-06.md)
 

@@ -40,7 +40,8 @@ class Coordinator(QObject):
         self.application, self.options = application, options
         self.preferences, self.started = preferences, started
         self.language_path = preferences.path.with_name("settings.json")
-        self.language = ConfigStore(self.language_path).data["preferences"]["language"]
+        interface = ConfigStore(self.language_path).data["preferences"]
+        self.language, self.theme = interface["language"], interface["theme"]
         self.language_timer = QTimer(self)
         self.language_timer.setInterval(1000)
         self.language_timer.timeout.connect(self.refresh_language)
@@ -73,7 +74,7 @@ class Coordinator(QObject):
         if not request.new_window and self.recent:
             self.activate(self.recent["window"])
             return
-        controller = TerminalController(request, self.preferences, mock=self.options.mock, language=self.language)
+        controller = TerminalController(request, self.preferences, mock=self.options.mock, language=self.language, theme=self.theme)
         context = QQmlContext(self.engine.rootContext())
         context.setContextProperty("controller", controller)
         context.setContextProperty("windowed", self.options.windowed or self.options.mock)
@@ -93,11 +94,16 @@ class Coordinator(QObject):
         self.activate(window)
 
     def refresh_language(self):
-        language = ConfigStore(self.language_path).data["preferences"]["language"]
+        preferences = ConfigStore(self.language_path).data["preferences"]
+        language, theme = preferences["language"], preferences["theme"]
         if language != self.language:
             self.language = language
             for entry in self.windows:
                 entry["controller"].setLanguage(language)
+        if theme != self.theme:
+            self.theme = theme
+            for entry in self.windows:
+                entry["controller"].setTheme(theme)
 
     def activate(self, window):
         window.showNormal() if self.options.windowed or self.options.mock else window.showFullScreen()

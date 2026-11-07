@@ -3,6 +3,7 @@ import os
 import tempfile
 from pathlib import Path
 
+from .appearance import theme_code
 from .i18n import language_code, tr
 
 PAGES = ("home", "apps", "windows", "files", "settings")
@@ -73,7 +74,7 @@ class ConfigStore:
             os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))
         ) / "udeck/settings.json"
         self.data = {"version": 1, "favorites": [], "recent": [], "focus": {}, "input": {}, "applicationInput": {},
-                     "preferences": {"showHidden": False, "category": "All", "language": "en"}}
+                     "preferences": {"showHidden": False, "category": "All", "language": "en", "theme": "classic"}}
         try:
             loaded = json.loads(self.path.read_text())
             if isinstance(loaded, dict):
@@ -98,22 +99,34 @@ class ConfigStore:
                 preferences = loaded.get("preferences", {})
                 if isinstance(preferences, dict):
                     self.data["preferences"]["language"] = language_code(preferences.get("language"))
+                    self.data["preferences"]["theme"] = theme_code(preferences.get("theme"))
                     if type(preferences.get("showHidden")) is bool:
                         self.data["preferences"]["showHidden"] = preferences["showHidden"]
                     if isinstance(preferences.get("category"), str):
                         self.data["preferences"]["category"] = preferences["category"]
         except (OSError, ValueError, TypeError):
             pass
+        self._saved_preferences = dict(self.data["preferences"])
 
     def save(self):
+        # Apps also update shared preferences. A cached shell store must not
+        # overwrite their language/theme when saving focus or favorites.
+        latest = ConfigStore(self.path).data["preferences"]
+        preferences = dict(self.data["preferences"])
+        for field in ("language", "theme"):
+            if preferences[field] == self._saved_preferences[field]:
+                preferences[field] = latest[field]
+        values = {**self.data, "preferences": preferences}
         self.path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         descriptor, temporary = tempfile.mkstemp(prefix=".settings-", dir=self.path.parent)
         try:
             with os.fdopen(descriptor, "w") as stream:
-                json.dump(self.data, stream, ensure_ascii=False, indent=2)
+                json.dump(values, stream, ensure_ascii=False, indent=2)
                 stream.flush()
                 os.fsync(stream.fileno())
             os.replace(temporary, self.path)
+            self.data["preferences"] = preferences
+            self._saved_preferences = dict(preferences)
         finally:
             Path(temporary).unlink(missing_ok=True)
 

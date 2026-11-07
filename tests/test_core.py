@@ -195,7 +195,7 @@ def test_preferences_are_saved_and_validated(tmp_path):
     path = tmp_path / "settings.json"
     path.write_text(json.dumps({"preferences": {"showHidden": True, "category": "Game"}}))
     config = ConfigStore(path)
-    assert config.data["preferences"] == {"showHidden": True, "category": "Game", "language": "en"}
+    assert config.data["preferences"] == {"showHidden": True, "category": "Game", "language": "en", "theme": "classic"}
 
 
 def test_dbus_activatable_desktop_entry_does_not_require_exec(tmp_path):
