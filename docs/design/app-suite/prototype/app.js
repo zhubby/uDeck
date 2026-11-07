@@ -51,7 +51,11 @@ const promptFiles = {
   Shift: "keyboard_shift", M: "keyboard_m", T: "keyboard_t", Address: "keyboard_l",
   Mouse: "mouse", Click: "mouse_left", Scroll: "mouse_scroll",
 };
-const keyIcon = key => ["+", "/"].includes(key) ? `<span class="input-separator">${key}</span>` : `<img class="input-prompt-icon" src="assets/input-prompts/${promptFiles[key]}.png" alt="${E(key === "Address" ? "L" : key)}" draggable="false">`;
+const promptScales = {
+  keyboard_ctrl: 96 / 72, keyboard_alt: 96 / 72, keyboard_tab: 96 / 72,
+  keyboard_shift: 96 / 64, keyboard_space: 96 / 56, keyboard_arrows: 96 / 60,
+};
+const keyIcon = key => ["+", "/"].includes(key) ? `<span class="input-separator">${key}</span>` : `<span class="input-prompt-icon" style="--input-key-scale:${promptScales[promptFiles[key]] || 1}"><img src="assets/input-prompts/${promptFiles[key]}.png" alt="${E(key === "Address" ? "L" : key)}" draggable="false"></span>`;
 const inputPrompt = (keys, label) => `<span class="input-prompt">${keys.map(keyIcon).join("")}<span>${E(label)}</span></span>`;
 const time = seconds => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 const progress = (percent, tag = "") => `<div class="progress"><span ${tag ? `data-progress="${tag}"` : ""} style="width:${Math.max(0, Math.min(100, percent))}%"></span></div>`;

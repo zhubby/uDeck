@@ -26,9 +26,9 @@ Row {
         delegate: Item {
             required property string modelData
             property bool separator: modelData === "+" || modelData === "/"
-            width: separator ? separatorText.implicitWidth : prompt.iconSize
+            width: separator ? separatorText.implicitWidth : keyIcon.width
             height: prompt.iconSize
-            InputIcon { visible: !parent.separator; keyId: parent.separator ? "" : parent.modelData; iconSize: prompt.iconSize }
+            InputIcon { id: keyIcon; visible: !parent.separator; keyId: parent.separator ? "" : parent.modelData; iconSize: prompt.iconSize }
             Text {
                 id: separatorText
                 visible: parent.separator

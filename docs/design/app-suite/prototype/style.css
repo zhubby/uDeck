@@ -207,11 +207,12 @@ h3 { font-size: 24px; font-weight: 500; }
 .footer.overlay-footer { position: absolute; bottom: 0; left: 0; right: 0; color: #e1e3de; border-color: #ffffff38; }
 .button-hints { display: flex; gap: 24px; align-items: center; }
 .button-hint { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; padding: 4px 0; font-size: inherit; color: inherit; }
-.input-prompt-icon { width: 32px; height: 32px; object-fit: contain; flex: none; }
+.input-prompt-icon { --input-size: 32px; position: relative; width: calc(var(--input-size) * var(--input-key-scale, 1)); height: var(--input-size); flex: none; }
+.input-prompt-icon img { position: absolute; top: 50%; left: 0; width: 100%; height: auto; transform: translateY(-50%); }
 .input-prompt { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .input-separator { font-size: .85em; }
 .footer-context { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 2px 14px; font-size: 18px; text-align: right; line-height: 1.5; color: var(--muted); }
-.footer-context .input-prompt-icon { width: 28px; height: 28px; }
+.footer-context .input-prompt-icon { --input-size: 28px; }
 .focused { outline: none !important; border-color: var(--accent) !important; background-color: var(--selected); box-shadow: none; }
 .tab.focused { border-color: transparent transparent var(--accent) !important; background: #383025; }
 .address-bar.focused { border-color: var(--accent) !important; }

@@ -20,5 +20,8 @@ runtime dependencies.
 Shared QML components are `InputIcon.qml`, `InputPrompt.qml` and `InputHints.qml`.
 `InputIcon` decodes PNGs at their physical display size, including screen pixel
 ratio, so the software renderer receives smoothly resampled small images.
+Wide keyboard caps and the arrow cluster scale proportionally to match the
+visible height of square keys. Their layout slots grow with the artwork;
+the original PNGs, shapes and letter cutouts remain unchanged.
 The design prototype keeps byte-identical copies; resource tests check parity.
 See `docs/design/input-prompts.md` for mapping, sizing and accessibility rules.
