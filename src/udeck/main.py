@@ -290,11 +290,14 @@ def main(argv=None):
     if pointer:
         pointer.action.connect(application_router.action if application_router else controller.dispatch)
         pointer.button.connect(lambda action, pressed: controller.testButton(action, pressed, "shoulder"))
+        pointer.middleButton.connect(lambda pressed: controller.testButton("pointer-click", pressed, "pointer"))
+        pointer.motion.connect(controller.testPointerMotion)
         pointer.status.connect(controller.input_status)
         controller.foregroundChanged.connect(pointer.set_foreground)
     calibration = {"buttons": {}, "axes": {}, "keyboard": {}, "step": 0}
 
     if gamepad:
+        gamepad.auxiliaryButton.connect(lambda action, pressed: controller.testButton(action, pressed, "gamepad"))
         gamepad.button.connect(lambda action, pressed: controller.testButton(action, pressed, "gamepad")
                                if action not in ("up", "down", "left", "right") else None)
         gamepad.direction.connect(lambda action, pressed: controller.testButton(action, pressed, "gamepad"))
@@ -361,6 +364,22 @@ def main(argv=None):
     from .key_test import KeyTestFilter
 
     key_test_filter = KeyTestFilter(controller, window)
+    from .key_test_device import KeyTestReader
+
+    key_test_reader = KeyTestReader()
+    key_test_reader.key.connect(controller.testHardwareKey)
+    key_test_reader.reset.connect(controller.resetHardwareKeys)
+
+    def key_test_warning(message):
+        if controller.modal.get("kind") == "key-test" and controller.modal.get("deviceWarning") != message:
+            controller.modal["deviceWarning"] = message
+            controller._publish()
+
+    key_test_reader.warning.connect(key_test_warning)
+    controller.changed.connect(lambda: key_test_reader.set_enabled(
+        not options.mock and controller.modal.get("kind") == "key-test" and controller._test_active))
+    controller.foregroundChanged.connect(lambda active: key_test_reader.set_enabled(
+        not options.mock and active and controller.modal.get("kind") == "key-test"))
 
     def first_frame():
         if control.first_frame is None:
@@ -400,6 +419,7 @@ def main(argv=None):
     elif options.smoke_test:
         QTimer.singleShot(2000, application.quit)
     result = application.exec()
+    key_test_reader.close()
     window.removeEventFilter(key_test_filter)
     if application_router:
         application_router.close()

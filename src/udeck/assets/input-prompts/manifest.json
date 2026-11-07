@@ -194,6 +194,402 @@
       "archivePath": "Nintendo Gamecube/Double/gamecube_dpad.png",
       "sha256": "49ff2cba1a166dffa50479d9e2c32f2a496edced599ae962511234f26d62480a",
       "bytes": 337
+    },
+    "gamecube_button_start.png": {
+      "kit": "Nintendo Gamecube",
+      "archivePath": "Nintendo Gamecube/Double/gamecube_button_start.png",
+      "sha256": "7544be4f696cadde5ebdd2a60a832313932b3838429f23c84c5a992ce631767a",
+      "bytes": 762
+    },
+    "keyboard_0.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_0.png",
+      "sha256": "f5fc1248185effa6c5f5c55f56389280af67cbfebf24949019316bb514372d07",
+      "bytes": 574
+    },
+    "keyboard_1.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_1.png",
+      "sha256": "78450dc5650646422a582f7e146377f651301ad5853172d4c03cad76a3a03894",
+      "bytes": 398
+    },
+    "keyboard_2.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_2.png",
+      "sha256": "ba5483497652bac89efc99b2cfe3e8c7adcf8be6a0cb8283a01d92d8b66ecf7c",
+      "bytes": 540
+    },
+    "keyboard_3.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_3.png",
+      "sha256": "927dd6e2ef540b5adaf30c0db41a78f3188bf765b1439d0e4ebad9143d3392d6",
+      "bytes": 558
+    },
+    "keyboard_4.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_4.png",
+      "sha256": "a87afcc608eacc42de09421edc1b1cc5403e4c50454dd71e4b92b8646a5297c6",
+      "bytes": 405
+    },
+    "keyboard_5.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_5.png",
+      "sha256": "fbb9a5562a04a1aef13d55b63351912f25e3036e3b9496cfb03fcc00ef860465",
+      "bytes": 516
+    },
+    "keyboard_6.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_6.png",
+      "sha256": "9ae73b6265b4ff54a4dd6da671f75b47ffd6e774c91906c4b252b114a4ddf403",
+      "bytes": 593
+    },
+    "keyboard_7.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_7.png",
+      "sha256": "651c9f56f1fe2c9a958f312f2f05c27d4339286cbd67dff29f9cae3b2a778a26",
+      "bytes": 515
+    },
+    "keyboard_8.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_8.png",
+      "sha256": "aa4ccb20824d5c487910ff106933e682743555e16620edc274db0b04dc30aa66",
+      "bytes": 583
+    },
+    "keyboard_9.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_9.png",
+      "sha256": "6771ca4467ed7316531a9452b0537320a549596d12bd9ca57f268dc87af9c4f1",
+      "bytes": 583
+    },
+    "keyboard_a.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_a.png",
+      "sha256": "1c0cd66c5e5874dc58178101079711092fad41afa61ba159cd8e76049efe2be0",
+      "bytes": 651
+    },
+    "keyboard_apostrophe.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_apostrophe.png",
+      "sha256": "ef4fc48a043b6a15d76457d7fc5a2c6f0cfa4ce1b29fa07f176ff28a41b93be8",
+      "bytes": 421
+    },
+    "keyboard_b.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_b.png",
+      "sha256": "37ea09a5908b33f83b1c0da8383930f623cae05639e2af01508518c965b3fe09",
+      "bytes": 512
+    },
+    "keyboard_backspace_icon.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_backspace_icon.png",
+      "sha256": "ea76f8bda2751ef97c08d565a10d9a3667274b0a891471f3450e889b7745f09c",
+      "bytes": 449
+    },
+    "keyboard_bracket_close.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_bracket_close.png",
+      "sha256": "78769ea382c41e65998cddbd2cd433904b3d4f2f54539373564224c6a41146f5",
+      "bytes": 397
+    },
+    "keyboard_bracket_open.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_bracket_open.png",
+      "sha256": "715fa0d24c835d2b7650196016f074fe285834e1595326afa83e3da3cd65b09a",
+      "bytes": 400
+    },
+    "keyboard_c.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_c.png",
+      "sha256": "b567b9677cee28ed6cee1e60a5213ebdb631816fabfd44824990860d1d07f4a4",
+      "bytes": 628
+    },
+    "keyboard_capslock_icon.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_capslock_icon.png",
+      "sha256": "d3a1a76f6bbd30d608ab9319216aed612a747b04245a8d8bfdee931f51623671",
+      "bytes": 476
+    },
+    "keyboard_comma.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_comma.png",
+      "sha256": "db060befc6a7b0943d67a815c9ba1f6062ea07d8e125a77c2bc31f9c1882389d",
+      "bytes": 464
+    },
+    "keyboard_command.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_command.png",
+      "sha256": "667437d9ef5746ff84c911607b26b2f58f25874c3b24c1ffcb19ca92d4d18d27",
+      "bytes": 719
+    },
+    "keyboard_d.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_d.png",
+      "sha256": "9d0425030c1abe92de4a80d679e08653e23b81508d626e95b152bff2e2b6f425",
+      "bytes": 566
+    },
+    "keyboard_delete.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_delete.png",
+      "sha256": "fb51dc4e200b9d1aa27a149dd645fa89456aaf3dc8fa7a8d5fa2a3390640769f",
+      "bytes": 504
+    },
+    "keyboard_e.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_e.png",
+      "sha256": "6299bcd537dee8496be6c86e9fc35126e0df8319bd9e4c94e4806e8b1b61c72d",
+      "bytes": 391
+    },
+    "keyboard_end.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_end.png",
+      "sha256": "d0fa42d396de631fe410fb2c165a947a1fc16349729e9e7d8257071876e3c8a3",
+      "bytes": 591
+    },
+    "keyboard_equals.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_equals.png",
+      "sha256": "feba62704372180cd59a4488a7a924a1d2d6672ed0a1d83226b885bc736bba30",
+      "bytes": 384
+    },
+    "keyboard_f.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_f.png",
+      "sha256": "f674c5618bd569477fbd66cb718c836199e9c49ed4697b404458dc245e04a89d",
+      "bytes": 390
+    },
+    "keyboard_f1.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_f1.png",
+      "sha256": "b1972b5274d40291b7f1b14e26c530ca7d56ee2e293e2fa0d4a052db875f88fe",
+      "bytes": 413
+    },
+    "keyboard_f10.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_f10.png",
+      "sha256": "2c70b5e2620341a4b24269ca0d09c7cd17d78b4e732763ef11f6df445fcb99c6",
+      "bytes": 613
+    },
+    "keyboard_f11.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_f11.png",
+      "sha256": "fcbffb13ce49ec0b88a47ffe00c5f000507496a9e02e9aa266255910f0dab7c8",
+      "bytes": 437
+    },
+    "keyboard_f12.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_f12.png",
+      "sha256": "2d497b75c0437913b03361cb5f6512c036c2bce2bd671b84aa12523fa5cfa7c6",
+      "bytes": 567
+    },
+    "keyboard_f4.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_f4.png",
+      "sha256": "a36c18fd8af9d4111a8918447195bff331ed6d085a04c690fc7c4c35233012bf",
+      "bytes": 419
+    },
+    "keyboard_f5.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_f5.png",
+      "sha256": "a12e2d9f2db42100cf2017c4f35eb475ad3541f94684cacb3ae39d24e606da1f",
+      "bytes": 528
+    },
+    "keyboard_f6.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_f6.png",
+      "sha256": "a35e61732adfdddd9fdf927bccfc4ebe2b627351a9c741ab0090679f40f67f65",
+      "bytes": 599
+    },
+    "keyboard_f7.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_f7.png",
+      "sha256": "ace6f9a85005bf2c704327d64a150a02907be3f0a93600696c625011a95b4334",
+      "bytes": 514
+    },
+    "keyboard_f8.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_f8.png",
+      "sha256": "d428a70e99b8a9fa1f98a839ea012ad89bcd8dd26c0700d3a01695be1dbcea16",
+      "bytes": 595
+    },
+    "keyboard_f9.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_f9.png",
+      "sha256": "1d29b6f1b97fd703ffe0836d0a02901e8058279993a62caa46b47ae166897261",
+      "bytes": 589
+    },
+    "keyboard_g.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_g.png",
+      "sha256": "b244e9a54311f6fec37d0984f76f1b2db07635fcef3f5521b0ba59657661be3d",
+      "bytes": 660
+    },
+    "keyboard_h.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_h.png",
+      "sha256": "3f89ef4b7030006f2e6b6a0c29c7063aa2d6bbba27294c9bcf81bd8d16cdc886",
+      "bytes": 407
+    },
+    "keyboard_home.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_home.png",
+      "sha256": "668dc5eaab46ad93b6d76c8f1e011acd047b91bd003cb2eeea3bfa928d253881",
+      "bytes": 594
+    },
+    "keyboard_i.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_i.png",
+      "sha256": "ca98dc72e77067cc170f3e11a59bd6a506402813d4ed4a8cc592b38936d421dd",
+      "bytes": 382
+    },
+    "keyboard_insert.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_insert.png",
+      "sha256": "dac760f5b5f57833719b06928d7100453931aceaef599d6db150ee725e0f9e3c",
+      "bytes": 604
+    },
+    "keyboard_j.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_j.png",
+      "sha256": "155d5376cc9761596c3b86de1766b35f696417da265df14ca391f91e4959dd86",
+      "bytes": 461
+    },
+    "keyboard_k.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_k.png",
+      "sha256": "df3d81ab3fd4b8954941e684046e539d3ff727510c7c4d7113b86d62e78c536c",
+      "bytes": 551
+    },
+    "keyboard_minus.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_minus.png",
+      "sha256": "86fd8e4e0478f9e7a22ac9edcd532f2f7d8a36263242e705d8c9212b086867dd",
+      "bytes": 381
+    },
+    "keyboard_n.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_n.png",
+      "sha256": "a3bdb62898909e5957115f480c42781c6145ab8c4b87cacbb1df4856dd4f61d4",
+      "bytes": 537
+    },
+    "keyboard_o.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_o.png",
+      "sha256": "7cc068a351fe32b5fa3bed3ccdba09111451566739e95d5de8423cd56761e1f7",
+      "bytes": 655
+    },
+    "keyboard_p.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_p.png",
+      "sha256": "e28e675e84f7462eea98a686945588bbfcdd30bd2ae670532feb8765ebea4a66",
+      "bytes": 496
+    },
+    "keyboard_period.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_period.png",
+      "sha256": "ede0e38a268c8cdb33042d3e40209c3a240131ba803b5562d35c8081245f3ba2",
+      "bytes": 420
+    },
+    "keyboard_printscreen.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_printscreen.png",
+      "sha256": "938778de24e31507c1186fa4225f8298d7678365133a62aa024e99c34b4efb78",
+      "bytes": 818
+    },
+    "keyboard_q.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_q.png",
+      "sha256": "0cb36d9a91c4d894c6390c6b330eb9dadee2b95db333fb51024939c637e1e59a",
+      "bytes": 623
+    },
+    "keyboard_r.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_r.png",
+      "sha256": "2e682642a4e4369cc983613f54eac5c4f57dd5bffecd8abb4e6f997cb6743a0d",
+      "bytes": 531
+    },
+    "keyboard_s.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_s.png",
+      "sha256": "b504d48f2b2452bc895fc03a243e83564ad01d7e9b6fdb11f044e85e6c3b9ff2",
+      "bytes": 636
+    },
+    "keyboard_semicolon.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_semicolon.png",
+      "sha256": "65a18eb328badae58c9d216805d18a8691fa772e92639b4f2c106f8c8b4584fb",
+      "bytes": 475
+    },
+    "keyboard_slash_back.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_slash_back.png",
+      "sha256": "a47be6843d169df79b567824ecc3d21153c0de214c2f750ab0b391f77045d5ef",
+      "bytes": 568
+    },
+    "keyboard_slash_forward.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_slash_forward.png",
+      "sha256": "21c602b309b9efc0fb5c222eba20aef08773d4a4b0165e81c7ff5fc7c8239255",
+      "bytes": 551
+    },
+    "keyboard_tilde.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_tilde.png",
+      "sha256": "9a9b9b7ced654fa234f688d583524bcb107b05d7269fbbbd5c54510b7c93d71d",
+      "bytes": 532
+    },
+    "keyboard_u.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_u.png",
+      "sha256": "7e5678abc7b4c7941aefc69793980b132c194c6d9dd737564e793d960db28cd5",
+      "bytes": 533
+    },
+    "keyboard_v.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_v.png",
+      "sha256": "3a7339074e532efe68a14e63206a399ac00e0fa52b13321c1f1ca7e62e111148",
+      "bytes": 655
+    },
+    "keyboard_w.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_w.png",
+      "sha256": "80afe8ada6813562b89433b7728222e5cf79076e07edb521144da74fa49bcb6f",
+      "bytes": 698
+    },
+    "keyboard_x.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_x.png",
+      "sha256": "9efec23a1c281006414fc29e254208f8c365bed9a8864b86f9daf24b92c9241d",
+      "bytes": 704
+    },
+    "keyboard_y.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_y.png",
+      "sha256": "a9eabbcfe92b1938f3dbca3f24b942381b38a75dc58b1b0a59b75169b3d51778",
+      "bytes": 583
+    },
+    "keyboard_z.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_z.png",
+      "sha256": "8d5d695e88bd3e5842b9f60fbc011cccae3a179b1e48e3d9731d15961c2343bd",
+      "bytes": 513
+    },
+    "mouse_move.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/mouse_move.png",
+      "sha256": "fc35076abef7b687c8ca62076472520f3f08a8050268fbc5d738ba509abab37e",
+      "bytes": 759
+    },
+    "mouse_scroll_down.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/mouse_scroll_down.png",
+      "sha256": "5ab3b5018b58c52f197663046cfd3b443bc31fb7c609afd6f07662966b455c05",
+      "bytes": 886
+    },
+    "mouse_scroll_up.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/mouse_scroll_up.png",
+      "sha256": "d16432440a1c86f9954b5e4a78f7c9e1d9ea10266cf768a3c937c8ad4d732614",
+      "bytes": 835
     }
   }
 }

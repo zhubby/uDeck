@@ -164,6 +164,23 @@ def test_unknown_buttons_do_not_become_keyboard_shortcuts():
     assert router.key(288, 1) is None
 
 
+def test_stock_start_select_report_diagnostic_edges_without_becoming_shell_actions(stock_gamepad):
+    gamepad, _, events = stock_gamepad
+    edges, actions = [], []
+    gamepad.auxiliaryButton.connect(lambda key, pressed: edges.append((key, pressed)))
+    gamepad.action.connect(actions.append)
+    gamepad.set_foreground(True)
+    for code in (296, 297):
+        events[:] = [SimpleNamespace(type=1, code=code, value=value) for value in (1, 2, 1, 0)]
+        gamepad._read()
+    assert edges == [("select", True), ("select", False), ("start", True), ("start", False)]
+    assert not actions
+    events[:] = [SimpleNamespace(type=1, code=297, value=1)]
+    gamepad._read()
+    gamepad.set_foreground(False)
+    assert edges[-1] == ("start", False)
+
+
 def test_malformed_mapping_does_not_crash_or_map_keyboard_letters():
     router = ButtonState({"invalid": "accept", "30": "accept", "289": "unknown"})
     assert router.mapping == {}

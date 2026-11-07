@@ -7,73 +7,161 @@ Column {
     required property var state
     required property var translate
     property bool reducedMotion: false
-    spacing: 12
-    function down(action) { return (state.pressed || []).indexOf(action) >= 0 }
-    function tested(action) { return (state.tested || []).indexOf(action) >= 0 }
-    Rectangle {
-        width: parent.width; height: 220; radius: 12
-        color: testPanel.colors.panel
-        border.color: testPanel.colors.rowBorder
-        Repeater {
-            model: [
-                {action: "previous-page", key: "gamecube_trigger_l", label: "L", x: 20, y: 12},
-                {action: "next-page", key: "gamecube_trigger_r", label: "R", x: testPanel.width - 94, y: 12},
-                {action: "up", key: "keyboard_arrow_up", label: testPanel.translate("Up"), x: 76, y: 62},
-                {action: "left", key: "keyboard_arrow_up", rotation: 270, label: testPanel.translate("Left"), x: 20, y: 114},
-                {action: "right", key: "keyboard_arrow_up", rotation: 90, label: testPanel.translate("Right"), x: 132, y: 114},
-                {action: "down", key: "keyboard_arrow_up", rotation: 180, label: testPanel.translate("Down"), x: 76, y: 166},
-                {action: "context", key: "gamecube_button_x", label: "X", x: testPanel.width - 140, y: 62},
-                {action: "quick-settings", key: "gamecube_button_y", label: "Y", x: testPanel.width - 196, y: 114},
-                {action: "accept", key: "gamecube_button_color_a", label: "A", x: testPanel.width - 84, y: 114},
-                {action: "back", key: "gamecube_button_color_b", label: "B", x: testPanel.width - 140, y: 166}
-            ]
-            delegate: KeyTestCap {
-                required property var modelData
-                objectName: "testKey-" + modelData.action
-                x: modelData.x; y: modelData.y
-                width: modelData.action === "previous-page" || modelData.action === "next-page" ? 74 : 54
-                height: 46
-                colors: testPanel.colors; fontFamily: testPanel.fontFamily
-                keyId: modelData.key; label: modelData.label; iconRotation: modelData.rotation || 0
-                stateLabel: testPanel.translate(pressed ? "Pressed" : "Released")
-                pressed: testPanel.down(modelData.action); tested: testPanel.tested(modelData.action)
-                reducedMotion: testPanel.reducedMotion
-            }
-        }
-        Column {
-            x: 204; y: 36; width: parent.width - 418; spacing: 8
-            Text { width: parent.width; text: testPanel.translate("Last input"); horizontalAlignment: Text.AlignHCenter; font.family: testPanel.fontFamily; font.pixelSize: 20; color: testPanel.colors.muted }
-            Text {
-                objectName: "testLastKey"; width: parent.width
-                text: testPanel.state.lastKey || ""; textFormat: Text.PlainText
-                horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
-                font.family: testPanel.fontFamily; font.pixelSize: 32; color: testPanel.colors.text
-            }
-            Text { width: parent.width; text: testPanel.state.lastSource || ""; horizontalAlignment: Text.AlignHCenter; font.family: testPanel.fontFamily; font.pixelSize: 20; color: testPanel.colors.muted }
-            Text {
-                width: parent.width; text: testPanel.state.exitHolding ? testPanel.translate("Keep holding to exit…") : ((testPanel.state.activeLabels || []).length ? testPanel.translate("Pressed") : testPanel.translate("Released"))
-                horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap
-                font.family: testPanel.fontFamily; font.pixelSize: 22; color: testPanel.colors.accent
-            }
+    property bool compact: false
+    property string notice: ""
+    // Keep delegates alive across input edges so press/release animations run.
+    property string layoutOwner: ""
+    property var keyboardRows: []
+    property var gamepadKeys: []
+    property var pointerKeys: []
+    property var internalKeys: []
+    onStateChanged: {
+        if (state.kind === "key-test" && state.key !== layoutOwner) {
+            layoutOwner = state.key
+            keyboardRows = state.keyboardRows || []
+            gamepadKeys = state.gamepadKeys || []
+            pointerKeys = state.pointerKeys || []
+            internalKeys = state.internalKeys || []
         }
     }
-    Text {
-        objectName: "testHeldKeys"; width: parent.width
-        text: testPanel.translate("Held keys") + ": " + ((testPanel.state.activeLabels || []).join(" + ") || "—")
-        textFormat: Text.PlainText; elide: Text.ElideRight
-        font.family: testPanel.fontFamily; font.pixelSize: 22; color: testPanel.colors.text
+    spacing: 8
+    function down(action) { return (state.pressed || []).indexOf(action) >= 0 }
+    function tested(action) { return (state.tested || []).indexOf(action) >= 0 }
+    function rowWeight(row) { return row.reduce((total, key) => total + key.weight, 0) }
+    readonly property int keyHeight: compact ? 30 : 36
+    Row {
+        width: parent.width; spacing: 16
+        Column {
+            id: keyboard
+            width: parent.width - 270; spacing: 4
+            Text {
+                text: testPanel.translate("Keyboard / Fn outputs"); width: parent.width; height: 24
+                font.family: testPanel.fontFamily; font.pixelSize: 18; color: testPanel.colors.muted
+            }
+            Repeater {
+                model: testPanel.keyboardRows
+                delegate: Row {
+                    required property var modelData
+                    readonly property real units: testPanel.rowWeight(modelData)
+                    readonly property real unitWidth: (keyboard.width - (modelData.length - 1) * spacing) / units
+                    width: keyboard.width; height: testPanel.keyHeight; spacing: 4
+                    Repeater {
+                        model: modelData
+                        delegate: KeyTestCap {
+                            required property var modelData
+                            objectName: "testKey-" + modelData.id
+                            width: parent.unitWidth * modelData.weight; height: testPanel.keyHeight
+                            colors: testPanel.colors; fontFamily: testPanel.fontFamily
+                            keyId: modelData.key; label: testPanel.translate(modelData.labelSource)
+                            detectable: modelData.detectable
+                            iconSize: testPanel.compact ? 28 : 34
+                            fontSize: testPanel.compact ? 15 : 18
+                            sideLabel: modelData.id === "shift-left" ? "L" : modelData.id === "shift-right" ? "R" : ""
+                            stateLabel: testPanel.translate(!detectable ? "Firmware / system" : pressed ? "Pressed" : "Released")
+                            pressed: testPanel.down(modelData.id); tested: testPanel.tested(modelData.id)
+                            reducedMotion: testPanel.reducedMotion
+                        }
+                    }
+                }
+            }
+        }
+        Item {
+            width: 254; height: Math.max(308, keyboard.height)
+            Text {
+                text: testPanel.translate("Controls / trackball"); width: parent.width
+                font.family: testPanel.fontFamily; font.pixelSize: 18; color: testPanel.colors.muted
+            }
+            Repeater {
+                model: testPanel.gamepadKeys
+                delegate: KeyTestCap {
+                    required property var modelData
+                    required property int index
+                    readonly property var positions: [
+                        [0, 28, 52], [56, 28, 64], [124, 28, 64], [192, 28, 52],
+                        [36, 72, 34], [174, 72, 34], [0, 110, 34], [72, 110, 34],
+                        [138, 110, 34], [210, 110, 34], [36, 148, 34], [174, 148, 34]
+                    ]
+                    objectName: "testKey-" + modelData.id
+                    x: positions[index][0]; y: positions[index][1]; width: positions[index][2]; height: 34
+                    colors: testPanel.colors; fontFamily: testPanel.fontFamily
+                    keyId: modelData.key; label: testPanel.translate(modelData.labelSource)
+                    iconRotation: modelData.rotation
+                    stateLabel: testPanel.translate(pressed ? "Pressed" : "Released")
+                    pressed: testPanel.down(modelData.id); tested: testPanel.tested(modelData.id)
+                    reducedMotion: testPanel.reducedMotion
+                }
+            }
+            Text {
+                y: 188; width: parent.width; text: testPanel.translate("L / R = mouse buttons")
+                font.family: testPanel.fontFamily; font.pixelSize: 15; color: testPanel.colors.muted
+            }
+            Repeater {
+                model: testPanel.pointerKeys
+                delegate: KeyTestCap {
+                    required property var modelData
+                    required property int index
+                    objectName: "testKey-" + modelData.id
+                    x: index < 5 ? index * 44 : (index - 5) * 40
+                    y: index < 5 ? 210 : 246
+                    width: 36; height: 30
+                    colors: testPanel.colors; fontFamily: testPanel.fontFamily
+                    keyId: modelData.key; label: testPanel.translate(modelData.labelSource)
+                    iconRotation: modelData.rotation; iconSize: 28
+                    stateLabel: testPanel.translate(pressed ? "Pressed" : "Released")
+                    pressed: testPanel.down(modelData.id); tested: testPanel.tested(modelData.id)
+                    reducedMotion: testPanel.reducedMotion
+                }
+            }
+            Text {
+                x: 84; y: 249; width: parent.width - 84
+                text: testPanel.translate("Select + trackball: scroll")
+                elide: Text.ElideRight; font.family: testPanel.fontFamily; font.pixelSize: 14
+                color: testPanel.colors.muted
+            }
+            Row {
+                y: 282; spacing: 4
+                Repeater {
+                    model: testPanel.internalKeys
+                    delegate: KeyTestCap {
+                        required property var modelData
+                        objectName: "testKey-" + modelData.id
+                        width: 82; height: 26; fontSize: 13
+                        colors: testPanel.colors; fontFamily: testPanel.fontFamily
+                        keyId: ""; label: testPanel.translate(modelData.labelSource)
+                        detectable: false; stateLabel: testPanel.translate("Firmware / system")
+                    }
+                }
+            }
+        }
     }
     Row {
         width: parent.width
         Text {
-            width: parent.width / 2
-            text: testPanel.translate("Controls checked") + ": " + (testPanel.state.tested || []).length + " / 10"
-            font.family: testPanel.fontFamily; font.pixelSize: 20; color: testPanel.colors.muted
+            objectName: "testLastKey"; width: parent.width * 0.62
+            text: testPanel.translate("Last input") + ": " + (testPanel.state.lastKey || "")
+                  + (testPanel.state.lastSource ? " · " + testPanel.state.lastSource : "")
+            textFormat: Text.PlainText; elide: Text.ElideRight
+            font.family: testPanel.fontFamily; font.pixelSize: 20; color: testPanel.colors.text
         }
         Text {
-            width: parent.width / 2; horizontalAlignment: Text.AlignRight
-            text: testPanel.translate("Key presses") + ": " + (testPanel.state.pressCount || 0)
-            font.family: testPanel.fontFamily; font.pixelSize: 20; color: testPanel.colors.muted
+            width: parent.width * 0.38; horizontalAlignment: Text.AlignRight
+            text: testPanel.translate("Controls checked") + ": " + (testPanel.state.tested || []).length + " / "
+                  + (testPanel.state.totalKeys || 0) + "   ·   " + testPanel.translate("Key presses") + ": "
+                  + (testPanel.state.pressCount || 0)
+            font.family: testPanel.fontFamily; font.pixelSize: 18; color: testPanel.colors.muted
         }
+    }
+    Text {
+        objectName: "testHeldKeys"; width: parent.width
+        text: testPanel.state.exitHolding ? testPanel.translate("Keep holding to exit…")
+              : testPanel.translate("Held keys") + ": " + ((testPanel.state.activeLabels || []).join(" + ") || "—")
+        textFormat: Text.PlainText; elide: Text.ElideRight
+        font.family: testPanel.fontFamily; font.pixelSize: 18; color: testPanel.colors.accent
+    }
+    Text {
+        width: parent.width; text: testPanel.state.deviceWarning || testPanel.notice || testPanel.translate("Fn, backlight and key lock are handled by firmware; Power is handled by the system. Test Fn combinations using their output keys.")
+        textFormat: Text.PlainText; elide: Text.ElideRight
+        font.family: testPanel.fontFamily; font.pixelSize: 15
+        color: testPanel.state.deviceWarning ? testPanel.colors.error : testPanel.notice ? testPanel.colors.accent : testPanel.colors.muted
     }
 }

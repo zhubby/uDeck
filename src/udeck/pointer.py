@@ -8,6 +8,8 @@ class PointerGuard(QObject):
     action = Signal(str)
     shoulder = Signal(str)
     button = Signal(str, bool)
+    middleButton = Signal(bool)
+    motion = Signal(int, int)
     status = Signal(object)
 
     def __init__(self, parent=None, *, built_in_only=False):
@@ -95,14 +97,21 @@ class PointerGuard(QObject):
                         entry["pressed"] = set(entry["device"].active_keys())
                         entry["syncing"] = False
                     continue
+                if entry["shoulders"] and event.type == 2 and event.code in (0, 1, 8):
+                    self.motion.emit(event.code, event.value)
+                    continue
                 if event.type != 1:
                     continue
                 if event.value == 0:
+                    if event.code == 274 and event.code in entry["pressed"] and entry["shoulders"]:
+                        self.middleButton.emit(False)
                     if event.code in entry["pressed"] and entry["shoulders"] and event.code in (272, 273):
                         self.button.emit("previous-page" if event.code == 272 else "next-page", False)
                     entry["pressed"].discard(event.code)
                 elif event.value == 1 and event.code not in entry["pressed"]:
                     entry["pressed"].add(event.code)
+                    if entry["shoulders"] and event.code == 274:
+                        self.middleButton.emit(True)
                     if entry["shoulders"] and event.code in (272, 273):
                         action = "previous-page" if event.code == 272 else "next-page"
                         self.button.emit(action, True)
@@ -128,6 +137,8 @@ class PointerGuard(QObject):
 
     def _release_buttons(self, entry):
         if entry["shoulders"]:
+            if 274 in entry["pressed"]:
+                self.middleButton.emit(False)
             for code in sorted(entry["pressed"] & {272, 273}):
                 self.button.emit("previous-page" if code == 272 else "next-page", False)
         entry["pressed"].clear()

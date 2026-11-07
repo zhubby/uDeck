@@ -83,6 +83,25 @@ def test_mouse_remains_blocked_when_third_party_app_has_focus(pointer_device):
     assert ownership == ["grab", "ungrab"]
 
 
+def test_trackball_click_motion_and_scroll_are_diagnostic_only(pointer_device):
+    guard, device, events, _ = pointer_device
+    edges, motion, actions = [], [], []
+    guard.middleButton.connect(edges.append)
+    guard.motion.connect(lambda axis, value: motion.append((axis, value)))
+    guard.action.connect(actions.append)
+    guard.set_foreground(True)
+    guard.start()
+    events[:] = [SimpleNamespace(type=2, code=axis, value=value) for axis, value in ((0, 3), (1, -2), (8, 1))]
+    events.extend(SimpleNamespace(type=1, code=274, value=value) for value in (1, 2, 1, 0))
+    guard._read(device.path)
+    assert motion == [(0, 3), (1, -2), (8, 1)] and edges == [True, False]
+    assert not actions
+    events[:] = [SimpleNamespace(type=1, code=274, value=1)]
+    guard._read(device.path)
+    guard._remove(device.path)
+    assert edges[-2:] == [True, False]
+
+
 def test_keyboard_and_gamepad_are_not_blocked(pointer_device):
     guard, device, events, ownership = pointer_device
     for capabilities in ({1: [28, 36, 37, 103], 2: []}, {1: [288, 289], 3: [0, 1]},

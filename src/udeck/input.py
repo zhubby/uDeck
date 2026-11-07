@@ -39,6 +39,7 @@ class ButtonState:
 class Gamepad(QObject):
     action = Signal(str)
     button = Signal(str, bool)
+    auxiliaryButton = Signal(str, bool)
     direction = Signal(str, bool)
     captured = Signal(int)
     axisCaptured = Signal(str)
@@ -152,6 +153,9 @@ class Gamepad(QObject):
                 if event.type == ecodes.EV_KEY:
                     was_pressed = event.code in self.router.pressed
                     action = self.router.key(event.code, event.value)
+                    if (self.fingerprint == STOCK_FINGERPRINT and event.code in (296, 297)
+                            and ((event.value == 1 and not was_pressed) or (event.value == 0 and was_pressed))):
+                        self.auxiliaryButton.emit("select" if event.code == 296 else "start", event.value == 1)
                     mapped = self.router.mapping.get(event.code)
                     if mapped and not self.calibrating and ((event.value == 1 and not was_pressed) or (event.value == 0 and was_pressed)):
                         self.button.emit(mapped, event.value == 1)
@@ -214,6 +218,8 @@ class Gamepad(QObject):
     def _close(self):
         self.repeat.stop()
         for code in sorted(self.router.pressed):
+            if getattr(self, "fingerprint", "") == STOCK_FINGERPRINT and code in (296, 297):
+                self.auxiliaryButton.emit("select" if code == 296 else "start", False)
             if self.router.mapping.get(code):
                 self.button.emit(self.router.mapping[code], False)
         for action in sorted(self.pressed_directions):

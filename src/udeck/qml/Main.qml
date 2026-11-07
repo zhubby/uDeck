@@ -357,19 +357,20 @@ Window {
                 id: panel
                 objectName: "dialogPanel"
                 anchors.centerIn: parent
-                width: Math.min(810, parent.width - 96)
+                width: dialog.kind === "key-test" ? Math.min(1160, parent.width - 48) : Math.min(810, parent.width - 96)
                 property real menuChromeHeight: dialog.kind === "menu" ? 96 + dialogTitle.implicitHeight + modalFooter.implicitHeight
                     + (dialog.body ? dialogBody.implicitHeight + 20 : 0)
                     + (viewState.toast ? modalToast.height + 20 : 0) : 0
-                height: Math.min(parent.height - 64, dialog.kind === "menu"
-                    ? menuChromeHeight + (dialog.options || []).length * 80 : modalColumn.height + 56)
+                height: Math.min(parent.height - (dialog.kind === "key-test" ? 32 : 64), dialog.kind === "menu"
+                    ? menuChromeHeight + (dialog.options || []).length * 80 : modalColumn.height + (dialog.kind === "key-test" ? 40 : 56))
                 radius: 16; color: window.colors.dialog; border.width: 1; border.color: window.colors.dialogBorder
 
                 Column {
                     id: modalColumn
                     objectName: "dialogContent"
-                    x: 28; y: 26; width: parent.width - 56; spacing: 20
-                    Text { textFormat: Text.PlainText; id: dialogTitle; width: parent.width; text: dialog.title || ""; font.family: window.fontFamily; font.pixelSize: 32; font.weight: Font.DemiBold; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
+                    x: dialog.kind === "key-test" ? 20 : 28; y: dialog.kind === "key-test" ? 20 : 26
+                    width: parent.width - 2 * x; spacing: dialog.kind === "key-test" ? 8 : 20
+                    Text { textFormat: Text.PlainText; id: dialogTitle; width: parent.width; text: dialog.title || ""; font.family: window.fontFamily; font.pixelSize: dialog.kind === "key-test" ? 28 : 32; font.weight: Font.DemiBold; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
                     Text { textFormat: Text.PlainText; id: dialogBody; visible: !!dialog.body; width: parent.width; text: dialog.body || ""; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: 4; elide: Text.ElideRight }
 
                     Column {
@@ -417,6 +418,8 @@ Window {
                         colors: window.colors; fontFamily: window.fontFamily; state: dialog
                         translate: window.tr
                         reducedMotion: viewState.reducedMotion || false
+                        compact: window.height < 660
+                        notice: viewState.toast || ""
                     }
 
                     TextField { palette: window.colors.controls;
@@ -467,7 +470,7 @@ Window {
                             {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(dialog.kind === "text" ? "取消" : "返回")}].concat(dialog.kind === "text" && dialog.secret ? [
                             {keys: ["gamecube_button_x"], label: window.tr(dialog.reveal ? "Hide password" : "Show password")} ] : [])
                     }
-                    Text { textFormat: Text.PlainText; id: modalToast; visible: !!viewState.toast; width: parent.width; text: viewState.toast; font.family: window.fontFamily; font.pixelSize: 24; color: window.accent; wrapMode: Text.Wrap; maximumLineCount: dialog.kind === "key-test" ? 1 : 3; elide: Text.ElideRight }
+                    Text { textFormat: Text.PlainText; id: modalToast; visible: !!viewState.toast && dialog.kind !== "key-test"; width: parent.width; text: viewState.toast; font.family: window.fontFamily; font.pixelSize: 24; color: window.accent; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
                 }
             }
         }

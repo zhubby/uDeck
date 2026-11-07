@@ -117,7 +117,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
             {"id": "bluetooth", "name": tr('蓝牙'), "subtitle": tr('已开启') if bluetooth.get("powered") else tr('已关闭'), "icon": "bluetooth", "disabled": not bluetooth.get("available")},
             {"id": "battery", "name": tr('电池'), "subtitle": battery_summary(battery), "icon": "battery"},
             {"id": "input", "name": tr('按键与控制器'), "subtitle": tr('ABXY 已校准') if self.data["input"].get("verified") else (tr('ABXY 固件映射 · 可重新校准') if self.data["input"].get("mapped") else tr('校准物理 ABXY；不占用普通键盘字母')), "icon": "input-gaming"},
-            {"id": "key-test", "name": tr('Key test'), "subtitle": tr('Live button and keyboard feedback'), "icon": "input-gaming"},
+            {"id": "key-test", "name": tr('Key test'), "subtitle": tr('Full keyboard, controls and trackball'), "icon": "input-gaming"},
             {"id": "language", "name": tr('语言'), "subtitle": LANGUAGES[self.language], "icon": "preferences-desktop-locale"},
             {"id": "theme", "name": tr('Theme'), "subtitle": THEMES[self.theme], "icon": "preferences-desktop-theme"},
             {"id": "timezone", "name": tr('Time zone'), "subtitle": zone_summary(self.data["timezone"]), "icon": "preferences-system-time"},
@@ -374,8 +374,8 @@ class ShellController(KeyTestControls, WifiControls, QObject):
 
     @Slot(str)
     def dispatch(self, action):
-        if self.modal.get("kind") == "key-test" and action not in ("home", "switcher"):
-            if action == "back" and "back" not in self.modal["pressed"]:
+        if self.modal.get("kind") == "key-test":
+            if action == "back" and not self.modal["exitHolding"]:
                 self._pop()
             return
         if self.modal.get("kind") == "calibration" and action in ("up", "down", "left", "right"):
@@ -1016,6 +1016,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
             self._clear_test_inputs("gamepad")
         if values.get("pointer", {}).get("blockedDevices") == 0:
             self._clear_test_inputs("shoulder")
+            self._clear_test_inputs("pointer")
         self.data["input"].update(values)
         self._publish()
 

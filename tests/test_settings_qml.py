@@ -19,6 +19,6 @@ def test_timezone_and_key_test_render_and_receive_actual_keyboard_events(tmp_pat
     assert result.returncode == 0, result.stdout + result.stderr
     report = json.loads(result.stdout)
     assert report["qmlErrors"] == []
-    assert len(report["captures"]) == 9
-    assert len(list(tmp_path.glob("*.png"))) == 9
+    assert len(report["captures"]) == 11
+    assert len(list(tmp_path.glob("*.png"))) == 11
     assert "Error" not in result.stderr, result.stderr
