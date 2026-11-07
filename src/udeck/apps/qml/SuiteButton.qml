@@ -3,6 +3,7 @@ import QtQuick
 Rectangle {
     id: button
     required property var colors
+    required property string fontFamily
     property string text: ""
     property bool selected: false
     property bool disabled: false
@@ -14,6 +15,6 @@ Rectangle {
     border.width: selected ? 3 : 1
     border.color: selected ? button.colors.accent : button.colors.buttonBorder
     opacity: disabled ? 0.45 : 1
-    Text { id: label; anchors.centerIn: parent; text: button.text; color: button.colors.text; font.pixelSize: 20 }
+    Text { font.family: button.fontFamily; id: label; anchors.centerIn: parent; text: button.text; color: button.colors.text; font.pixelSize: 20 }
     MouseArea { anchors.fill: parent; enabled: !button.disabled; onClicked: button.activated() }
 }

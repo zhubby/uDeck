@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 from PySide6.QtCore import QPointF, Qt, QUrl
-from PySide6.QtGui import QFont, QFontDatabase, QGuiApplication
+from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtTest import QTest
 from shiboken6 import delete
@@ -32,9 +32,6 @@ def run():
     parser.add_argument("--language", choices=("en", "zh_CN"), default="en")
     options = parser.parse_args()
     application = QGuiApplication([])
-    families = QFontDatabase.families()
-    family = next((font for font in ("Noto Sans CJK SC", "PingFang SC", "WenQuanYi Micro Hei") if font in families), application.font().family())
-    application.setFont(QFont(family))
     temporary = tempfile.TemporaryDirectory(prefix="udeck-wifi-preview-")
     controller = ShellController(MockBackend(), config=ConfigStore(Path(temporary.name) / "settings.json"), mock=True)
     controller.setLanguage(options.language)
@@ -53,7 +50,7 @@ def run():
     engine.warnings.connect(lambda warnings: errors.extend(warning.toString() for warning in warnings))
     engine.addImageProvider("desktop", main.IconProvider())
     context = engine.rootContext()
-    for name, value in (("controller", controller), ("appFont", family), ("windowedPreview", True), ("headlessPreview", True)):
+    for name, value in (("controller", controller), ("windowedPreview", True), ("headlessPreview", True)):
         context.setContextProperty(name, value)
     engine.load(QUrl.fromLocalFile(str(Path(main.__file__).parent / "qml/Main.qml")))
     assert engine.rootObjects(), errors

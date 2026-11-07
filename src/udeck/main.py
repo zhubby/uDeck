@@ -12,8 +12,6 @@ from PySide6.QtCore import QObject, QSize, Qt, QTimer, QUrl, Slot
 from PySide6.QtDBus import QDBusConnection
 from PySide6.QtGui import (
     QColor,
-    QFont,
-    QFontDatabase,
     QGuiApplication,
     QIcon,
     QImage,
@@ -225,9 +223,6 @@ def main(argv=None):
     application.setApplicationName(APP_ID)
     application.setDesktopFileName(APP_ID)
     application.setOrganizationName("uDeck")
-    families = QFontDatabase.families()
-    font_family = next((family for family in ("Noto Sans CJK SC", "PingFang SC", "WenQuanYi Micro Hei") if family in families), application.font().family())
-    application.setFont(QFont(font_family))
     temporary = tempfile.TemporaryDirectory(prefix="udeck-preview-") if options.mock else None
     config = ConfigStore(Path(temporary.name) / "settings.json") if temporary else ConfigStore()
     if options.mock:
@@ -350,7 +345,6 @@ def main(argv=None):
     engine = QQmlApplicationEngine()
     engine.addImageProvider("desktop", IconProvider())
     engine.rootContext().setContextProperty("controller", controller)
-    engine.rootContext().setContextProperty("appFont", font_family)
     engine.rootContext().setContextProperty("windowedPreview", options.windowed or options.mock)
     engine.rootContext().setContextProperty("headlessPreview", os.environ.get("QT_QPA_PLATFORM") == "offscreen")
     qml_errors = []

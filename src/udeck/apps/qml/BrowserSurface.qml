@@ -51,15 +51,15 @@ Item {
             Layout.fillWidth:true;Layout.preferredHeight:64;color:surface.colors.panel
             RowLayout {
                 anchors.fill:parent;anchors.margins:10;spacing:10
-                SuiteButton{colors:surface.colors;text:"‹";implicitHeight:44;onActivated:controller.command("back")}
-                SuiteButton{colors:surface.colors;text:"›";implicitHeight:44;onActivated:controller.command("forward")}
-                SuiteButton{colors:surface.colors;text:appState.loading?"×":"↻";implicitHeight:44;onActivated:controller.command(appState.loading?"stop":"reload")}
+                SuiteButton{ fontFamily: surface.host.fontFamily;colors:surface.colors;text:"‹";implicitHeight:44;onActivated:controller.command("back")}
+                SuiteButton{ fontFamily: surface.host.fontFamily;colors:surface.colors;text:"›";implicitHeight:44;onActivated:controller.command("forward")}
+                SuiteButton{ fontFamily: surface.host.fontFamily;colors:surface.colors;text:appState.loading?"×":"↻";implicitHeight:44;onActivated:controller.command(appState.loading?"stop":"reload")}
                 Rectangle {
                     Layout.fillWidth:true;Layout.fillHeight:true;color:surface.colors.background;radius:8;border.color:surface.colors.inputBorder
-                    Text{anchors.fill:parent;anchors.margins:10;text:appState.url==="about:blank"?(host?host.tr("Address or search"):""):appState.url||"";color:surface.colors.text;font.pixelSize:20;elide:Text.ElideMiddle}
+                    Text{ font.family: surface.host.fontFamily;anchors.fill:parent;anchors.margins:10;text:appState.url==="about:blank"?(host?host.tr("Address or search"):""):appState.url||"";color:surface.colors.text;font.pixelSize:20;elide:Text.ElideMiddle}
                     MouseArea{anchors.fill:parent;onClicked:controller.command("address")}
                 }
-                Text{text:host?host.tr(({navigation:"Link navigation",reading:"Reading",pointer:"Virtual pointer",text:"Text input"})[appState.webMode]||"Link navigation"):"";color:surface.colors.accent;font.pixelSize:17}
+                Text{ font.family: surface.host.fontFamily;text:host?host.tr(({navigation:"Link navigation",reading:"Reading",pointer:"Virtual pointer",text:"Text input"})[appState.webMode]||"Link navigation"):"";color:surface.colors.accent;font.pixelSize:17}
             }
         }
         Item {
@@ -127,10 +127,10 @@ Item {
                 anchors.fill:parent;visible:appState.url==="about:blank";color:surface.colors.background
                 Column {
                     anchors.centerIn:parent;width:Math.min(parent.width-80,700);spacing:22
-                    Text{text:"uDeck Browser";color:surface.colors.text;font.pixelSize:40}
-                    Text{width:parent.width;text:host?host.tr("Open a website or search the web. Your tabs, bookmarks and history stay on this device."):"";color:surface.colors.muted;font.pixelSize:24;wrapMode:Text.Wrap}
-                    SuiteButton{colors:surface.colors;text:"A  "+(host?host.tr("Address or search"):"");selected:true;onActivated:controller.command("address")}
-                    SuiteButton{colors:surface.colors;text:host?host.tr("Bookmarks"):"";onActivated:controller.command("bookmarks")}
+                    Text{ font.family: surface.host.fontFamily;text:"uDeck Browser";color:surface.colors.text;font.pixelSize:40}
+                    Text{ font.family: surface.host.fontFamily;width:parent.width;text:host?host.tr("Open a website or search the web. Your tabs, bookmarks and history stay on this device."):"";color:surface.colors.muted;font.pixelSize:24;wrapMode:Text.Wrap}
+                    SuiteButton{ fontFamily: surface.host.fontFamily;colors:surface.colors;text:"A  "+(host?host.tr("Address or search"):"");selected:true;onActivated:controller.command("address")}
+                    SuiteButton{ fontFamily: surface.host.fontFamily;colors:surface.colors;text:host?host.tr("Bookmarks"):"";onActivated:controller.command("bookmarks")}
                 }
             }
             ScrollView { palette: surface.colors.controls;
@@ -144,7 +144,7 @@ Item {
             }
             Rectangle {
                 anchors.left:parent.left;anchors.right:parent.right;anchors.top:parent.top;height:loadError.implicitHeight+24;visible:!!appState.webError;color:surface.colors.errorSurface;z:5
-                Text{id:loadError;anchors.fill:parent;anchors.margins:12;text:appState.webError||"";color:surface.colors.dark?surface.colors.error:surface.colors.text;font.pixelSize:20;wrapMode:Text.Wrap;maximumLineCount:3;elide:Text.ElideRight}
+                Text{ font.family: surface.host.fontFamily;id:loadError;anchors.fill:parent;anchors.margins:12;text:appState.webError||"";color:surface.colors.dark?surface.colors.error:surface.colors.text;font.pixelSize:20;wrapMode:Text.Wrap;maximumLineCount:3;elide:Text.ElideRight}
             }
         }
     }

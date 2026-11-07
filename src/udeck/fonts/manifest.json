@@ -1,0 +1,41 @@
+{
+  "sairaRevision": "f2480dad6f8e7b1f42c023d3542e55eb8c3a2822",
+  "lxgwVersion": "1.530",
+  "files": {
+    "SairaSemiCondensed-Regular.ttf": {
+      "source": "https://raw.githubusercontent.com/google/fonts/f2480dad6f8e7b1f42c023d3542e55eb8c3a2822/ofl/sairasemicondensed/SairaSemiCondensed-Regular.ttf",
+      "sha256": "9dad0fea2405ebc740092a0ca34e350ac235c0a040095068e0054b337520f93a",
+      "bytes": 95184
+    },
+    "SairaSemiCondensed-Medium.ttf": {
+      "source": "https://raw.githubusercontent.com/google/fonts/f2480dad6f8e7b1f42c023d3542e55eb8c3a2822/ofl/sairasemicondensed/SairaSemiCondensed-Medium.ttf",
+      "sha256": "bd886bd6f632b4906a4f469c81ccb37b1f0d68d4c175bef7277c8addb86cff2d",
+      "bytes": 95548
+    },
+    "SairaSemiCondensed-SemiBold.ttf": {
+      "source": "https://raw.githubusercontent.com/google/fonts/f2480dad6f8e7b1f42c023d3542e55eb8c3a2822/ofl/sairasemicondensed/SairaSemiCondensed-SemiBold.ttf",
+      "sha256": "f7a32aded607fb364a940ca08b4dbe514346b4fbfa6bb1777c71edf6d7f0fe56",
+      "bytes": 96160
+    },
+    "SairaSemiCondensed-Bold.ttf": {
+      "source": "https://raw.githubusercontent.com/google/fonts/f2480dad6f8e7b1f42c023d3542e55eb8c3a2822/ofl/sairasemicondensed/SairaSemiCondensed-Bold.ttf",
+      "sha256": "2ab7a35f798e149db1908ddae844024bcb975bdccbfc81dbac3429d0f6270b14",
+      "bytes": 96500
+    },
+    "Saira-OFL.txt": {
+      "source": "https://raw.githubusercontent.com/google/fonts/f2480dad6f8e7b1f42c023d3542e55eb8c3a2822/ofl/sairasemicondensed/OFL.txt",
+      "sha256": "0e2ccc5da1dd979f08ba82bca2fb61592506a1e58d3cbfc26d904f0db71bd812",
+      "bytes": 4403
+    },
+    "LXGWWenKaiScreen.ttf": {
+      "source": "https://github.com/lxgw/LxgwWenKai-Screen/releases/download/v1.530/LXGWWenKaiScreen.ttf",
+      "sha256": "abd13364163e3cd84372b333f2fdcee9efb848634668f1c0ce5788dcd059ee61",
+      "bytes": 26095590
+    },
+    "LXGW-OFL.txt": {
+      "source": "https://raw.githubusercontent.com/lxgw/LxgwWenKai-Screen/v1.530/OFL.txt",
+      "sha256": "ba38832f9d7e0ad601a1ab90d58f251ba957532885ef80dca050a611962fd8b6",
+      "bytes": 6027
+    }
+  }
+}

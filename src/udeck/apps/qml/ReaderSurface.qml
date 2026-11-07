@@ -18,8 +18,8 @@ Item {
             Layout.fillWidth: true; Layout.preferredHeight: 52; color:surface.colors.panel
             RowLayout {
                 anchors.fill:parent;anchors.leftMargin:28;anchors.rightMargin:28
-                Text { Layout.fillWidth:true;text:appState.current.title||"";color:surface.colors.text;font.pixelSize:22;elide:Text.ElideRight }
-                Text { text:surface.pdf?((appState.pdfPage+1)+" / "+appState.pdfPages+"  ·  "+(appState.pdfFit?(host?host.tr("Fit width"):""):Math.round(appState.pdfZoom*100)+"%")):(appState.readerLabel||"");color:surface.colors.muted;font.pixelSize:19 }
+                Text { font.family: surface.host.fontFamily; Layout.fillWidth:true;text:appState.current.title||"";color:surface.colors.text;font.pixelSize:22;elide:Text.ElideRight }
+                Text { font.family: surface.host.fontFamily; text:surface.pdf?((appState.pdfPage+1)+" / "+appState.pdfPages+"  ·  "+(appState.pdfFit?(host?host.tr("Fit width"):""):Math.round(appState.pdfZoom*100)+"%")):(appState.readerLabel||"");color:surface.colors.muted;font.pixelSize:19 }
             }
         }
         Item {
@@ -70,7 +70,7 @@ Item {
         }
         Rectangle {
             Layout.fillWidth:true;Layout.preferredHeight:40;color:surface.colors.panel
-            Text{anchors.centerIn:parent;text:surface.pdf?(host?host.tr("Directions pan · L / R change page"):""):Math.round((appState.position.fraction||0)*100)+"%";color:surface.colors.muted;font.pixelSize:17}
+            Text{ font.family: surface.host.fontFamily;anchors.centerIn:parent;text:surface.pdf?(host?host.tr("Directions pan · L / R change page"):""):Math.round((appState.position.fraction||0)*100)+"%";color:surface.colors.muted;font.pixelSize:17}
         }
     }
     Connections {

@@ -8,7 +8,6 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from PySide6.QtCore import QPointF, Qt, QUrl
-from PySide6.QtGui import QFont, QFontDatabase
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
@@ -31,9 +30,6 @@ def run():
     options = parser.parse_args()
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
     application = QApplication([])
-    family = next((font for font in ("Noto Sans CJK SC", "PingFang SC", "WenQuanYi Micro Hei")
-                   if font in QFontDatabase.families()), application.font().family())
-    application.setFont(QFont(family))
     application.setQuitOnLastWindowClosed(False)
     with tempfile.TemporaryDirectory(prefix="udeck-i18n-preview-") as directory:
         path = Path(directory)
@@ -44,7 +40,7 @@ def run():
         engine.warnings.connect(lambda warnings: errors.extend(w.toString() for w in warnings))
         engine.addImageProvider("desktop", main.IconProvider())
         context = engine.rootContext()
-        for key, value in (("controller", controller), ("appFont", family),
+        for key, value in (("controller", controller),
                            ("windowedPreview", True), ("headlessPreview", True)):
             context.setContextProperty(key, value)
         engine.load(QUrl.fromLocalFile(str(Path(main.__file__).parent / "qml/Main.qml")))

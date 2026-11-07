@@ -10,8 +10,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from PySide6.QtCore import QObject, Qt, QUrl
-from PySide6.QtGui import QFont, QFontDatabase
-from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtGui import QFont, QFontInfo
+from PySide6.QtQml import QQmlApplicationEngine, QQmlEngine, QQmlExpression
 from PySide6.QtTest import QTest
 from PySide6.QtWebEngineQuick import QtWebEngineQuick
 from PySide6.QtWidgets import QApplication
@@ -40,9 +40,6 @@ def run():
     QtWebEngineQuick.initialize()
     application = QApplication([])
     application.setQuitOnLastWindowClosed(False)
-    family = next((font for font in ("Noto Sans CJK SC", "PingFang SC", "WenQuanYi Micro Hei")
-                   if font in QFontDatabase.families()), application.font().family())
-    application.setFont(QFont(family))
     options.output.mkdir(parents=True, exist_ok=True)
     errors, captures, apps = [], [], []
 
@@ -54,8 +51,35 @@ def run():
 
     def capture(window, name):
         QTest.qWait(80)
+        verify_fonts(window, options.language)
         assert window.grabWindow().save(str(options.output / (name + ".png")))
         captures.append(name)
+
+    def verify_fonts(window, language):
+        expected = "LXGW WenKai Screen" if language == "zh_CN" else "Saira SemiCondensed"
+        assert window.property("fontFamily") == expected, (window.title(), window.property("fontFamily"), expected)
+        # Walk native Quick/WebEngine items inside QML: creating Python wrappers
+        # for private WebEngine visual children crashes PySide 6.8 on macOS.
+        expression = QQmlExpression(QQmlEngine.contextForObject(window), window, """
+            JSON.stringify((function() {
+                const fonts = []
+                function visit(item) {
+                    if (!item.visible) return
+                    if (item.font !== undefined && item.text !== undefined)
+                        fonts.push({text: String(item.text), family: item.font.family})
+                    for (let child of item.children) visit(child)
+                }
+                visit(contentItem)
+                return fonts
+            })())
+        """)
+        value, undefined = expression.evaluate()
+        assert not undefined and not expression.hasError(), expression.error().toString()
+        families = json.loads(value)
+        interface = [item for item in families if item["family"] != "monospace"]
+        assert interface
+        assert all(item["family"] == expected for item in interface), (window.title(), interface, expected)
+        assert QFontInfo(QFont(expected)).family() == expected
 
     def engine_for(controller, path, shell=False):
         engine = QQmlApplicationEngine()
@@ -64,7 +88,6 @@ def run():
         context.setContextProperty("controller", controller)
         if shell:
             engine.addImageProvider("desktop", main.IconProvider())
-            context.setContextProperty("appFont", family)
             context.setContextProperty("windowedPreview", True)
             context.setContextProperty("headlessPreview", True)
         else:
@@ -232,6 +255,30 @@ def run():
         assert text_field(window) is editor and editor.property("cursorPosition") == 4
         assert editor.property("text") == "keep secret 中文"
         shell.dispatch("back")
+
+        # Existing windows adopt fonts when the shared language changes, without
+        # replacing their input fields, content surfaces or Terminal sessions.
+        for controller, _, _ in apps:
+            controller.pop_menu()
+            controller.prompt(tr("Folder path"), lambda _: None, "keep 中文 {draft}")
+        QTest.qWait(40)
+        editors = [text_field(app_window) for _, _, app_window in apps]
+        surfaces = [app_window.findChild(QObject, "appSurface") for _, _, app_window in apps]
+        assert all(surfaces)
+        loaded = [surface.property("item") for surface in surfaces]
+        for language in ("zh_CN" if options.language == "en" else "en", options.language):
+            shell.setLanguage(language)
+            wait(lambda language=language: all(c.language == language for c, _, _ in apps) and coordinator.language == language)
+            verify_fonts(window, language)
+            for index, (_, _, app_window) in enumerate(apps):
+                verify_fonts(app_window, language)
+                assert text_field(app_window) is editors[index]
+                assert app_window.findChild(QObject, "appSurface") is surfaces[index]
+                assert surfaces[index].property("item") is loaded[index]
+                assert editors[index].property("text") == "keep 中文 {draft}"
+            for index, entry in enumerate(coordinator.windows):
+                verify_fonts(entry["window"], language)
+                assert entry["controller"].current == terminal_ids[index]
         for controller, app_engine, app_window in apps:
             controller.close()
             app_window.setProperty("allowClose", True)

@@ -21,6 +21,8 @@ Window {
     property string optionsStamp: ""
     property alias colors: themeColors
     Shared.ThemePalette { id: themeColors; theme: window.state.theme; profile: "terminal" }
+    property alias fontFamily: interfaceFonts.family
+    Shared.InterfaceFonts { id: interfaceFonts; language: window.state.language }
     property bool allowClose: false
     property color ink: window.colors.text
     property color muted: window.colors.muted
@@ -72,7 +74,7 @@ Window {
                 anchors.leftMargin: 18
                 anchors.rightMargin: 12
                 spacing: 12
-                Text { text: ">_"; color: window.accent; font.pixelSize: 22; font.bold: true }
+                Text { font.family: window.fontFamily; text: ">_"; color: window.accent; font.pixelSize: 22; font.bold: true }
                 ListView {
                     id: tabbar
                     Layout.fillWidth: true
@@ -90,7 +92,7 @@ Window {
                         width: Math.max(100, Math.min(240, titleText.implicitWidth + 42))
                         height: tabbar.height
                         color: identifier === window.state.current ? window.colors.selectedTab : "transparent"
-                        Text {
+                        Text { font.family: window.fontFamily;
                             id: titleText
                             anchors.centerIn: parent
                             width: Math.min(198, implicitWidth)
@@ -103,7 +105,7 @@ Window {
                         MouseArea { anchors.fill: parent; onClicked: controller.selectTab(parent.identifier) }
                     }
                 }
-                Text { text: window.tr("L / R  会话"); color: window.muted; font.pixelSize: 14 }
+                Text { font.family: window.fontFamily; text: window.tr("L / R  会话"); color: window.muted; font.pixelSize: 14 }
             }
         }
         Item {
@@ -136,7 +138,7 @@ Window {
             Layout.fillWidth: true
             Layout.preferredHeight: 38
             color: window.colors.header
-            Text {
+            Text { font.family: window.fontFamily;
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
                 anchors.leftMargin: 18
@@ -144,7 +146,7 @@ Window {
                 color: window.muted
                 font.pixelSize: 15
             }
-            Text { anchors.right: parent.right; anchors.rightMargin: 18; anchors.verticalCenter: parent.verticalCenter; text: window.state.fontSize + " px"; color: window.muted; font.pixelSize: 14 }
+            Text { font.family: window.fontFamily; anchors.right: parent.right; anchors.rightMargin: 18; anchors.verticalCenter: parent.verticalCenter; text: window.state.fontSize + " px"; color: window.muted; font.pixelSize: 14 }
         }
     }
     FocusScope {
@@ -173,15 +175,15 @@ Window {
                 anchors.fill: parent
                 anchors.margins: 24
                 spacing: 14
-                Text { text: ({menu:window.tr("终端操作"),settings:window.tr("终端设置"),close:window.tr("结束会话？"),paste:window.tr("确认粘贴"),search:window.tr("搜索文字"),error:window.tr("无法完成操作")})[window.state.mode] || ""; color: window.ink; font.pixelSize: 24; font.bold: true }
-                Text { visible: window.state.mode === "close" || window.state.mode === "error" || window.state.mode === "paste"; text: window.state.message; color: window.muted; font.pixelSize: 17; wrapMode: Text.Wrap; Layout.fillWidth: true }
+                Text { font.family: window.fontFamily; text: ({menu:window.tr("终端操作"),settings:window.tr("终端设置"),close:window.tr("结束会话？"),paste:window.tr("确认粘贴"),search:window.tr("搜索文字"),error:window.tr("无法完成操作")})[window.state.mode] || ""; color: window.ink; font.pixelSize: 24; font.bold: true }
+                Text { font.family: window.fontFamily; visible: window.state.mode === "close" || window.state.mode === "error" || window.state.mode === "paste"; text: window.state.message; color: window.muted; font.pixelSize: 17; wrapMode: Text.Wrap; Layout.fillWidth: true }
                 ScrollView { palette: window.colors.controls;
                     visible: window.state.mode === "paste"
                     Layout.fillWidth: true
                     Layout.preferredHeight: Math.min(160, preview.implicitHeight + 16)
-                    TextArea { palette: window.colors.controls; id: preview; text: window.state.pastePreview; readOnly: true; wrapMode: TextEdit.Wrap; font.pixelSize: 16; color: window.ink; background: Rectangle { color: window.colors.background } }
+                    TextArea { font.family: window.fontFamily; palette: window.colors.controls; id: preview; text: window.state.pastePreview; readOnly: true; wrapMode: TextEdit.Wrap; font.pixelSize: 16; color: window.ink; background: Rectangle { color: window.colors.background } }
                 }
-                TextField { palette: window.colors.controls;
+                TextField { font.family: window.fontFamily; palette: window.colors.controls;
                     id: searchBox
                     visible: window.state.mode === "search"
                     Layout.fillWidth: true
@@ -216,11 +218,11 @@ Window {
                         radius: 6
                         color: index === window.state.index ? window.colors.menuSelected : "transparent"
                         border.color: index === window.state.index ? window.accent : "transparent"
-                        Text { anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left; anchors.leftMargin: 12; text: parent.modelData; color: window.ink; font.pixelSize: 18 }
+                        Text { font.family: window.fontFamily; anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left; anchors.leftMargin: 12; text: parent.modelData; color: window.ink; font.pixelSize: 18 }
                         MouseArea { anchors.fill: parent; onClicked: { while (window.state.index < index) controller.dispatch("down"); while (window.state.index > index) controller.dispatch("up"); controller.dispatch("accept") } }
                     }
                 }
-                Text { text: window.tr("方向键选择 · A / Enter 确认 · B / Esc 返回"); color: window.muted; font.pixelSize: 14 }
+                Text { font.family: window.fontFamily; text: window.tr("方向键选择 · A / Enter 确认 · B / Esc 返回"); color: window.muted; font.pixelSize: 14 }
             }
         }
     }

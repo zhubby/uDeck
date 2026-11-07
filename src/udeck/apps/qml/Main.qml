@@ -16,6 +16,8 @@ Window {
     property var state: JSON.parse(controller.snapshotJson)
     property alias colors: themeColors
     Shared.ThemePalette { id: themeColors; theme: window.state.theme; profile: "apps" }
+    property alias fontFamily: interfaceFonts.family
+    Shared.InterfaceFonts { id: interfaceFonts; language: window.state.language }
     property var cardModel: []
     property var tabModel: []
     property var menuModel: []
@@ -71,11 +73,11 @@ Window {
             color: window.colors.header
             RowLayout {
                 anchors.fill: parent; anchors.leftMargin: 28; anchors.rightMargin: 28; spacing: 18
-                Text { text: "uD"; color: window.accent; font.pixelSize: 28; font.bold: true }
-                Text { text: window.tr(window.state.app.charAt(0).toUpperCase()+window.state.app.slice(1)); color: window.ink; font.pixelSize: 28 }
+                Text { font.family: window.fontFamily; text: "uD"; color: window.accent; font.pixelSize: 28; font.bold: true }
+                Text { font.family: window.fontFamily; text: window.tr(window.state.app.charAt(0).toUpperCase()+window.state.app.slice(1)); color: window.ink; font.pixelSize: 28 }
                 Item { Layout.fillWidth: true }
-                Text { text: window.state.scanning ? window.tr("Scanning…") : window.state.app === "browser" ? window.tr(({navigation:"Link navigation",reading:"Reading",pointer:"Virtual pointer",text:"Text input"})[window.state.webMode]||"Link navigation") : window.state.count+" "+window.tr("items"); color: window.muted; font.pixelSize: 18 }
-                SuiteButton { colors: window.colors; text: "Y  "+window.tr("Settings"); implicitHeight: 42; onActivated: controller.dispatch("quick-settings") }
+                Text { font.family: window.fontFamily; text: window.state.scanning ? window.tr("Scanning…") : window.state.app === "browser" ? window.tr(({navigation:"Link navigation",reading:"Reading",pointer:"Virtual pointer",text:"Text input"})[window.state.webMode]||"Link navigation") : window.state.count+" "+window.tr("items"); color: window.muted; font.pixelSize: 18 }
+                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; text: "Y  "+window.tr("Settings"); implicitHeight: 42; onActivated: controller.dispatch("quick-settings") }
             }
         }
         Rectangle {
@@ -93,7 +95,7 @@ Window {
                     required property int index
                     width: Math.min(280, tabLabel.implicitWidth+36); height: 54
                     color: index===window.state.tab ? window.colors.selectedTab : "transparent"
-                    Text { id: tabLabel; anchors.centerIn: parent; width: Math.min(244,implicitWidth); text: parent.modelData; color: index===window.state.tab ? window.ink : window.muted; font.pixelSize: 22; elide: Text.ElideRight }
+                    Text { font.family: window.fontFamily; id: tabLabel; anchors.centerIn: parent; width: Math.min(244,implicitWidth); text: parent.modelData; color: index===window.state.tab ? window.ink : window.muted; font.pixelSize: 22; elide: Text.ElideRight }
                     Rectangle { anchors.bottom: parent.bottom; height: 3; width: parent.width; color: window.accent; visible: parent.index===window.state.tab }
                     MouseArea { anchors.fill: parent; onClicked: controller.setTab(parent.index) }
                 }
@@ -107,7 +109,7 @@ Window {
                 visible: ["library","album"].indexOf(window.state.page)>=0 && window.state.app!=="browser"
                 ColumnLayout {
                     Layout.fillWidth: true; Layout.fillHeight: true; spacing: 14
-                    Text { Layout.fillWidth: true; text: window.state.folder || window.state.filter || window.state.tabs[window.state.tab] || ""; color: window.ink; font.pixelSize: 30; elide: Text.ElideMiddle }
+                    Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.folder || window.state.filter || window.state.tabs[window.state.tab] || ""; color: window.ink; font.pixelSize: 30; elide: Text.ElideMiddle }
                     GridView {
                         id: cards
                         Layout.fillWidth: true; Layout.fillHeight: true; clip: true
@@ -129,12 +131,12 @@ Window {
                             color: modelData.id===window.state.selected ? window.colors.selected : window.colors.panel
                             border.width: modelData.id===window.state.selected ? 3 : 1
                             border.color: modelData.id===window.state.selected ? window.accent : window.colors.border
-                            Artwork { colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-80; cover: card.modelData.cover||""; kind: card.modelData.kind==="folder"?"reader":window.state.app }
+                            Artwork { fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-80; cover: card.modelData.cover||""; kind: card.modelData.kind==="folder"?"reader":window.state.app }
                             Column {
                                 x: cards.listMode ? 80 : 12; y: cards.listMode ? 12 : art.y+art.height+8
                                 width: parent.width-x-12; spacing: 4
-                                Text { width: parent.width; text: (card.modelData.id===window.state.current.id ? "▶  " : "")+card.modelData.title; color: window.ink; font.pixelSize: cards.listMode?22:20; elide: Text.ElideRight }
-                                Text { width: parent.width; text: card.modelData.subtitle||""; color: window.muted; font.pixelSize: 17; elide: Text.ElideRight }
+                                Text { font.family: window.fontFamily; width: parent.width; text: (card.modelData.id===window.state.current.id ? "▶  " : "")+card.modelData.title; color: window.ink; font.pixelSize: cards.listMode?22:20; elide: Text.ElideRight }
+                                Text { font.family: window.fontFamily; width: parent.width; text: card.modelData.subtitle||""; color: window.muted; font.pixelSize: 17; elide: Text.ElideRight }
                             }
                             MouseArea { anchors.fill: parent; onClicked: {controller.select(card.modelData.id);controller.dispatch("accept")} }
                         }
@@ -142,9 +144,9 @@ Window {
                             anchors.fill: parent; visible: window.cardModel.length===0
                             Column {
                                 anchors.centerIn: parent; width: Math.min(parent.width-36,540); spacing: 18
-                                Text { width: parent.width; text: window.state.scanning?window.tr("Scanning…"):window.tr("Nothing here yet"); color: window.ink; font.pixelSize: 30; horizontalAlignment: Text.AlignHCenter }
-                                Text { width: parent.width; text: window.tr("Choose a folder in Sources, or switch to another collection."); wrapMode: Text.Wrap; color: window.muted; font.pixelSize: 21; horizontalAlignment: Text.AlignHCenter }
-                                SuiteButton { colors: window.colors; anchors.horizontalCenter: parent.horizontalCenter; text: "A  "+window.tr("Sources"); selected: true; onActivated: controller.command("sources") }
+                                Text { font.family: window.fontFamily; width: parent.width; text: window.state.scanning?window.tr("Scanning…"):window.tr("Nothing here yet"); color: window.ink; font.pixelSize: 30; horizontalAlignment: Text.AlignHCenter }
+                                Text { font.family: window.fontFamily; width: parent.width; text: window.tr("Choose a folder in Sources, or switch to another collection."); wrapMode: Text.Wrap; color: window.muted; font.pixelSize: 21; horizontalAlignment: Text.AlignHCenter }
+                                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; anchors.horizontalCenter: parent.horizontalCenter; text: "A  "+window.tr("Sources"); selected: true; onActivated: controller.command("sources") }
                             }
                         }
                     }
@@ -153,17 +155,18 @@ Window {
                     visible: window.state.app==="music" || window.state.app==="games"
                     Layout.preferredWidth: window.width<1100?230:290; Layout.maximumWidth: window.width<1100?230:290; Layout.fillWidth: false; Layout.fillHeight: true; spacing: 16
                     Rectangle { Layout.fillWidth: true; height: 1; color: window.colors.divider }
-                    Text { text: window.state.app==="music"?window.tr("Now playing"):window.tr("Selected game"); color: window.muted; font.pixelSize: 18 }
-                    Artwork { colors: window.colors; Layout.fillWidth: true; Layout.preferredHeight: 170; cover: window.state.app==="music"?(window.state.current.cover||""):((window.cardModel.find(x=>x.id===window.state.selected)||{}).cover||""); kind: window.state.app }
-                    Text { Layout.fillWidth: true; text: window.state.app==="music"?(window.state.current.title||window.tr("Choose a track")):((window.cardModel.find(x=>x.id===window.state.selected)||{}).title||""); wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight; color: window.ink; font.pixelSize: 25 }
-                    Text { visible: window.state.app==="music"; text: window.time((window.state.media||{}).position)+" / "+window.time((window.state.media||{}).duration); color: window.muted; font.pixelSize: 19 }
-                    SuiteButton { colors: window.colors; visible: window.state.app==="music" && !!window.state.current.id; text: window.tr("Now playing"); onActivated: controller.command("now-playing") }
+                    Text { font.family: window.fontFamily; text: window.state.app==="music"?window.tr("Now playing"):window.tr("Selected game"); color: window.muted; font.pixelSize: 18 }
+                    Artwork { fontFamily: window.fontFamily; colors: window.colors; Layout.fillWidth: true; Layout.preferredHeight: 170; cover: window.state.app==="music"?(window.state.current.cover||""):((window.cardModel.find(x=>x.id===window.state.selected)||{}).cover||""); kind: window.state.app }
+                    Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.app==="music"?(window.state.current.title||window.tr("Choose a track")):((window.cardModel.find(x=>x.id===window.state.selected)||{}).title||""); wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight; color: window.ink; font.pixelSize: 25 }
+                    Text { font.family: window.fontFamily; visible: window.state.app==="music"; text: window.time((window.state.media||{}).position)+" / "+window.time((window.state.media||{}).duration); color: window.muted; font.pixelSize: 19 }
+                    SuiteButton { fontFamily: window.fontFamily; colors: window.colors; visible: window.state.app==="music" && !!window.state.current.id; text: window.tr("Now playing"); onActivated: controller.command("now-playing") }
                     Item { Layout.fillHeight: true }
-                    Text { Layout.fillWidth: true; text: window.state.app==="music"?window.tr("Playback continues while browsing."):window.tr("Ctrl+Alt+M opens the game menu."); wrapMode: Text.Wrap; color: window.muted; font.pixelSize: 18 }
+                    Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.app==="music"?window.tr("Playback continues while browsing."):window.tr("Ctrl+Alt+M opens the game menu."); wrapMode: Text.Wrap; color: window.muted; font.pixelSize: 18 }
                 }
             }
             Loader {
                 id: surface; anchors.fill: parent
+                objectName: "appSurface"
                 Component.onCompleted: setSource(["music","video"].indexOf(window.state.app)>=0?"MediaSurface.qml":window.state.app==="browser"?"BrowserSurface.qml":window.state.app==="reader"?"ReaderSurface.qml":"GameSurface.qml", {host: window, colors: window.colors})
                 visible: ["library","album"].indexOf(window.state.page)<0
             }
@@ -179,12 +182,12 @@ Window {
                     delegate: Row {
                         required property var modelData
                         spacing: 7
-                        Rectangle { width: 28; height: 28; radius: 14; color: parent.modelData[0]==="A"?window.accent:"transparent"; border.color: window.colors.keyBorder; Text{anchors.centerIn:parent;text:parent.parent.modelData[0];font.pixelSize:18;color:parent.parent.modelData[0]==="A"?window.colors.accentText:window.ink} }
-                        Text { text: parent.modelData[1]; color: window.muted; font.pixelSize: 19 }
+                        Rectangle { width: 28; height: 28; radius: 14; color: parent.modelData[0]==="A"?window.accent:"transparent"; border.color: window.colors.keyBorder; Text{ font.family: window.fontFamily;anchors.centerIn:parent;text:parent.parent.modelData[0];font.pixelSize:18;color:parent.parent.modelData[0]==="A"?window.colors.accentText:window.ink} }
+                        Text { font.family: window.fontFamily; text: parent.modelData[1]; color: window.muted; font.pixelSize: 19 }
                     }
                 }
                 Item { Layout.fillWidth: true }
-                Text { text: window.state.page==="document"?window.tr("L / R  Page"):window.tr("L / R  Tabs"); color: window.muted; font.pixelSize: 18 }
+                Text { font.family: window.fontFamily; text: window.state.page==="document"?window.tr("L / R  Page"):window.tr("L / R  Tabs"); color: window.muted; font.pixelSize: 18 }
             }
         }
     }
@@ -193,7 +196,7 @@ Window {
         anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom; anchors.bottomMargin: 76
         width: Math.min(parent.width-60,1000); height: toast.implicitHeight+24; radius: 8
         color: window.state.error?window.colors.errorSurface:window.colors.toast; border.color: window.colors.toastBorder; z: 5
-        Text { id: toast; anchors.fill: parent; anchors.margins: 12; text: window.state.error||window.state.saveError||window.state.notice||(window.state.sourceErrors||[]).join("\n"); wrapMode: Text.Wrap; color: window.state.error && window.colors.dark ? window.colors.error : window.ink; font.pixelSize: 20; maximumLineCount: 4; elide: Text.ElideRight }
+        Text { font.family: window.fontFamily; id: toast; anchors.fill: parent; anchors.margins: 12; text: window.state.error||window.state.saveError||window.state.notice||(window.state.sourceErrors||[]).join("\n"); wrapMode: Text.Wrap; color: window.state.error && window.colors.dark ? window.colors.error : window.ink; font.pixelSize: 20; maximumLineCount: 4; elide: Text.ElideRight }
     }
     Item {
         id: keys; anchors.fill: parent; focus: true
@@ -211,9 +214,9 @@ Window {
             radius: 16; color: window.colors.dialog; border.color: window.colors.dialogBorder
             ColumnLayout {
                 id: modalContents; anchors.fill: parent; anchors.margins: 24; spacing: 16
-                Text { Layout.fillWidth: true; text: window.state.menu.title||""; font.pixelSize: 30; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
-                Text { Layout.fillWidth: true; visible: !!window.state.menu.body; text: window.state.menu.body||""; font.pixelSize: 21; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: 5; elide: Text.ElideRight }
-                TextField { palette: window.colors.controls;
+                Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.menu.title||""; font.pixelSize: 30; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
+                Text { font.family: window.fontFamily; Layout.fillWidth: true; visible: !!window.state.menu.body; text: window.state.menu.body||""; font.pixelSize: 21; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: 5; elide: Text.ElideRight }
+                TextField { font.family: window.fontFamily; palette: window.colors.controls;
                     id: draft; visible: !!window.state.menu.input; Layout.fillWidth: true
                     font.pixelSize: 23; color: window.ink; selectByMouse: true
                     background: Rectangle { color: window.colors.input; radius: 8; border.width: 2; border.color: window.accent }
@@ -236,13 +239,13 @@ Window {
                         opacity: modelData.disabled?0.45:1
                         Column {
                             id: optionContents; anchors.verticalCenter: parent.verticalCenter; x: 14; width: parent.width-28; spacing: 4
-                            Text { width: parent.width; text: modelData.title; color: window.ink; wrapMode: Text.Wrap; font.pixelSize: 22 }
-                            Text { width: parent.width; visible: !!modelData.subtitle; text: modelData.subtitle; color: window.muted; wrapMode: Text.Wrap; font.pixelSize: 17 }
+                            Text { font.family: window.fontFamily; width: parent.width; text: modelData.title; color: window.ink; wrapMode: Text.Wrap; font.pixelSize: 22 }
+                            Text { font.family: window.fontFamily; width: parent.width; visible: !!modelData.subtitle; text: modelData.subtitle; color: window.muted; wrapMode: Text.Wrap; font.pixelSize: 17 }
                         }
                         MouseArea { anchors.fill: parent; enabled: !parent.modelData.disabled; onClicked: controller.choose(parent.index) }
                     }
                 }
-                Text { text: window.tr("A / Enter  Confirm    B / Esc  Back"); color: window.muted; font.pixelSize: 18 }
+                Text { font.family: window.fontFamily; text: window.tr("A / Enter  Confirm    B / Esc  Back"); color: window.muted; font.pixelSize: 18 }
             }
         }
     }
