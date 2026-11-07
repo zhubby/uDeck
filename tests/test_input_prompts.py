@@ -1,7 +1,12 @@
 import hashlib
 import json
+import os
 import struct
+import subprocess
+import sys
 from pathlib import Path
+
+import pytest
 
 
 def test_kenney_resources_are_bundled_with_provenance_and_license():
@@ -22,3 +27,17 @@ def test_kenney_resources_are_bundled_with_provenance_and_license():
         if name.endswith(".png"):
             assert content[:8] == b"\x89PNG\r\n\x1a\n", name
             assert struct.unpack(">II", content[16:24]) == (128, 128), name
+
+
+@pytest.mark.parametrize("scale", ["1", "1.5", "2"])
+def test_small_prompts_preserve_smooth_edges_on_software_renderer(tmp_path, scale):
+    result = subprocess.run(
+        [sys.executable, "tests/input_prompts_qml_probe.py", str(tmp_path)],
+        env={**os.environ, "QT_QPA_PLATFORM": "offscreen", "QT_QUICK_BACKEND": "software",
+             "QT_SCALE_FACTOR": scale},
+        capture_output=True, text=True, timeout=30,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    report = json.loads(result.stdout.strip().splitlines()[-1])
+    assert report["devicePixelRatio"] == float(scale)
+    assert report["iconsChecked"] == 28

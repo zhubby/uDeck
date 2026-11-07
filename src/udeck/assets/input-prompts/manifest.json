@@ -5,7 +5,7 @@
   "archiveSha256": "ac2fcf599080b0f3ba2d174c9474db6df1a0e96ff0662580e2da79a122ab78a1",
   "downloadedAt": "2026-11-07",
   "license": "CC0-1.0",
-  "variant": "Double (128x128 PNG)",
+  "variant": "Double (128x128 PNG); circular uDeck adaptations for X/Y",
   "files": {
     "keyboard_arrows.png": {
       "kit": "Keyboard & Mouse",
@@ -142,14 +142,40 @@
     "gamecube_button_x.png": {
       "kit": "Nintendo Gamecube",
       "archivePath": "Nintendo Gamecube/Double/gamecube_button_x.png",
-      "sha256": "dba4ecb7aef535f194907bc740401e68d79948f06a70a8bcbd26cc4795fe7abe",
-      "bytes": 702
+      "sha256": "bfc7f56c4c8f943f2adc15bd77affb5bd87e4781613ca11c2c01c83ddc556c3a",
+      "bytes": 1732,
+      "modified": true,
+      "upstreamSha256": "dba4ecb7aef535f194907bc740401e68d79948f06a70a8bcbd26cc4795fe7abe",
+      "transformation": "Use the original circular B silhouette with its letter cutout filled; apply the original X/Y alpha cutout without moving, scaling or redrawing the letter.",
+      "derivedFrom": [
+        {
+          "archivePath": "Nintendo Gamecube/Double/gamecube_button_b.png",
+          "sha256": "8fb40910582d1ebcdef9471aecef72ae5afad807a6232914f1df80c0bd338efd"
+        },
+        {
+          "archivePath": "Nintendo Gamecube/Double/gamecube_button_x.png",
+          "sha256": "dba4ecb7aef535f194907bc740401e68d79948f06a70a8bcbd26cc4795fe7abe"
+        }
+      ]
     },
     "gamecube_button_y.png": {
       "kit": "Nintendo Gamecube",
       "archivePath": "Nintendo Gamecube/Double/gamecube_button_y.png",
-      "sha256": "fc5312ea1dfa7b7df66ccf4d95b7acef7a1a267f5f9544164f171bfab5381763",
-      "bytes": 631
+      "sha256": "87e330c3bd3c06d4492fd455165e9bb8cb57a8efb0f5e91304850f3cca7b701c",
+      "bytes": 1631,
+      "modified": true,
+      "upstreamSha256": "fc5312ea1dfa7b7df66ccf4d95b7acef7a1a267f5f9544164f171bfab5381763",
+      "transformation": "Use the original circular B silhouette with its letter cutout filled; apply the original X/Y alpha cutout without moving, scaling or redrawing the letter.",
+      "derivedFrom": [
+        {
+          "archivePath": "Nintendo Gamecube/Double/gamecube_button_b.png",
+          "sha256": "8fb40910582d1ebcdef9471aecef72ae5afad807a6232914f1df80c0bd338efd"
+        },
+        {
+          "archivePath": "Nintendo Gamecube/Double/gamecube_button_y.png",
+          "sha256": "fc5312ea1dfa7b7df66ccf4d95b7acef7a1a267f5f9544164f171bfab5381763"
+        }
+      ]
     },
     "gamecube_trigger_l.png": {
       "kit": "Nintendo Gamecube",

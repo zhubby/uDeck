@@ -4,7 +4,7 @@ uDeck 是面向 1280×720 横屏 uConsole 的原生 Qt Quick 桌面壳：方向�
 
 基于现有 Debian 13 / labwc / Wayland 添加**独立可选会话**，不刷镜像、不改驱动、不替换合成器。软件包不修改原桌面配置或默认登录项；开机自动进入 uDeck 通过单独授权的配置工具开启。第三方应用使用自身焦点系统，Y 菜单切换按键、指针或原生输入模式。
 
-当前基础包版本：**0.1.11**，原生应用包与独立终端均为 **0.1.4**。默认英文与经典主题，可在设置中切换简体中文及黑暗主题；英文界面使用 Saira Semi Condensed，中文界面使用 LXGW WenKai Screen（霞鹜文楷屏幕阅读版）。支持内置与 USB 多无线网卡分别管理，包含第三方应用手柄兼容层。完整兼容层仅在独立 uDeck 会话启用；自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
+当前基础包版本：**0.1.12**，原生应用包与独立终端均为 **0.1.4**。默认英文与经典主题，可在设置中切换简体中文及黑暗主题；英文界面使用 Saira Semi Condensed，中文界面使用 LXGW WenKai Screen（霞鹜文楷屏幕阅读版）。支持内置与 USB 多无线网卡分别管理，包含第三方应用手柄兼容层。完整兼容层仅在独立 uDeck 会话启用；自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
 
 ## 桌面功能
 
@@ -43,7 +43,7 @@ QT_QPA_PLATFORM=offscreen PYTHONPATH=src .venv/bin/python -m udeck.main \
 
 ```sh
 sh tools/build-deb
-sudo apt-get install ./dist/udeck_0.1.11_arm64.deb
+sudo apt-get install ./dist/udeck_0.1.12_arm64.deb
 udeck --windowed
 udeckctl doctor --json
 ```
@@ -74,6 +74,7 @@ sudo python3 tools/configure-login.py --user "$(id -un)"
 - [0.1.9 全局主题、配色与验证记录](docs/udeck/themes-2026-11-07.md)
 - [0.1.10 中英文字体、离线资源与验证记录](docs/udeck/fonts-2026-11-07.md)
 - [全局按键图标规范：Kenney Keyboard & Mouse + Nintendo Gamecube](docs/design/input-prompts.md)
+- [0.1.12 圆形 X/Y 与按键平滑缩放验证](docs/udeck/input-prompts-round-2026-11-07.md)
 - [uDeck Terminal：构建、按键、输入交接、默认终端与恢复](docs/udeck/terminal.md)
 - [uDeck Terminal：CM4 安装验收与待验项目](docs/udeck/terminal-acceptance-2026-11-06.md)
 

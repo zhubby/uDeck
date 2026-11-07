@@ -1,5 +1,7 @@
 # uDeck 0.1.11 按键图标
 
+后续 0.1.12 将 X/Y 适配为圆形，并修正软件渲染路径的小尺寸缩放；见 [圆形按键与平滑缩放修正](input-prompts-round-2026-11-07.md)。以下保留 0.1.11 的交付记录。
+
 启动器、五个原生应用、终端和应用设计原型统一使用 Kenney Input Prompts 的 **Keyboard & Mouse + Nintendo Gamecube**。ABXY / L / R 使用 GameCube 图形；Enter、Esc、方向键、修饰键和鼠标提示使用 Keyboard & Mouse。动作文字继续随中英文切换，保留 Saira Semi Condensed 与 LXGW WenKai Screen 字体以及两套主题。
 
 全局规则已写入 [按键图标规范](../design/input-prompts.md)，并从应用交互规范、设计入口和项目 README 链接。规范明确素材组合、原始配色、逻辑按钮映射、24–36px 图标尺寸、组合键 `+`、可替代键 `/`、换行、无障碍和验收要求。

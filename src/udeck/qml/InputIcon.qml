@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 import QtQuick
+import QtQuick.Window
 
 Image {
     objectName: "inputPromptIcon"
@@ -8,7 +9,10 @@ Image {
     width: iconSize
     height: iconSize
     source: keyId ? Qt.resolvedUrl("../assets/input-prompts/" + keyId + ".png") : ""
-    sourceSize: Qt.size(128, 128)
+    // Pre-filter PNGs at their physical display size. Software rendering does
+    // not use mipmaps, so scaling the full-size texture leaves jagged edges.
+    sourceSize: Qt.size(Math.ceil(width * Screen.devicePixelRatio),
+                        Math.ceil(height * Screen.devicePixelRatio))
     fillMode: Image.PreserveAspectFit
     smooth: true
     mipmap: true
