@@ -51,6 +51,23 @@ def test_lr_are_shoulder_edges_and_pointer_motion_is_discarded(pointer_device):
     assert ownership == ["grab"]
 
 
+def test_shoulder_test_edges_release_on_keyup_sync_loss_and_unplug(pointer_device):
+    guard, device, events, _ = pointer_device
+    edges = []
+    guard.button.connect(lambda action, pressed: edges.append((action, pressed)))
+    guard.start()
+    events[:] = [SimpleNamespace(type=1, code=272, value=value) for value in (1, 2, 1, 0)]
+    guard._read(device.path)
+    assert edges == [("previous-page", True), ("previous-page", False)]
+    events[:] = [SimpleNamespace(type=1, code=273, value=1), SimpleNamespace(type=0, code=3, value=0)]
+    guard._read(device.path)
+    assert edges[-2:] == [("next-page", True), ("next-page", False)]
+    events[:] = [SimpleNamespace(type=0, code=0, value=0), SimpleNamespace(type=1, code=272, value=1)]
+    guard._read(device.path)
+    guard._remove(device.path)
+    assert edges[-2:] == [("previous-page", True), ("previous-page", False)]
+
+
 def test_mouse_remains_blocked_when_third_party_app_has_focus(pointer_device):
     guard, device, events, ownership = pointer_device
     actions = []

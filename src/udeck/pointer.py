@@ -7,6 +7,7 @@ from .input import STOCK_FINGERPRINT
 class PointerGuard(QObject):
     action = Signal(str)
     shoulder = Signal(str)
+    button = Signal(str, bool)
     status = Signal(object)
 
     def __init__(self, parent=None, *, built_in_only=False):
@@ -86,6 +87,7 @@ class PointerGuard(QObject):
         try:
             for event in entry["device"].read():
                 if event.type == 0 and event.code == 3:
+                    self._release_buttons(entry)
                     entry["syncing"] = True
                     continue
                 if entry["syncing"]:
@@ -96,11 +98,14 @@ class PointerGuard(QObject):
                 if event.type != 1:
                     continue
                 if event.value == 0:
+                    if event.code in entry["pressed"] and entry["shoulders"] and event.code in (272, 273):
+                        self.button.emit("previous-page" if event.code == 272 else "next-page", False)
                     entry["pressed"].discard(event.code)
                 elif event.value == 1 and event.code not in entry["pressed"]:
                     entry["pressed"].add(event.code)
                     if entry["shoulders"] and event.code in (272, 273):
                         action = "previous-page" if event.code == 272 else "next-page"
+                        self.button.emit(action, True)
                         self.shoulder.emit(action)
                         if self.foreground:
                             self.action.emit(action)
@@ -112,6 +117,7 @@ class PointerGuard(QObject):
 
     def _remove(self, path):
         entry = self.devices.pop(path)
+        self._release_buttons(entry)
         entry["notifier"].setEnabled(False)
         entry["notifier"].deleteLater()
         try:
@@ -119,6 +125,12 @@ class PointerGuard(QObject):
         except OSError:
             pass
         entry["device"].close()
+
+    def _release_buttons(self, entry):
+        if entry["shoulders"]:
+            for code in sorted(entry["pressed"] & {272, 273}):
+                self.button.emit("previous-page" if code == 272 else "next-page", False)
+        entry["pressed"].clear()
 
     def close(self):
         self.timer.stop()

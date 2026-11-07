@@ -28,7 +28,7 @@ Window {
     property color muted: window.colors.muted
     property color accent: window.colors.accent
     property string lastDialog: ""
-    property string clockText: Qt.formatTime(new Date(), "hh:mm")
+    property string clockText: controller.currentTime()
 
     onActiveChanged: controller.windowActive(active)
     onClosing: function(event) {
@@ -39,6 +39,7 @@ Window {
     }
 
     function syncView() {
+        window.clockText = controller.currentTime()
         const keepScroll = renderedTheme !== "" && renderedTheme !== viewState.theme && renderedPage === viewState.page
         const gridY = applicationGrid.contentY
         const listY = itemList.contentY
@@ -77,10 +78,10 @@ Window {
     Component.onCompleted: syncView()
 
     Timer {
-        interval: 30000
+        interval: 1000
         running: true
         repeat: true
-        onTriggered: window.clockText = Qt.formatTime(new Date(), "hh:mm")
+        onTriggered: window.clockText = controller.currentTime()
     }
 
     Connections {
@@ -410,6 +411,14 @@ Window {
 
                     Text { visible: !!dialog.error; width: parent.width; text: dialog.error || ""; textFormat: Text.PlainText; font.family: window.fontFamily; font.pixelSize: 22; color: window.colors.error; wrapMode: Text.Wrap; maximumLineCount: 2 }
 
+                    KeyTestPanel {
+                        visible: dialog.kind === "key-test"
+                        width: parent.width
+                        colors: window.colors; fontFamily: window.fontFamily; state: dialog
+                        translate: window.tr
+                        reducedMotion: viewState.reducedMotion || false
+                    }
+
                     TextField { palette: window.colors.controls;
                         id: editor
                         visible: dialog.kind === "text"
@@ -453,12 +462,12 @@ Window {
                     InputHints {
                         id: modalFooter; width: parent.width
                         fontFamily: window.fontFamily; textColor: window.muted; fontSize: 22
-                        hints: dialog.kind === "calibration" ? [{keys: ["keyboard_escape"], label: window.tr("取消")}] : [
+                        hints: dialog.kind === "key-test" ? [{keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr("Hold 1.2 s to return")}] : dialog.kind === "calibration" ? [{keys: ["keyboard_escape"], label: window.tr("取消")}] : [
                             {keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr("确认")},
                             {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(dialog.kind === "text" ? "取消" : "返回")}].concat(dialog.kind === "text" && dialog.secret ? [
                             {keys: ["gamecube_button_x"], label: window.tr(dialog.reveal ? "Hide password" : "Show password")} ] : [])
                     }
-                    Text { textFormat: Text.PlainText; id: modalToast; visible: !!viewState.toast; width: parent.width; text: viewState.toast; font.family: window.fontFamily; font.pixelSize: 24; color: window.accent; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
+                    Text { textFormat: Text.PlainText; id: modalToast; visible: !!viewState.toast; width: parent.width; text: viewState.toast; font.family: window.fontFamily; font.pixelSize: 24; color: window.accent; wrapMode: Text.Wrap; maximumLineCount: dialog.kind === "key-test" ? 1 : 3; elide: Text.ElideRight }
                 }
             }
         }

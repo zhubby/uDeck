@@ -39,6 +39,7 @@ class ButtonState:
 class Gamepad(QObject):
     action = Signal(str)
     button = Signal(str, bool)
+    direction = Signal(str, bool)
     captured = Signal(int)
     axisCaptured = Signal(str)
     status = Signal(object)
@@ -54,6 +55,7 @@ class Gamepad(QObject):
         self._load_profile(self.profile)
         self.axis_actions = {}
         self.axis_positions = {}
+        self.pressed_directions = set()
         self.held_direction = None
         self.repeat = QTimer(self)
         self.repeat.timeout.connect(self._repeat_direction)
@@ -181,7 +183,14 @@ class Gamepad(QObject):
 
     def _update_direction(self):
         key_directions = [self.router.mapping.get(code) for code in sorted(self.router.pressed)]
-        direction = next((value for value in key_directions + list(self.axis_actions.values()) if value in DIRECTIONS), None)
+        all_directions = key_directions + list(self.axis_actions.values())
+        current = {value for value in all_directions if value in DIRECTIONS}
+        for value in sorted(self.pressed_directions - current):
+            self.direction.emit(value, False)
+        for value in sorted(current - self.pressed_directions):
+            self.direction.emit(value, True)
+        self.pressed_directions = current
+        direction = next((value for value in all_directions if value in DIRECTIONS), None)
         if direction != self.held_direction:
             self.held_direction = direction
             self.repeat.stop()
@@ -204,6 +213,12 @@ class Gamepad(QObject):
 
     def _close(self):
         self.repeat.stop()
+        for code in sorted(self.router.pressed):
+            if self.router.mapping.get(code):
+                self.button.emit(self.router.mapping[code], False)
+        for action in sorted(self.pressed_directions):
+            self.direction.emit(action, False)
+        self.pressed_directions.clear()
         self.router.reset()
         self.axis_actions.clear()
         self.axis_positions.clear()

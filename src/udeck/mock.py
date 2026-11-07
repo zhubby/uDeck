@@ -32,6 +32,7 @@ def initial_state():
         "audio": {"available": False, "volume": 0, "muted": False, "outputs": [], "inputs": [], "cards": []},
         "brightness": {"available": False, "value": 0},
         "battery": {"available": False, "capacity": 0, "charging": False},
+        "timezone": {"available": False, "current": "", "zones": []},
     }
 
 
@@ -47,6 +48,9 @@ class MockBackend(QObject):
         self.actions = []
         self.state = initial_state()
         self.state.update({
+            "timezone": {"available": True, "current": "Asia/Shanghai", "zones": [
+                "America/Los_Angeles", "America/New_York", "Asia/Hong_Kong", "Asia/Shanghai", "Asia/Tokyo",
+                "Australia/Sydney", "Etc/UTC", "Europe/Berlin", "Europe/London", "Pacific/Auckland"]},
             "wifi": {"available": True, "enabled": True, "devices": [
                 {"id": "builtin", "name": tr('内置无线网卡'), "interface": "wlan0", "kind": "builtin",
                  "available": True, "managed": True, "deviceState": 100, "connected": "Workshop", "strength": 92, "activeProfile": "workshop-profile",
@@ -91,7 +95,12 @@ class MockBackend(QObject):
     def request(self, action, payload=None):
         self.actions.append(action)
         payload = payload or {}
-        if action == "volume":
+        if action == "timezone_set":
+            if payload.get("timezone") not in self.state["timezone"]["zones"]:
+                self.operationFailed.emit(action, tr("Invalid time zone"))
+                return
+            self.state["timezone"]["current"] = payload["timezone"]
+        elif action == "volume":
             for output in self.state["audio"]["outputs"]:
                 if output["id"] == payload.get("id") or ("id" not in payload and output["active"]):
                     output["volume"] = max(0, min(1, payload["value"]))

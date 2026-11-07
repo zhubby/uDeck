@@ -142,6 +142,22 @@ def test_gamepad_reports_real_press_and_release_for_application_drag(stock_gamep
     assert edges == [('accept', True), ('accept', False)]
 
 
+def test_direction_edges_include_diagonals_and_release_on_disconnect(stock_gamepad):
+    gamepad, _, _ = stock_gamepad
+    edges = []
+    gamepad.direction.connect(lambda action, pressed: edges.append((action, pressed)))
+    gamepad.axis_actions = {0: "left", 1: "up"}
+    gamepad._update_direction()
+    gamepad._update_direction()
+    assert edges == [("left", True), ("up", True)]
+    gamepad.axis_actions[0] = "right"
+    gamepad._update_direction()
+    assert edges[-2:] == [("left", False), ("right", True)]
+    gamepad._close()
+    assert edges[-2:] == [("right", False), ("up", False)]
+    assert not gamepad.pressed_directions
+
+
 def test_unknown_buttons_do_not_become_keyboard_shortcuts():
     router = ButtonState({289: "accept"})
     assert router.key(30, 1) is None

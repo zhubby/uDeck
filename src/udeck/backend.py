@@ -16,6 +16,7 @@ from .audio import AUDIO_ACTIONS, audio_state
 from .battery import read_battery
 from .i18n import error_text, tr
 from .mock import initial_state
+from .timezone import TIMEDATE, TIMEDATE_PATH
 from .wifi import wifi_label
 from .wifi_backend import NETWORK_CANCEL, NM, NM_ROOT, WifiBackend, unwrap, validate_wifi_password
 
@@ -133,6 +134,9 @@ class SystemBackend(WifiBackend, QObject):
         self.wifi_operation_lock = asyncio.Lock()
         self.audio_refresh_lock = asyncio.Lock()
         self.audio_operation_lock = asyncio.Lock()
+        self.timezone_operation_lock = asyncio.Lock()
+        self.timezone_refresh_lock = asyncio.Lock()
+        self.timezones = []
         self._init_wifi()
         self.processes = set()
         self.closing = False
@@ -186,11 +190,13 @@ class SystemBackend(WifiBackend, QObject):
                 "type='signal',interface='org.freedesktop.DBus',member='NameOwnerChanged',arg0='org.bluez'",
                 "type='signal',interface='org.freedesktop.DBus',member='NameOwnerChanged',arg0='org.freedesktop.NetworkManager'",
                 "type='signal',sender='org.freedesktop.login1'",
+                "type='signal',sender='org.freedesktop.timedate1'",
+                "type='signal',interface='org.freedesktop.DBus',member='NameOwnerChanged',arg0='org.freedesktop.timedate1'",
             ):
                 await self.call("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "AddMatch", "s", [rule])
             self.bus.export("/io/github/zhubby/uDeck/BluezAgent", self.bluetooth_agent)
             self.bus.export("/org/freedesktop/NetworkManager/SecretAgent", self.network_agent)
-            await asyncio.gather(self.refresh_wifi(), self.refresh_bluetooth())
+            await asyncio.gather(self.refresh_wifi(), self.refresh_bluetooth(), self.refresh_timezone())
             if os.environ.get('UDECK_SESSION') == '1':
                 await self.refresh_session()
                 self.loop.create_task(self._session_timer())
@@ -215,13 +221,18 @@ class SystemBackend(WifiBackend, QObject):
         elif (message.path or '').startswith('/org/freedesktop/login1') and os.environ.get('UDECK_SESSION') == '1':
             self.schedule_refresh('session')
         elif message.member == "NameOwnerChanged":
-            if message.body[0] == BLUEZ:
+            if message.body[0] == TIMEDATE:
+                self.timezones = []
+                self.schedule_refresh("timezone")
+            elif message.body[0] == BLUEZ:
                 self.agent_registered = False
                 self.schedule_refresh("bluetooth")
             elif message.body[0] == NM:
                 self.network_agent_registered = False
                 self._reset_wifi()
                 self.schedule_refresh("wifi")
+        elif message.path == TIMEDATE_PATH:
+            self.schedule_refresh("timezone")
         elif (message.path or "").startswith(NM_ROOT):
             if message.member == "DeviceRemoved" and message.body:
                 self.cancel_prompts("network", device_id=message.body[0])
@@ -278,6 +289,38 @@ class SystemBackend(WifiBackend, QObject):
         # Python object signals preserve deferred messages. Detach the payload
         # so queued UI deliveries cannot share mutable service state.
         self.updated.emit(deepcopy({component: value}))
+
+    async def refresh_timezone(self):
+        async with self.timezone_refresh_lock:
+            previous = self.state["timezone"]
+            try:
+                current = await self.get(TIMEDATE, TIMEDATE_PATH, TIMEDATE, "Timezone")
+                if not self.timezones:
+                    self.timezones = sorted(set((await self.call(TIMEDATE, TIMEDATE_PATH, TIMEDATE, "ListTimezones"))[0]))
+                value = {"available": True, "current": current, "zones": self.timezones}
+            except Exception as error:
+                value = {**previous, "available": False, "error": tr("Time zone service unavailable: {error}", error=error_text(error))}
+            if value != previous:
+                self.publish("timezone", value)
+            return value["available"]
+
+    async def _set_timezone(self, payload):
+        zone = payload.get("timezone")
+        if not isinstance(zone, str) or not zone:
+            raise ValueError(tr("Invalid time zone"))
+        if not await self.refresh_timezone():
+            raise RuntimeError(self.state["timezone"]["error"])
+        if zone not in self.timezones:
+            raise ValueError(tr("Invalid time zone"))
+        if zone == self.state["timezone"]["current"]:
+            return
+        try:
+            await self.call(TIMEDATE, TIMEDATE_PATH, TIMEDATE, "SetTimezone", "sb", [zone, True], timeout=120)
+        except Exception as error:
+            await self.refresh_timezone()
+            raise RuntimeError(tr("Could not change time zone: {error}", error=error_text(error))) from error
+        if not await self.refresh_timezone() or self.state["timezone"]["current"] != zone:
+            raise RuntimeError(tr("Could not verify the new time zone. Check the current system setting."))
 
     async def refresh_bluetooth(self):
         try:
@@ -437,7 +480,10 @@ class SystemBackend(WifiBackend, QObject):
         future.add_done_callback(complete)
 
     async def _execute(self, action, payload):
-        if action == "wifi_cancel_connect":
+        if action == "timezone_set":
+            async with self.timezone_operation_lock:
+                await self._set_timezone(payload)
+        elif action == "wifi_cancel_connect":
             await self._execute_wifi(action, payload)
         elif action.startswith("wifi_"):
             async with self.wifi_operation_lock:
@@ -491,7 +537,7 @@ class SystemBackend(WifiBackend, QObject):
             process = await asyncio.create_subprocess_exec("swayidle", "-w", "timeout", "1", "wlopm --off '*'", "resume", "wlopm --on '*'; kill -TERM \"$PPID\"", stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
             self.processes.add(process)
         elif action == "refresh":
-            await asyncio.gather(self.refresh_wifi(), self.refresh_bluetooth(), self.refresh_audio())
+            await asyncio.gather(self.refresh_wifi(), self.refresh_bluetooth(), self.refresh_audio(), self.refresh_timezone())
             self.refresh_hardware()
         else:
             raise ValueError(tr('未知系统操作'))

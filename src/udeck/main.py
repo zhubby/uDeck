@@ -289,11 +289,15 @@ def main(argv=None):
         }})
     if pointer:
         pointer.action.connect(application_router.action if application_router else controller.dispatch)
+        pointer.button.connect(lambda action, pressed: controller.testButton(action, pressed, "shoulder"))
         pointer.status.connect(controller.input_status)
         controller.foregroundChanged.connect(pointer.set_foreground)
     calibration = {"buttons": {}, "axes": {}, "keyboard": {}, "step": 0}
 
     if gamepad:
+        gamepad.button.connect(lambda action, pressed: controller.testButton(action, pressed, "gamepad")
+                               if action not in ("up", "down", "left", "right") else None)
+        gamepad.direction.connect(lambda action, pressed: controller.testButton(action, pressed, "gamepad"))
         gamepad.action.connect(application_router.action if application_router else controller.dispatch)
         gamepad.status.connect(controller.input_status)
         controller.foregroundChanged.connect(application_router.window_active if application_router else gamepad.set_foreground)
@@ -354,6 +358,9 @@ def main(argv=None):
         controller.close()
         return 2
     window = engine.rootObjects()[0]
+    from .key_test import KeyTestFilter
+
+    key_test_filter = KeyTestFilter(controller, window)
 
     def first_frame():
         if control.first_frame is None:
@@ -393,6 +400,7 @@ def main(argv=None):
     elif options.smoke_test:
         QTimer.singleShot(2000, application.quit)
     result = application.exec()
+    window.removeEventFilter(key_test_filter)
     if application_router:
         application_router.close()
     if direction_reader:

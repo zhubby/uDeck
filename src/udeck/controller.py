@@ -14,7 +14,9 @@ from .core import PAGE_NAMES, PAGES, ConfigStore, Navigation, move_index
 from .desktop import DesktopCatalog, open_terminal
 from .files import FileOperations
 from .i18n import LANGUAGES, error_text, render, tr
+from .key_test import KeyTestControls
 from .mock import mock_apps
+from .timezone import REGIONS, local_clock, region, zone_label, zone_summary
 from .wifi import wifi_indicators, wifi_label, wifi_status, wifi_summary
 from .wifi_controller import WifiControls
 
@@ -22,7 +24,7 @@ CATEGORY_NAMES = {"All": tr('全部应用'), "Development": tr('开发'), "Netwo
                   "Utility": tr('工具'), "Game": tr('游戏'), "Graphics": tr('图形'), "Office": tr('办公'), "AudioVideo": tr('影音'), "Other": tr('其他')}
 
 
-class ShellController(WifiControls, QObject):
+class ShellController(KeyTestControls, WifiControls, QObject):
     changed = Signal()
     present = Signal()
     calibrationRequested = Signal()
@@ -51,6 +53,7 @@ class ShellController(WifiControls, QObject):
         self.category = saved_category if saved_category in CATEGORY_NAMES else "All"
         self._modals = []
         self._text = ""
+        self._init_key_test()
         self.toast = ""
         self.busy = False
         self.busy_label = ""
@@ -114,8 +117,10 @@ class ShellController(WifiControls, QObject):
             {"id": "bluetooth", "name": tr('蓝牙'), "subtitle": tr('已开启') if bluetooth.get("powered") else tr('已关闭'), "icon": "bluetooth", "disabled": not bluetooth.get("available")},
             {"id": "battery", "name": tr('电池'), "subtitle": battery_summary(battery), "icon": "battery"},
             {"id": "input", "name": tr('按键与控制器'), "subtitle": tr('ABXY 已校准') if self.data["input"].get("verified") else (tr('ABXY 固件映射 · 可重新校准') if self.data["input"].get("mapped") else tr('校准物理 ABXY；不占用普通键盘字母')), "icon": "input-gaming"},
+            {"id": "key-test", "name": tr('Key test'), "subtitle": tr('Live button and keyboard feedback'), "icon": "input-gaming"},
             {"id": "language", "name": tr('语言'), "subtitle": LANGUAGES[self.language], "icon": "preferences-desktop-locale"},
             {"id": "theme", "name": tr('Theme'), "subtitle": THEMES[self.theme], "icon": "preferences-desktop-theme"},
+            {"id": "timezone", "name": tr('Time zone'), "subtitle": zone_summary(self.data["timezone"]), "icon": "preferences-system-time"},
             {"id": "lock", "name": tr('锁定屏幕'), "subtitle": tr('使用登录密码解锁'), "icon": "system-lock-screen"},
             {"id": "blank", "name": tr('熄灭屏幕'), "subtitle": tr('按方向键或键盘恢复；不是系统休眠'), "icon": "video-display"},
             {"id": "logout", "name": tr('注销会话'), "subtitle": tr('返回登录界面；请先保存工作'), "icon": "system-log-out"},
@@ -132,6 +137,7 @@ class ShellController(WifiControls, QObject):
         return json.dumps(render({
             **self.data, "mock": self.mock, "page": self.navigation.page,
             "language": self.language, "theme": self.theme,
+            "reducedMotion": os.environ.get("UDECK_REDUCED_MOTION") == "1",
             "categoryNames": CATEGORY_NAMES,
             "pageNames": list(PAGE_NAMES), "pages": list(PAGES),
             "title": titles[self.navigation.page], "description": descriptions[self.navigation.page],
@@ -174,7 +180,7 @@ class ShellController(WifiControls, QObject):
         return True
 
     def _quick_options(self):
-        controls = {"volume", "brightness", "output", "microphone", "wifi", "bluetooth", "battery", "input", "language", "theme"}
+        controls = {"volume", "brightness", "output", "microphone", "wifi", "bluetooth", "battery", "input", "key-test", "language", "theme", "timezone"}
         return [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"],
                  "disabled": entry.get("disabled", False)} for entry in self._settings() if entry["id"] in controls] + [
             {"label": tr('电源与会话'), "action": "power-menu"}, {"label": tr('运行中应用'), "action": "switcher"}]
@@ -282,6 +288,9 @@ class ShellController(WifiControls, QObject):
                 options = self._audio_profile_options(cards[modal["cardId"]])
             elif source == "theme":
                 options = self._theme_options()
+            elif source in ("timezone-areas", "timezone-cities"):
+                options = self._timezone_options(modal.get("region"))
+                modal["body"] = self._timezone_body()
             elif source == "quick-settings":
                 options = self._quick_options()
             else:
@@ -307,6 +316,8 @@ class ShellController(WifiControls, QObject):
     @Slot(str, object)
     def _operation_failed(self, action, message):
         self.pending_system.discard(action)
+        if action == "timezone_set":
+            self._refresh_open_menu()
         if action == 'lock':
             self.inputSuspended.emit(False)
         self.notify(message)
@@ -314,6 +325,8 @@ class ShellController(WifiControls, QObject):
     @Slot(str)
     def _system_completed(self, action):
         self.pending_system.discard(action)
+        if action == "timezone_set":
+            self._refresh_open_menu()
         if action == 'lock':
             self.inputSuspended.emit(False)
         if action == "wifi_update_password":
@@ -322,6 +335,8 @@ class ShellController(WifiControls, QObject):
             self.notify(tr("Auto-join preference saved"))
         elif action == "wifi_forget":
             self.notify(tr("Saved configuration forgotten"))
+        elif action == "timezone_set":
+            self.notify(tr("Time zone updated") if not self.mock else tr("Preview time zone updated"))
         elif action not in ("refresh", "bluetooth_stop", "wifi_connect", "wifi_connect_saved", "wifi_reconnect", "wifi_scan", "wifi_cancel_connect"):
             self.notify(tr('预览操作已模拟，未操作真实设备') if self.mock else tr('请求已处理；连接结果以设备状态为准'))
         self._publish()
@@ -350,12 +365,19 @@ class ShellController(WifiControls, QObject):
 
     @Slot(bool)
     def windowActive(self, active):
+        self._test_active = active
+        if not active:
+            self._clear_test_inputs()
         self.foregroundChanged.emit(active)
         if not active and self.data["bluetooth"].get("discovering"):
             self.backend.request("bluetooth_stop")
 
     @Slot(str)
     def dispatch(self, action):
+        if self.modal.get("kind") == "key-test" and action not in ("home", "switcher"):
+            if action == "back" and "back" not in self.modal["pressed"]:
+                self._pop()
+            return
         if self.modal.get("kind") == "calibration" and action in ("up", "down", "left", "right"):
             self.calibrationDirection.emit(action)
             return
@@ -463,7 +485,14 @@ class ShellController(WifiControls, QObject):
 
     @Slot(str)
     def activateSetting(self, identifier):
-        if identifier == "language":
+        if identifier == "key-test":
+            self._open_key_test()
+        elif identifier == "timezone":
+            options = self._timezone_options()
+            current_region = region(self.data["timezone"].get("current", ""))
+            self._menu(tr("Time zone"), options, source="timezone-areas", body=self._timezone_body(),
+                       index=next((i for i, option in enumerate(options) if option["id"] == current_region), 0))
+        elif identifier == "language":
             self._menu(tr('界面语言'), self._language_options(), source="language",
                        index=list(LANGUAGES).index(self.language))
         elif identifier == "theme":
@@ -521,6 +550,33 @@ class ShellController(WifiControls, QObject):
                 self._push({"kind": "information", "title": tr('未检测到独立手柄'), "body": self.data["input"].get("message", tr('请检查手柄模式。若 ABXY 上报 j/k/u/i 字母，请切换设备原有手柄模式；不需要刷写固件。'))})
         self._publish()
 
+    @Slot(result=str)
+    def currentTime(self):
+        return local_clock(self.data["timezone"].get("current", ""))
+
+    def _timezone_body(self):
+        state = self.data["timezone"]
+        if "timezone_set" in self.pending_system:
+            return tr("Changing time zone…")
+        return state.get("error") or tr("Current time zone: {zone}", zone=zone_summary(state))
+
+    def _timezone_options(self, area=None):
+        state = self.data["timezone"]
+        zones = sorted(set(state.get("zones", [])))
+        if area is None:
+            options = [{"id": value, "label": REGIONS.get(value, value), "action": "timezone-region", "region": value,
+                        "subtitle": tr("Current region") if value == region(state.get("current", "")) else ""}
+                       for value in sorted({region(zone) for zone in zones})]
+        else:
+            options = [{"id": zone, "label": zone_label(zone.split("/", 1)[-1] if area != "Other" else zone),
+                        "subtitle": tr("Current time zone") if zone == state.get("current") else zone,
+                        "action": "timezone-set", "timezone": zone,
+                        "disabled": not state.get("available") or "timezone_set" in self.pending_system,
+                        "reason": state.get("error", tr("This request is being processed"))}
+                       for zone in zones if region(zone) == area]
+        return options or [{"id": "unavailable", "label": tr("Time zone service unavailable"),
+                            "subtitle": state.get("error", tr("Not available")), "disabled": True}]
+
     def _audio_endpoint_options(self, inputs=False):
         audio = self.data["audio"]
         entries = audio.get("inputs" if inputs else "outputs", [])
@@ -575,6 +631,8 @@ class ShellController(WifiControls, QObject):
         return options
 
     def _push(self, modal):
+        if self.modal.get("kind") == "key-test":
+            self._clear_test_inputs()
         if modal.get("deviceId"):
             modal.setdefault("wifiEpoch", self.data["wifi"].get("epoch", ""))
         self.navigation.open_modal()
@@ -589,6 +647,8 @@ class ShellController(WifiControls, QObject):
 
     def _remove_modal(self, index, reject=False):
         modal = self._modals.pop(index)
+        if modal.get("kind") == "key-test":
+            self._clear_test_inputs()
         if index < len(self.navigation.modal_owners):
             owner = self.navigation.modal_owners.pop(index)
             if index == len(self._modals):
@@ -630,8 +690,8 @@ class ShellController(WifiControls, QObject):
                 if option.get("disabled"):
                     self.notify(option.get("reason") or tr('此项目当前不可用'))
                     return
-                keep_parent = modal.get("source") == "quick-settings" and option.get("id") == "theme"
-                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "language", "theme", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
+                keep_parent = modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test")
+                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
                     self._pop()
                 self._execute_option(option)
         elif kind == "confirm":
@@ -697,6 +757,20 @@ class ShellController(WifiControls, QObject):
             self.setLanguage(option["language"])
         elif action == "theme":
             self.setTheme(option["theme"])
+        elif action == "timezone-region":
+            area = option["region"]
+            options = self._timezone_options(area)
+            self._menu(REGIONS.get(area, area), options, source="timezone-cities", region=area,
+                       body=self._timezone_body(), index=next((i for i, item in enumerate(options)
+                           if item["id"] == self.data["timezone"].get("current")), 0))
+        elif action == "timezone-set":
+            state = self.data["timezone"]
+            if not state.get("available"):
+                raise RuntimeError(state.get("error", tr("Time zone service unavailable")))
+            if option["timezone"] not in state.get("zones", []):
+                raise ValueError(tr("Invalid time zone"))
+            if option["timezone"] != state.get("current"):
+                self._system("timezone_set", {"timezone": option["timezone"]})
         elif action == "application-control":
             self.applicationAction.emit(option['command'])
         elif action == "setting":
@@ -905,6 +979,8 @@ class ShellController(WifiControls, QObject):
             self.notify(tr('此请求正在处理中，请稍候'))
             return
         self.pending_system.add(action)
+        if action == "timezone_set":
+            self._refresh_open_menu()
         if action == 'lock':
             self.inputSuspended.emit(True)
         if action.startswith("wifi_"):
@@ -936,6 +1012,10 @@ class ShellController(WifiControls, QObject):
                 self.present.emit()
 
     def input_status(self, values):
+        if values.get("available") is False or values.get("grabbed") is False:
+            self._clear_test_inputs("gamepad")
+        if values.get("pointer", {}).get("blockedDevices") == 0:
+            self._clear_test_inputs("shoulder")
         self.data["input"].update(values)
         self._publish()
 
