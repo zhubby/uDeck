@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtMultimedia
+import "../../qml" as Shared
 
 Item {
     id: surface
@@ -73,7 +74,8 @@ Item {
                 SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: appState.media.playing?surface.tr("Pause"):surface.tr("Play"); selected: appState.control===1; onActivated: controller.command("play-pause") }
                 SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: surface.tr("Next chapter"); selected: appState.control===2; onActivated: controller.command("next") }
                 Item { Layout.fillWidth: true }
-                Text { font.family: surface.host.fontFamily; text: "X  "+surface.tr("Options")+"    B  "+surface.tr("Back"); color:surface.colors.muted;font.pixelSize:18 }
+                Shared.InputPrompt { keys: ["gamecube_button_x"]; label: surface.tr("Options"); fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 18 }
+                Shared.InputPrompt { keys: ["gamecube_button_color_b"]; label: surface.tr("Back"); fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 18 }
             }
         }
     }

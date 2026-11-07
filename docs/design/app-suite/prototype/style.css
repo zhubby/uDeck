@@ -207,9 +207,11 @@ h3 { font-size: 24px; font-weight: 500; }
 .footer.overlay-footer { position: absolute; bottom: 0; left: 0; right: 0; color: #e1e3de; border-color: #ffffff38; }
 .button-hints { display: flex; gap: 24px; align-items: center; }
 .button-hint { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; padding: 4px 0; font-size: inherit; color: inherit; }
-.keycap { width: 28px; height: 28px; border: 1px solid #929694; color: var(--ink); border-radius: 50%; display: inline-grid; place-items: center; font-size: 19px; line-height: 1; }
-.keycap.a { background: var(--accent); border-color: var(--accent); color: #252019; font-weight: 600; }
-.footer-context { font-size: 18px; text-align: right; line-height: 1.5; white-space: nowrap; color: #8e9794; }
+.input-prompt-icon { width: 32px; height: 32px; object-fit: contain; flex: none; }
+.input-prompt { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.input-separator { font-size: .85em; }
+.footer-context { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 2px 14px; font-size: 18px; text-align: right; line-height: 1.5; color: var(--muted); }
+.footer-context .input-prompt-icon { width: 28px; height: 28px; }
 .focused { outline: none !important; border-color: var(--accent) !important; background-color: var(--selected); box-shadow: none; }
 .tab.focused { border-color: transparent transparent var(--accent) !important; background: #383025; }
 .address-bar.focused { border-color: var(--accent) !important; }
@@ -225,7 +227,7 @@ h3 { font-size: 24px; font-weight: 500; }
 .modal .row-item.focused { background: #393227; }
 .modal .row-item .row-subtitle { white-space: normal; }
 .modal .row-item .row-title { white-space: normal; overflow-wrap: anywhere; }
-.modal-footer { font-size: 20px; color: var(--muted); margin-top: 5px; }
+.modal-footer { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 20px; color: var(--muted); margin-top: 5px; }
 .text-input { width: 100%; background: #161b1d; border: 2px solid var(--accent); border-radius: 8px; font-size: 25px; padding: 14px; color: var(--ink); outline: none; }
 .modal-actions { display: flex; gap: 14px; justify-content: flex-end; }
 .empty-state { display: flex; flex: 1; min-height: 0; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 15px; padding: 25px; overflow: auto; }

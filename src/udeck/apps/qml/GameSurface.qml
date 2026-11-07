@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 import QtQuick
 import QtQuick.Layouts
+import "../../qml" as Shared
 
 Item {
     id: surface
@@ -16,7 +17,8 @@ Item {
             Text { font.family: surface.host.fontFamily; text:(appState.current.platform||"")+"  ·  "+(appState.gameChecks.core||"").split("/").pop();color:surface.colors.accent;font.pixelSize:21 }
             Text { font.family: surface.host.fontFamily; Layout.fillWidth:true;text:appState.current.path||"";color:surface.colors.muted;font.pixelSize:18;wrapMode:Text.WrapAnywhere;maximumLineCount:3;elide:Text.ElideMiddle }
             Text { font.family: surface.host.fontFamily; Layout.fillWidth:true;text:(appState.gameChecks.errors||[]).join("\n");color:surface.colors.error;font.pixelSize:21;wrapMode:Text.Wrap }
-            SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text:host?host.tr("A  Start / Continue"):"";selected:true;disabled:appState.page==="game-running";onActivated:controller.dispatch("accept") }
+            SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; promptKeys: ["gamecube_button_color_a"]; text:host?host.tr("Start / Continue"):"";selected:true;disabled:appState.page==="game-running";onActivated:controller.dispatch("accept") }
+            Shared.InputPrompt { visible: appState.page === "game-running"; keys: ["keyboard_ctrl", "+", "keyboard_alt", "+", "keyboard_m"]; label: host ? host.tr("Game menu") : ""; fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 18 }
             Text { font.family: surface.host.fontFamily; Layout.fillWidth:true;text:appState.page==="game-running"?(host?host.tr("The emulator owns gameplay input. Ctrl+Alt+M opens the pause menu."):""):host?host.tr("Manual saves and the automatic resume point are kept separately."):"";color:surface.colors.muted;font.pixelSize:20;wrapMode:Text.Wrap }
         }
     }

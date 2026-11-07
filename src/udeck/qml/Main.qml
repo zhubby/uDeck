@@ -266,35 +266,26 @@ Window {
         Row {
             id: footerControls
             objectName: "footerControls"
-            x: 30; y: parent.height - 56; spacing: 27
+            x: 30; y: parent.height - 37 - height / 2; spacing: 20
             Repeater {
-                model: [{key: "A", label: window.tr("确认")}, {key: "B", label: window.tr("返回")}, {key: "X", label: window.tr("更多")}, {key: "Y", label: window.tr("快捷设置")}]
-                delegate: Item {
+                model: [{key: "gamecube_button_color_a", label: window.tr("确认")}, {key: "gamecube_button_color_b", label: window.tr("返回")}, {key: "gamecube_button_x", label: window.tr("更多")}, {key: "gamecube_button_y", label: window.tr("快捷设置")}]
+                delegate: InputPrompt {
                     required property var modelData
-                    width: keyRow.width; height: 34
-                    Row {
-                    id: keyRow
-                    spacing: 9
-                    Rectangle {
-                        width: 29; height: 29; radius: 15; color: modelData.key === "A" ? window.accent : "transparent"; border.width: 1; border.color: modelData.key === "A" ? window.accent : window.colors.keyBorder
-                        anchors.verticalCenter: parent.verticalCenter
-                        Text { textFormat: Text.PlainText; anchors.centerIn: parent; text: modelData.key; font.family: window.fontFamily; font.pixelSize: 20; font.weight: Font.Bold; color: modelData.key === "A" ? window.colors.accentText : window.ink }
-                    }
-                    Text { textFormat: Text.PlainText; text: modelData.label; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted }
-                    }
+                    keys: [modelData.key]; label: modelData.label
+                    fontFamily: window.fontFamily; textColor: window.muted
+                    iconSize: 36; fontSize: 24
                 }
             }
         }
-        Text {
+        InputHints {
             objectName: "footerShortcuts"
-            textFormat: Text.PlainText
             x: footerControls.x + footerControls.width + 20
             width: Math.max(0, parent.width - x - 30)
             y: parent.height - 37 - height / 2
-            text: parent.width < 1150 ? window.tr("L / R 切页\nCtrl + Alt + Esc 主页") : window.tr("L / R 切页  ·  Ctrl + Alt + Esc 主页")
-            horizontalAlignment: Text.AlignRight
-            font.family: window.fontFamily; font.pixelSize: parent.width < 1150 ? 20 : 24
-            color: window.colors.pointer
+            hints: [{keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"], label: window.tr("Pages")},
+                    {keys: ["keyboard_ctrl", "+", "keyboard_alt", "+", "keyboard_escape"], label: window.tr("主页")}]
+            fontFamily: window.fontFamily; fontSize: 20; iconSize: 32
+            textColor: window.colors.pointer
         }
 
         Rectangle {
@@ -393,7 +384,13 @@ Window {
                         }
                     }
 
-                    Text { textFormat: Text.PlainText; id: modalFooter; text: dialog.kind === "text" ? window.tr("实体键盘输入 · A 确认 · B 取消") : dialog.kind === "calibration" ? window.tr("按指定物理按钮 · Esc 取消") : window.tr("A 确认 · B 返回"); font.family: window.fontFamily; font.pixelSize: 24; color: window.muted }
+                    InputHints {
+                        id: modalFooter; width: parent.width
+                        fontFamily: window.fontFamily; textColor: window.muted; fontSize: 22
+                        hints: dialog.kind === "calibration" ? [{keys: ["keyboard_escape"], label: window.tr("取消")}] : [
+                            {keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr("确认")},
+                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(dialog.kind === "text" ? "取消" : "返回")}]
+                    }
                     Text { textFormat: Text.PlainText; id: modalToast; visible: !!viewState.toast; width: parent.width; text: viewState.toast; font.family: window.fontFamily; font.pixelSize: 24; color: window.accent; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
                 }
             }

@@ -19,5 +19,5 @@ def test_both_themes_render_and_sync_without_recreating_native_windows(tmp_path,
     report = json.loads(result.stdout.strip().splitlines()[-1])
     assert report["qmlErrors"] == [] and report["sessionsPreserved"]
     assert report["liveWindows"] == 8
-    assert len(report["captures"]) == 34
+    assert len(report["captures"]) == 36
     assert all((tmp_path / (name + ".png")).stat().st_size > 10000 for name in report["captures"])

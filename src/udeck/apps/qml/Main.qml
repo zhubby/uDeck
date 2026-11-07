@@ -77,7 +77,7 @@ Window {
                 Text { font.family: window.fontFamily; text: window.tr(window.state.app.charAt(0).toUpperCase()+window.state.app.slice(1)); color: window.ink; font.pixelSize: 28 }
                 Item { Layout.fillWidth: true }
                 Text { font.family: window.fontFamily; text: window.state.scanning ? window.tr("Scanning…") : window.state.app === "browser" ? window.tr(({navigation:"Link navigation",reading:"Reading",pointer:"Virtual pointer",text:"Text input"})[window.state.webMode]||"Link navigation") : window.state.count+" "+window.tr("items"); color: window.muted; font.pixelSize: 18 }
-                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; text: "Y  "+window.tr("Settings"); implicitHeight: 42; onActivated: controller.dispatch("quick-settings") }
+                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; promptKeys: ["gamecube_button_y"]; text: window.tr("Settings"); implicitHeight: 42; onActivated: controller.dispatch("quick-settings") }
             }
         }
         Rectangle {
@@ -146,7 +146,7 @@ Window {
                                 anchors.centerIn: parent; width: Math.min(parent.width-36,540); spacing: 18
                                 Text { font.family: window.fontFamily; width: parent.width; text: window.state.scanning?window.tr("Scanning…"):window.tr("Nothing here yet"); color: window.ink; font.pixelSize: 30; horizontalAlignment: Text.AlignHCenter }
                                 Text { font.family: window.fontFamily; width: parent.width; text: window.tr("Choose a folder in Sources, or switch to another collection."); wrapMode: Text.Wrap; color: window.muted; font.pixelSize: 21; horizontalAlignment: Text.AlignHCenter }
-                                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; anchors.horizontalCenter: parent.horizontalCenter; text: "A  "+window.tr("Sources"); selected: true; onActivated: controller.command("sources") }
+                                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; anchors.horizontalCenter: parent.horizontalCenter; promptKeys: ["gamecube_button_color_a"]; text: window.tr("Sources"); selected: true; onActivated: controller.command("sources") }
                             }
                         }
                     }
@@ -178,16 +178,15 @@ Window {
             RowLayout {
                 anchors.fill: parent; anchors.leftMargin: 28; anchors.rightMargin: 28; spacing: 24
                 Repeater {
-                    model: [["A",window.tr("Open")],["B",window.tr("Back")],["X",window.tr("Actions")],["Y",window.tr("Settings")]]
-                    delegate: Row {
+                    model: [["gamecube_button_color_a",window.tr("Open")],["gamecube_button_color_b",window.tr("Back")],["gamecube_button_x",window.tr("Actions")],["gamecube_button_y",window.tr("Settings")]]
+                    delegate: Shared.InputPrompt {
                         required property var modelData
-                        spacing: 7
-                        Rectangle { width: 28; height: 28; radius: 14; color: parent.modelData[0]==="A"?window.accent:"transparent"; border.color: window.colors.keyBorder; Text{ font.family: window.fontFamily;anchors.centerIn:parent;text:parent.parent.modelData[0];font.pixelSize:18;color:parent.parent.modelData[0]==="A"?window.colors.accentText:window.ink} }
-                        Text { font.family: window.fontFamily; text: parent.modelData[1]; color: window.muted; font.pixelSize: 19 }
+                        keys: [modelData[0]]; label: modelData[1]
+                        fontFamily: window.fontFamily; textColor: window.muted; fontSize: 19
                     }
                 }
                 Item { Layout.fillWidth: true }
-                Text { font.family: window.fontFamily; text: window.state.page==="document"?window.tr("L / R  Page"):window.tr("L / R  Tabs"); color: window.muted; font.pixelSize: 18 }
+                Shared.InputPrompt { keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"]; label: window.tr(window.state.page === "document" ? "Pages" : "Tabs"); fontFamily: window.fontFamily; textColor: window.muted; fontSize: 18 }
             }
         }
     }
@@ -245,7 +244,12 @@ Window {
                         MouseArea { anchors.fill: parent; enabled: !parent.modelData.disabled; onClicked: controller.choose(parent.index) }
                     }
                 }
-                Text { font.family: window.fontFamily; text: window.tr("A / Enter  Confirm    B / Esc  Back"); color: window.muted; font.pixelSize: 18 }
+                Shared.InputHints {
+                    Layout.fillWidth: true
+                    fontFamily: window.fontFamily; textColor: window.muted; fontSize: 18
+                    hints: [{keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr("Confirm")},
+                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr("Back")}]
+                }
             }
         }
     }

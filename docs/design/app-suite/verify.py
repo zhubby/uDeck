@@ -53,6 +53,16 @@ LAYOUT = """(() => {
   }
   if ([...document.images].some(x => !x.complete || !x.naturalWidth))
     issues.push('missing artwork');
+  for (const image of document.querySelectorAll('.input-prompt-icon')) {
+    const r = image.getBoundingClientRect();
+    if (r.width < 24 || r.height < 24 || r.left < 0 || r.top < 0 ||
+        r.right > innerWidth || r.bottom > innerHeight)
+      issues.push('input icon outside viewport: ' + image.alt);
+  }
+  const hints = document.querySelector('.button-hints')?.getBoundingClientRect();
+  const context = document.querySelector('.footer-context')?.getBoundingClientRect();
+  if (hints && context && hints.right > context.left - 6)
+    issues.push('input prompt groups overlap');
   return issues;
 })()"""
 

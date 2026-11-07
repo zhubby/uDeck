@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtWebEngine
+import "../../qml" as Shared
 
 Item {
     id: surface
@@ -59,7 +60,7 @@ Item {
                     Text{ font.family: surface.host.fontFamily;anchors.fill:parent;anchors.margins:10;text:appState.url==="about:blank"?(host?host.tr("Address or search"):""):appState.url||"";color:surface.colors.text;font.pixelSize:20;elide:Text.ElideMiddle}
                     MouseArea{anchors.fill:parent;onClicked:controller.command("address")}
                 }
-                Text{ font.family: surface.host.fontFamily;text:host?host.tr(({navigation:"Link navigation",reading:"Reading",pointer:"Virtual pointer",text:"Text input"})[appState.webMode]||"Link navigation"):"";color:surface.colors.accent;font.pixelSize:17}
+                Shared.InputPrompt { keys: appState.webMode === "pointer" ? ["mouse"] : []; label: host?host.tr(({navigation:"Link navigation",reading:"Reading",pointer:"Virtual pointer",text:"Text input"})[appState.webMode]||"Link navigation"):""; fontFamily: surface.host.fontFamily; textColor: surface.colors.accent; fontSize: 17 }
             }
         }
         Item {
@@ -129,7 +130,7 @@ Item {
                     anchors.centerIn:parent;width:Math.min(parent.width-80,700);spacing:22
                     Text{ font.family: surface.host.fontFamily;text:"uDeck Browser";color:surface.colors.text;font.pixelSize:40}
                     Text{ font.family: surface.host.fontFamily;width:parent.width;text:host?host.tr("Open a website or search the web. Your tabs, bookmarks and history stay on this device."):"";color:surface.colors.muted;font.pixelSize:24;wrapMode:Text.Wrap}
-                    SuiteButton{ fontFamily: surface.host.fontFamily;colors:surface.colors;text:"A  "+(host?host.tr("Address or search"):"");selected:true;onActivated:controller.command("address")}
+                    SuiteButton{ fontFamily: surface.host.fontFamily;colors:surface.colors;promptKeys:["gamecube_button_color_a"];text:host?host.tr("Address or search"):"";selected:true;onActivated:controller.command("address")}
                     SuiteButton{ fontFamily: surface.host.fontFamily;colors:surface.colors;text:host?host.tr("Bookmarks"):"";onActivated:controller.command("bookmarks")}
                 }
             }
@@ -141,6 +142,17 @@ Item {
             Rectangle {
                 id:pointer;visible:appState.webMode==="pointer";x:viewport.width/2;y:viewport.height/2;width:22;height:22;radius:11;color:"#40edb866";border.color:surface.colors.accent;border.width:3;z:4
                 Rectangle{anchors.centerIn:parent;width:4;height:4;radius:2;color:"white"}
+            }
+            Rectangle {
+                visible: appState.webMode === "pointer"
+                anchors.left: parent.left; anchors.bottom: parent.bottom; anchors.margins: 12
+                width: pointerHints.implicitWidth + 24; height: pointerHints.implicitHeight + 16
+                radius: 8; color: surface.colors.panel; border.color: surface.colors.border; z: 4
+                Row {
+                    id: pointerHints; anchors.centerIn: parent; spacing: 16
+                    Shared.InputPrompt { keys: ["gamecube_button_color_a", "/", "mouse_left"]; label: host ? host.tr("Click") : ""; fontFamily: surface.host.fontFamily; textColor: surface.colors.text; fontSize: 17 }
+                    Shared.InputPrompt { keys: ["mouse_scroll"]; label: host ? host.tr("Scroll") : ""; fontFamily: surface.host.fontFamily; textColor: surface.colors.text; fontSize: 17 }
+                }
             }
             Rectangle {
                 anchors.left:parent.left;anchors.right:parent.right;anchors.top:parent.top;height:loadError.implicitHeight+24;visible:!!appState.webError;color:surface.colors.errorSurface;z:5

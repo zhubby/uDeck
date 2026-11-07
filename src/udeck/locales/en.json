@@ -644,5 +644,21 @@
   "Classic": "Classic",
   "Dark": "Dark",
   "Current theme": "Current theme",
-  "Could not save theme settings: {error}": "Could not save theme settings: {error}"
+  "Could not save theme settings: {error}": "Could not save theme settings: {error}",
+  "Pages": "Pages",
+  "Tabs": "Tabs",
+  "Start / Continue": "Start / Continue",
+  "Game menu": "Game menu",
+  "Click": "Click",
+  "Scroll": "Scroll",
+  "Select": "Select",
+  "Next match": "Next match",
+  "Previous match": "Previous match",
+  "Set start": "Set start",
+  "Copy": "Copy",
+  "Pan": "Pan",
+  "会话": "Tabs",
+  "Send Enter": "Enter",
+  "Send Escape": "Esc",
+  "Extend selection": "Extend selection"
 }

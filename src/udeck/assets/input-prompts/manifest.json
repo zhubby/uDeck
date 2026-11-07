@@ -1,0 +1,173 @@
+{
+  "source": "https://kenney.nl/assets/input-prompts",
+  "version": "1.5A",
+  "archiveFilename": "kenney_input-prompts_1.5.zip",
+  "archiveSha256": "ac2fcf599080b0f3ba2d174c9474db6df1a0e96ff0662580e2da79a122ab78a1",
+  "downloadedAt": "2026-11-07",
+  "license": "CC0-1.0",
+  "variant": "Double (128x128 PNG)",
+  "files": {
+    "keyboard_arrows.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_arrows.png",
+      "sha256": "60acb8da974486480b9e80d079deddd0fc88fd3fc84aafcb779d6a7a59e4cf5b",
+      "bytes": 309
+    },
+    "keyboard_arrow_up.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_arrow_up.png",
+      "sha256": "339fc70daa8c0aebc7957dfd4eecd1bc380ac99248919649d86221dd9f065aa8",
+      "bytes": 477
+    },
+    "keyboard_enter.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_enter.png",
+      "sha256": "6ea6de1a2fca79569f25e3c5bb7af5ff2ece6e6a4e416a22f573a17a21926b54",
+      "bytes": 685
+    },
+    "keyboard_escape.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_escape.png",
+      "sha256": "9b85675aa9a3c6edcfb94da7314aa3a77cf77f9934b6c645059577cf901a1bde",
+      "bytes": 595
+    },
+    "keyboard_ctrl.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_ctrl.png",
+      "sha256": "f184d63c372053a2af3a41ac77ebc41fdc9d83cffce3dd26dce6ca49283bff44",
+      "bytes": 602
+    },
+    "keyboard_alt.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_alt.png",
+      "sha256": "256d961872f3b4fe736c8794743a9d2762b1b1bd3bfe78200fcf229855276a18",
+      "bytes": 454
+    },
+    "keyboard_shift.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_shift.png",
+      "sha256": "047712e52aede18f73523cb7b7df2f28e51d07370977491a994bc9a21f129e8e",
+      "bytes": 576
+    },
+    "keyboard_t.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_t.png",
+      "sha256": "ce0eeb693cdb33d2209d846bb90e3e90dba6792970a131190a5d28b430d9b5e3",
+      "bytes": 388
+    },
+    "keyboard_m.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_m.png",
+      "sha256": "3655322614be6ad0246730a81e4f9b5a0a875b7baf81a66e047a58a4c322f6f7",
+      "bytes": 592
+    },
+    "keyboard_l.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_l.png",
+      "sha256": "297216214ef305455161e20d61e3c698b784565b42232469a3091f9ae75ddac4",
+      "bytes": 385
+    },
+    "keyboard_f2.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_f2.png",
+      "sha256": "54b64ddd5fd5177984373584a182c93aa0d387d60c8087ad52f825dc8044e99e",
+      "bytes": 542
+    },
+    "keyboard_f3.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_f3.png",
+      "sha256": "6d782b735216a8eb24ded7ff34046df8c90a10d2f6fe0453a2605bc6dd8b68b7",
+      "bytes": 576
+    },
+    "keyboard_page_up.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_page_up.png",
+      "sha256": "3193366feb20a81641b849438fc85645031c0361d0cf2d601b8c71043d1be214",
+      "bytes": 692
+    },
+    "keyboard_page_down.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_page_down.png",
+      "sha256": "eb6198efee3198b3f112ce51b698e723095d07a75b708eddf8a7b743fbf8d840",
+      "bytes": 887
+    },
+    "keyboard_tab.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_tab.png",
+      "sha256": "b9d41ddb968a48702663e4b13bb5a047c8349ed5708897027d4de794dc35f43c",
+      "bytes": 523
+    },
+    "keyboard_space.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/keyboard_space.png",
+      "sha256": "7f25e4d93c3589ef947f03dd3e76f9b7cc17479a0b2e0040cf150be17279c6f4",
+      "bytes": 678
+    },
+    "mouse.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/mouse.png",
+      "sha256": "967365a0f1ee7b620bcd5d13e06409350b301d63ab75642eed27ff0930e1dc0d",
+      "bytes": 660
+    },
+    "mouse_left.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/mouse_left.png",
+      "sha256": "b008b3981c39400991002b597992216eab13761dcd3e34676f45189e86d7d94c",
+      "bytes": 728
+    },
+    "mouse_right.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/mouse_right.png",
+      "sha256": "2bb942eb636491e1249f6b85f576dafb0eeae3d3a5b8d7a60711ccd8d73f9c2b",
+      "bytes": 725
+    },
+    "mouse_scroll.png": {
+      "kit": "Keyboard & Mouse",
+      "archivePath": "Keyboard & Mouse/Double/mouse_scroll.png",
+      "sha256": "a67365a6a3c625a7728be4bbb9223a37c3d28084cfc7873180766ac921f398d0",
+      "bytes": 729
+    },
+    "gamecube_button_color_a.png": {
+      "kit": "Nintendo Gamecube",
+      "archivePath": "Nintendo Gamecube/Double/gamecube_button_color_a.png",
+      "sha256": "5aaf4f758c8a0fa881985c9991ff228c8cbd803f565a97cb47b844156752d2f2",
+      "bytes": 864
+    },
+    "gamecube_button_color_b.png": {
+      "kit": "Nintendo Gamecube",
+      "archivePath": "Nintendo Gamecube/Double/gamecube_button_color_b.png",
+      "sha256": "47b1b595a705e2667e12fde443b9abb5a774afac1a2148b82c8ba181d94289b3",
+      "bytes": 799
+    },
+    "gamecube_button_x.png": {
+      "kit": "Nintendo Gamecube",
+      "archivePath": "Nintendo Gamecube/Double/gamecube_button_x.png",
+      "sha256": "dba4ecb7aef535f194907bc740401e68d79948f06a70a8bcbd26cc4795fe7abe",
+      "bytes": 702
+    },
+    "gamecube_button_y.png": {
+      "kit": "Nintendo Gamecube",
+      "archivePath": "Nintendo Gamecube/Double/gamecube_button_y.png",
+      "sha256": "fc5312ea1dfa7b7df66ccf4d95b7acef7a1a267f5f9544164f171bfab5381763",
+      "bytes": 631
+    },
+    "gamecube_trigger_l.png": {
+      "kit": "Nintendo Gamecube",
+      "archivePath": "Nintendo Gamecube/Double/gamecube_trigger_l.png",
+      "sha256": "7207c0cf05648eea0e669d285ca00f7bf62a131b62b1030b26bdb57170e3f988",
+      "bytes": 572
+    },
+    "gamecube_trigger_r.png": {
+      "kit": "Nintendo Gamecube",
+      "archivePath": "Nintendo Gamecube/Double/gamecube_trigger_r.png",
+      "sha256": "84a4e7a3479a99f2581b26c33fe5dec111634807e447f04aa8c95c4105f6f25b",
+      "bytes": 680
+    },
+    "gamecube_dpad.png": {
+      "kit": "Nintendo Gamecube",
+      "archivePath": "Nintendo Gamecube/Double/gamecube_dpad.png",
+      "sha256": "49ff2cba1a166dffa50479d9e2c32f2a496edced599ae962511234f26d62480a",
+      "bytes": 337
+    }
+  }
+}

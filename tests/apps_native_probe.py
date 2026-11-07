@@ -306,17 +306,20 @@ def run(app, root, language="en", width=1280, height=720):
         item=next(i for i in controller.library.items if i["format"]=="TXT")
         controller.open_item(item["id"])
         wait(lambda: controller.reader_ready)
-        previous_position = dict(controller.position)
         controller.context()
         previous_book = controller.book
         (content / "Z malformed.epub").write_bytes(b"Not an EPUB archive")
         controller.library.refresh()
         wait(lambda: not controller.library.pending)
         broken = next(i for i in controller.library.items if i["title"] == "Z malformed")
+        # Pagination can update the fraction while the library scan processes events.
+        # Compare the last valid position immediately before the failing open.
+        previous_position = dict(controller.position)
         controller.attempt(lambda: controller.open_item(broken["id"]))
         assert "Invalid EPUB" in render(controller.error, "en")
         assert previous_book.closed and not controller.menus and controller.page == "library"
-        assert controller.store.data["positions"][item["id"]] == previous_position
+        assert controller.store.data["positions"][item["id"]] == previous_position, (
+            previous_position, controller.store.data["positions"][item["id"]])
         completed.append("malformed-epub-is-recoverable-and-preserves-last-position")
         controller.error = ""
         controller.open_item(item["id"])

@@ -1,2 +1,4 @@
 # Retain the bundled upstream license notices byte-for-byte.
-src/udeck/fonts/*-OFL.txt -whitespace
+src/udeck/fonts/*-OFL.txt -text -whitespace
+src/udeck/assets/input-prompts/License.txt -text -whitespace
+docs/design/app-suite/prototype/assets/input-prompts/License.txt -text -whitespace

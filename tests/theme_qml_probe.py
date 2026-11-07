@@ -52,8 +52,41 @@ def run():
     def capture(window, name):
         QTest.qWait(80)
         verify_fonts(window, options.language)
+        verify_prompts(window)
         assert window.grabWindow().save(str(options.output / (name + ".png")))
         captures.append(name)
+
+    def verify_prompts(window):
+        expression = QQmlExpression(QQmlEngine.contextForObject(window), window, """
+            JSON.stringify((function() {
+                const icons = []
+                function visit(item) {
+                    if (!item.visible) return
+                    if (item.objectName === "inputPromptIcon") {
+                        const point = item.mapToItem(contentItem, 0, 0)
+                        icons.push({key: item.keyId, status: item.status,
+                                    source: item.source.toString(),
+                                    x: point.x, y: point.y,
+                                    width: item.width, height: item.height})
+                    }
+                    for (let child of item.children) visit(child)
+                }
+                visit(contentItem)
+                return icons
+            })())
+        """)
+        value, undefined = expression.evaluate()
+        assert not undefined and not expression.hasError(), expression.error().toString()
+        icons = json.loads(value)
+        assert icons, (window.title(), "Missing Kenney input prompts")
+        for icon in icons:
+            assert icon["status"] == 1, icon
+            assert "/assets/input-prompts/" in icon["source"], icon
+            assert icon["width"] >= 24 and icon["height"] >= 24, icon
+            assert icon["x"] >= -1 and icon["y"] >= -1, icon
+            assert icon["x"] + icon["width"] <= window.width() + 1, icon
+            assert icon["y"] + icon["height"] <= window.height() + 1, icon
+        return icons
 
     def verify_fonts(window, language):
         expected = "LXGW WenKai Screen" if language == "zh_CN" else "Saira SemiCondensed"
@@ -279,6 +312,13 @@ def run():
             for index, entry in enumerate(coordinator.windows):
                 verify_fonts(entry["window"], language)
                 assert entry["controller"].current == terminal_ids[index]
+        browser, _, browser_window = next(entry for entry in apps if entry[0].app == "browser")
+        browser.pop_menu()
+        browser.set_mode("pointer")
+        capture(browser_window, "browser-classic-pointer")
+        assert any(icon["key"] == "mouse_left" for icon in verify_prompts(browser_window))
+        coordinator.windows[0]["controller"].command("history")
+        capture(coordinator.windows[0]["window"], "terminal-classic-history")
         for controller, app_engine, app_window in apps:
             controller.close()
             app_window.setProperty("allowClose", True)

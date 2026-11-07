@@ -4,6 +4,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import QtWebEngine
+import "../../qml" as Shared
 
 Item {
     id: surface
@@ -70,7 +71,12 @@ Item {
         }
         Rectangle {
             Layout.fillWidth:true;Layout.preferredHeight:40;color:surface.colors.panel
-            Text{ font.family: surface.host.fontFamily;anchors.centerIn:parent;text:surface.pdf?(host?host.tr("Directions pan · L / R change page"):""):Math.round((appState.position.fraction||0)*100)+"%";color:surface.colors.muted;font.pixelSize:17}
+            Text{ visible: !surface.pdf; font.family: surface.host.fontFamily;anchors.centerIn:parent;text:Math.round((appState.position.fraction||0)*100)+"%";color:surface.colors.muted;font.pixelSize:17}
+            Row {
+                visible: surface.pdf; anchors.centerIn: parent; spacing: 20
+                Shared.InputPrompt { keys: ["keyboard_arrows"]; label: host ? host.tr("Pan") : ""; fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 17 }
+                Shared.InputPrompt { keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"]; label: host ? host.tr("Pages") : ""; fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 17 }
+            }
         }
     }
     Connections {

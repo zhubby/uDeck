@@ -105,7 +105,7 @@ Window {
                         MouseArea { anchors.fill: parent; onClicked: controller.selectTab(parent.identifier) }
                     }
                 }
-                Text { font.family: window.fontFamily; text: window.tr("L / R  会话"); color: window.muted; font.pixelSize: 14 }
+                Shared.InputPrompt { keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"]; label: window.tr("会话"); fontFamily: window.fontFamily; textColor: window.muted; iconSize: 24; fontSize: 14 }
             }
         }
         Item {
@@ -136,15 +136,26 @@ Window {
         }
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 38
+            Layout.preferredHeight: Math.max(44, statusHints.implicitHeight + 12)
             color: window.colors.header
-            Text { font.family: window.fontFamily;
+            Shared.InputHints {
+                id: statusHints
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
                 anchors.leftMargin: 18
-                text: window.state.mode === "history" ? (window.state.anchored ? window.tr("选择中  ·  方向键扩选    A 复制    B 取消") : window.tr("历史浏览  ·  方向键定位    A 设置起点    B 返回")) : window.tr("A 回车    B Esc    X 操作    Y 设置    Ctrl+Shift+T 新建")
-                color: window.muted
-                font.pixelSize: 15
+                width: parent.width - 104
+                fontFamily: window.fontFamily; textColor: window.muted; fontSize: 15; iconSize: 28
+                hints: window.state.mode === "history" ? [
+                    {keys: ["keyboard_arrows"], label: window.tr(window.state.anchored ? "Extend selection" : "Select")},
+                    {keys: ["gamecube_button_color_a"], label: window.tr(window.state.anchored ? "Copy" : "Set start")},
+                    {keys: ["gamecube_button_color_b"], label: window.tr(window.state.anchored ? "取消" : "返回")}
+                ] : [
+                    {keys: ["gamecube_button_color_a"], label: window.tr("Send Enter")},
+                    {keys: ["gamecube_button_color_b"], label: window.tr("Send Escape")},
+                    {keys: ["gamecube_button_x"], label: window.tr("Actions")},
+                    {keys: ["gamecube_button_y"], label: window.tr("Settings")},
+                    {keys: ["keyboard_ctrl", "+", "keyboard_shift", "+", "keyboard_t"], label: window.tr("New tab")}
+                ]
             }
             Text { font.family: window.fontFamily; anchors.right: parent.right; anchors.rightMargin: 18; anchors.verticalCenter: parent.verticalCenter; text: window.state.fontSize + " px"; color: window.muted; font.pixelSize: 14 }
         }
@@ -222,7 +233,13 @@ Window {
                         MouseArea { anchors.fill: parent; onClicked: { while (window.state.index < index) controller.dispatch("down"); while (window.state.index > index) controller.dispatch("up"); controller.dispatch("accept") } }
                     }
                 }
-                Text { font.family: window.fontFamily; text: window.tr("方向键选择 · A / Enter 确认 · B / Esc 返回"); color: window.muted; font.pixelSize: 14 }
+                Shared.InputHints {
+                    Layout.fillWidth: true
+                    fontFamily: window.fontFamily; textColor: window.muted; fontSize: 14; iconSize: 28
+                    hints: [{keys: ["keyboard_arrows"], label: window.tr("Select")},
+                            {keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr("确认")},
+                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr("返回")}]
+                }
             }
         }
     }
