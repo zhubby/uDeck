@@ -71,6 +71,8 @@
   "使用登录密码解锁": "Unlock with your login password",
   "保存": "Save",
   "保存当前窗口 PNG": "Save a PNG of the current window",
+  "信号强度：{strength}%": "Signal: {strength}%",
+  "信号强度暂不可用": "Signal strength unavailable",
   "停止发现": "Stop discovery",
   "允许已配对设备使用服务 {value0}？": "Allow the paired device to use service {value0}?",
   "允许这台设备与 uConsole 配对？": "Allow this device to pair with uConsole?",

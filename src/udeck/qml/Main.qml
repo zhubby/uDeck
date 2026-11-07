@@ -123,6 +123,7 @@ Window {
         }
 
         Row {
+            id: brandRow
             x: 28; y: 22; spacing: 13
             Rectangle {
                 width: 34; height: 34; radius: 9; color: window.accent
@@ -136,10 +137,59 @@ Window {
         }
 
         Row {
+            id: statusBar
+            objectName: "statusBar"
             anchors.right: parent.right; anchors.rightMargin: 28
-            y: 28; spacing: 24
-            Text { textFormat: Text.PlainText; width: Math.min(implicitWidth, 360); elide: Text.ElideRight; text: viewState.busy ? viewState.busyLabel : viewState.wifiSummary; font.family: window.fontFamily; font.pixelSize: 24; color: viewState.busy ? window.accent : window.muted }
+            y: 24; height: 36; spacing: 24
+            Text {
+                visible: viewState.busy
+                anchors.verticalCenter: parent.verticalCenter
+                width: Math.min(implicitWidth, 280, Math.max(0, window.width - brandRow.width - wirelessStatus.width - batteryStatus.width - statusClock.width - 56 - statusBar.spacing * 3 - 28))
+                textFormat: Text.PlainText; elide: Text.ElideRight
+                text: viewState.busyLabel
+                font.family: window.fontFamily; font.pixelSize: 24; color: window.accent
+            }
             Row {
+                id: wirelessStatus
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 16
+                Row {
+                    spacing: 12
+                    Repeater {
+                        model: viewState.wifiIndicators
+                        delegate: WirelessStatusIcon {
+                            required property var modelData
+                            width: 32; height: 32
+                            colors: window.colors; fontFamily: window.fontFamily
+                            hoverSurface: navigationPointer
+                            deviceId: modelData.id
+                            status: modelData.status
+                            signalLevel: modelData.level
+                            strengthKnown: modelData.strength !== null
+                            description: modelData.label
+                        }
+                    }
+                    WirelessStatusIcon {
+                        visible: viewState.wifiIndicators.length === 0
+                        width: 32; height: 32
+                        colors: window.colors; fontFamily: window.fontFamily
+                        hoverSurface: navigationPointer
+                        status: "unavailable"
+                        description: viewState.wifiSummary
+                    }
+                }
+                WirelessStatusIcon {
+                    visible: viewState.bluetooth.available && viewState.bluetooth.powered
+                    width: 32; height: 32
+                    colors: window.colors; fontFamily: window.fontFamily
+                    hoverSurface: navigationPointer
+                    kind: "bluetooth"
+                    description: window.tr("蓝牙") + " · " + window.tr("已开启")
+                }
+            }
+            Row {
+                id: batteryStatus
+                anchors.verticalCenter: parent.verticalCenter
                 spacing: 8
                 Rectangle {
                     width: 31; height: 19; radius: 4; color: "transparent"; border.color: window.muted; border.width: 2
@@ -149,7 +199,7 @@ Window {
                 }
                 Text { textFormat: Text.PlainText; text: viewState.battery.available ? viewState.battery.capacity + "%" : "—"; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted }
             }
-            Text { textFormat: Text.PlainText; text: window.clockText; font.family: window.fontFamily; font.pixelSize: 24; font.weight: Font.Medium; color: window.ink }
+            Text { id: statusClock; anchors.verticalCenter: parent.verticalCenter; textFormat: Text.PlainText; text: window.clockText; font.family: window.fontFamily; font.pixelSize: 24; font.weight: Font.Medium; color: window.ink }
         }
 
         Row {
@@ -396,6 +446,7 @@ Window {
             }
         }
         MouseArea {
+            id: navigationPointer
             anchors.fill: parent
             z: 1000
             acceptedButtons: Qt.AllButtons

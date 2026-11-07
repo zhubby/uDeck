@@ -2,7 +2,7 @@ import asyncio
 from copy import deepcopy
 
 import pytest
-from dbus_next import DBusError, Message
+from dbus_next import DBusError, Message, Variant
 
 from udeck.backend import NM, NM_ROOT, SystemBackend, unwrap
 
@@ -430,3 +430,56 @@ def test_unplug_cancels_a_saved_profile_password_but_keeps_another_adapter_promp
 
     asyncio.run(scenario())
     assert backend.pending_prompts == {}
+
+
+@pytest.mark.parametrize("active_listed", [True, False])
+def test_signal_strength_comes_from_the_active_ap_even_when_not_in_scan_list(network_backend, active_listed):
+    backend, manager = network_backend
+    manager.aps[AP0]["Strength"] = 23
+    manager.wireless[BUILTIN]["AccessPoints"] = [AP1, AP0] if active_listed else [AP1]
+    asyncio.run(backend.refresh_wifi())
+    devices = {device["id"]: device for device in backend.state["wifi"]["devices"]}
+    assert devices[BUILTIN].get("strength") == 23
+    assert devices[USB].get("strength") is None
+
+
+def test_active_hidden_ap_can_report_strength_without_an_ssid(network_backend):
+    backend, manager = network_backend
+    manager.aps[AP0]["Ssid"] = []
+    asyncio.run(backend.refresh_wifi())
+    device = next(device for device in backend.state["wifi"]["devices"] if device["id"] == BUILTIN)
+    assert device.get("strength") == 70
+
+
+def test_signal_refresh_clears_a_stale_value_when_the_active_ap_disappears(network_backend):
+    backend, manager = network_backend
+    async def scenario():
+        await backend.refresh_wifi()
+        device = next(device for device in backend.state["wifi"]["devices"] if device["id"] == BUILTIN)
+        assert device.get("strength") == 70
+        manager.broken.add(AP0)
+        await backend.refresh_wifi()
+        device = next(device for device in backend.state["wifi"]["devices"] if device["id"] == BUILTIN)
+        assert device["strength"] is None
+        assert device["available"]
+    asyncio.run(scenario())
+
+
+def test_active_ap_strength_signals_refresh_both_independent_connections(network_backend):
+    backend, manager = network_backend
+    backend.loop.close()
+
+    async def scenario():
+        backend.loop = asyncio.get_running_loop()
+        await backend.refresh_wifi()
+        manager.aps[AP0]["Strength"] = 12
+        manager.devices[USB]["State"] = 100
+        manager.wireless[USB]["ActiveAccessPoint"] = AP1
+        backend._message(Message.new_signal(AP0, "org.freedesktop.DBus.Properties", "PropertiesChanged", "sa{sv}as",
+                                            [NM + ".AccessPoint", {"Strength": Variant("y", 12)}, []]))
+        await asyncio.wait_for(asyncio.gather(*backend.refresh_tasks.values()), timeout=3)
+        devices = {device["id"]: device for device in backend.state["wifi"]["devices"]}
+        assert devices[BUILTIN]["strength"] == 12
+        assert devices[USB]["strength"] == 95
+
+    asyncio.run(scenario())

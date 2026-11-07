@@ -13,7 +13,7 @@ from .desktop import DesktopCatalog, open_terminal
 from .files import FileOperations
 from .i18n import LANGUAGES, error_text, render, tr
 from .mock import mock_apps
-from .wifi import wifi_label, wifi_status, wifi_summary
+from .wifi import wifi_indicators, wifi_label, wifi_status, wifi_summary
 
 CATEGORY_NAMES = {"All": tr('全部应用'), "Development": tr('开发'), "Network": tr('网络'), "System": tr('系统'),
                   "Utility": tr('工具'), "Game": tr('游戏'), "Graphics": tr('图形'), "Office": tr('办公'), "AudioVideo": tr('影音'), "Other": tr('其他')}
@@ -134,6 +134,7 @@ class ShellController(QObject):
             "modal": self.modal, "toast": self.toast, "busy": self.busy,
             "busyLabel": self.busy_label, "favorites": self.config.data["favorites"],
             "clipboard": bool(self.clipboard), "pending": list(self.pending_system), "wifiSummary": wifi_summary(self.data["wifi"]),
+            "wifiIndicators": wifi_indicators(self.data["wifi"]),
         }, self.language), ensure_ascii=False)
 
     @Slot(str, str, result=str)

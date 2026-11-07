@@ -48,14 +48,14 @@ class MockBackend(QObject):
         self.state.update({
             "wifi": {"available": True, "enabled": True, "devices": [
                 {"id": "builtin", "name": tr('内置无线网卡'), "interface": "wlan0", "kind": "builtin",
-                 "available": True, "managed": True, "deviceState": 100, "connected": "Workshop", "activeProfile": "workshop-profile",
+                 "available": True, "managed": True, "deviceState": 100, "connected": "Workshop", "strength": 92, "activeProfile": "workshop-profile",
                  "networks": [
                      {"id": "builtin-workshop", "name": "Workshop", "strength": 92, "secured": True, "connected": True, "saved": True, "security": "WPA2"},
                      {"id": "builtin-guest", "name": "Guest", "strength": 54, "secured": False, "connected": False, "security": tr('开放网络')},
                  ],
                  "saved": [{"id": "workshop-profile", "name": "Workshop", "ssid": list(b"Workshop"), "keyManagement": "wpa-psk", "multiConnect": 0}]},
                 {"id": "usb", "name": tr('USB 无线网卡'), "interface": "wlx001122334455", "kind": "usb",
-                 "available": True, "managed": True, "deviceState": 30, "connected": "",
+                 "available": True, "managed": True, "deviceState": 30, "connected": "", "strength": None,
                  "networks": [
                      {"id": "usb-workshop", "name": "Workshop", "strength": 98, "secured": True, "connected": False, "saved": True, "security": "WPA2"},
                      {"id": "usb-studio", "name": "Studio 5G", "strength": 86, "secured": True, "connected": False, "security": "WPA3"},
@@ -91,6 +91,7 @@ class MockBackend(QObject):
             if not payload["enabled"]:
                 for device in self.state["wifi"]["devices"]:
                     device["connected"], device["deviceState"] = "", 30
+                    device["strength"] = None
                     device["activeProfile"] = ""
                     for network in device["networks"]:
                         network["connected"] = False
@@ -101,6 +102,7 @@ class MockBackend(QObject):
                 return
             if action == "wifi_disconnect":
                 device["connected"], device["deviceState"] = "", 30
+                device["strength"] = None
                 device["activeProfile"] = ""
                 for network in device["networks"]:
                     network["connected"] = False
@@ -114,6 +116,7 @@ class MockBackend(QObject):
                     for network in device["networks"]:
                         network["connected"] = network["name"] == target
                     device["connected"], device["deviceState"] = target, 100
+                    device["strength"] = next((network["strength"] for network in device["networks"] if network["connected"]), None)
                     if profile is None:
                         profile = next((entry for entry in device["saved"] if entry["name"] == target and not entry.get("blocked")), None)
                     if profile is None:

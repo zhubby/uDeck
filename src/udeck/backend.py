@@ -328,7 +328,7 @@ class SystemBackend(QObject):
     async def _read_wifi_device(self, path, saved, usage, previous):
         result = {"id": path, **wifi_identity(previous.get("interface", "")), "available": False,
                   "managed": True, "deviceState": 0, "connected": "", "connecting": "",
-                  "networks": [], "saved": [], "error": ""}
+                  "strength": None, "networks": [], "saved": [], "error": ""}
         try:
             device = await self.properties(NM, path, NM + ".Device")
             result.update(wifi_identity(device.get("Interface", "")))
@@ -339,11 +339,17 @@ class SystemBackend(QObject):
             result["saved"] = profiles
             wireless = await self.properties(NM, path, NM + ".Device.Wireless")
             networks = {}
-            for access_point in wireless.get("AccessPoints", []):
+            active_ap = wireless.get("ActiveAccessPoint", "/")
+            access_points = list(wireless.get("AccessPoints", []))
+            if active_ap != "/" and active_ap not in access_points:
+                access_points.append(active_ap)
+            for access_point in access_points:
                 try:
                     information = await self.properties(NM, access_point, NM + ".AccessPoint")
                 except Exception:
                     continue
+                if access_point == active_ap and device_state == 100:
+                    result["strength"] = information.get("Strength")
                 ssid_bytes = bytes(information.get("Ssid", []))
                 if not ssid_bytes:
                     continue

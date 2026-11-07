@@ -26,6 +26,7 @@ QtObject {
     readonly property color headerDivider: dark ? divider : "#414448"
     readonly property color keyBorder: dark ? border : "#929694"
     readonly property color pointer: dark ? muted : "#828886"
+    readonly property color signalInactive: "#606D7A"
     readonly property color dialog: dark ? "#1D242C" : profile === "apps" ? "#222729" : profile === "terminal" ? "#24292b" : "#222528"
     readonly property color dialogBorder: dark ? border : profile === "apps" ? "#68675f" : profile === "terminal" ? "#48504f" : "#62605a"
     readonly property color menuSelected: dark ? selected : profile === "apps" ? selected : profile === "terminal" ? "#3f4239" : "#393329"
