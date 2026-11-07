@@ -8,6 +8,8 @@ from pathlib import Path
 from PySide6.QtCore import Property, QObject, QTimer, Signal, Slot
 
 from .appearance import THEMES
+from .audio import AUDIO_ACTIONS
+from .battery import battery_details, battery_summary
 from .core import PAGE_NAMES, PAGES, ConfigStore, Navigation, move_index
 from .desktop import DesktopCatalog, open_terminal
 from .files import FileOperations
@@ -101,13 +103,15 @@ class ShellController(QObject):
     def _settings(self):
         audio, brightness = self.data["audio"], self.data["brightness"]
         wifi, bluetooth, battery = self.data["wifi"], self.data["bluetooth"], self.data["battery"]
+        microphone = next((source for source in audio.get("inputs", []) if source["active"]), {})
         return [
-            {"id": "volume", "name": tr('音量'), "subtitle": tr('静音') if audio.get("muted") else f"{round(audio.get('volume', 0) * 100)}%", "icon": "audio-volume-high", "value": audio.get("volume", 0), "disabled": not audio.get("available")},
+            {"id": "volume", "name": tr('音量'), "subtitle": tr('静音') if audio.get("muted") else f"{round(audio.get('volume', 0) * 100)}%", "icon": "audio-volume-high", "value": audio.get("volume", 0), "disabled": not audio.get("available") or not audio.get("outputs")},
             {"id": "brightness", "name": tr('屏幕亮度'), "subtitle": f"{round(brightness.get('value', 0) * 100)}%", "icon": "display-brightness", "value": brightness.get("value", 0), "disabled": not brightness.get("available")},
             {"id": "output", "name": tr('音频输出'), "subtitle": next((output["name"] for output in audio.get("outputs", []) if output.get("active")), tr('未检测到音频输出')), "icon": "audio-card", "disabled": not audio.get("available")},
+            {"id": "microphone", "name": tr("Microphone input"), "subtitle": microphone.get("name", tr("No microphone detected")), "icon": "audio-input-microphone", "disabled": not audio.get("available")},
             {"id": "wifi", "name": "Wi-Fi", "subtitle": wifi_summary(wifi), "icon": "network-wireless", "disabled": not wifi.get("available")},
             {"id": "bluetooth", "name": tr('蓝牙'), "subtitle": tr('已开启') if bluetooth.get("powered") else tr('已关闭'), "icon": "bluetooth", "disabled": not bluetooth.get("available")},
-            {"id": "battery", "name": tr('电池'), "subtitle": tr('{value0}% · {value1}', value0=battery.get('capacity', 0), value1=tr('正在充电') if battery.get('charging') else tr('电池供电')) if battery.get("available") else tr('未检测到电池'), "icon": "battery"},
+            {"id": "battery", "name": tr('电池'), "subtitle": battery_summary(battery), "icon": "battery"},
             {"id": "input", "name": tr('按键与控制器'), "subtitle": tr('ABXY 已校准') if self.data["input"].get("verified") else (tr('ABXY 固件映射 · 可重新校准') if self.data["input"].get("mapped") else tr('校准物理 ABXY；不占用普通键盘字母')), "icon": "input-gaming"},
             {"id": "language", "name": tr('语言'), "subtitle": LANGUAGES[self.language], "icon": "preferences-desktop-locale"},
             {"id": "theme", "name": tr('Theme'), "subtitle": THEMES[self.theme], "icon": "preferences-desktop-theme"},
@@ -169,7 +173,7 @@ class ShellController(QObject):
         return True
 
     def _quick_options(self):
-        controls = {"volume", "brightness", "output", "wifi", "bluetooth", "battery", "input", "language", "theme"}
+        controls = {"volume", "brightness", "output", "microphone", "wifi", "bluetooth", "battery", "input", "language", "theme"}
         return [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"],
                  "disabled": entry.get("disabled", False)} for entry in self._settings() if entry["id"] in controls] + [
             {"label": tr('电源与会话'), "action": "power-menu"}, {"label": tr('运行中应用'), "action": "switcher"}]
@@ -233,13 +237,23 @@ class ShellController(QObject):
 
     def _refresh_open_menu(self):
         devices = {device["id"]: device for device in self.data["wifi"].get("devices", [])}
+        cards = {card["id"]: card for card in self.data["audio"].get("cards", [])}
+        inputs = {source["id"] for source in self.data["audio"].get("inputs", [])}
         removed = False
+        removed_audio = False
         for index in range(len(self._modals) - 1, -1, -1):
             device_id = self._modals[index].get("deviceId")
             if device_id and device_id not in devices:
                 self._remove_modal(index, reject=True)
                 removed = True
+            elif ((self._modals[index].get("cardId") and self._modals[index]["cardId"] not in cards)
+                  or (self._modals[index].get("audioInputId") and self._modals[index]["audioInputId"] not in inputs)):
+                self._remove_modal(index, reject=True)
+                removed_audio = True
         for modal in self._modals:
+            if modal.get("source") == "battery":
+                modal.update(battery_details(self.data["battery"]))
+                continue
             if modal.get("kind") != "menu":
                 continue
             source = modal.get("source")
@@ -252,6 +266,12 @@ class ShellController(QObject):
                 modal["body"] = wifi_status(device, self.data["wifi"].get("enabled")) if source == "wifi-device" else wifi_label(device)
             elif source == "bluetooth":
                 options = self._bluetooth_options()
+            elif source in ("audio-input", "audio-output"):
+                options = self._audio_endpoint_options(source == "audio-input")
+            elif source == "audio-cards":
+                options = self._audio_card_options()
+            elif source == "audio-profiles":
+                options = self._audio_profile_options(cards[modal["cardId"]])
             elif source == "theme":
                 options = self._theme_options()
             elif source == "quick-settings":
@@ -264,6 +284,8 @@ class ShellController(QObject):
             modal["index"] = next((index for index, option in enumerate(options) if option.get("id") == previous.get("id")), min(modal["index"], max(0, len(options) - 1)))
         if removed:
             self.notify(tr('无线网卡已移除或暂不可用，请重新选择'))
+        if removed_audio:
+            self.notify(tr('音频设备已移除'))
 
     @Slot(object)
     def _windows_changed(self, windows):
@@ -441,9 +463,28 @@ class ShellController(QObject):
                 self.notify(self.data[component].get("error", tr('设备不可用')))
                 return
             value = self.data[component].get("volume" if identifier == "volume-level" else "value", 0)
-            self._push({"kind": "slider", "title": tr('音量') if identifier == "volume-level" else tr('屏幕亮度'), "action": "volume" if identifier == "volume-level" else identifier, "value": value, "body": tr('左右调节 · A 应用 · B 取消')})
+            payload = {}
+            if identifier == "volume-level":
+                output = next((output for output in self.data["audio"].get("outputs", []) if output["active"]), None)
+                if output is None:
+                    self.notify(tr('音频设备已移除'))
+                    return
+                payload["id"] = output["id"]
+            self._push({"kind": "slider", "title": tr('音量') if identifier == "volume-level" else tr('屏幕亮度'), "action": "volume" if identifier == "volume-level" else identifier, "value": value, "payload": payload, "body": tr('左右调节 · A 应用 · B 取消')})
         elif identifier == "output":
-            self._menu(tr('音频输出'), [{"label": output["name"], "subtitle": tr('当前输出') if output["active"] else "", "action": "system", "systemAction": "audio_output", "payload": {"id": output["id"]}} for output in self.data["audio"].get("outputs", [])])
+            self._menu(tr('音频输出'), self._audio_endpoint_options(), source="audio-output")
+        elif identifier == "microphone":
+            self._menu(tr("Microphone input"), self._audio_endpoint_options(True), source="audio-input")
+        elif identifier == "microphone-level":
+            source = next((source for source in self.data["audio"].get("inputs", []) if source["active"]), None)
+            if source is None or source.get("volume") is None:
+                self.notify(tr("No microphone detected"))
+                return
+            self._push({"kind": "slider", "title": tr("Input volume"), "action": "audio_input_volume",
+                        "value": source["volume"], "payload": {"id": source["id"]}, "audioInputId": source["id"],
+                        "body": source["name"] + "\n" + tr('左右调节 · A 应用 · B 取消')})
+        elif identifier == "audio-modes":
+            self._menu(tr("Bluetooth audio modes"), self._audio_card_options(), source="audio-cards")
         elif identifier == "wifi":
             self._menu(tr('Wi-Fi 网卡'), self._wifi_options(), source="wifi", body=wifi_summary(self.data["wifi"]),
                        index=1 if self.data["wifi"].get("devices") else 0)
@@ -455,7 +496,8 @@ class ShellController(QObject):
         elif identifier in ("lock", "blank"):
             self._system(identifier)
         elif identifier == "battery":
-            self._push({"kind": "information", "title": tr('电池与电源'), "body": self._settings()[5]["subtitle"] + tr('\n熄屏仅关闭显示，不等于系统休眠。')})
+            self._push({"kind": "information", "title": tr('电池与电源'), "source": "battery",
+                        **battery_details(self.data["battery"])})
         elif identifier == "input":
             if self.mock:
                 self._push({"kind": "information", "title": tr('物理按键校准'), "body": tr('请在 uConsole 实机上逐个按下 A、B、X、Y。预览不会将键盘字母当作手柄。')})
@@ -464,6 +506,51 @@ class ShellController(QObject):
             else:
                 self._push({"kind": "information", "title": tr('未检测到独立手柄'), "body": self.data["input"].get("message", tr('请检查手柄模式。若 ABXY 上报 j/k/u/i 字母，请切换设备原有手柄模式；不需要刷写固件。'))})
         self._publish()
+
+    def _audio_endpoint_options(self, inputs=False):
+        audio = self.data["audio"]
+        entries = audio.get("inputs" if inputs else "outputs", [])
+        options = []
+        active = next((entry for entry in entries if entry["active"]), None)
+        if inputs and active:
+            options += [
+                {"id": "input-level", "label": tr("Input volume"),
+                 "subtitle": f"{round(active['volume'] * 100)}%" if active.get("volume") is not None else tr("Not available"),
+                 "action": "setting", "idSetting": "microphone-level", "disabled": active.get("volume") is None},
+                {"id": "input-mute", "label": tr("Unmute microphone") if active.get("muted") else tr("Mute microphone"),
+                 "action": "system", "systemAction": "audio_input_mute", "payload": {"id": active["id"]}},
+            ]
+        for entry in entries:
+            subtitle = tr("Bluetooth") if entry.get("bluetooth") else ""
+            if entry["active"]:
+                current = tr("Current input") if inputs else tr('当前输出')
+                subtitle = current + (" · " + subtitle if subtitle else "")
+            options.append({"id": entry["id"], "label": entry["name"], "subtitle": subtitle,
+                            "action": "system", "systemAction": "audio_input" if inputs else "audio_output",
+                            "payload": {"id": entry["id"]}})
+        if not entries:
+            options.append({"id": "empty", "label": audio.get("inputError" if inputs else "outputError") or (tr("No microphone detected") if inputs else tr('未检测到音频输出')),
+                            "action": "none", "disabled": True})
+        if audio.get("cards") or audio.get("cardError"):
+            options.append({"id": "audio-modes", "label": tr("Bluetooth audio modes"), "action": "setting"})
+        options.append({"id": "bluetooth", "label": tr("Bluetooth devices"), "action": "setting",
+                        "disabled": not self.data["bluetooth"].get("available")})
+        return options
+
+    def _audio_card_options(self):
+        return [{"id": card["id"], "label": card["name"],
+                 "subtitle": next((profile["name"] for profile in card["profiles"] if profile["active"]), ""),
+                 "action": "audio-card", "cardId": card["id"]} for card in self.data["audio"].get("cards", [])] or [
+                     {"id": "empty", "label": self.data["audio"].get("cardError") or tr("No connected Bluetooth audio device"),
+                      "action": "none", "disabled": True}]
+
+    def _audio_profile_options(self, card):
+        return [{"id": profile["id"], "label": tr("Call mode") if profile["microphone"] else tr("Playback mode"),
+                 "subtitle": (tr("Current mode") + " · " if profile["active"] else "") + profile["name"],
+                 "action": "audio-profile", "cardId": card["id"], "profile": profile,
+                 "disabled": not profile["available"], "reason": tr("Bluetooth audio mode is unavailable")}
+                for profile in card["profiles"]] or [
+                    {"id": "empty", "label": tr("Bluetooth audio mode is unavailable"), "action": "none", "disabled": True}]
 
     def _wifi_options(self):
         information = self.data["wifi"]
@@ -576,7 +663,7 @@ class ShellController(QObject):
                     self.notify(option.get("reason") or tr('此项目当前不可用'))
                     return
                 keep_parent = modal.get("source") == "quick-settings" and option.get("id") == "theme"
-                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "language", "theme") and not keep_parent:
+                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "language", "theme", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
                     self._pop()
                 self._execute_option(option)
         elif kind == "confirm":
@@ -601,7 +688,7 @@ class ShellController(QObject):
                 modal["value"] = max(minimum, min(1, modal["value"] + (0.05 if action == "right" else -0.05)))
             elif action == "accept":
                 self._pop()
-                self._system(modal["action"], {"value": modal["value"]})
+                self._system(modal["action"], {"value": modal["value"], **modal.get("payload", {})})
         elif kind == "information" and action == "accept":
             self._pop()
         self._publish()
@@ -635,7 +722,19 @@ class ShellController(QObject):
         elif action == "application-control":
             self.applicationAction.emit(option['command'])
         elif action == "setting":
-            self.activateSetting(option["id"])
+            self.activateSetting(option.get("idSetting", option["id"]))
+        elif action == "audio-card":
+            card = next((card for card in self.data["audio"].get("cards", []) if card["id"] == option["cardId"]), None)
+            if card is None:
+                raise ValueError(tr('音频设备已移除'))
+            self._menu(card["name"], self._audio_profile_options(card), source="audio-profiles", cardId=card["id"],
+                       body=tr("Call mode enables the microphone and may reduce playback quality."))
+        elif action == "audio-profile":
+            if option["profile"]["active"]:
+                return
+            self._confirm(tr("Switch Bluetooth audio mode?"), tr("This may briefly interrupt audio. Call mode enables the microphone and may reduce playback quality."),
+                          {"action": "system", "systemAction": "audio_profile", "payload": {"id": option["cardId"], "profile": option["profile"]["id"]}},
+                          cardId=option["cardId"])
         elif action == "power-menu":
             self._menu(tr('电源与会话'), [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"]} for entry in self._settings() if entry["id"] in ("lock", "blank", "logout", "reboot", "poweroff")])
         elif action == "system":
@@ -850,7 +949,8 @@ class ShellController(QObject):
         self._publish()
 
     def _system(self, action, payload=None):
-        if action in self.pending_system or (action.startswith("wifi_") and any(pending.startswith("wifi_") for pending in self.pending_system)):
+        if (action in self.pending_system or (action.startswith("wifi_") and any(pending.startswith("wifi_") for pending in self.pending_system))
+                or (action in AUDIO_ACTIONS and self.pending_system & AUDIO_ACTIONS)):
             self.notify(tr('此请求正在处理中，请稍候'))
             return
         self.pending_system.add(action)

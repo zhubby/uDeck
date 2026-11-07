@@ -1,6 +1,7 @@
 import asyncio
 import getpass
 import json
+import math
 import os
 import threading
 import uuid
@@ -12,6 +13,8 @@ from dbus_next.aio import MessageBus
 from dbus_next.service import ServiceInterface, method
 from PySide6.QtCore import QObject, Signal
 
+from .audio import AUDIO_ACTIONS, audio_state
+from .battery import read_battery
 from .i18n import error_text, tr
 from .mock import initial_state
 from .wifi import wifi_identity, wifi_label, wifi_security
@@ -141,6 +144,8 @@ class SystemBackend(QObject):
         self.refresh_again = set()
         self.wifi_refresh_lock = asyncio.Lock()
         self.wifi_operation_lock = asyncio.Lock()
+        self.audio_refresh_lock = asyncio.Lock()
+        self.audio_operation_lock = asyncio.Lock()
         self.wifi_profile_devices = {}
         self.processes = set()
         self.closing = False
@@ -466,15 +471,71 @@ class SystemBackend(QObject):
             self.processes.discard(process)
 
     async def refresh_audio(self):
-        try:
-            volume_information = await self.command("wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@")
-            volume = float(volume_information.split()[1])
-            sinks = json.loads(await self.command("pactl", "--format=json", "list", "sinks"))
-            default = (await self.command("pactl", "get-default-sink")).strip()
-            outputs = [{"id": sink["name"], "name": sink.get("description", sink["name"]), "active": sink["name"] == default} for sink in sinks]
-            self.publish("audio", {"available": True, "volume": min(1, volume), "muted": "MUTED" in volume_information, "outputs": outputs})
-        except Exception as error:
-            self.publish("audio", {"available": False, "volume": 0, "muted": False, "outputs": [], "error": error_text(error)})
+        async with self.audio_refresh_lock:
+            kinds = ("sinks", "sources", "cards")
+            results = await asyncio.gather(*(self.command("pactl", "--format=json", "list", kind) for kind in kinds),
+                                           self.command("pactl", "get-default-sink"),
+                                           self.command("pactl", "get-default-source"), return_exceptions=True)
+            values, errors = {}, {}
+            for kind, result in zip(kinds, results[:3], strict=True):
+                try:
+                    if isinstance(result, BaseException):
+                        raise result
+                    values[kind] = json.loads(result)
+                    if not isinstance(values[kind], list):
+                        raise ValueError(tr("Invalid audio device response"))
+                except Exception as error:
+                    values[kind] = []
+                    errors[kind] = error_text(error)
+            default_sink, default_source = (value.strip() if isinstance(value, str) else "" for value in results[3:])
+            value = audio_state(values["sinks"], values["sources"], values["cards"], default_sink, default_source)
+            value.update(available="sinks" not in errors or "sources" not in errors,
+                         outputError=errors.get("sinks", ""), inputError=errors.get("sources", ""),
+                         cardError=errors.get("cards", ""))
+            self.publish("audio", value)
+
+    async def _execute_audio(self, action, payload):
+        await self.refresh_audio()
+        audio = self.state["audio"]
+        if action == "audio_profile":
+            card = next((card for card in audio.get("cards", []) if card["id"] == payload["id"]), None)
+            if card is None:
+                raise ValueError(tr('音频设备已移除'))
+            profile = next((profile for profile in card["profiles"] if profile["id"] == payload["profile"]), None)
+            if profile is None or not profile["available"]:
+                raise ValueError(tr("Bluetooth audio mode is unavailable"))
+            await self.command("pactl", "set-card-profile", card["id"], profile["id"])
+        else:
+            inputs = action in ("audio_input", "audio_input_volume", "audio_input_mute")
+            entries = audio.get("inputs" if inputs else "outputs", [])
+            identifier = payload.get("id")
+            target = next((entry for entry in entries if entry["id"] == identifier), None) if identifier else next((entry for entry in entries if entry["active"]), None)
+            if target is None:
+                raise ValueError(tr('音频设备已移除'))
+            kind = "source" if inputs else "sink"
+            if action in ("audio_input", "audio_output"):
+                await self.command("pactl", "set-default-" + kind, target["id"])
+            elif action in ("audio_input_volume", "volume"):
+                level = float(payload["value"])
+                if not math.isfinite(level):
+                    raise ValueError(tr("Invalid audio volume"))
+                await self.command("pactl", "set-" + kind + "-volume", target["id"], f"{max(0, min(1, level)) * 100:.0f}%")
+            else:
+                await self.command("pactl", "set-" + kind + "-mute", target["id"], "toggle")
+        await self.refresh_audio()
+        if action == "audio_profile":
+            for attempt in range(6):
+                card = next((card for card in self.state["audio"].get("cards", []) if card["id"] == payload["id"]), {})
+                if any(profile["id"] == payload["profile"] and profile["active"] for profile in card.get("profiles", [])):
+                    return
+                if attempt < 5:
+                    await asyncio.sleep(0.2)
+                    await self.refresh_audio()
+            raise RuntimeError(tr("The Bluetooth audio mode change was not confirmed"))
+        if action in ("audio_input", "audio_output"):
+            entries = self.state["audio"].get("inputs" if action == "audio_input" else "outputs", [])
+            if not any(entry["id"] == payload["id"] and entry["active"] for entry in entries):
+                raise RuntimeError(tr("The audio device change was not confirmed"))
 
     async def _watch_audio(self):
         try:
@@ -500,17 +561,11 @@ class SystemBackend(QObject):
             self.publish("brightness", {"available": os.access(self.backlight / "brightness", os.W_OK), "value": value})
         except (OSError, ValueError, IndexError, ZeroDivisionError):
             self.publish("brightness", {"available": False, "value": 0})
-        for supply in Path("/sys/class/power_supply").glob("*"):
-            try:
-                if (supply / "type").read_text().strip() == "Battery":
-                    self.publish("battery", {"available": True, "capacity": int((supply / "capacity").read_text()), "charging": (supply / "status").read_text().strip() in ("Charging", "Full")})
-                    return
-            except (OSError, ValueError):
-                continue
+        self.publish("battery", read_battery(Path("/sys/class/power_supply")))
 
     async def _hardware_timer(self):
         while True:
-            await asyncio.sleep(30)
+            await asyncio.sleep(5)
             self.refresh_hardware()
 
     def request(self, action, payload=None):
@@ -534,6 +589,9 @@ class SystemBackend(QObject):
         if action.startswith("wifi_"):
             async with self.wifi_operation_lock:
                 await self._execute_wifi(action, payload)
+        elif action in AUDIO_ACTIONS:
+            async with self.audio_operation_lock:
+                await self._execute_audio(action, payload)
         elif action == "bluetooth_power":
             await self.set_property(BLUEZ, self.adapter, BLUEZ + ".Adapter1", "Powered", "b", bool(payload["enabled"]))
             await self.refresh_bluetooth()
@@ -561,18 +619,6 @@ class SystemBackend(QObject):
         elif action == "bluetooth_remove":
             await self.call(BLUEZ, self.adapter, BLUEZ + ".Adapter1", "RemoveDevice", "o", [payload["id"]])
             await self.refresh_bluetooth()
-        elif action == "volume":
-            await self.command("wpctl", "set-volume", "--limit", "1.0", "@DEFAULT_AUDIO_SINK@", str(max(0, min(1, payload["value"]))))
-            await self.refresh_audio()
-        elif action == "mute":
-            await self.command("wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle")
-            await self.refresh_audio()
-        elif action == "audio_output":
-            valid_outputs = {output["id"] for output in self.state["audio"].get("outputs", [])}
-            if payload["id"] not in valid_outputs:
-                raise ValueError(tr('音频设备已移除'))
-            await self.command("pactl", "set-default-sink", payload["id"])
-            await self.refresh_audio()
         elif action == "brightness":
             maximum = int((self.backlight / "max_brightness").read_text())
             (self.backlight / "brightness").write_text(str(max(1, min(maximum, round(maximum * payload["value"])))))

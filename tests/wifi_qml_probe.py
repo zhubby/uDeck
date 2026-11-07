@@ -36,7 +36,7 @@ def run():
     controller = ShellController(MockBackend(), config=ConfigStore(Path(temporary.name) / "settings.json"), mock=True)
     controller.setLanguage(options.language)
     controller.setPage("settings")
-    controller.select(3)
+    controller.select(next(index for index, item in enumerate(controller._items()) if item["id"] == "wifi"))
     if options.scenario == "single":
         controller.data["wifi"]["devices"] = controller.data["wifi"]["devices"][:1]
     elif options.scenario == "empty":
@@ -88,6 +88,7 @@ def run():
             break
         QTest.keyClick(window, Qt.Key.Key_Escape)
         QTest.qWait(10)
+    assert controller._items()[controller.navigation.index]["id"] == "wifi"
     report = {"bounds": bounds, "backReachedSettings": not controller.modal and controller.navigation.page == "settings",
               "width": window.width(), "height": window.height()}
     delete(engine)

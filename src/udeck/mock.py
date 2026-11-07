@@ -28,7 +28,7 @@ def initial_state():
     return {
         "wifi": {"available": False, "enabled": False, "devices": []},
         "bluetooth": {"available": False, "powered": False, "discovering": False, "devices": []},
-        "audio": {"available": False, "volume": 0, "muted": False, "outputs": []},
+        "audio": {"available": False, "volume": 0, "muted": False, "outputs": [], "inputs": [], "cards": []},
         "brightness": {"available": False, "value": 0},
         "battery": {"available": False, "capacity": 0, "charging": False},
     }
@@ -68,11 +68,19 @@ class MockBackend(QObject):
                           "devices": [{"id": "headphones", "name": tr('无线耳机'), "paired": True, "connected": True, "trusted": True},
                                       {"id": "keyboard", "name": tr('蓝牙键盘'), "paired": True, "connected": False, "trusted": True}]},
             "audio": {"available": True, "volume": 0.46, "muted": False,
-                      "outputs": [{"id": "speaker", "name": tr('内置扬声器'), "active": True},
-                                  {"id": "headphones", "name": tr('无线耳机'), "active": False}]},
+                      "outputs": [{"id": "speaker", "name": tr('内置扬声器'), "active": True, "bluetooth": False, "volume": 0.46, "muted": False},
+                                  {"id": "headphones", "name": tr('无线耳机'), "active": False, "bluetooth": True, "cardId": "headphones-card", "volume": 0.5, "muted": False}],
+                      "inputs": [{"id": "usb-microphone", "name": tr("USB microphone"), "active": True, "bluetooth": False, "volume": 0.65, "muted": False},
+                                 {"id": "headphones-microphone", "name": tr("Wireless headset microphone"), "active": False, "bluetooth": True, "cardId": "headphones-card", "volume": 0.5, "muted": False}],
+                      "cards": [{"id": "headphones-card", "name": tr('无线耳机'), "deviceId": "headphones", "profiles": [
+                          {"id": "a2dp-sink", "name": "A2DP SBC", "active": False, "microphone": False, "available": True},
+                          {"id": "headset-head-unit", "name": "HFP mSBC", "active": True, "microphone": True, "available": True},
+                      ]}]},
             "brightness": {"available": True, "value": 0.72},
-            "battery": {"available": True, "capacity": 83, "charging": False},
+            "battery": {"available": True, "capacity": 83, "charging": False, "status": "Discharging",
+                        "voltage": 3.9, "current": 0.8, "power": 3.12},
         })
+        self._mock_audio = deepcopy(self.state["audio"])
 
     def start(self):
         QTimer.singleShot(0, lambda: self.updated.emit(deepcopy(self.state)))
@@ -81,9 +89,13 @@ class MockBackend(QObject):
         self.actions.append(action)
         payload = payload or {}
         if action == "volume":
-            self.state["audio"]["volume"] = max(0, min(1, payload["value"]))
+            for output in self.state["audio"]["outputs"]:
+                if output["id"] == payload.get("id") or ("id" not in payload and output["active"]):
+                    output["volume"] = max(0, min(1, payload["value"]))
         elif action == "mute":
-            self.state["audio"]["muted"] = not self.state["audio"]["muted"]
+            for output in self.state["audio"]["outputs"]:
+                if output["active"]:
+                    output["muted"] = not output.get("muted", False)
         elif action == "brightness":
             self.state["brightness"]["value"] = max(0.05, min(1, payload["value"]))
         elif action == "wifi_power":
@@ -126,6 +138,9 @@ class MockBackend(QObject):
                     device["activeProfile"] = profile["id"]
         elif action == "bluetooth_power":
             self.state["bluetooth"]["powered"] = payload["enabled"]
+            if not payload["enabled"]:
+                for device in self.state["bluetooth"]["devices"]:
+                    device["connected"] = False
         elif action in ("bluetooth_connect", "bluetooth_disconnect", "bluetooth_pair"):
             for device in self.state["bluetooth"]["devices"]:
                 if device["id"] == payload["id"]:
@@ -136,6 +151,48 @@ class MockBackend(QObject):
         elif action == "audio_output":
             for output in self.state["audio"]["outputs"]:
                 output["active"] = output["id"] == payload["id"]
+        elif action in ("audio_input", "audio_input_volume", "audio_input_mute"):
+            target = next((source for source in self.state["audio"]["inputs"] if source["id"] == payload["id"]), None)
+            if target is None:
+                self.operationFailed.emit(action, tr('音频设备已移除'))
+                return
+            if action == "audio_input":
+                for source in self.state["audio"]["inputs"]:
+                    source["active"] = source is target
+            elif action == "audio_input_volume":
+                target["volume"] = max(0, min(1, payload["value"]))
+            else:
+                target["muted"] = not target.get("muted", False)
+        elif action == "audio_profile":
+            card = next((card for card in self.state["audio"]["cards"] if card["id"] == payload["id"]), None)
+            profile = next((profile for profile in card["profiles"] if profile["id"] == payload["profile"] and profile["available"]), None) if card else None
+            if profile is None:
+                self.operationFailed.emit(action, tr("Bluetooth audio mode is unavailable"))
+                return
+            for entry in card["profiles"]:
+                entry["active"] = entry is profile
+            if not profile["microphone"]:
+                self.state["audio"]["inputs"] = [source for source in self.state["audio"]["inputs"] if source.get("cardId") != card["id"]]
+            elif not any(source.get("cardId") == card["id"] for source in self.state["audio"]["inputs"]):
+                self.state["audio"]["inputs"] += [deepcopy(source) for source in self._mock_audio["inputs"] if source.get("cardId") == card["id"]]
+        if action in ("bluetooth_power", "bluetooth_disconnect", "bluetooth_remove"):
+            removed = {card["id"] for card in self.state["audio"]["cards"]
+                       if (action == "bluetooth_power" and not payload["enabled"]) or card.get("deviceId") == payload.get("id")}
+            self.state["audio"]["cards"] = [card for card in self.state["audio"]["cards"] if card["id"] not in removed]
+            for kind in ("inputs", "outputs"):
+                self.state["audio"][kind] = [entry for entry in self.state["audio"][kind] if entry.get("cardId") not in removed]
+        elif action in ("bluetooth_connect", "bluetooth_pair"):
+            for card in self._mock_audio["cards"]:
+                if card.get("deviceId") == payload["id"] and not any(entry["id"] == card["id"] for entry in self.state["audio"]["cards"]):
+                    self.state["audio"]["cards"].append(deepcopy(card))
+                    for kind in ("inputs", "outputs"):
+                        self.state["audio"][kind] += [deepcopy(entry) for entry in self._mock_audio[kind] if entry.get("cardId") == card["id"]]
+        for kind in ("inputs", "outputs"):
+            entries = self.state["audio"].get(kind, [])
+            if entries and not any(entry["active"] for entry in entries):
+                entries[0]["active"] = True
+        active = next((output for output in self.state["audio"]["outputs"] if output["active"]), {})
+        self.state["audio"].update(volume=active.get("volume") or 0, muted=active.get("muted", False))
         if action.startswith("wifi_"):
             devices = self.state["wifi"]["devices"]
             for device in devices:

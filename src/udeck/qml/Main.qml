@@ -357,9 +357,9 @@ Window {
                 objectName: "dialogPanel"
                 anchors.centerIn: parent
                 width: Math.min(810, parent.width - 96)
-                property real menuChromeHeight: 96 + dialogTitle.implicitHeight + modalFooter.implicitHeight
-                    + (dialogBody.visible ? dialogBody.implicitHeight + 20 : 0)
-                    + (modalToast.visible ? modalToast.implicitHeight + 20 : 0)
+                property real menuChromeHeight: dialog.kind === "menu" ? 96 + dialogTitle.implicitHeight + modalFooter.implicitHeight
+                    + (dialog.body ? dialogBody.implicitHeight + 20 : 0)
+                    + (viewState.toast ? modalToast.height + 20 : 0) : 0
                 height: Math.min(parent.height - 64, dialog.kind === "menu"
                     ? menuChromeHeight + (dialog.options || []).length * 80 : modalColumn.height + 56)
                 radius: 16; color: window.colors.dialog; border.width: 1; border.color: window.colors.dialogBorder
@@ -370,6 +370,20 @@ Window {
                     x: 28; y: 26; width: parent.width - 56; spacing: 20
                     Text { textFormat: Text.PlainText; id: dialogTitle; width: parent.width; text: dialog.title || ""; font.family: window.fontFamily; font.pixelSize: 32; font.weight: Font.DemiBold; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
                     Text { textFormat: Text.PlainText; id: dialogBody; visible: !!dialog.body; width: parent.width; text: dialog.body || ""; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: 4; elide: Text.ElideRight }
+
+                    Column {
+                        visible: !!dialog.metrics
+                        width: parent.width; spacing: 12
+                        Repeater {
+                            model: dialog.metrics || []
+                            delegate: Item {
+                                required property var modelData
+                                width: modalColumn.width; height: 34
+                                Text { objectName: "batteryMetricLabel"; textFormat: Text.PlainText; width: parent.width - 190; anchors.verticalCenter: parent.verticalCenter; text: modelData.label; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted; elide: Text.ElideRight }
+                                Text { objectName: "batteryMetricValue"; textFormat: Text.PlainText; width: 178; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; text: modelData.value; horizontalAlignment: Text.AlignRight; font.family: window.fontFamily; font.pixelSize: 26; font.weight: Font.Medium; color: window.ink; elide: Text.ElideRight }
+                            }
+                        }
+                    }
 
                     ListView {
                         id: menuList
