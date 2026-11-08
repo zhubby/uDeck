@@ -25,7 +25,7 @@ Item {
         }
         Item {
             Layout.fillWidth:true;Layout.fillHeight:true;clip:true
-            Rectangle{anchors.fill:parent;color:appState.dark?"#202426":"#d9d4c9"}
+            Rectangle{anchors.fill:parent;color:surface.appState.backgroundColor||(surface.appState.dark?"#202426":"#d9d4c9")}
             Flickable {
                 id: pdfView; anchors.fill:parent;visible:surface.pdf;clip:true
                 contentWidth:Math.max(width,pdfImage.width+40);contentHeight:pdfImage.height+40

@@ -284,6 +284,16 @@ def run(app, root, language="en", width=1280, height=720):
                 controller.dispatch("next-tab")
                 wait(lambda original=original: controller.position.get("cfi")!=original)
                 controller.set_font(28)
+                controller.set_line_height(2.0)
+                controller.set_font_family("serif")
+                controller.set_content_width(720)
+                controller.set_background("warm")
+                style = controller.extra_state()
+                assert style["fontSize"] == 28
+                assert style["lineHeight"] == 2.0
+                assert style["fontFamily"] == "serif"
+                assert style["contentWidth"] == 720
+                assert style["background"] == "warm" and not style["dark"]
                 QTest.qWait(100)
                 controller.add_bookmark()
                 assert controller.store.data["bookmarks"][item["id"]]

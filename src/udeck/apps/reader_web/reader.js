@@ -5,7 +5,27 @@ const cfg = await (await fetch('config.json')).json()
 const view = document.querySelector('foliate-view')
 const emit = (type, data={}) => console.log('UDECK_READER:' + JSON.stringify({session:cfg.session,type,...data}))
 let searchGeneration = 0
-const css = (size, dark) => `html,body {font-size:${size}px!important;line-height:1.7!important;color:${dark?'#eee8da':'#282722'}!important;background:${dark?'#202426':'#ece7da'}!important} img {max-width:100%} a{color:#a77731}`
+const fonts = {sans:'system-ui, sans-serif', serif:"Georgia, 'Noto Serif CJK SC', serif", mono:'ui-monospace, monospace'}
+const backgrounds = {
+    paper:{background:'#ece7da', text:'#282722'},
+    warm:{background:'#f2e5c7', text:'#332a1d'},
+    gray:{background:'#d7dadd', text:'#202426'},
+    night:{background:'#202426', text:'#eee8da'},
+}
+const style = preferences => {
+    const palette = backgrounds[preferences.background] || backgrounds.paper
+    const font = fonts[preferences.fontFamily] || fonts.sans
+    const size = Number.isFinite(preferences.fontSize) ? preferences.fontSize : 24
+    const lineHeight = Number.isFinite(preferences.lineHeight) ? preferences.lineHeight : 1.7
+    const contentWidth = Number.isFinite(preferences.contentWidth) ? preferences.contentWidth : 1000
+    return {css:`html,body {font-size:${size}px!important;color:${palette.text}!important;background:${palette.background}!important} body,body * {line-height:${lineHeight}!important;font-family:${font}!important} p {margin-block:0 1em} img {max-width:100%} a{color:#a77731}`,
+        contentWidth}
+}
+const applyStyle = preferences => {
+    const rendered = style(preferences)
+    view.renderer.setAttribute('max-inline-size', rendered.contentWidth + 'px')
+    view.renderer.setStyles(rendered.css)
+}
 try {
     let book
     if (cfg.format === 'EPUB') {
@@ -43,9 +63,8 @@ try {
     view.addEventListener('external-link', e=>{e.preventDefault();emit('external',{url:e.detail.href_})})
     await view.open(book)
     view.renderer.setAttribute('max-column-count','1')
-    view.renderer.setAttribute('max-inline-size','1000px')
     view.renderer.setAttribute('gap','10%')
-    view.renderer.setStyles(css(cfg.preferences.fontSize||24,cfg.preferences.dark||false))
+    applyStyle(cfg.preferences)
     await view.init({lastLocation:cfg.position.cfi,showTextStart:true})
     const toc=[]
     const walk = (items,depth=0)=>{for(const x of items||[]){toc.push({title:x.label,href:x.href,depth});walk(x.subitems,depth+1)}}
@@ -58,7 +77,7 @@ try {
             else if(action==='previous') await view.prev()
             else if(action==='goto') await view.goTo(value)
             else if(action==='fraction') await view.goToFraction(value)
-            else if(action==='style') view.renderer.setStyles(css(value.fontSize,value.dark))
+            else if(action==='style') applyStyle({...cfg.preferences,...value})
             else if(action==='scroll') await view.renderer.scrollBy?.(0,value)
             else if(action==='clear') {searchGeneration++;view.clearSearch()}
             else if(action==='search') {

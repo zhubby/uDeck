@@ -13,6 +13,14 @@ from ..i18n import tr
 from ..sounds import interaction
 from .books import BookServer
 from .controller import AppController
+from .reader_style import (
+    READER_BACKGROUNDS,
+    READER_CONTENT_WIDTHS,
+    READER_FONT_FAMILIES,
+    READER_FONT_SIZES,
+    READER_LINE_HEIGHTS,
+    normalize_reader_preferences,
+)
 
 
 class PdfImages(QQuickImageProvider):
@@ -55,9 +63,14 @@ class ReaderController(AppController):
         self.search_results = []
         self.search_query = ""
         self.ticks = 0
-        preferences = self.store.data["preferences"]
-        self.font_size = max(16, min(40, preferences.get("fontSize", 24)))
-        self.dark = bool(preferences.get("dark", False))
+        preferences = normalize_reader_preferences(self.store.data["preferences"])
+        self.store.data["preferences"].update(preferences)
+        self.font_size = preferences["fontSize"]
+        self.line_height = preferences["lineHeight"]
+        self.font_family = preferences["fontFamily"]
+        self.background = preferences["background"]
+        self.content_width = preferences["contentWidth"]
+        self.dark = preferences["dark"]
 
     def tabs(self):
         return [tr("Recent books"), tr("Bookshelf"), tr("Folders")]
@@ -95,7 +108,7 @@ class ReaderController(AppController):
             self.pdf_revision += 1
             self.reader_ready = self.pdf.status() == QPdfDocument.Status.Ready
         else:
-            self.book = BookServer(item, self.position, {"fontSize": self.font_size, "dark": self.dark})
+            self.book = BookServer(item, self.position, self.style_preferences())
             self.reader_url = self.book.url
         self.enter("document")
         self.store.remember(identifier)
@@ -118,7 +131,10 @@ class ReaderController(AppController):
     def extra_state(self):
         return {"readerUrl": self.reader_url, "readerReady": self.reader_ready,
                 "readerLabel": self.reader_label, "position": self.position,
-                "fontSize": self.font_size, "dark": self.dark,
+                "fontSize": self.font_size, "lineHeight": self.line_height,
+                "fontFamily": self.font_family, "background": self.background,
+                "backgroundColor": READER_BACKGROUNDS[self.background]["background"],
+                "contentWidth": self.content_width, "dark": self.dark,
                 "pdfPage": self.pdf_page, "pdfPages": self.pdf.pageCount(),
                 "pdfZoom": self.pdf_zoom, "pdfFit": self.pdf_fit,
                 "pdfX": self.pdf_x, "pdfY": self.pdf_y, "pdfRevision": self.pdf_revision,
@@ -174,6 +190,11 @@ class ReaderController(AppController):
     def send_reader(self, action, value=None):
         if self.book and self.reader_ready:
             self.webAction.emit(action, json.dumps({"value": value, "session": self.book.token}))
+
+    def style_preferences(self):
+        return {"fontSize": self.font_size, "lineHeight": self.line_height,
+                "fontFamily": self.font_family, "background": self.background,
+                "contentWidth": self.content_width, "dark": self.dark}
 
     def save_position(self):
         if not self.current:
@@ -235,6 +256,7 @@ class ReaderController(AppController):
             return super().context()
         self.menu(tr("Reading actions"), [
             (tr("Contents"), self.contents_menu),
+            (tr("Reading layout"), self.layout_menu),
             (tr("Bookmark this position"), self.add_bookmark),
             (tr("Bookmarks"), self.bookmarks_menu),
             (tr("Go to page / percentage"), lambda: self.prompt(tr("Go to page / percentage"), self.jump,
@@ -355,7 +377,8 @@ class ReaderController(AppController):
         self.publish()
 
     def settings_options(self):
-        options = [(tr("Night colors"), self.toggle_dark)]
+        options = [(tr("Night colors"), self.toggle_dark),
+                   (tr("Reading layout"), self.layout_menu)]
         if self.current and self.current["format"] == "PDF" and self.page == "document":
             options.append((tr("PDF zoom"), self.zoom_menu))
         else:
@@ -363,20 +386,81 @@ class ReaderController(AppController):
         return options
 
     def toggle_dark(self):
-        self.dark = not self.dark
-        self.send_style()
-        self.pop_menu()
+        self.set_background("paper" if self.dark else "night")
 
     def font_menu(self):
-        self.menu(tr("Text size"), [(str(s), lambda s=s: self.set_font(s)) for s in (18, 20, 24, 28, 32, 36)])
+        self.menu(tr("Text size"), [(str(size), lambda size=size: self.set_font(size))
+                                     for size in READER_FONT_SIZES])
 
     def set_font(self, size):
         self.font_size = size
         self.send_style()
         self.pop_menu()
 
+    def layout_menu(self):
+        options = []
+        pdf_document = self.page == "document" and self.current and self.current.get("format") == "PDF"
+        if not pdf_document:
+            options.extend([(tr("Line spacing"), self.line_height_menu),
+                            (tr("Font"), self.font_family_menu),
+                            (tr("Content width"), self.content_width_menu)])
+        options.append((tr("Background"), self.background_menu))
+        self.menu(tr("Reading layout"), options)
+
+    def line_height_menu(self):
+        self.menu(tr("Line spacing"), [(f"{value:.1f}×", lambda value=value: self.set_line_height(value))
+                                       for value in READER_LINE_HEIGHTS])
+
+    def set_line_height(self, value):
+        if value not in READER_LINE_HEIGHTS:
+            return
+        self.line_height = value
+        self.send_style()
+        self.pop_menu()
+
+    def font_family_menu(self):
+        self.menu(tr("Font"), [(tr("Sans-serif"), lambda: self.set_font_family("sans")),
+                                (tr("Serif"), lambda: self.set_font_family("serif")),
+                                (tr("Monospace"), lambda: self.set_font_family("mono"))])
+
+    def set_font_family(self, family):
+        if family not in READER_FONT_FAMILIES:
+            return
+        self.font_family = family
+        self.send_style()
+        self.pop_menu()
+
+    def content_width_menu(self):
+        labels = {720: "Narrow ({width}px)", 1000: "Standard ({width}px)", 1200: "Wide ({width}px)"}
+        self.menu(tr("Content width"), [(tr(labels[width], width=width),
+                                         lambda width=width: self.set_content_width(width))
+                                        for width in READER_CONTENT_WIDTHS])
+
+    def set_content_width(self, width):
+        if width not in READER_CONTENT_WIDTHS:
+            return
+        self.content_width = width
+        self.send_style()
+        self.pop_menu()
+
+    def background_menu(self):
+        self.menu(tr("Background"), [(tr("Paper"), lambda: self.set_background("paper")),
+                                     (tr("Warm paper"), lambda: self.set_background("warm")),
+                                     (tr("Gray"), lambda: self.set_background("gray")),
+                                     (tr("Night"), lambda: self.set_background("night"))])
+
+    def set_background(self, background):
+        if background not in READER_BACKGROUNDS:
+            return
+        self.background = background
+        self.dark = READER_BACKGROUNDS[background]["dark"]
+        self.send_style()
+        self.pop_menu()
+
     def send_style(self):
-        self.send_reader("style", {"fontSize": self.font_size, "dark": self.dark})
+        preferences = self.style_preferences()
+        self.store.data["preferences"].update(preferences)
+        self.send_reader("style", preferences)
         self.persist()
 
     def zoom_menu(self):
@@ -389,7 +473,7 @@ class ReaderController(AppController):
         self.pop_menu()
 
     def persist(self):
-        self.store.data["preferences"].update(fontSize=self.font_size, dark=self.dark)
+        self.store.data["preferences"].update(self.style_preferences())
         super().persist()
 
     def close_document(self):
