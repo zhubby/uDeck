@@ -370,6 +370,7 @@ def main(argv=None):
     key_test_reader = KeyTestReader()
     key_test_reader.key.connect(controller.testHardwareKey)
     key_test_reader.reset.connect(controller.resetHardwareKeys)
+    key_test_reader.status.connect(controller.input_status)
 
     def key_test_warning(message):
         if controller.modal.get("kind") == "key-test" and controller.modal.get("deviceWarning") != message:

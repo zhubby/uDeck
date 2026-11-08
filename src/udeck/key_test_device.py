@@ -17,12 +17,14 @@ class KeyTestReader(QObject):
     key = Signal(str, bool, str)
     reset = Signal(str)
     warning = Signal(object)
+    status = Signal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.enabled = False
         self._closed = False
         self.devices = {}
+        self.last_status = None
         self.timer = QTimer(self)
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self._scan)
@@ -58,16 +60,25 @@ class KeyTestReader(QObject):
                 if ((device.info.vendor, device.info.product) != (0x1EAF, 0x0024)
                         or not any(part in device.name for part in ("Keyboard", "Consumer"))):
                     continue
+                keys = {LINUX_KEYS[code] for code in device.capabilities().get(1, []) if code in LINUX_KEYS}
                 notifier = QSocketNotifier(device.fd, QSocketNotifier.Type.Read, self)
                 notifier.activated.connect(lambda *arguments, path=path: self._read(path))
-                self.devices[path] = {"device": device, "notifier": notifier, "pressed": set(), "syncing": False}
+                self.devices[path] = {"device": device, "notifier": notifier, "keys": keys,
+                                      "pressed": set(), "syncing": False}
                 device = None
             except OSError:
                 failed = True
             finally:
                 if device is not None:
                     device.close()
+        self._report()
         self.warning.emit(tr("Some system keys cannot be read. Check input device access.") if failed or not self.devices else "")
+
+    def _report(self):
+        status = {"keyTestNativeKeys": sorted({key for entry in self.devices.values() for key in entry["keys"]})}
+        if status != self.last_status:
+            self.last_status = status
+            self.status.emit(status)
 
     def _read(self, path):
         entry = self.devices.get(path)
@@ -100,12 +111,14 @@ class KeyTestReader(QObject):
         entry["notifier"].deleteLater()
         entry["device"].close()
         self.reset.emit(path)
+        self._report()
 
     def _stop(self):
         self.enabled = False
         self.timer.stop()
         for path in list(self.devices):
             self._remove(path)
+        self._report()
 
     def close(self):
         # Reset signals can publish controller state while the app is closing.

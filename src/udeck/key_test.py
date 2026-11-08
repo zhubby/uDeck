@@ -29,6 +29,7 @@ SOURCES = {"keyboard": tr("Keyboard"), "gamepad": tr("Gamepad"), "shoulder": tr(
 class KeyTestControls:
     def _init_key_test(self):
         self._test_inputs = {}
+        self._test_native_keys = set()
         self._test_active = True
         self._test_motion_timers = {}
         self._test_exit_timer = QTimer(self)
@@ -61,6 +62,14 @@ class KeyTestControls:
         # Qt cannot attribute a lost key release to a particular USB interface.
         self._clear_test_inputs("keyboard")
 
+    def _set_test_native_keys(self, keys):
+        self._test_native_keys = set(keys)
+        inputs = {key: value for key, value in self._test_inputs.items()
+                  if key[0] != "keyboard" or value[0] not in self._test_native_keys}
+        if inputs != self._test_inputs:
+            self._test_inputs = inputs
+            self._sync_test_inputs()
+
     @Slot(int, int)
     def testPointerMotion(self, axis, value):
         if not value or axis not in (0, 1, 8) or self.modal.get("kind") != "key-test" or not self._test_active:
@@ -79,6 +88,10 @@ class KeyTestControls:
 
     def _test_event(self, token, action, label, pressed, source, *, count=True):
         if self.modal.get("kind") != "key-test" or not self._test_active:
+            return
+        # Native ownership lasts while its interface is readable, including
+        # between taps. Qt may deliver an entire duplicate tap after key-up.
+        if source == "keyboard" and action in self._test_native_keys:
             return
         identifier = (source, token)
         if pressed:

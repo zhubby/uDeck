@@ -1121,6 +1121,8 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
                 self.present.emit()
 
     def input_status(self, values):
+        if "keyTestNativeKeys" in values:
+            self._set_test_native_keys(values["keyTestNativeKeys"])
         if values.get("available") is False or values.get("grabbed") is False:
             self._clear_test_inputs("gamepad")
         if values.get("pointer", {}).get("blockedDevices") == 0:

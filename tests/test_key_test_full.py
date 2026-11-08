@@ -112,6 +112,81 @@ def test_native_release_clears_qt_shadow_when_compositor_consumes_the_qt_keyup(d
     assert not controller.modal["pressed"]
 
 
+@pytest.mark.parametrize("order", [
+    ("native-down", "native-up", "qt-down", "qt-up"),
+    ("qt-down", "qt-up", "native-down", "native-up"),
+    ("native-down", "qt-down", "native-up", "qt-up"),
+    ("native-down", "qt-down", "qt-up", "native-up"),
+    ("qt-down", "native-down", "native-up", "qt-up"),
+    ("qt-down", "native-down", "qt-up", "native-up"),
+])
+def test_complete_native_and_qt_taps_count_once_for_every_batch_order(diagnostic, order):
+    application, controller, window, _ = diagnostic
+    controller.input_status({"keyTestNativeKeys": ["j"]})
+    for edge in order:
+        source, state = edge.split("-")
+        pressed = state == "down"
+        if source == "native":
+            controller.testHardwareKey("j", pressed, "event4")
+        else:
+            application.sendEvent(window, QKeyEvent(
+                QEvent.Type.KeyPress if pressed else QEvent.Type.KeyRelease, Qt.Key_J, Qt.NoModifier))
+    assert controller.modal["pressCount"] == 1
+    assert controller.modal["pressed"] == []
+    assert controller.modal["tested"] == ["j"]
+
+
+def test_rapid_native_taps_keep_their_count_when_the_qt_batch_lags(diagnostic):
+    application, controller, window, _ = diagnostic
+    controller.input_status({"keyTestNativeKeys": ["j"]})
+    for _ in range(3):
+        controller.testHardwareKey("j", True, "event4")
+        controller.testHardwareKey("j", False, "event4")
+    for _ in range(3):
+        for kind in (QEvent.Type.KeyPress, QEvent.Type.KeyRelease):
+            application.sendEvent(window, QKeyEvent(kind, Qt.Key_J, Qt.NoModifier))
+    assert controller.modal["pressCount"] == 3 and not controller.modal["pressed"]
+
+
+def test_late_qt_escape_press_cannot_restart_a_released_native_exit_hold(diagnostic):
+    application, controller, window, _ = diagnostic
+    owner = controller.modal["key"]
+    controller.input_status({"keyTestNativeKeys": ["escape"]})
+    controller.testHardwareKey("escape", True, "event4")
+    controller.testHardwareKey("escape", False, "event4")
+    # The compositor need not deliver a matching Qt key-up.
+    application.sendEvent(window, QKeyEvent(QEvent.Type.KeyPress, Qt.Key_Escape, Qt.NoModifier))
+    assert controller.modal["pressed"] == []
+    assert controller.modal["pressCount"] == 1
+    QTest.qWait(1300)
+    assert controller.modal["key"] == owner and not controller.modal["exitHolding"]
+
+
+def test_qt_fallback_covers_unreadable_native_keys_and_recovers_after_device_loss(diagnostic):
+    application, controller, window, _ = diagnostic
+    controller.input_status({"keyTestNativeKeys": ["volume-up"]})
+    for kind in (QEvent.Type.KeyPress, QEvent.Type.KeyRelease):
+        application.sendEvent(window, QKeyEvent(kind, Qt.Key_J, Qt.NoModifier))
+    controller.testHardwareKey("volume-up", True, "event5")
+    controller.testHardwareKey("volume-up", False, "event5")
+    controller.input_status({"keyTestNativeKeys": []})
+    for kind in (QEvent.Type.KeyPress, QEvent.Type.KeyRelease):
+        application.sendEvent(window, QKeyEvent(kind, Qt.Key_VolumeUp, Qt.NoModifier))
+    assert controller.modal["pressCount"] == 3
+    assert controller.modal["pressed"] == []
+    assert set(controller.modal["tested"]) == {"j", "volume-up"}
+
+
+def test_native_key_ownership_clears_only_covered_qt_shadows(diagnostic):
+    application, controller, window, _ = diagnostic
+    application.sendEvent(window, QKeyEvent(QEvent.Type.KeyPress, Qt.Key_Control, Qt.ControlModifier))
+    application.sendEvent(window, QKeyEvent(QEvent.Type.KeyPress, Qt.Key_J, Qt.NoModifier))
+    controller.input_status({"keyTestNativeKeys": ["ctrl-left"]})
+    assert controller.modal["pressed"] == ["j"]
+    application.sendEvent(window, QKeyEvent(QEvent.Type.KeyRelease, Qt.Key_J, Qt.NoModifier))
+    assert controller.modal["pressed"] == []
+
+
 def test_start_select_middle_click_motion_and_wheel_have_separate_states(diagnostic):
     _, controller, _, _ = diagnostic
     for identifier in ("select", "start", "pointer-click"):
