@@ -13,6 +13,7 @@ from pathlib import Path
 from PySide6.QtCore import QObject, QProcess, QTimer, Signal, Slot
 
 from ..i18n import error_text, tr
+from ..sounds import interaction
 from .controller import AppController
 from .state import atomic_json
 
@@ -576,6 +577,7 @@ class GamesController(AppController):
         self.prompt(tr("Folder path"), set_path, self.store.data["preferences"].get(key, default))
 
     @Slot(str)
+    @interaction
     def dispatch(self, action):
         if self.engine.running() and not self.menus:
             # Physical B remains a game button; only the dedicated shortcut pauses.
@@ -631,6 +633,7 @@ class GamesController(AppController):
             super().requestClose()
 
     @Slot(str)
+    @interaction
     def command(self, command):
         if command == "pause-game":
             self.attempt(self.engine.pause)

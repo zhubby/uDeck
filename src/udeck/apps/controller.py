@@ -3,16 +3,17 @@
 import json
 from pathlib import Path
 
-from PySide6.QtCore import Property, QObject, QTimer, Signal, Slot
+from PySide6.QtCore import Property, QTimer, Signal, Slot
 from PySide6.QtDBus import QDBusConnection, QDBusMessage
 
 from ..core import ConfigStore, move_index
 from ..i18n import language_code, render, tr
+from ..sounds import SoundFeedback, interaction
 from .library import Library
 from .state import AppState
 
 
-class AppController(QObject):
+class AppController(SoundFeedback):
     changed = Signal()
     closed = Signal()
     present = Signal()
@@ -116,11 +117,13 @@ class AppController(QObject):
         try:
             return action()
         except (OSError, ValueError, RuntimeError) as error:
+            self.feedback("error")
             self.error = tr("Operation failed: {error}", error=error)
             self.publish()
             return None
 
     def menu(self, title, options=(), body="", owner=None):
+        self.feedback("open")
         rows = []
         for label, callback, *detail in options:
             self._serial += 1
@@ -160,9 +163,11 @@ class AppController(QObject):
             self.menus[-1]["draft"] = text
 
     @Slot(str)
+    @interaction
     def submit(self, text):
         if not self.menus or not self.menus[-1].get("submit"):
             return
+        self.feedback("accept")
         menu = self.menus[-1]
         def complete():
             menu["submit"](text)
@@ -183,8 +188,11 @@ class AppController(QObject):
                 self.dispatch("accept")
 
     @Slot(str)
+    @interaction
     def select(self, identifier):
         if identifier in {row["id"] for row in self.rows()}:
+            if identifier != self.selected:
+                self.feedback("navigate")
             self.selected = identifier
             self.publish()
 
@@ -193,9 +201,12 @@ class AppController(QObject):
         self.columns = max(1, columns)
 
     @Slot(int)
+    @interaction
     def setTab(self, index):
         if not 0 <= index < len(self.tabs()):
             return
+        if index != self.tab or self.page != "library" or self.folder:
+            self.feedback("open")
         self.store.data["focus"][str(self.tab)] = self.selected
         self.tab, self.page, self.folder = index, "library", ""
         self.history.clear()
@@ -203,6 +214,7 @@ class AppController(QObject):
         self.publish()
 
     def enter(self, page):
+        self.feedback("open")
         self.history.append((self.page, self.tab, self.folder, self.selected))
         self.page = page
 
@@ -223,24 +235,30 @@ class AppController(QObject):
         pass
 
     @Slot(str)
+    @interaction
     def dispatch(self, action):
         self.error = ""
         if self.menus:
             menu = self.menus[-1]
             if action == "back":
+                self.feedback("back")
                 self.pop_menu()
             elif action == "accept":
                 callback = self._callbacks.get(menu["options"][menu["index"]]["id"])
                 if callback:
+                    self.feedback("accept")
                     self.attempt(callback)
             elif action in ("up", "down") and not menu["input"]:
                 direction = -1 if action == "up" else 1
                 index = menu["index"]
+                previous = index
                 for _ in menu["options"]:
                     index = (index + direction) % len(menu["options"])
                     if not menu["options"][index]["disabled"]:
                         menu["index"] = index
                         break
+                if menu["index"] != previous:
+                    self.feedback("navigate")
             self.publish()
             return
         if action == "quick-settings":
@@ -248,12 +266,14 @@ class AppController(QObject):
         elif action == "context":
             self.context()
         elif action == "back":
+            self.feedback("back")
             self.attempt(self.back)
         elif action in ("previous-tab", "next-tab"):
             self.setTab((self.tab + (-1 if action == "previous-tab" else 1)) % len(self.tabs()))
         elif action == "accept":
             row = next((row for row in self.rows() if row["id"] == self.selected), None)
             if row:
+                self.feedback("accept")
                 self.attempt(lambda: self.activate(row))
             elif not self.rows():
                 self.sources_menu() if self.library else self.command("address")
@@ -261,8 +281,11 @@ class AppController(QObject):
             rows = self.rows()
             index = next((i for i, r in enumerate(rows) if r["id"] == self.selected), 0)
             if rows:
+                previous = self.selected
                 self.selected = rows[move_index(index, action, len(rows),
                                                1 if self.page == "album" else self.columns)]["id"]
+                if self.selected != previous:
+                    self.feedback("navigate")
         self.publish()
 
     def context(self):
@@ -343,11 +366,13 @@ class AppController(QObject):
             self.window.showMinimized()
 
     @Slot(str)
+    @interaction
     def command(self, command):
         handlers = {"settings": self.settings, "sources": self.sources_menu,
                     "search": lambda: self.prompt(tr("Search library"), self.search, self.filter),
                     "refresh": self.refresh, "context": self.context, "home": lambda: self.desktop("Home")}
         if command in handlers:
+            self.feedback("accept")
             self.attempt(handlers[command])
         self.publish()
 

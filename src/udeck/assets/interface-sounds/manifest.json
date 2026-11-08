@@ -1,0 +1,75 @@
+{
+  "source": "https://kenney.nl/assets/interface-sounds",
+  "version": "1.0",
+  "archiveFilename": "kenney_interface-sounds.zip",
+  "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+  "downloadedAt": "2026-11-08",
+  "license": "CC0-1.0",
+  "conversion": "FFmpeg: mono 48000 Hz PCM s16le WAV; constant gain only; no trimming or pitch changes",
+  "files": {
+    "tick_001.wav": {
+      "archivePath": "Audio/tick_001.ogg",
+      "sourceSha256": "9d057b918024c787bbe6c00beed13a7ef72a3fa0c259add3cef36582792f4230",
+      "sha256": "3d1dda40d80e14be24962839d12bd92d8f6e3b96848a45a5434dd1816bdb96b6",
+      "gainDb": -18.536319,
+      "peakDbfs": -18,
+      "durationMs": 45.0
+    },
+    "select_001.wav": {
+      "archivePath": "Audio/select_001.ogg",
+      "sourceSha256": "aec0c31ea934a35936ae0d2ab8fac8123c93aa5647f935853a58dbaf90278b7a",
+      "sha256": "5ec586680e56eedc97ca98fe6a5858a34b2827375cb4e0cf8a321000c049ccd4",
+      "gainDb": -15.909893,
+      "peakDbfs": -14,
+      "durationMs": 40.396
+    },
+    "open_001.wav": {
+      "archivePath": "Audio/open_001.ogg",
+      "sourceSha256": "a27c6bb0df7da1e6af5dd5937593c98bc58b6e513f42fe6a3254cd6a6949c648",
+      "sha256": "cf899ed493f3f13aa46917dc380715eb3e29b6350586fc814cdd520a5274d0b3",
+      "gainDb": -15.274466,
+      "peakDbfs": -16,
+      "durationMs": 147.792
+    },
+    "back_001.wav": {
+      "archivePath": "Audio/back_001.ogg",
+      "sourceSha256": "07db973f79f6ae0f2edc34561e7592e24d0577455919fb602cb8ecc0da991dcf",
+      "sha256": "eae00cb80a5bbadcbf475770cb84a5b3f2fdbef5357959c5072afbd583d8b500",
+      "gainDb": -14.000485,
+      "peakDbfs": -15,
+      "durationMs": 60.979
+    },
+    "toggle_001.wav": {
+      "archivePath": "Audio/toggle_001.ogg",
+      "sourceSha256": "ca1d2dde5f0b286abac4f070e23edab8f30927c8a533665cdf2ac6492a415e49",
+      "sha256": "c32455ba0510589827615914896c6236f8fb6b0c45809b1a9c67857e2d7187ff",
+      "gainDb": -15.06149,
+      "peakDbfs": -16,
+      "durationMs": 136.438
+    },
+    "toggle_002.wav": {
+      "archivePath": "Audio/toggle_002.ogg",
+      "sourceSha256": "1f564f5520cfa0764028ce245ad97599d3ece8f0ab504554c403af92ac72b900",
+      "sha256": "6cdc40e11eef8b163227a38dc6f15c2245c985a0f833f1be9e73c91b520bcaa9",
+      "gainDb": -15.022649,
+      "peakDbfs": -16,
+      "durationMs": 136.438
+    },
+    "confirmation_003.wav": {
+      "archivePath": "Audio/confirmation_003.ogg",
+      "sourceSha256": "3091bf0be0497f825769ee0733ca7bdc3bcd59bd6c6e8f2ba8f93d580ff38022",
+      "sha256": "d9dbb8b2d4639cdd4b53ba75f5f43fe3b4fe7e23d2a22b2ee4b8a438f2b94540",
+      "gainDb": -14.969295,
+      "peakDbfs": -16,
+      "durationMs": 322.021
+    },
+    "error_008.wav": {
+      "archivePath": "Audio/error_008.ogg",
+      "sourceSha256": "eba17ecb2a426bfd4a8a6acff5f8a86202b6424a77af0fd842e37809a1ab6d81",
+      "sha256": "8e7b717e532a1afbf5521240fbce49704664e8dcdae54de04048f34451527785",
+      "gainDb": -12.046802,
+      "peakDbfs": -13,
+      "durationMs": 139.333
+    }
+  }
+}

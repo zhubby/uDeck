@@ -18,6 +18,7 @@ from shiboken6 import delete
 from ..app_routing import APP_IDS, object_path, service_name
 from ..core import ConfigStore
 from ..i18n import tr
+from ..sounds import InterfaceSounds
 from . import __version__
 from .library import EXTENSIONS
 
@@ -238,6 +239,8 @@ def main(argv=None):
     window.setWidth(max(800, options.width))
     window.setHeight(max(500, options.height))
     controller.window = window
+    sounds = InterfaceSounds(controller.config_path, window, silent=os.environ.get("QT_QPA_PLATFORM") == "offscreen")
+    controller.soundRequested.connect(sounds.request)
     def show():
         window.showNormal() if options.windowed or options.isolated else window.showFullScreen()
         window.raise_()
@@ -285,6 +288,7 @@ def main(argv=None):
     if options.quit_after or options.smoke_test:
         QTimer.singleShot(int((options.quit_after or 2.5) * 1000), application.quit)
     result = application.exec()
+    sounds.close()
     # Destroy engine views before their Python controllers and media/PDF objects.
     controller.close()
     window.setProperty("allowClose", True)

@@ -830,5 +830,7 @@
   "Key lock": "锁键",
   "Power": "电源",
   "Fn, backlight and key lock are handled by firmware; Power is handled by the system. Test Fn combinations using their output keys.": "Fn、键盘背光和锁键由固件处理，电源键由系统处理，均无独立按键事件。Fn 组合通过对应的输出键位测试。",
-  "Some system keys cannot be read. Check input device access.": "部分系统按键无法读取，请检查输入设备的访问权限。"
+  "Some system keys cannot be read. Check input device access.": "部分系统按键无法读取，请检查输入设备的访问权限。",
+  "Interface sounds": "交互音效",
+  "Could not save interface sound settings": "交互音效设置保存失败"
 }

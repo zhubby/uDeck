@@ -118,7 +118,7 @@ def test_return_to_directory_restores_selected_item_not_old_row(tmp_path, monkey
     controller.data["files"] = controller.operations.list_directory(tmp_path)
     controller.setPage("files")
     controller.select(1)
-    monkeypatch.setattr(controller, "_run", lambda label, work, success: success(work()))
+    monkeypatch.setattr(controller, "_run", lambda label, work, success, **options: success(work()))
     controller._browse(selected)
     (tmp_path / "b").mkdir()
     controller._browse(tmp_path)

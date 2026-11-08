@@ -19,6 +19,7 @@ from PySide6.QtCore import (
 )
 
 from ..i18n import tr
+from ..sounds import interaction
 from .controller import AppController
 
 
@@ -287,6 +288,7 @@ class BrowserController(AppController):
         self.publish()
 
     @Slot(str)
+    @interaction
     def dispatch(self, action):
         if self.menus or action in ("context", "quick-settings", "previous-tab", "next-tab"):
             return super().dispatch(action)
@@ -306,6 +308,7 @@ class BrowserController(AppController):
         self.publish()
 
     @Slot(str)
+    @interaction
     def command(self, command):
         if command == "address":
             self.prompt(tr("Address or search"), self.navigate,

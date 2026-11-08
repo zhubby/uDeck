@@ -830,5 +830,7 @@
   "Key lock": "Key lock",
   "Power": "Power",
   "Fn, backlight and key lock are handled by firmware; Power is handled by the system. Test Fn combinations using their output keys.": "Fn, backlight and key lock are handled by firmware; Power is handled by the system. Test Fn combinations using their output keys.",
-  "Some system keys cannot be read. Check input device access.": "Some system keys cannot be read. Check input device access."
+  "Some system keys cannot be read. Check input device access.": "Some system keys cannot be read. Check input device access.",
+  "Interface sounds": "Interface sounds",
+  "Could not save interface sound settings": "Could not save interface sound settings"
 }

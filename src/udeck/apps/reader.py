@@ -10,6 +10,7 @@ from PySide6.QtPdf import QPdfBookmarkModel, QPdfDocument
 from PySide6.QtQuick import QQuickImageProvider
 
 from ..i18n import tr
+from ..sounds import interaction
 from .books import BookServer
 from .controller import AppController
 
@@ -196,6 +197,7 @@ class ReaderController(AppController):
             self.attempt(self.persist)
 
     @Slot(str)
+    @interaction
     def dispatch(self, action):
         if self.menus or self.page != "document" or action in ("context", "quick-settings", "back"):
             return super().dispatch(action)

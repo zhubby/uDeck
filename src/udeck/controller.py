@@ -5,7 +5,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from PySide6.QtCore import Property, QObject, QTimer, Signal, Slot
+from PySide6.QtCore import Property, QTimer, Signal, Slot
 
 from .appearance import THEMES
 from .audio import AUDIO_ACTIONS
@@ -16,6 +16,7 @@ from .files import FileOperations
 from .i18n import LANGUAGES, error_text, render, tr
 from .key_test import KeyTestControls
 from .mock import mock_apps
+from .sounds import SoundFeedback, interaction
 from .timezone import REGIONS, local_clock, region, zone_label, zone_summary
 from .wifi import wifi_indicators, wifi_label, wifi_status, wifi_summary
 from .wifi_controller import WifiControls
@@ -24,7 +25,7 @@ CATEGORY_NAMES = {"All": tr('全部应用'), "Development": tr('开发'), "Netwo
                   "Utility": tr('工具'), "Game": tr('游戏'), "Graphics": tr('图形'), "Office": tr('办公'), "AudioVideo": tr('影音'), "Other": tr('其他')}
 
 
-class ShellController(KeyTestControls, WifiControls, QObject):
+class ShellController(KeyTestControls, WifiControls, SoundFeedback):
     changed = Signal()
     present = Signal()
     calibrationRequested = Signal()
@@ -70,6 +71,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
         self.backend.prompt.connect(self._agent_prompt)
         self.backend.completed.connect(self._system_completed)
         self.pending_system = set()
+        self._wifi_sound_requests = {}
         self.toast_timer = QTimer(self)
         self.toast_timer.setSingleShot(True)
         self.toast_timer.timeout.connect(self._clear_toast)
@@ -120,6 +122,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
             {"id": "key-test", "name": tr('Key test'), "subtitle": tr('Full keyboard, controls and trackball'), "icon": "input-gaming"},
             {"id": "language", "name": tr('语言'), "subtitle": LANGUAGES[self.language], "icon": "preferences-desktop-locale"},
             {"id": "theme", "name": tr('Theme'), "subtitle": THEMES[self.theme], "icon": "preferences-desktop-theme"},
+            {"id": "ui-sounds", "name": tr("Interface sounds"), "subtitle": tr("On") if self.config.data["preferences"]["uiSounds"] else tr("Off"), "icon": "audio-volume-high"},
             {"id": "timezone", "name": tr('Time zone'), "subtitle": zone_summary(self.data["timezone"]), "icon": "preferences-system-time"},
             {"id": "lock", "name": tr('锁定屏幕'), "subtitle": tr('使用登录密码解锁'), "icon": "system-lock-screen"},
             {"id": "blank", "name": tr('熄灭屏幕'), "subtitle": tr('按方向键或键盘恢复；不是系统休眠'), "icon": "video-display"},
@@ -180,7 +183,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
         return True
 
     def _quick_options(self):
-        controls = {"volume", "brightness", "output", "microphone", "wifi", "bluetooth", "battery", "input", "key-test", "language", "theme", "timezone"}
+        controls = {"volume", "brightness", "output", "microphone", "wifi", "bluetooth", "battery", "input", "key-test", "language", "theme", "timezone", "ui-sounds"}
         return [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"],
                  "disabled": entry.get("disabled", False)} for entry in self._settings() if entry["id"] in controls] + [
             {"label": tr('电源与会话'), "action": "power-menu"}, {"label": tr('运行中应用'), "action": "switcher"}]
@@ -239,6 +242,26 @@ class ShellController(KeyTestControls, WifiControls, QObject):
     @Slot(object)
     def _update(self, values):
         self.data.update(values)
+        wifi = self.data["wifi"]
+        devices = {device["id"]: device for device in wifi.get("devices", [])}
+        for identifier, request in list(self._wifi_sound_requests.items()):
+            device = devices.get(identifier)
+            if device is None or request["epoch"] != wifi.get("epoch", ""):
+                self._wifi_sound_requests.pop(identifier)
+                continue
+            operation = device.get("operation", {})
+            operation_id = operation.get("id")
+            if not operation_id or operation_id == request["baseline"]:
+                continue
+            request.setdefault("operation", operation_id)
+            status = operation.get("status")
+            if operation_id != request["operation"] or status in ("connected", "failed", "cancelled", "superseded"):
+                self._wifi_sound_requests.pop(identifier)
+                if operation_id == request["operation"]:
+                    if status == "connected" and device.get("deviceState") == 100:
+                        self.soundRequested.emit("success")
+                    elif status == "failed":
+                        self.soundRequested.emit("error")
         self._refresh_open_menu()
         self._publish()
 
@@ -315,6 +338,10 @@ class ShellController(KeyTestControls, WifiControls, QObject):
 
     @Slot(str, object)
     def _operation_failed(self, action, message):
+        if action in ("wifi_connect", "wifi_connect_saved", "wifi_reconnect"):
+            self._wifi_sound_requests.clear()
+        if action in self.pending_system and action != "refresh":
+            self.soundRequested.emit("error")
         self.pending_system.discard(action)
         if action == "timezone_set":
             self._refresh_open_menu()
@@ -324,6 +351,10 @@ class ShellController(KeyTestControls, WifiControls, QObject):
 
     @Slot(str)
     def _system_completed(self, action):
+        if action in self.pending_system and action in {
+                "timezone_set", "wifi_update_password", "wifi_set_autoconnect", "wifi_forget",
+                "audio_output", "audio_input", "audio_profile"}:
+            self.soundRequested.emit("success")
         self.pending_system.discard(action)
         if action == "timezone_set":
             self._refresh_open_menu()
@@ -342,6 +373,8 @@ class ShellController(KeyTestControls, WifiControls, QObject):
         self._publish()
 
     def notify(self, message):
+        if isinstance(message, BaseException):
+            self.feedback("error")
         self.toast = error_text(message) if isinstance(message, BaseException) else message
         self.toast_timer.start(6000)
         self._publish()
@@ -351,15 +384,21 @@ class ShellController(KeyTestControls, WifiControls, QObject):
         self._publish()
 
     @Slot(str)
+    @interaction
     def setPage(self, page):
         if page not in PAGES:
             return
+        if page != self.navigation.page:
+            self.feedback("open")
         self.navigation.set_page(page)
         self.navigation.zone = "content"
         self._publish()
 
     @Slot(int)
+    @interaction
     def select(self, index):
+        if (self.navigation.index, self.navigation.zone) != (max(0, index), "content"):
+            self.feedback("navigate")
         self.navigation.select(index)
         self._publish()
 
@@ -373,6 +412,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
             self.backend.request("bluetooth_stop")
 
     @Slot(str)
+    @interaction
     def dispatch(self, action):
         if self.modal.get("kind") == "key-test":
             if action == "back" and not self.modal["exitHolding"]:
@@ -388,11 +428,15 @@ class ShellController(KeyTestControls, WifiControls, QObject):
                 self.setPage(PAGES[max(0, min(index + offset, len(PAGES) - 1))])
             return
         if action == "home":
+            if self.modal:
+                self.feedback("back")
             self._cancel_modals()
             self.setPage("home")
             self.present.emit()
             return
         if action == "switcher":
+            if self.modal:
+                self.feedback("open")
             self._cancel_modals()
             self.setPage("windows")
             self.present.emit()
@@ -408,13 +452,21 @@ class ShellController(KeyTestControls, WifiControls, QObject):
             return
         items = self._items()
         if action in ("left", "right", "up", "down"):
+            before = (self.navigation.page, self.navigation.zone, self.navigation.index)
             self.navigation.move(action, len(items), 5 if self.navigation.page in ("home", "apps") else 1)
+            after = (self.navigation.page, self.navigation.zone, self.navigation.index)
+            if before != after and (items or before[:2] != after[:2]):
+                self.feedback("open" if before[0] != after[0] else "navigate")
         elif action == "accept":
             if self.navigation.zone == "tabs":
                 self.navigation.zone = "content"
+                self.feedback("accept")
             elif items:
+                self.feedback("accept")
                 self._activate(items[min(self.navigation.index, len(items) - 1)])
         elif action == "back":
+            if self.navigation.page != "home":
+                self.feedback("back")
             if self.navigation.page == "files" and Path(self.data["directory"]) not in (Path.home(), Path("/")):
                 self._browse(Path(self.data["directory"]).parent)
             else:
@@ -427,6 +479,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
 
     def _activate(self, item):
         if item.get("disabled"):
+            self.feedback("error")
             component = self.data.get(item["id"], {})
             self.notify(component.get("error", tr('此功能当前不可用')))
         elif self.navigation.page in ("home", "apps"):
@@ -484,8 +537,21 @@ class ShellController(KeyTestControls, WifiControls, QObject):
             self._menu(tr('设备操作'), [{"label": tr('刷新设备状态'), "action": "system", "systemAction": "refresh"}, {"label": tr('校准 ABXY'), "action": "setting", "id": "input"}])
 
     @Slot(str)
+    @interaction
     def activateSetting(self, identifier):
-        if identifier == "key-test":
+        if identifier == "ui-sounds":
+            previous = ConfigStore(self.config.path).data["preferences"]["uiSounds"]
+            self.config.data["preferences"]["uiSounds"] = not previous
+            try:
+                self.config.save()
+            except OSError:
+                self.config.data["preferences"]["uiSounds"] = previous
+                self.feedback("error")
+                self.notify(tr("Could not save interface sound settings"))
+                return
+            self.feedback("toggle-off" if previous else "toggle-on")
+            self._refresh_open_menu()
+        elif identifier == "key-test":
             self._open_key_test()
         elif identifier == "timezone":
             options = self._timezone_options()
@@ -631,6 +697,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
         return options
 
     def _push(self, modal):
+        self.feedback("open")
         if self.modal.get("kind") == "key-test":
             self._clear_test_inputs()
         if modal.get("deviceId"):
@@ -675,6 +742,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
         modal = self.modal
         kind = modal["kind"]
         if action == "back":
+            self.feedback("back")
             if kind == "progress":
                 self.cancelled.set()
             self._pop(reject=True)
@@ -684,36 +752,48 @@ class ShellController(KeyTestControls, WifiControls, QObject):
         if kind == "menu":
             options = modal["options"]
             if action in ("up", "down") and options:
+                previous = modal["index"]
                 modal["index"] = move_index(modal["index"], action, len(options))
+                if modal["index"] != previous:
+                    self.feedback("navigate")
             elif action == "accept" and options:
+                self.feedback("accept")
                 option = options[min(modal["index"], len(options) - 1)]
                 if option.get("disabled"):
+                    self.feedback("error")
                     self.notify(option.get("reason") or tr('此项目当前不可用'))
                     return
-                keep_parent = modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test")
+                keep_parent = modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds")
                 if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
                     self._pop()
                 self._execute_option(option)
         elif kind == "confirm":
+            previous = modal["index"]
             if action in ("left", "up"):
                 modal["index"] = 0
             elif action in ("right", "down"):
                 modal["index"] = 1
             elif action == "accept":
                 accepted = modal["index"] == 1
+                self.feedback("accept" if accepted else "back")
                 self._pop()
                 if modal.get("token"):
                     self.backend.reply(modal["token"], accepted)
                 elif accepted:
                     self._execute_option(modal["option"])
+            if action in ("left", "right", "up", "down") and modal["index"] != previous:
+                self.feedback("navigate")
         elif kind == "text" and action == "context" and modal.get("secret"):
             modal["reveal"] = not modal.get("reveal", False)
+            self.feedback("toggle-on" if modal["reveal"] else "toggle-off")
         elif kind == "text" and action == "accept":
+            self.feedback("accept")
             if modal.get("wifiSecurity"):
                 from .wifi_backend import validate_wifi_password
                 try:
                     validate_wifi_password(self._text, modal["wifiSecurity"])
                 except ValueError as error:
+                    self.feedback("error")
                     modal["error"] = error_text(error)
                     self._publish()
                     return
@@ -723,11 +803,16 @@ class ShellController(KeyTestControls, WifiControls, QObject):
         elif kind == "slider":
             if action in ("left", "right"):
                 minimum = 0.05 if modal["action"] == "brightness" else 0
+                previous = modal["value"]
                 modal["value"] = max(minimum, min(1, modal["value"] + (0.05 if action == "right" else -0.05)))
+                if modal["value"] != previous:
+                    self.feedback("navigate")
             elif action == "accept":
+                self.feedback("accept")
                 self._pop()
                 self._system(modal["action"], {"value": modal["value"], **modal.get("payload", {})})
         elif kind == "information" and action == "accept":
+            self.feedback("back")
             self._pop()
         self._publish()
 
@@ -738,6 +823,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
             self.modal["text"] = value
 
     @Slot(int)
+    @interaction
     def chooseModal(self, index):
         if not self.modal:
             return
@@ -748,6 +834,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
         try:
             self._apply_option(option)
         except (OSError, ValueError, KeyError, RuntimeError) as error:
+            self.feedback("error")
             self.notify(tr('操作失败：{value0}', value0=error))
 
     def _apply_option(self, option):
@@ -795,6 +882,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
             self._launch(item)
         elif action == "favorite":
             self.config.favorite(option["id"], option["id"] not in self.config.data["favorites"])
+            self.feedback("toggle-on" if option["id"] in self.config.data["favorites"] else "toggle-off")
         elif action == "search":
             self.dispatch("search")
         elif action == "categories":
@@ -829,6 +917,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
             self.show_hidden = not self.show_hidden
             self.config.data["preferences"]["showHidden"] = self.show_hidden
             self.config.save()
+            self.feedback("toggle-on" if self.show_hidden else "toggle-off")
             self._browse(self.data["directory"])
         elif action in ("parent", "refresh-files"):
             self._browse(Path(self.data["directory"]).parent if action == "parent" else self.data["directory"])
@@ -912,7 +1001,7 @@ class ShellController(KeyTestControls, WifiControls, QObject):
                 position = next((index for index, entry in enumerate(entries) if entry["id"] == saved.get("id")), saved.get("index", 0))
                 self.navigation.select(position)
 
-        self._run(tr('读取文件夹'), lambda: self.operations.list_directory(directory, self.show_hidden), loaded)
+        self._run(tr('读取文件夹'), lambda: self.operations.list_directory(directory, self.show_hidden), loaded, report_success=False)
 
     def _paste(self, replace=False):
         if not self.clipboard:
@@ -943,26 +1032,29 @@ class ShellController(KeyTestControls, WifiControls, QObject):
 
         self._run(tr('移动文件') if clipboard["move"] else tr('复制文件'), lambda: self.operations.transfer(clipboard["path"], directory, move=clipboard["move"], replace=replace, cancelled=cancellation), finished)
 
-    def _run(self, label, work, success=None):
+    def _run(self, label, work, success=None, *, report_success=True):
         if self.busy:
             self.notify(tr('请等待当前文件操作完成'))
             return
         self.busy, self.busy_label = True, label
+        audible = bool(self._feedback_depth)
 
         def complete(future):
             try:
-                self.taskFinished.emit((future.result(), success, None))
+                self.taskFinished.emit((future.result(), success, None, audible, report_success))
             except Exception as error:
-                self.taskFinished.emit((None, success, error))
+                self.taskFinished.emit((None, success, error, audible, report_success))
 
         self.executor.submit(work).add_done_callback(complete)
         self._publish()
 
     @Slot(object)
     def _finish_task(self, result):
-        value, success, error = result
+        value, success, error, audible, report_success = result
         self.busy, self.busy_label = False, ""
         if error:
+            if audible:
+                self.soundRequested.emit("back" if isinstance(error, InterruptedError) else "error")
             if self.modal.get("kind") == "progress":
                 self._pop()
             self.notify(tr('操作已取消') if isinstance(error, InterruptedError) else tr('操作失败：{value0}', value0=error))
@@ -970,7 +1062,15 @@ class ShellController(KeyTestControls, WifiControls, QObject):
             try:
                 success(value)
             except (OSError, ValueError, RuntimeError) as error:
+                if audible:
+                    self.soundRequested.emit("error")
                 self.notify(tr('操作已执行，但更新状态失败：{value0}', value0=error))
+            else:
+                if audible and report_success:
+                    self.soundRequested.emit("success")
+        else:
+            if audible and report_success:
+                self.soundRequested.emit("success")
         self._publish()
 
     def _system(self, action, payload=None):
@@ -985,6 +1085,15 @@ class ShellController(KeyTestControls, WifiControls, QObject):
             self.inputSuspended.emit(True)
         if action.startswith("wifi_"):
             payload = {"wifiEpoch": self.data["wifi"].get("epoch", ""), **(payload or {})}
+            identifier = payload.get("deviceId")
+            if action in ("wifi_connect", "wifi_connect_saved", "wifi_reconnect") and identifier:
+                device = next((device for device in self.data["wifi"].get("devices", []) if device["id"] == identifier), {})
+                self._wifi_sound_requests[identifier] = {"epoch": self.data["wifi"].get("epoch", ""),
+                                                        "baseline": device.get("operation", {}).get("id")}
+            elif action in ("wifi_cancel_connect", "wifi_disconnect"):
+                self._wifi_sound_requests.pop(identifier, None)
+            elif action == "wifi_power":
+                self._wifi_sound_requests.clear()
         self.backend.request(action, payload or {})
         self._publish()
 

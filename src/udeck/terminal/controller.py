@@ -19,6 +19,7 @@ from PySide6.QtCore import (
 
 from ..core import ConfigStore
 from ..i18n import LANGUAGES, render, tr
+from ..sounds import SoundFeedback, interaction
 from .core import LaunchRequest
 
 
@@ -50,7 +51,7 @@ class SessionModel(QAbstractListModel):
         self.endRemoveRows()
 
 
-class TerminalController(QObject):
+class TerminalController(SoundFeedback):
     changed = Signal()
     operate = Signal(str, str, str)
     closed = Signal()
@@ -135,6 +136,7 @@ class TerminalController(QObject):
         identifier = uuid.uuid4().hex
         self.requests[identifier] = request
         self.current = identifier
+        self.feedback("open")
         self.tabs.append({"id": identifier, "title": request.title or tr('本地 shell')})
         self.changed.emit()
 
@@ -185,8 +187,11 @@ class TerminalController(QObject):
         self.changed.emit()
 
     @Slot(str)
+    @interaction
     def selectTab(self, identifier):
         if self.mode == "input" and identifier in self.requests:
+            if identifier != self.current:
+                self.feedback("open")
             self.current = identifier
             self.changed.emit()
 
@@ -194,12 +199,14 @@ class TerminalController(QObject):
         self.operate.emit(self.current, action, text)
 
     @Slot()
+    @interaction
     def requestCloseWindow(self):
         if self.closing_window:
             return
         self._ask_close(list(self.requests))
 
     def _ask_close(self, identifiers):
+        self.feedback("open")
         self.closing = identifiers
         self.mode, self.index = "close", 0
         self.message = tr('关闭将结束所选会话及其中的任务。')
@@ -207,6 +214,7 @@ class TerminalController(QObject):
 
     @Slot(str)
     def showError(self, message):
+        self.feedback("error")
         self.mode, self.index, self.message = "error", 0, message
         self.changed.emit()
 
@@ -215,12 +223,14 @@ class TerminalController(QObject):
         self.showError(tr('终端原生组件加载失败，请检查 udeck-terminal 安装和 Qt 版本。'))
 
     @Slot(str)
+    @interaction
     def preparePaste(self, text):
         from .core import paste_needs_confirmation
 
         if not text:
             return
         if paste_needs_confirmation(text):
+            self.feedback("open")
             self.pending_text = text
             self.mode, self.index = "paste", 0
             self.message = tr('粘贴 {value0} 个字符？包含换行或控制字符。', value0=len(text))
@@ -240,6 +250,7 @@ class TerminalController(QObject):
             self._send("search-next" if forwards else "search-previous", self.query)
 
     @Slot(str)
+    @interaction
     def command(self, action):
         if self.closing_window:
             return
@@ -250,6 +261,7 @@ class TerminalController(QObject):
             return
         if self.mode != "input":
             return
+        previous = self.mode
         if action == "menu":
             self.mode, self.index = "menu", 0
         elif action == "new-tab":
@@ -270,9 +282,12 @@ class TerminalController(QObject):
         elif action == "home":
             self.mode = "input"
             self.home.emit()
+        if self.mode != previous:
+            self.feedback("open")
         self.changed.emit()
 
     @Slot(str)
+    @interaction
     def dispatch(self, action):
         if self.closing_window:
             return
@@ -288,8 +303,11 @@ class TerminalController(QObject):
             elif action in ("previous-tab", "next-tab"):
                 ids = list(self.requests)
                 position = max(0, min(len(ids) - 1, ids.index(self.current) + (-1 if action == "previous-tab" else 1)))
+                if ids[position] != self.current:
+                    self.feedback("open")
                 self.current = ids[position]
         elif action == "back":
+            self.feedback("back")
             if self.mode in ("history", "search"):
                 self._send("leave-history")
             self.mode = "input"
@@ -309,13 +327,17 @@ class TerminalController(QObject):
                 self.search(action == "down")
         elif action in ("up", "down", "left", "right"):
             delta = -1 if action in ("up", "left") else 1
+            previous = self.index
             self.index = max(0, min(len(self._options()) - 1, self.index + delta))
+            if self.index != previous:
+                self.feedback("navigate")
         elif action == "accept":
             self._confirm()
         self.changed.emit()
 
     def _confirm(self):
         mode, position = self.mode, self.index
+        self.feedback("back" if mode in ("close", "paste") and position == 0 else "accept")
         if mode == "menu":
             actions = ("new-tab", "history", "search", "paste", "settings", "home", "close-tab", "close-window")
             self.mode = "input"
@@ -328,6 +350,7 @@ class TerminalController(QObject):
                 self.preferences.change_font(-2 if position == 0 else 2)
             elif position == 2:
                 self.preferences.color_scheme = "SolarizedLight" if self.preferences.color_scheme == "udeck" else "udeck"
+                self.feedback("toggle-on" if self.preferences.color_scheme == "SolarizedLight" else "toggle-off")
             else:
                 self.mode = "input"
             try:

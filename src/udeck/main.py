@@ -28,6 +28,7 @@ from .i18n import render, tr
 from .input import Gamepad
 from .mock import MockBackend
 from .pointer import PointerGuard
+from .sounds import InterfaceSounds
 from .windows import APP_ID, WindowService
 
 CONTROL_PATH = "/io/github/zhubby/uDeck"
@@ -393,6 +394,8 @@ def main(argv=None):
     if pointer:
         pointer.start()
     controller.setPage(options.page)
+    sounds = InterfaceSounds(config.path, window, silent=os.environ.get("QT_QPA_PLATFORM") == "offscreen")
+    controller.soundRequested.connect(sounds.request)
 
     def capture():
         if options.screenshot:
@@ -433,6 +436,7 @@ def main(argv=None):
         gamepad.close()
     if pointer:
         pointer.close()
+    sounds.close()
     controller.close()
     backend.close()
     if windows:

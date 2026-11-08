@@ -18,6 +18,7 @@ from PySide6.QtWidgets import QApplication, QMessageBox
 
 from ..core import ConfigStore
 from ..i18n import render, tr
+from ..sounds import InterfaceSounds
 from . import APP_ID, INTERFACE, OBJECT_PATH, __version__
 from .controller import TerminalController
 from .core import TerminalPreferences, parse_launch
@@ -82,7 +83,9 @@ class Coordinator(QObject):
         window = self.component.create(context)
         if window is None:
             raise RuntimeError("\n".join(error.toString() for error in self.component.errors()))
-        entry = {"window": window, "controller": controller, "context": context}
+        sounds = InterfaceSounds(self.language_path, window, silent=os.environ.get("QT_QPA_PLATFORM") == "offscreen")
+        controller.soundRequested.connect(sounds.request)
+        entry = {"window": window, "controller": controller, "context": context, "sounds": sounds}
         self.windows.append(entry)
         self.recent = entry
         controller.closed.connect(lambda: QTimer.singleShot(0, lambda: self.retire(entry)))
@@ -147,6 +150,7 @@ class Coordinator(QObject):
         if entry not in self.windows:
             return
         self.windows.remove(entry)
+        entry["sounds"].close()
         entry["window"].deleteLater()
         entry["context"].deleteLater()
         entry["controller"].deleteLater()
@@ -179,6 +183,7 @@ class Coordinator(QObject):
             self.inputs.close()
         # Destroy native delegates before their controllers/context disappear.
         for entry in list(self.windows):
+            entry["sounds"].close()
             entry["window"].setProperty("allowClose", True)
             entry["window"].close()
             entry["window"].deleteLater()

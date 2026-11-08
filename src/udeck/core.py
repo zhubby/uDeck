@@ -74,7 +74,7 @@ class ConfigStore:
             os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))
         ) / "udeck/settings.json"
         self.data = {"version": 1, "favorites": [], "recent": [], "focus": {}, "input": {}, "applicationInput": {},
-                     "preferences": {"showHidden": False, "category": "All", "language": "en", "theme": "classic"}}
+                     "preferences": {"showHidden": False, "category": "All", "language": "en", "theme": "classic", "uiSounds": True}}
         try:
             loaded = json.loads(self.path.read_text())
             if isinstance(loaded, dict):
@@ -102,6 +102,8 @@ class ConfigStore:
                     self.data["preferences"]["theme"] = theme_code(preferences.get("theme"))
                     if type(preferences.get("showHidden")) is bool:
                         self.data["preferences"]["showHidden"] = preferences["showHidden"]
+                    if type(preferences.get("uiSounds")) is bool:
+                        self.data["preferences"]["uiSounds"] = preferences["uiSounds"]
                     if isinstance(preferences.get("category"), str):
                         self.data["preferences"]["category"] = preferences["category"]
         except (OSError, ValueError, TypeError):
@@ -113,7 +115,7 @@ class ConfigStore:
         # overwrite their language/theme when saving focus or favorites.
         latest = ConfigStore(self.path).data["preferences"]
         preferences = dict(self.data["preferences"])
-        for field in ("language", "theme"):
+        for field in ("language", "theme", "uiSounds"):
             if preferences[field] == self._saved_preferences[field]:
                 preferences[field] = latest[field]
         values = {**self.data, "preferences": preferences}

@@ -29,7 +29,7 @@ Architecture: $architecture
 Maintainer: uDeck Project
 Section: x11
 Priority: optional
-Depends: udeck (>= 0.1.11), python3-pyside6.qtwidgets, python3-pyside6.qttest, python3-pyside6.qtmultimedia (>= 6.8), python3-pyside6.qtwebenginequick (>= 6.8), python3-pyside6.qtwebenginecore, python3-pyside6.qtpdf, qml6-module-qtmultimedia, qml6-module-qtwebengine, ffmpeg
+Depends: udeck (>= 0.1.19), python3-pyside6.qtwidgets, python3-pyside6.qttest, python3-pyside6.qtmultimedia (>= 6.8), python3-pyside6.qtwebenginequick (>= 6.8), python3-pyside6.qtwebenginecore, python3-pyside6.qtpdf, qml6-module-qtmultimedia, qml6-module-qtwebengine, ffmpeg
 Recommends: retroarch, libretro-gambatte, libretro-mgba, libretro-snes9x
 Description: Native Music, Video, Browser, Reader and Games applications for uDeck
  Independent Qt Quick applications with local libraries, QtMultimedia playback,

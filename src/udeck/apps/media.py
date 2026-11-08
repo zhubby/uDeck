@@ -14,6 +14,7 @@ from PySide6.QtQuick import QQuickImageProvider
 
 from ..app_routing import APP_IDS, object_path, service_name
 from ..i18n import tr
+from ..sounds import interaction
 from .controller import AppController
 from .state import PlayQueue
 
@@ -276,13 +277,17 @@ class MediaController(AppController):
         super().back()
 
     @Slot(str)
+    @interaction
     def dispatch(self, action):
         self.inactive = 0
         if self.page == "player" and not self.menus:
             if action in ("left", "right"):
                 self.media.seek(self.media.player.position() / 1000 + (-10 if action == "left" else 10))
             elif action in ("up", "down"):
+                previous = self.controls
                 self.controls = max(0, min(2, self.controls + (-1 if action == "up" else 1)))
+                if self.controls != previous:
+                    self.feedback("navigate")
             elif action == "accept":
                 if self.controls_visible:
                     self.command(("previous", "play-pause", "next")[self.controls])
@@ -298,11 +303,14 @@ class MediaController(AppController):
         super().dispatch(action)
 
     @Slot(str)
+    @interaction
     def command(self, command):
         if command == "play-pause":
+            self.feedback("accept")
             self.paused_by_video = ""
             self.media.toggle()
         elif command in ("previous", "next"):
+            self.feedback("accept")
             self.attempt(lambda: self.next_track(-1 if command == "previous" else 1))
         elif command == "now-playing" and self.current:
             if self.page != "player":
