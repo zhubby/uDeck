@@ -149,7 +149,7 @@ def test_app_follows_theme_without_replacing_state_or_its_input(controller, tmp_
         app.poller.stop()
 
 
-def test_terminal_theme_is_independent_of_ansi_palette_and_sessions(controller, tmp_path):
+def test_terminal_theme_updates_ansi_palette_without_changing_sessions(controller, tmp_path):
     preferences = TerminalPreferences(tmp_path / "terminal.json")
     terminal = TerminalController(LaunchRequest(str(tmp_path), [], "", {}), preferences, mock=True)
     operations = []
@@ -161,6 +161,10 @@ def test_terminal_theme_is_independent_of_ansi_palette_and_sessions(controller, 
     after = json.loads(terminal.snapshotJson)
     assert after.pop("theme") == "dark"
     before.pop("theme")
+    assert after.pop("colorScheme") == "udeck-dark"
+    assert before.pop("colorScheme") == "udeck"
+    assert after.pop("themeLabel") == "Theme: Dark · Follow system"
+    before.pop("themeLabel")
     assert after == before
     assert not operations
     restarted = TerminalController(LaunchRequest(str(tmp_path), [], "", {}), preferences, mock=True)

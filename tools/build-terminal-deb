@@ -22,6 +22,10 @@ plugin = options.plugin.resolve()
 library = plugin / "libqmltermwidget.so"
 if not library.is_file() or library.read_bytes()[:4] != b"\x7fELF":
     raise SystemExit("A target-built ELF QMLTermWidget plugin is required.")
+for name, source in (("udeck", "terminal.colorscheme"), ("udeck-dark", "terminal-dark.colorscheme")):
+    palette = plugin / "color-schemes" / (name + ".colorscheme")
+    if not palette.is_file() or palette.read_bytes() != (root / "packaging" / source).read_bytes():
+        raise SystemExit(f"Rebuild the native plugin: missing or stale {name} color scheme.")
 architecture = subprocess.check_output(["dpkg", "--print-architecture"], text=True).strip()
 header = subprocess.check_output(["readelf", "-h", library], text=True)
 if architecture == "arm64" and "AArch64" not in header:
@@ -53,6 +57,10 @@ with tempfile.TemporaryDirectory(prefix="udeck-terminal-deb-") as directory:
         shutil.copy(root / "vendor/qmltermwidget" / name, stage / "usr/share/doc/udeck-terminal" / name)
     shutil.copytree(root / "vendor/qmltermwidget/patches", stage / "usr/share/doc/udeck-terminal/patches")
     shutil.copy(root / "docs/udeck/terminal.md", stage / "usr/share/doc/udeck-terminal/README.zh-CN.md")
+    for name in ("JetBrainsMono-OFL.txt", "LXGWWenKaiMono-OFL.txt"):
+        shutil.copy(root / "src/udeck/terminal/fonts" / name, stage / "usr/share/doc/udeck-terminal" / name)
+    for notice in (root / "src/udeck/terminal/fonts").glob("NerdFontsSymbolsOnly-*.txt"):
+        shutil.copy(notice, stage / "usr/share/doc/udeck-terminal" / notice.name)
     (stage / "usr/share/doc/udeck-terminal/copyright").write_text("""Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: uDeck Terminal
 Source: https://github.com/Swordfish90/qmltermwidget
@@ -60,6 +68,25 @@ Source: https://github.com/Swordfish90/qmltermwidget
 Files: src/udeck/terminal/* packaging/terminal* tools/build-terminal*
 Copyright: 2026 uDeck contributors
 License: GPL-2.0-or-later
+
+Files: src/udeck/terminal/fonts/JetBrainsMono-*
+Copyright: 2020 The JetBrains Mono Project Authors
+License: OFL-1.1
+ See JetBrainsMono-OFL.txt in this directory for the full license.
+
+Files: src/udeck/terminal/fonts/LXGWWenKaiMono-*
+Copyright: 2021-2026 LXGW
+           2020 The Klee Project Authors
+License: OFL-1.1
+ See LXGWWenKaiMono-OFL.txt in this directory for the full license and reserved font names.
+
+Files: src/udeck/terminal/fonts/SymbolsNerdFontMono-Regular.ttf src/udeck/terminal/fonts/NerdFontsSymbolsOnly-*.txt
+Copyright: 2014 Ryan L McIntyre
+           See individual icon-set notices for their respective copyright holders
+License: MIT and CC-BY-4.0 and OFL-1.1 and Apache-2.0 and Unlicense and Bitstream-Vera and CC-BY-3.0
+Comment: See NerdFontsSymbolsOnly-NOTICE.txt for the upstream icon-set attribution
+ table and NerdFontsSymbolsOnly-*-LICENSE.txt for the individual upstream notices.
+ The full Apache 2.0 license is in NerdFontsSymbolsOnly-Apache-2.0.txt.
 
 Files: vendor/qmltermwidget/*
 Copyright: See individual source files and the bundled upstream licenses

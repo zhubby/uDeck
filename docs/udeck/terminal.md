@@ -58,9 +58,19 @@ udeck-terminal -- python3 script.py '中文 空格' 'literal $HOME'
 
 复制：X → 历史与复制 → 方向键定位 → A 设置起点 → 方向键扩选 → A 复制并回到输入。B 取消。选区直接操作原生缓冲，宽字符的续格不会成为端点。搜索区分大小写、按普通文本匹配；Enter/下方向查找下一处，上方向查找上一处，支持回绕。
 
-含换行、C0/C1 或 DEL 的粘贴会冻结当前剪贴板文本，预览并确认后发送。保留 bracketed paste；不会额外追加回车。字体默认 20 px，设置中按 2 px 在 14–28 px 间调整；历史缓冲为 10,000 行。
+含换行、C0/C1 或 DEL 的粘贴会冻结当前剪贴板文本，预览并确认后发送。保留 bracketed paste；不会额外追加回车。终端正文跟随 uDeck 界面语言：中文使用霞鹜文楷等宽 LXGW WenKai Mono，英文使用 JetBrains Mono Regular / Bold；字体和 SIL OFL 1.1 许可证均随包提供，无需预装。语言切换实时更新已有标签的字体，不重建终端会话。会话栏、菜单和按键提示沿用 uDeck 界面字体。字号默认 20 px，设置中按 2 px 在 14–28 px 间调整；历史缓冲为 10,000 行。
 
-`~/.config/udeck/terminal.json` 仅保存字体和颜色，权限为 0600。终端不将输出、输入和密码写入偏好文件。shell、SSH、Codex 等子程序仍可能按自身设置写历史或日志。
+### 主题和 Nerd 图标
+
+窗口、菜单和终端正文统一跟随系统 Classic / Dark，沿用约一秒的设置同步周期。Classic 使用暖炭灰背景 `#151719`、正文 `#F1EEE7`；Dark 使用冷黑背景 `#0B0E12`、正文 `#F5F2EB`。强调色均为 `#EDB866`。Classic 保留既有 ANSI 16 色，Dark 使用单独的高对比配色；光标和选区保留原生行为，程序自行指定的真彩色不被改写。终端设置仅显示当前主题，不再提供独立深浅配色开关。
+
+已打开的所有窗口和标签同步换色，不重建终端组件或 shell，不清空历史、选区或当前标签。语言切换也不重启会话；字号仍为 14–28 px、默认 20 px。
+
+随包提供原版 Nerd Fonts **v3.5.1 Symbols Nerd Font Mono**，以“当前界面语言文字字体 → Nerd 图标字体 → 另一套文字字体”的明确顺序补齐缺失字符，不需要联网或系统预装。它不替换 LXGW WenKai Mono / JetBrains Mono，也不自动安装或修改 Starship、Oh My Zsh 等 shell 配置。原生插件按完整 Unicode 码点测宽，私用区图标独立绘制并裁剪到当前格内，超过单元格宽度时横向适配，避免负边距或过宽字形覆盖相邻文字；支持 Powerline、文件夹、终端和补充私用区图标，不改动原字体文件。
+
+Nerd 图标集合并非单一 OFL 许可：字体来源、版本、文件哈希记录在 `terminal/fonts/manifest.json`；上游归属表和各图标集原始许可证随 wheel 和 Debian 包提供。wheel 同时携带 `share/udeck-terminal/color-schemes` 中的两套配色模板，但原生插件仍需按目标 Qt 6.8 另行构建。构建插件时同时安装 `udeck`、`udeck-dark` 两份配色；Debian 打包会拒绝缺少或过期配色的插件，需要先重新执行 `tools/build-terminal-plugin`。
+
+`~/.config/udeck/terminal.json` 的版本 2 仅保存 `fontSize`，权限为 0600。读取旧配置时保留字号、忽略原 `colorScheme`，下次保存时迁移；系统主题仍从 `settings.json` 读取。终端不将输出、输入和密码写入偏好文件。shell、SSH、Codex 等子程序仍可能按自身设置写历史或日志。
 
 ## 输入所有权
 
@@ -109,7 +119,7 @@ sudo udeck-terminal-default restore --user zhubby --backup /var/lib/udeck-termin
 
 更新上游时重新生成补丁、编译私有插件、运行真实 PTY/缓冲测试，并重新完成 CM4 验收。不能将不同 Qt 次版本构建的插件复制到设备。完整源码随交付归档，Debian 包中保留上游许可、固定提交和补丁清单。
 
-原生测试覆盖精确 argv/cwd/环境、宽字符和组合字符选区、普通文本搜索、bracketed paste、resize 与关闭进程组。集成测试与实机记录应分别列出 Wayland、Xwayland、输入法、TUI、自动注入和真人实按证据。
+原生测试覆盖精确 argv/cwd/环境、宽字符和组合字符选区、普通文本搜索、bracketed paste、resize 与关闭进程组，并覆盖双主题 ANSI 16 色、真彩色保留、中英文 Nerd 图标、14 / 20 / 28 px 字号、Unicode 复制和多窗口会话/焦点保持。`tests/terminal_appearance_probe.py` 生成不启动 shell 的中英文 Mock 截图；`tests/native_terminal_appearance_probe.py` 必须加载原生插件并使用真实本地 PTY，不能用前者替代后者。离屏/容器结果仍不等于掌机物理显示、真人实按、Wayland/Xwayland 或实际输入法验收。
 
 安装后的自动验收脚本从系统包导入应用，避免把源码运行误记为安装版通过。在设备图形会话的环境中分别执行：
 

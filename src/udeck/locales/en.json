@@ -334,6 +334,7 @@
   "终端操作": "Terminal actions",
   "终端窗口参数无效": "Invalid terminal window arguments",
   "终端设置": "Terminal settings",
+  "主题：{value0} · 跟随系统": "Theme: {value0} · Follow system",
   "终端进程启动冲突，请重试": "Conflicting terminal startup. Try again.",
   "终端进程未响应：{error}": "The terminal process did not respond: {error}",
   "结束会话？": "End session?",
@@ -847,5 +848,14 @@
   "Fn, backlight and key lock are handled by firmware; Power is handled by the system. Test Fn combinations using their output keys.": "Fn, backlight and key lock are handled by firmware; Power is handled by the system. Test Fn combinations using their output keys.",
   "Some system keys cannot be read. Check input device access.": "Some system keys cannot be read. Check input device access.",
   "Interface sounds": "Interface sounds",
-  "Could not save interface sound settings": "Could not save interface sound settings"
+  "Could not save interface sound settings": "Could not save interface sound settings",
+  "Books": "Books",
+  "Choose a destination with Left / Right": "Choose a destination with Left / Right",
+  "Local shell sessions and command-line tools": "Local shell sessions and command-line tools",
+  "Browse albums, tracks and playlists": "Browse albums, tracks and playlists",
+  "Watch your local video library": "Watch your local video library",
+  "Read EPUB, PDF and text books": "Read EPUB, PDF and text books",
+  "Open your game library and saved progress": "Open your game library and saved progress",
+  "Network, audio, display and device preferences": "Network, audio, display and device preferences",
+  "This app is not installed.": "This app is not installed."
 }

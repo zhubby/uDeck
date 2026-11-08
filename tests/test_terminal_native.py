@@ -32,3 +32,20 @@ def test_application_session_lifecycle():
                             env={**os.environ, "PYTHONPATH": str(root / "src"), "QT_QPA_PLATFORM": "offscreen", "QT_QUICK_BACKEND": "software", "QT_QUICK_CONTROLS_STYLE": "Basic"})
     assert result.returncode == 0, result.stdout + result.stderr
     assert '"application":"passed"' in result.stdout
+
+
+def test_native_terminal_themes_ansi_and_nerd_glyph_cells(tmp_path):
+    root = Path(__file__).resolve().parent.parent
+    plugin = Path(os.environ.get("UDECK_TERMINAL_PLUGIN_PATH", root / "build/terminal-plugin"))
+    if not (plugin / "QMLTermWidget/qmldir").is_file():
+        if os.environ.get("UDECK_REQUIRE_NATIVE"):
+            pytest.fail("Required native plugin has not been built")
+        pytest.skip("Native plugin required for ANSI and Nerd cell rendering")
+    result = subprocess.run(
+        [sys.executable, str(root / "tests/native_terminal_appearance_probe.py"), str(tmp_path)],
+        capture_output=True, text=True, timeout=45,
+        env={**os.environ, "PYTHONPATH": str(root / "src"), "QT_QPA_PLATFORM": "offscreen",
+             "QT_QUICK_BACKEND": "software", "QT_QUICK_CONTROLS_STYLE": "Basic", "QT_SCALE_FACTOR": "1"},
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert '"nativeAppearance": "passed"' in result.stdout

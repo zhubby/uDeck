@@ -146,3 +146,32 @@ def test_backgrounding_keeps_sessions_and_returns_home(terminal):
     terminal.command("home")
     assert home == [True]
     assert terminal.tabs.rowCount() == 1
+
+
+def test_terminal_palette_follows_system_theme_without_replacing_sessions(terminal):
+    terminal.newTab()
+    current = terminal.current
+    requests = dict(terminal.requests)
+    terminal.command("settings")
+    for theme, scheme in (("classic", "udeck"), ("dark", "udeck-dark"), ("classic", "udeck")):
+        terminal.setTheme(theme)
+        assert state(terminal)["colorScheme"] == scheme
+        assert terminal.current == current
+        assert terminal.requests == requests
+        assert terminal.mode == "settings"
+        assert state(terminal)["options"] == ["Decrease font size", "Increase font size", "Return to input"]
+    terminal.dispatch("down")
+    terminal.dispatch("down")
+    terminal.dispatch("accept")
+    assert terminal.mode == "input"
+
+
+@pytest.mark.parametrize("language,primary,secondary", [
+    ("zh_CN", "LXGW WenKai Mono", "JetBrains Mono"),
+    ("en", "JetBrains Mono", "LXGW WenKai Mono"),
+])
+@pytest.mark.parametrize("size", [14, 20, 28])
+def test_terminal_font_has_an_explicit_nerd_fallback_chain(terminal, language, primary, secondary, size):
+    font = terminal.terminalFont(language, size)
+    assert font.families() == [primary, "Symbols Nerd Font Mono", secondary]
+    assert font.pixelSize() == size

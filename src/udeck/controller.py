@@ -10,9 +10,10 @@ from PySide6.QtCore import Property, QTimer, Signal, Slot
 from .appearance import THEMES
 from .audio import AUDIO_ACTIONS
 from .battery import battery_details, battery_summary
-from .core import PAGE_NAMES, PAGES, ConfigStore, Navigation, move_index
+from .core import ALL_PAGES, PAGE_NAMES, PAGES, ConfigStore, Navigation, move_index
 from .desktop import DesktopCatalog, open_terminal
 from .files import FileOperations
+from .home import home_shortcuts
 from .i18n import LANGUAGES, error_text, render, tr
 from .key_test import KeyTestControls
 from .mock import mock_apps
@@ -94,10 +95,7 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
     def _items(self):
         page = self.navigation.page
         if page == "home":
-            identifiers = list(dict.fromkeys(self.config.data["favorites"] + self.config.data["recent"]))
-            available = {application["id"]: application for application in self.applications}
-            entries = [available[identifier] for identifier in identifiers if identifier in available]
-            return entries or self.applications[:10]
+            return home_shortcuts(self.applications)
         if page == "apps":
             return [application for application in self.applications if (self.category == "All" or application["category"] == self.category) and (not self.query or self.query.casefold() in render(application["name"] + " " + application.get("subtitle", ""), self.language).casefold())]
         if page == "windows":
@@ -136,13 +134,13 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
         items = self._items()
         selected = max(0, min(self.navigation.index, len(items) - 1))
         titles = {"home": tr('从这里开始'), "apps": CATEGORY_NAMES[self.category], "windows": tr('正在运行'), "files": Path(self.data["directory"]).name or "/", "settings": tr('设备设置')}
-        descriptions = {"home": tr('收藏与最近使用') if self.config.data["favorites"] or self.config.data["recent"] else tr('选择应用，开始使用你的掌机'), "apps": tr('{value0} 个应用', value0=len(items)) + (tr(' · 搜索：{value0}', value0=self.query) if self.query else tr(' · X 筛选与操作')), "windows": tr('选择一个窗口，继续工作'), "files": self.data["directory"], "settings": tr('常用控制，直接完成')}
+        descriptions = {"home": tr('Choose a destination with Left / Right'), "apps": tr('{value0} 个应用', value0=len(items)) + (tr(' · 搜索：{value0}', value0=self.query) if self.query else tr(' · X 筛选与操作')), "windows": tr('选择一个窗口，继续工作'), "files": self.data["directory"], "settings": tr('常用控制，直接完成')}
         return json.dumps(render({
             **self.data, "mock": self.mock, "page": self.navigation.page,
             "language": self.language, "theme": self.theme,
             "reducedMotion": os.environ.get("UDECK_REDUCED_MOTION") == "1",
             "categoryNames": CATEGORY_NAMES,
-            "pageNames": list(PAGE_NAMES), "pages": list(PAGES),
+            "pageNames": list(PAGE_NAMES), "pages": list(PAGES), "activeTab": self.navigation.tab_page,
             "title": titles[self.navigation.page], "description": descriptions[self.navigation.page],
             "index": selected, "zone": self.navigation.zone, "items": items,
             "modal": self.modal, "toast": self.toast, "busy": self.busy,
@@ -386,7 +384,7 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
     @Slot(str)
     @interaction
     def setPage(self, page):
-        if page not in PAGES:
+        if page not in ALL_PAGES:
             return
         if page != self.navigation.page:
             self.feedback("open")
@@ -422,7 +420,7 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
             self.calibrationDirection.emit(action)
             return
         if action in ("previous-page", "next-page"):
-            if not self.modal:
+            if not self.modal and self.navigation.page in PAGES:
                 index = PAGES.index(self.navigation.page)
                 offset = -1 if action == "previous-page" else 1
                 self.setPage(PAGES[max(0, min(index + offset, len(PAGES) - 1))])
@@ -453,7 +451,8 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
         items = self._items()
         if action in ("left", "right", "up", "down"):
             before = (self.navigation.page, self.navigation.zone, self.navigation.index)
-            self.navigation.move(action, len(items), 5 if self.navigation.page in ("home", "apps") else 1)
+            columns = max(1, len(items)) if self.navigation.page == "home" else 5 if self.navigation.page == "apps" else 1
+            self.navigation.move(action, len(items), columns)
             after = (self.navigation.page, self.navigation.zone, self.navigation.index)
             if before != after and (items or before[:2] != after[:2]):
                 self.feedback("open" if before[0] != after[0] else "navigate")
@@ -481,7 +480,9 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
         if item.get("disabled"):
             self.feedback("error")
             component = self.data.get(item["id"], {})
-            self.notify(component.get("error", tr('此功能当前不可用')))
+            self.notify(item.get("reason") or component.get("error", tr('此功能当前不可用')))
+        elif self.navigation.page == "home" and item.get("homeKind") == "settings":
+            self.setPage("settings")
         elif self.navigation.page in ("home", "apps"):
             self._launch(item)
         elif self.navigation.page == "windows":
@@ -511,7 +512,10 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
 
     def _context(self, item):
         page = self.navigation.page
-        if page in ("home", "apps"):
+        if page == "home" and item:
+            self._menu(item["name"], [{"label": tr('打开'), "action": "open-home", "item": item,
+                                      "disabled": item.get("disabled", False), "reason": item.get("reason", "")}])
+        elif page == "apps":
             options = []
             if item:
                 options.extend([{"label": tr('打开应用'), "action": "launch", "item": item}, {"label": tr('取消收藏') if item["id"] in self.config.data["favorites"] else tr('加入收藏'), "action": "favorite", "id": item["id"]}])
@@ -840,7 +844,9 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
     def _apply_option(self, option):
         action = option["action"]
         item = option.get("item", {})
-        if action == "language":
+        if action == "open-home":
+            self._activate(item)
+        elif action == "language":
             self.setLanguage(option["language"])
         elif action == "theme":
             self.setTheme(option["theme"])

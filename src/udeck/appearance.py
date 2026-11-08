@@ -1,4 +1,4 @@
-"""Global interface themes, independent of document and terminal palettes."""
+"""Global interface themes; document palettes remain independent."""
 
 from .i18n import tr
 

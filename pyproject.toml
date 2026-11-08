@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "udeck"
-version = "0.1.19"
+version = "0.1.20"
 description = "A button-first desktop shell for ClockworkPi uConsole"
 requires-python = ">=3.11,<3.14"
 dependencies = [
@@ -31,9 +31,12 @@ udeck-games = "udeck.apps.main:games"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.data-files]
+"share/udeck-terminal/color-schemes" = ["packaging/terminal.colorscheme", "packaging/terminal-dark.colorscheme"]
+
 [tool.setuptools.package-data]
 udeck = ["qml/*.qml", "locales/*.json", "fonts/*.ttf", "fonts/*.txt", "fonts/*.json", "fonts/*.md", "assets/input-prompts/*", "assets/interface-sounds/*"]
-"udeck.terminal" = ["qml/*.qml"]
+"udeck.terminal" = ["qml/*.qml", "fonts/*.ttf", "fonts/*.txt", "fonts/*.json"]
 "udeck.apps" = ["qml/*.qml", "navigation.js", "reader_web/*", "reader_web/foliate/*"]
 
 [tool.pytest.ini_options]

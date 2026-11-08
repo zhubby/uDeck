@@ -110,15 +110,12 @@ class TerminalPreferences:
     def __init__(self, path=None):
         self.path = Path(path) if path else Path(os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))) / "udeck/terminal.json"
         self.font_size = 20
-        self.color_scheme = "udeck"
         try:
             data = json.loads(self.path.read_text())
             if isinstance(data, dict):
                 size = data.get("fontSize")
                 if type(size) is int and size in range(14, 29, 2):
                     self.font_size = size
-                if data.get("colorScheme") in ("udeck", "SolarizedLight"):
-                    self.color_scheme = data["colorScheme"]
         except (OSError, ValueError, TypeError):
             pass
 
@@ -130,7 +127,7 @@ class TerminalPreferences:
         descriptor, temporary = tempfile.mkstemp(prefix=".terminal-", dir=self.path.parent)
         try:
             with os.fdopen(descriptor, "w") as stream:
-                json.dump({"version": 1, "fontSize": self.font_size, "colorScheme": self.color_scheme}, stream)
+                json.dump({"version": 2, "fontSize": self.font_size}, stream)
                 stream.flush()
                 os.fsync(stream.fileno())
             os.replace(temporary, self.path)

@@ -126,7 +126,7 @@ Window {
                         item.hostController = controller
                         item.fontSize = Qt.binding(function() { return window.state.fontSize })
                         item.paletteName = Qt.binding(function() { return window.state.colorScheme })
-                        if (useMock) item.language = Qt.binding(function() { return window.state.language })
+                        item.language = Qt.binding(function() { return window.state.language })
                         item.start(JSON.parse(controller.sessionSpec(identifier)))
                         Qt.callLater(window.focusInput)
                     }
@@ -187,6 +187,16 @@ Window {
                 anchors.margins: 24
                 spacing: 14
                 Text { font.family: window.fontFamily; text: ({menu:window.tr("终端操作"),settings:window.tr("终端设置"),close:window.tr("结束会话？"),paste:window.tr("确认粘贴"),search:window.tr("搜索文字"),error:window.tr("无法完成操作")})[window.state.mode] || ""; color: window.ink; font.pixelSize: 24; font.bold: true }
+                Text {
+                    objectName: "terminalThemeHint"
+                    visible: window.state.mode === "settings"
+                    Layout.fillWidth: true
+                    font.family: window.fontFamily
+                    font.pixelSize: 16
+                    color: window.muted
+                    wrapMode: Text.Wrap
+                    text: window.state.themeLabel
+                }
                 Text { font.family: window.fontFamily; visible: window.state.mode === "close" || window.state.mode === "error" || window.state.mode === "paste"; text: window.state.message; color: window.muted; font.pixelSize: 17; wrapMode: Text.Wrap; Layout.fillWidth: true }
                 ScrollView { palette: window.colors.controls;
                     visible: window.state.mode === "paste"

@@ -334,6 +334,7 @@
   "终端操作": "终端操作",
   "终端窗口参数无效": "终端窗口参数无效",
   "终端设置": "终端设置",
+  "主题：{value0} · 跟随系统": "主题：{value0} · 跟随系统",
   "终端进程启动冲突，请重试": "终端进程启动冲突，请重试",
   "终端进程未响应：{error}": "终端进程未响应：{error}",
   "结束会话？": "结束会话？",
@@ -847,5 +848,14 @@
   "Fn, backlight and key lock are handled by firmware; Power is handled by the system. Test Fn combinations using their output keys.": "Fn、键盘背光和锁键由固件处理，电源键由系统处理，均无独立按键事件。Fn 组合通过对应的输出键位测试。",
   "Some system keys cannot be read. Check input device access.": "部分系统按键无法读取，请检查输入设备的访问权限。",
   "Interface sounds": "交互音效",
-  "Could not save interface sound settings": "交互音效设置保存失败"
+  "Could not save interface sound settings": "交互音效设置保存失败",
+  "Books": "电子书",
+  "Choose a destination with Left / Right": "左右选择，打开你的掌机生活",
+  "Local shell sessions and command-line tools": "本地 Shell、多会话与命令行工具",
+  "Browse albums, tracks and playlists": "浏览本地音乐、专辑与播放列表",
+  "Watch your local video library": "浏览视频库，继续你的观影时光",
+  "Read EPUB, PDF and text books": "阅读 EPUB、PDF 与 TXT 电子书",
+  "Open your game library and saved progress": "打开游戏库，继续你的游戏进度",
+  "Network, audio, display and device preferences": "网络、声音、显示与设备设置",
+  "This app is not installed.": "尚未安装此应用，请安装对应的 uDeck 应用包。"
 }

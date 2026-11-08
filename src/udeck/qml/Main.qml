@@ -16,6 +16,7 @@ Window {
     visibility: windowedPreview ? Window.Windowed : Window.FullScreen
     property var viewState: JSON.parse(controller.snapshotJson)
     property var itemModel: []
+    property var homeModel: []
     property string itemsStamp: ""
     property string renderedPage: ""
     property string renderedTheme: ""
@@ -46,7 +47,10 @@ Window {
         const stamp = JSON.stringify(viewState.items)
         if (stamp !== itemsStamp || renderedPage !== viewState.page) {
             itemsStamp = stamp
-            itemModel = viewState.items
+            if (viewState.page === "home")
+                homeModel = viewState.items
+            else
+                itemModel = viewState.items
         }
         renderedPage = viewState.page
         renderedTheme = viewState.theme
@@ -55,7 +59,9 @@ Window {
             itemList.forceLayout()
             applicationGrid.contentY = gridY
             itemList.contentY = listY
-        } else if (viewState.page === "home" || viewState.page === "apps")
+        } else if (viewState.page === "home")
+            homeScreen.positionSelection()
+        else if (viewState.page === "apps")
             applicationGrid.positionViewAtIndex(viewState.index, GridView.Contain)
         else
             itemList.positionViewAtIndex(viewState.index, ListView.Contain)
@@ -205,6 +211,7 @@ Window {
 
         Row {
             id: navigation
+            objectName: "mainNavigation"
             x: 28; y: 85; width: parent.width - 56; height: 56
             spacing: 10
             Repeater {
@@ -212,14 +219,15 @@ Window {
                 delegate: Rectangle {
                     required property string modelData
                     required property int index
-                    property bool current: viewState.page === modelData
-                    width: (navigation.width - 40) / 5; height: 56; radius: 10
+                    objectName: "mainTab-" + modelData
+                    property bool current: viewState.activeTab === modelData
+                    width: (navigation.width - navigation.spacing * (viewState.pages.length - 1)) / viewState.pages.length; height: 56; radius: 10
                     color: current ? window.colors.selectedTab : "transparent"
                     border.width: current && viewState.zone === "tabs" && !dialog.kind ? 3 : 1
                     border.color: current && viewState.zone === "tabs" && !dialog.kind ? window.accent : (current ? window.colors.tabBorder : "transparent")
                     Row {
                         anchors.centerIn: parent; spacing: 12
-                        Image { source: "image://desktop/" + ["go-home", "view-grid", "view-list-details", "folder", "preferences-system"][index]; width: 27; height: 27; anchors.verticalCenter: parent.verticalCenter }
+                        Image { source: "image://desktop/" + ["go-home", "view-grid", "view-list-details", "folder"][index]; width: 27; height: 27; anchors.verticalCenter: parent.verticalCenter }
                         Text { textFormat: Text.PlainText; text: viewState.pageNames[index]; font.family: window.fontFamily; font.pixelSize: 24; font.weight: current ? Font.DemiBold : Font.Normal; color: current ? window.accent : window.muted }
                     }
                 }
@@ -245,14 +253,27 @@ Window {
 
         Item {
             id: content
-            x: 28; y: 265; width: parent.width - 56; height: parent.height - 350
+            x: 28; y: viewState.page === "home" ? 250 : 265; width: parent.width - 56; height: parent.height - y - 85
             clip: true
+
+            HomeScreen {
+                id: homeScreen
+                objectName: "homeScreen"
+                anchors.fill: parent
+                visible: viewState.page === "home"
+                items: visible ? window.homeModel : []
+                colors: window.colors
+                fontFamily: window.fontFamily
+                index: viewState.index
+                contentFocused: viewState.zone === "content" && !dialog.kind
+                reducedMotion: viewState.reducedMotion
+            }
 
             GridView {
                 id: applicationGrid
                 objectName: "applicationGrid"
                 anchors.fill: parent
-                visible: viewState.page === "home" || viewState.page === "apps"
+                visible: viewState.page === "apps"
                 model: visible ? window.itemModel : []
                 cellWidth: width / 5; cellHeight: 174
                 currentIndex: viewState.index

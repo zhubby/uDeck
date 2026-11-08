@@ -6,8 +6,9 @@ from pathlib import Path
 from .appearance import theme_code
 from .i18n import language_code, tr
 
-PAGES = ("home", "apps", "windows", "files", "settings")
-PAGE_NAMES = (tr('主页'), tr('应用'), tr('运行中'), tr('文件'), tr('设置'))
+PAGES = ("home", "apps", "windows", "files")
+ALL_PAGES = (*PAGES, "settings")
+PAGE_NAMES = (tr('主页'), tr('应用'), tr('运行中'), tr('文件'))
 
 
 def move_index(index, direction, count, columns=1):
@@ -34,11 +35,15 @@ class Navigation:
         self.modal_owners = []
 
     def set_page(self, page):
-        if page not in PAGES:
+        if page not in ALL_PAGES:
             raise ValueError(tr('未知页面'))
         self.positions[self.page] = self.index
         self.page = page
         self.index = max(0, int(self.positions.get(page, 0)))
+
+    @property
+    def tab_page(self):
+        return self.page if self.page in PAGES else "home"
 
     def select(self, index):
         self.index = max(0, index)
@@ -50,11 +55,13 @@ class Navigation:
             if direction == "down":
                 self.zone = "content"
             elif direction in ("left", "right"):
-                tab_index = PAGES.index(self.page)
+                tab_index = PAGES.index(self.tab_page)
                 offset = -1 if direction == "left" else 1
                 self.set_page(PAGES[max(0, min(tab_index + offset, len(PAGES) - 1))])
             return
         if direction == "up" and self.index < columns:
+            if self.page not in PAGES:
+                self.set_page(self.tab_page)
             self.zone = "tabs"
         else:
             self.index = move_index(self.index, direction, count, columns)
@@ -94,7 +101,7 @@ class ConfigStore:
                                                      and mode in ("keyboard", "pointer", "native")}
                 self.data["focus"] = {
                     key: value for key, value in self.data["focus"].items()
-                    if key in PAGES and type(value) is int and 0 <= value < 100000
+                    if key in ALL_PAGES and type(value) is int and 0 <= value < 100000
                 }
                 preferences = loaded.get("preferences", {})
                 if isinstance(preferences, dict):

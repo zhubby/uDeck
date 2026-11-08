@@ -1,0 +1,161 @@
+{
+  "families": {
+    "en": "JetBrains Mono",
+    "zh_CN": "LXGW WenKai Mono"
+  },
+  "versions": {
+    "JetBrains Mono": "2.304",
+    "LXGW WenKai Mono": "1.530",
+    "Symbols Nerd Font Mono": "3.5.1"
+  },
+  "files": {
+    "JetBrainsMono-Regular.ttf": {
+      "source": "https://raw.githubusercontent.com/JetBrains/JetBrainsMono/v2.304/fonts/ttf/JetBrainsMono-Regular.ttf",
+      "sha256": "a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f",
+      "bytes": 273900,
+      "license": "OFL-1.1"
+    },
+    "JetBrainsMono-Bold.ttf": {
+      "source": "https://raw.githubusercontent.com/JetBrains/JetBrainsMono/v2.304/fonts/ttf/JetBrainsMono-Bold.ttf",
+      "sha256": "5590990c82e097397517f275f430af4546e1c45cff408bde4255dad142479dcb",
+      "bytes": 277828,
+      "license": "OFL-1.1"
+    },
+    "JetBrainsMono-OFL.txt": {
+      "source": "https://raw.githubusercontent.com/JetBrains/JetBrainsMono/v2.304/OFL.txt",
+      "sha256": "30f0c136e3c88e422d0791acd97238870f9054a9729bc34cf2ff0d4ed8cac4ad",
+      "bytes": 4399,
+      "license": "OFL-1.1"
+    },
+    "LXGWWenKaiMono-Regular.ttf": {
+      "source": "https://raw.githubusercontent.com/lxgw/LxgwWenKai/v1.530/fonts/TTF/LXGWWenKaiMono-Regular.ttf",
+      "sha256": "895ce1d2fa00d5ca3bec0329d38e3190454f4b5fa7b4733f491c419faf9753a1",
+      "bytes": 25957300,
+      "license": "OFL-1.1"
+    },
+    "LXGWWenKaiMono-OFL.txt": {
+      "source": "https://raw.githubusercontent.com/lxgw/LxgwWenKai/v1.530/OFL.txt",
+      "sha256": "1a25e35da1031c6c3436fde545bb9cb5aca954e9873afe510c834b8b79bd21a0",
+      "bytes": 5171,
+      "license": "OFL-1.1"
+    },
+    "NerdFontsSymbolsOnly-Apache-2.0.txt": {
+      "source": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      "license": "Apache-2.0",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    },
+    "NerdFontsSymbolsOnly-Codicons-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v3.5.1/src/glyphs/codicons/LICENSE.txt",
+      "license": "CC-BY-4.0",
+      "sha256": "03a50105dc91319b3695398007341b9242b38831dab2e515ff4d7ba1f9826e2b",
+      "bytes": 18654
+    },
+    "NerdFontsSymbolsOnly-Devicons-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/devicons/devicon/v2.17.0/LICENSE",
+      "license": "MIT",
+      "sha256": "121194741d4a915b9f5890fdd6dd95121f9b1f816517c792358d72d7c838d664",
+      "bytes": 1072
+    },
+    "NerdFontsSymbolsOnly-Extraglyphs-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/source-foundry/Hack/v3.003/LICENSE.md",
+      "license": "MIT AND Bitstream-Vera",
+      "sha256": "1f61bb7c790c59b4b0ecdf304628b94e42ae4c8020094a8c3da73381ab212623",
+      "bytes": 3744
+    },
+    "NerdFontsSymbolsOnly-FontAwesome-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v3.5.1/src/glyphs/font-awesome/LICENSE.txt",
+      "license": "CC-BY-4.0 AND OFL-1.1 AND MIT",
+      "sha256": "de784a808496d49f5f80dd9d1d6e9a51cff712cfbc339e7c25155631ae3cdb5d",
+      "bytes": 7427
+    },
+    "NerdFontsSymbolsOnly-FontAwesomeExtension-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/AndreLZGava/font-awesome-extension/09d80249058ee8018a45da30add4339289dbb466/LICENCE",
+      "license": "MIT",
+      "sha256": "b47b15d771c4507a75ff65beca3a78168d6af4cca9b45177a1aa817139c64ba5",
+      "bytes": 1073
+    },
+    "NerdFontsSymbolsOnly-FontLogos-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/lukas-w/font-logos/v1.3.0/LICENSE",
+      "license": "Unlicense",
+      "sha256": "88d9b4eb60579c191ec391ca04c16130572d7eedc4a86daa58bf28c6e14c9bcd",
+      "bytes": 1210
+    },
+    "NerdFontsSymbolsOnly-IECPowerSymbols-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/jloughry/Unicode/805536fb6f93604da985d80e0c6b099f98f8b4d9/LICENSE.txt",
+      "license": "MIT",
+      "sha256": "11aef1cdf2d58d822e6857e2574870ccc59d4900052bf5c098e319d750e7ac3d",
+      "bytes": 1078
+    },
+    "NerdFontsSymbolsOnly-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v3.5.1/patched-fonts/NerdFontsSymbolsOnly/LICENSE",
+      "license": "MIT",
+      "sha256": "84a7a98c82140fb12c37fe42b93805baa16024cb3e5acc599b7ffe612c55d847",
+      "bytes": 1082
+    },
+    "NerdFontsSymbolsOnly-MaterialDesign-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v3.5.1/src/glyphs/materialdesign/LICENSE",
+      "license": "Apache-2.0",
+      "sha256": "3bae6305bcaa6d10219b999f65c342034c2d40b1c0e8567fa08605e73ccba829",
+      "bytes": 992
+    },
+    "NerdFontsSymbolsOnly-NOTICE.txt": {
+      "source": "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v3.5.1/patched-fonts/NerdFontsSymbolsOnly/README.md",
+      "license": "MIT AND CC-BY-4.0 AND OFL-1.1 AND Apache-2.0 AND Unlicense",
+      "sha256": "ad2ab32b8e88e894f6a364c18774a0b6bc8dcb50f587d3ddb35090c33102ef5d",
+      "bytes": 3890
+    },
+    "NerdFontsSymbolsOnly-Octicons-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v3.5.1/src/glyphs/octicons/LICENSE",
+      "license": "MIT",
+      "sha256": "4f886642f9e8d99eeadd484acdac011c3fde8a338faf52f5ca1408c13b9a9b63",
+      "bytes": 1068
+    },
+    "NerdFontsSymbolsOnly-Pomicons-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v3.5.1/src/glyphs/pomicons/LICENSE",
+      "license": "OFL-1.1",
+      "sha256": "cb4797a9745683f287c28833db596e9d68ec43082d59359b3a49c504f0f610ce",
+      "bytes": 4395
+    },
+    "NerdFontsSymbolsOnly-PowerlineExtra-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v3.5.1/src/glyphs/powerline-extra/LICENSE",
+      "license": "MIT",
+      "sha256": "544307a58e6826c24145b2af1c3578b53e2e21ae0e6c67ab4c6abd544304d26a",
+      "bytes": 1072
+    },
+    "NerdFontsSymbolsOnly-PowerlineSymbols-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v3.5.1/src/glyphs/powerline-symbols/LICENSE.txt",
+      "license": "MIT",
+      "sha256": "46d5355e4734468135d8e4a30d0916292cc4df2b3ec30aa68c866f82497933be",
+      "bytes": 1132
+    },
+    "NerdFontsSymbolsOnly-Seti-LICENSE.txt": {
+      "source": "https://raw.githubusercontent.com/jesseweed/seti-ui/2d6c5e68b4ded73c92dac291845ee44e1182d511/LICENSE.md",
+      "license": "MIT",
+      "sha256": "d4d2d888c6a0a220a7b0e2d6013cf37539b0e05ef937002b3b33bdb364575b88",
+      "bytes": 1054
+    },
+    "NerdFontsSymbolsOnly-WeatherIcons-NOTICE.txt": {
+      "source": "https://raw.githubusercontent.com/erikflowers/weather-icons/2.0.10/README.md",
+      "license": "OFL-1.1 AND MIT AND CC-BY-3.0",
+      "sha256": "1854ba6df3083a336c6e951ed0e2c61bbf862cf4930b7861592331ce8d041159",
+      "bytes": 2965
+    },
+    "SymbolsNerdFontMono-Regular.ttf": {
+      "source": "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v3.5.1/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFontMono-Regular.ttf",
+      "license": "MIT AND CC-BY-4.0 AND OFL-1.1 AND Apache-2.0 AND Unlicense",
+      "sha256": "fe471e538392f51910faab985fa8e192a39dd3426125edd15b71b3680df0e749",
+      "bytes": 2610012
+    }
+  },
+  "fallback": "Symbols Nerd Font Mono",
+  "licenses": {
+    "JetBrains Mono": "OFL-1.1",
+    "LXGW WenKai Mono": "OFL-1.1",
+    "Symbols Nerd Font Mono": "MIT AND CC-BY-4.0 AND OFL-1.1 AND Apache-2.0 AND Unlicense"
+  },
+  "upstreamArchive": {
+    "source": "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/NerdFontsSymbolsOnly.tar.xz",
+    "sha256": "01172f37db8543edb102e5cb5c64101c9f4686630804d49b419aa07b23a69996"
+  }
+}

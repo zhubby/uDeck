@@ -44,7 +44,7 @@ def test_missing_and_invalid_language_defaults_to_english(tmp_path, monkeypatch,
 def test_default_shell_and_settings_are_english(controller):
     state = snapshot(controller)
     assert state["language"] == "en"
-    assert state["pageNames"] == ["Home", "Apps", "Running", "Files", "Settings"]
+    assert state["pageNames"] == ["Home", "Apps", "Running", "Files"]
     assert state["title"] == "Start here"
     controller.setPage("settings")
     settings = {item["id"]: item for item in snapshot(controller)["items"]}
@@ -67,7 +67,8 @@ def test_setting_selection_updates_immediately_persists_and_restores_focus(contr
     assert state["modal"]["key"] == key
     assert state["modal"]["index"] == 1
     assert state["modal"]["title"] == "界面语言"
-    assert state["pageNames"][-1] == "设置"
+    assert state["pageNames"] == ["主页", "应用", "运行中", "文件"]
+    assert state["activeTab"] == "home"
     assert ConfigStore(controller.config.path).data["preferences"]["language"] == "zh_CN"
     controller.dispatch("back")
     assert controller.navigation.index == position

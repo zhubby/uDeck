@@ -69,9 +69,9 @@ controller.close()
 
 @pytest.mark.parametrize(("page", "button", "expected"), [
     ("home", "LeftButton", "home"),
-    ("settings", "LeftButton", "files"),
+    ("settings", "LeftButton", "settings"),
     ("home", "RightButton", "apps"),
-    ("files", "RightButton", "settings"),
+    ("files", "RightButton", "files"),
     ("files", "double", "no-file-open"),
     ("home", "typing", "text"),
     ("home", "dialog", "text"),

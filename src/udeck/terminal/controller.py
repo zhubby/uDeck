@@ -16,7 +16,9 @@ from PySide6.QtCore import (
     Signal,
     Slot,
 )
+from PySide6.QtGui import QFont
 
+from ..appearance import THEMES
 from ..core import ConfigStore
 from ..i18n import LANGUAGES, render, tr
 from ..sounds import SoundFeedback, interaction
@@ -88,9 +90,10 @@ class TerminalController(SoundFeedback):
     def snapshotJson(self):
         return json.dumps(render({"tabs": self.tabs.items, "current": self.current, "mode": self.mode,
                            "language": self.language, "theme": self.theme,
+                           "themeLabel": tr('主题：{value0} · 跟随系统', value0=THEMES.get(self.theme, THEMES["classic"])),
                            "index": self.index, "anchored": self.anchored,
                            "fontSize": self.preferences.font_size,
-                           "colorScheme": self.preferences.color_scheme,
+                           "colorScheme": "udeck-dark" if self.theme == "dark" else "udeck",
                            "query": self.query, "message": self.message,
                            "pastePreview": self._paste_preview(),
                            "options": self._options()}, self.language), ensure_ascii=False)
@@ -98,6 +101,14 @@ class TerminalController(SoundFeedback):
     @Slot(str, str, result=str)
     def translate(self, source, language):
         return render(tr(source), self.language)
+
+    @Slot(str, int, result=QFont)
+    def terminalFont(self, language, pixelSize):
+        families = ["LXGW WenKai Mono", "JetBrains Mono"] if language == "zh_CN" else ["JetBrains Mono", "LXGW WenKai Mono"]
+        font = QFont()
+        font.setFamilies([families[0], "Symbols Nerd Font Mono", families[1]])
+        font.setPixelSize(pixelSize)
+        return font
 
     @Slot(str)
     def setLanguage(self, language):
@@ -122,7 +133,7 @@ class TerminalController(SoundFeedback):
         if self.mode == "menu":
             return [tr('新建标签'), tr('历史与复制'), tr('搜索文字'), tr('粘贴'), tr('终端设置'), tr('返回桌面'), tr('关闭标签'), tr('关闭窗口')]
         if self.mode == "settings":
-            return [tr('减小字号'), tr('增大字号'), tr('切换深浅配色'), tr('返回输入')]
+            return [tr('减小字号'), tr('增大字号'), tr('返回输入')]
         if self.mode in ("close", "paste"):
             return [tr('取消'), tr('确认关闭') if self.mode == "close" else tr('粘贴')]
         if self.mode == "error":
@@ -348,9 +359,6 @@ class TerminalController(SoundFeedback):
         elif mode == "settings":
             if position in (0, 1):
                 self.preferences.change_font(-2 if position == 0 else 2)
-            elif position == 2:
-                self.preferences.color_scheme = "SolarizedLight" if self.preferences.color_scheme == "udeck" else "udeck"
-                self.feedback("toggle-on" if self.preferences.color_scheme == "SolarizedLight" else "toggle-off")
             else:
                 self.mode = "input"
             try:

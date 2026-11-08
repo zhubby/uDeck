@@ -20,9 +20,13 @@ MOCK_APPS = [
 
 
 def mock_apps():
+    from .home import HOME_SHORTCUTS
+
     return [{"id": identifier + ".desktop", "name": name, "subtitle": subtitle,
              "icon": icon, "category": category}
-            for identifier, name, subtitle, icon, category in MOCK_APPS]
+            for identifier, name, subtitle, icon, category in MOCK_APPS] + [
+                dict(shortcut) for shortcut in HOME_SHORTCUTS if shortcut["id"] != "settings"
+            ]
 
 
 def initial_state():

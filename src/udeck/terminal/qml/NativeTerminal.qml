@@ -8,6 +8,8 @@ FocusScope {
     property QtObject hostController: null
     property int fontSize: 20
     property string paletteName: "udeck"
+    property string language: "en"
+    TerminalFonts { id: terminalFonts; language: root.language; hostController: root.hostController; pixelSize: root.fontSize }
     function start(spec) {
         hostController.attachSession(identifier, ptySession)
         ptySession.initialWorkingDirectory = spec.cwd
@@ -29,8 +31,7 @@ FocusScope {
         objectName: "nativeTerminal"
         anchors.fill: parent
         session: ptySession
-        font.family: "monospace"
-        font.pixelSize: root.fontSize
+        font: terminalFonts.contentFont
         colorScheme: root.paletteName
         blinkingCursor: false
         useFBORendering: false

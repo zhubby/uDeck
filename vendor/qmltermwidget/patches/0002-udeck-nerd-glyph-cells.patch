@@ -1,0 +1,111 @@
+diff --git a/lib/TerminalDisplay.cpp b/lib/TerminalDisplay.cpp
+index 92b340d..fb5ccb1 100644
+--- a/lib/TerminalDisplay.cpp
++++ b/lib/TerminalDisplay.cpp
+@@ -234,6 +234,17 @@ unsigned short Konsole::vt100_graphics[32] =
+   0x252c, 0x2502, 0x2264, 0x2265, 0x03C0, 0x2260, 0x00A3, 0x00b7
+ };
+ 
++static int characterWidth(const QFontMetrics& metrics, quint32 codepoint)
++{
++    const char32_t character = static_cast<char32_t>(codepoint);
++    return metrics.horizontalAdvance(QString::fromUcs4(&character, 1));
++}
++
++static bool isPrivateUse(quint32 codepoint)
++{
++    return QChar::category(static_cast<char32_t>(codepoint)) == QChar::Other_PrivateUse;
++}
++
+ void TerminalDisplay::fontChange(const QFont&)
+ {
+   QFontMetrics fm(font());
+@@ -926,6 +937,24 @@ void TerminalDisplay::drawCharacters(QPainter& painter,
+         // This still allows RTL characters to be rendered in the RTL way.
+         painter.setLayoutDirection(Qt::LeftToRight);
+ 
++        if (text.size() == 1 && isPrivateUse(text.front()))
++        {
++            const QString glyphText = QString::fromStdWString(text);
++            const qreal glyphWidth = QFontMetricsF(font).horizontalAdvance(glyphText);
++            if (glyphWidth > 0 && rect.width() > 0)
++            {
++                painter.save();
++                painter.setClipRect(rect.adjusted(0, 0, 0, _drawTextAdditionHeight), Qt::IntersectClip);
++                painter.translate(rect.x(), rect.y());
++                if (glyphWidth > rect.width())
++                    painter.scale(rect.width() / glyphWidth, 1);
++                painter.drawText(QRectF(0, 0, glyphWidth, rect.height() + _drawTextAdditionHeight),
++                                 Qt::AlignBottom, glyphText);
++                painter.restore();
++                return;
++            }
++        }
++
+         if (_bidiEnabled) {
+             if (tooWide)
+             {
+@@ -1254,9 +1283,10 @@ void TerminalDisplay::updateImage()
+         disstrU[p++] = c; //fontMap(c);
+         bool lineDraw = isLineChar(newLine[x+0]);
+         bool doubleWidth = (x+1 == columnsToUpdate) ? false : (newLine[x+1].character == 0);
+-        int charWidth = fm.horizontalAdvance(QChar(c));
++        int charWidth = characterWidth(fm, c);
+         bool bigWidth = _fixedFont && !doubleWidth && charWidth > _fontWidth;
+         bool smallWidth = _fixedFont && charWidth < _fontWidth;
++        bool privateUse = isPrivateUse(c);
+         cr = newLine[x].rendition;
+         _clipboard = newLine[x].backgroundColor;
+         if (newLine[x].foregroundColor != cf) cf = newLine[x].foregroundColor;
+@@ -1269,7 +1299,7 @@ void TerminalDisplay::updateImage()
+                 continue; // Skip trailing part of multi-col chars.
+ 
+             bool nextIsDoubleWidth = (x+len+1 == columnsToUpdate) ? false : (newLine[x+len+1].character == 0);
+-            int nxtCharWidth = fm.horizontalAdvance(QChar(newLine[x+len].character));
++            int nxtCharWidth = characterWidth(fm, newLine[x+len].character);
+             bool nextIsbigWidth = _fixedFont && !nextIsDoubleWidth && nxtCharWidth > _fontWidth;
+             bool nextIsSmallWidth = _fixedFont && newLine[x+len].character && nxtCharWidth < _fontWidth;
+ 
+@@ -1280,7 +1310,8 @@ void TerminalDisplay::updateImage()
+                 isLineChar(ch) != lineDraw ||
+                 nextIsDoubleWidth != doubleWidth ||
+                 bigWidth || nextIsbigWidth ||
+-                smallWidth || nextIsSmallWidth)
++                smallWidth || nextIsSmallWidth ||
++                privateUse || isPrivateUse(ch.character))
+             {
+                 break;
+             }
+@@ -1852,7 +1883,7 @@ int TerminalDisplay::textWidth(const int startColumn, const int length, const in
+     }
+     else
+     {
+-        result += fm.horizontalAdvance(QChar(static_cast<uint>(c.character)));
++        result += characterWidth(fm, c.character);
+     }
+   }
+   return result;
+@@ -1933,10 +1964,11 @@ void TerminalDisplay::drawContents(QPainter &paint, const QRect &rect)
+ 
+       bool lineDraw = isLineChar(_image[loc(x,y)]);
+       bool doubleWidth = (_image[ qMin(loc(x,y)+1,_imageSize) ].character == 0);
+-      int charWidth = fm.horizontalAdvance(QChar(c));
++      int charWidth = characterWidth(fm, c);
+       bool bigWidth = _fixedFont && !doubleWidth && charWidth > _fontWidth;
+       bool tooWide = bigWidth && charWidth >= 2 * _fontWidth;
+       bool smallWidth = _fixedFont && c && charWidth < _fontWidth;
++      bool privateUse = isPrivateUse(c);
+       CharacterColor currentForeground = _image[loc(x,y)].foregroundColor;
+       CharacterColor currentBackground = _image[loc(x,y)].backgroundColor;
+       quint8 currentRendition = _image[loc(x,y)].rendition;
+@@ -1949,8 +1981,9 @@ void TerminalDisplay::drawContents(QPainter &paint, const QRect &rect)
+              _image[loc(x+len,y)].backgroundColor == currentBackground &&
+              _image[loc(x+len,y)].rendition == currentRendition &&
+              (nxtDoubleWidth = (_image[qMin(loc(x+len,y)+1,_imageSize)].character == 0)) == doubleWidth &&
++             !privateUse && !isPrivateUse(_image[loc(x+len,y)].character) &&
+              !smallWidth &&
+-             !(_fixedFont && (nxtC = _image[loc(x+len,y)].character) && (nxtCharWidth = fm.horizontalAdvance(QChar(nxtC))) < _fontWidth) &&
++             !(_fixedFont && (nxtC = _image[loc(x+len,y)].character) && (nxtCharWidth = characterWidth(fm, nxtC)) < _fontWidth) &&
+              !bigWidth &&
+              !(_fixedFont && !nxtDoubleWidth && nxtC && nxtCharWidth > _fontWidth) &&
+              isLineChar(_image[loc(x+len,y)]) == lineDraw) // Assignment!

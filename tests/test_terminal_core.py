@@ -80,9 +80,19 @@ def test_preferences_are_private_atomic_bounded_and_never_save_terminal_contents
     preferences.save()
     assert TerminalPreferences(path).font_size == 16
     assert path.stat().st_mode & 0o777 == 0o600
-    assert set(json.loads(path.read_text())) == {"version", "fontSize", "colorScheme"}
+    assert json.loads(path.read_text()) == {"version": 2, "fontSize": 16}
     path.write_text('{"fontSize": "broken", "transcript": "secret"}')
     assert TerminalPreferences(path).font_size == 20
+
+
+@pytest.mark.parametrize("scheme", ["udeck", "SolarizedLight"])
+def test_legacy_terminal_palette_does_not_override_system_theme(tmp_path, scheme):
+    path = tmp_path / "terminal.json"
+    path.write_text(json.dumps({"version": 1, "fontSize": 24, "colorScheme": scheme}))
+    preferences = TerminalPreferences(path)
+    assert preferences.font_size == 24
+    preferences.save()
+    assert json.loads(path.read_text()) == {"version": 2, "fontSize": 24}
 
 
 @pytest.mark.parametrize(("text", "expected"), [("中文 command", False), ("one\ntwo", True),

@@ -99,7 +99,7 @@ def run():
                 function visit(item) {
                     if (!item.visible) return
                     if (item.font !== undefined && item.text !== undefined)
-                        fonts.push({text: String(item.text), family: item.font.family})
+                        fonts.push({name: item.objectName, text: String(item.text), family: item.font.family})
                     for (let child of item.children) visit(child)
                 }
                 visit(contentItem)
@@ -109,7 +109,10 @@ def run():
         value, undefined = expression.evaluate()
         assert not undefined and not expression.hasError(), expression.error().toString()
         families = json.loads(value)
-        interface = [item for item in families if item["family"] != "monospace"]
+        terminal = [item for item in families if item["name"] == "terminalContent"]
+        terminal_family = "LXGW WenKai Mono" if language == "zh_CN" else "JetBrains Mono"
+        assert all(item["family"] == terminal_family for item in terminal), terminal
+        interface = [item for item in families if item["name"] != "terminalContent" and item["family"] != "monospace"]
         assert interface
         assert all(item["family"] == expected for item in interface), (window.title(), interface, expected)
         assert QFontInfo(QFont(expected)).family() == expected
@@ -256,6 +259,10 @@ def run():
                 before, after = deepcopy(terminal_before[index]), json.loads(terminal.snapshotJson)
                 before.pop("theme")
                 after.pop("theme")
+                assert after.pop("colorScheme") == ("udeck-dark" if theme == "dark" else "udeck")
+                before.pop("colorScheme")
+                assert after.pop("themeLabel")
+                before.pop("themeLabel")
                 assert before == after
                 verify_colors(terminal_window, theme)
                 capture(terminal_window, f"terminal-{theme}-{'paste' if index else 'menu'}")
