@@ -43,6 +43,27 @@ wheel 构建完成，**311** 个包内源码/资源与工作树一致。两个 D
 | `udeck_0.1.22_arm64.deb` | `80a7e01832e9d731b134383adcecd755d23b7c012d3d11a1b9693cc6ec9a8cb7` |
 | `udeck-apps_0.1.6_arm64.deb` | `fd0ad63e3ffa998418682bd13d404cfcf4c0cbdb5de2d2290edb78ebd7b74658` |
 
+## 部署与实际界面
+
+功能提交 `e90e79a967f7123aa3da8bab523dd2f1ca4585a3` 已快进合并并推送 main，远端引用独立核对一致。uConsole 已安装上述两个 Debian 包，实际启动器报告 0.1.22、Games 报告 0.1.6，无 QML 错误；277 个安装资源再次逐项核对一致。Terminal 包保持 0.1.5。
+
+部署后的正常 Games 进程通过真实 Wayland 虚拟键盘逐一进入 **149 个分组、242 个核心的详情页**，每个核心均有可操作的开关入口。实际菜单还完成了平台目录创建、GBA 备用核心启用后关闭、目录选择取消、鼠标进入父目录后取消，以及长列表滚动。事件自动化等待菜单状态变化后再继续；这些是软件输入检查，不替代实体按钮验收。
+
+三份原创程序已放入 `~/Games/gb`、`~/Games/nes`、`~/Games/gba`，实机正常库能识别三个平台。平台目录由设置中的显式创建操作生成；已有文件保留。
+
+只关闭并重开了空闲 Games。Terminal PID 381833、Reader PID 3911312、Video PID 3911863 及四个 Reader 子进程的 PID/启动时间均保持，结束时没有运行中的 RetroArch。启动器重启期间临时使用 `KillMode=process` 保留应用，随后恢复 `control-group`；没有重启 compositor 或登录会话。输入、收藏、最近记录、English/Classic 偏好与桌面配置均核对保留，屏幕恢复原来的关闭状态。
+
+旧版两个包及配置备份位于设备 `~/.local/state/udeck/deployments/games-e90e79a-20261109/`。完整安装清单、原生测试、核心入口遍历报告和截图原图保留在本次交付附件中。
+
+以下为设备实际 Wayland 输出，英文/Classic、1280×720，保留原始 PNG，没有裁剪或重绘：
+
+| 页面 | 实机截图 |
+| --- | --- |
+| 多平台库 | [GB、GBA、NES 原创程序](screenshots/games-multiplatform-library-uconsole.png) |
+| 设置 | [ROM 根目录、平台目录、核心与固件设置](screenshots/games-multiplatform-settings-uconsole.png) |
+| 核心管理 | [242 个核心的平台分组与滚动选择](screenshots/games-multiplatform-core-management-uconsole.png) |
+| 平台核心 | [GBA 推荐与备用核心状态](screenshots/games-multiplatform-gba-cores-uconsole.png) |
+
 ## 验收边界
 
 本次没有将 242 个核心的 API 加载成功描述为全平台实测。其他平台的实际游戏、不同区域/型号的 BIOS、具体图形后端及性能仍需按平台验证。实体方向键/ABXY/肩键、音频听感、长时间运行和物理存储拔插也需要现场验收。原创程序与自动化输入证明相应启动/存档流程，不替代这些现场项目。
