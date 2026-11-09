@@ -14,7 +14,7 @@ Window {
     color: window.colors.background
     flags: windowedPreview ? Qt.Window : Qt.Window | Qt.FramelessWindowHint
     visibility: windowedPreview ? Window.Windowed : Window.FullScreen
-    property var viewState: JSON.parse(controller.snapshotJson)
+    property var viewState: JSON.parse(controller.viewSnapshotJson)
     property var itemModel: []
     property var homeModel: []
     property string itemsStamp: ""
@@ -63,6 +63,8 @@ Window {
             homeScreen.positionSelection()
         else if (viewState.page === "apps")
             applicationGrid.positionViewAtIndex(viewState.index, GridView.Contain)
+        else if (viewState.page === "files")
+            filesScreen.positionSelection()
         else
             itemList.positionViewAtIndex(viewState.index, ListView.Contain)
         if (dialog.kind === "menu")
@@ -70,12 +72,14 @@ Window {
         let currentDialog = dialog.key || ""
         if (currentDialog !== lastDialog) {
             lastDialog = currentDialog
+            previewContent.contentY = 0
             if (dialog.kind === "text") {
                 editor.text = dialog.text || ""
                 controller.editText(editor.text)
                 editor.forceActiveFocus()
                 editor.selectAll()
             } else {
+                editor.focus = false
                 keyboardScope.forceActiveFocus()
             }
         }
@@ -93,6 +97,7 @@ Window {
     Connections {
         target: controller
         function onChanged() { Qt.callLater(window.syncView) }
+        function onFilePreviewScroll(amount) { previewContent.contentY = Math.max(0, Math.min(previewContent.contentY + amount, previewContent.contentHeight - previewContent.height)) }
         function onPresent() {
             if (windowedPreview)
                 window.show()
@@ -123,6 +128,20 @@ Window {
             else if (event.key === Qt.Key_PageUp) action = "previous-page"
             else if (event.key === Qt.Key_PageDown) action = "next-page"
             else if (event.key === Qt.Key_F && event.modifiers & Qt.ControlModifier) action = "search"
+            if (viewState.page === "files" && !dialog.kind) {
+                if (event.modifiers & Qt.ControlModifier) {
+                    if (event.key === Qt.Key_C) action = "file-copy"
+                    else if (event.key === Qt.Key_X) action = "file-cut"
+                    else if (event.key === Qt.Key_V) action = "file-paste"
+                    else if (event.key === Qt.Key_A) action = "file-select-all"
+                    else if (event.key === Qt.Key_L) action = "file-go"
+                } else {
+                    if (event.key === Qt.Key_F2) action = "file-rename"
+                    else if (event.key === Qt.Key_F5) action = "file-refresh"
+                    else if (event.key === Qt.Key_Delete) action = "file-trash"
+                    else if (event.key === Qt.Key_Space) action = "file-mark"
+                }
+            }
             if (action !== "" && (!event.isAutoRepeat || ["left", "right", "up", "down"].indexOf(action) >= 0)) {
                 controller.dispatch(action)
                 event.accepted = true
@@ -235,16 +254,19 @@ Window {
         }
 
         Text { textFormat: Text.PlainText;
+            visible: viewState.page !== "files"
             x: 30; y: 165; text: viewState.title
             font.family: window.fontFamily; font.pixelSize: 34; font.weight: Font.DemiBold; color: window.ink
         }
         Text { textFormat: Text.PlainText;
+            visible: viewState.page !== "files"
             x: 30; y: 214; width: parent.width - 80 - inputStatus.width
             text: viewState.description; elide: Text.ElideMiddle
             font.family: window.fontFamily; font.pixelSize: 24; color: window.muted
         }
         Text { textFormat: Text.PlainText;
             id: inputStatus
+            visible: viewState.page !== "files"
             anchors.right: parent.right; anchors.rightMargin: 30; y: 216
             width: Math.min(implicitWidth, parent.width * 0.35); elide: Text.ElideRight
             text: viewState.mock ? window.tr("不操作真实设备") : (viewState.input.verified ? window.tr("ABXY 已校准") : (viewState.input.mapped ? window.tr("ABXY 已映射") : window.tr("ABXY 待校准")))
@@ -253,7 +275,7 @@ Window {
 
         Item {
             id: content
-            x: 28; y: viewState.page === "home" ? 250 : 265; width: parent.width - 56; height: parent.height - y - 85
+            x: 28; y: viewState.page === "files" ? 165 : viewState.page === "home" ? 250 : 265; width: parent.width - 56; height: parent.height - y - 85
             clip: true
 
             HomeScreen {
@@ -267,6 +289,22 @@ Window {
                 index: viewState.index
                 contentFocused: viewState.zone === "content" && !dialog.kind
                 reducedMotion: viewState.reducedMotion
+            }
+
+            FilesScreen {
+                id: filesScreen
+                objectName: "filesScreen"
+                anchors.fill: parent
+                visible: viewState.page === "files"
+                state: viewState.fileState
+                colors: window.colors
+                fontFamily: window.fontFamily
+                language: viewState.language
+                fileModel: controller.fileModel
+                reducedMotion: viewState.reducedMotion || false
+                currentIndex: viewState.index
+                contentFocused: viewState.zone === "content" && !dialog.kind
+                busy: viewState.busy
             }
 
             GridView {
@@ -300,7 +338,7 @@ Window {
                 id: itemList
                 objectName: "itemList"
                 anchors.fill: parent
-                visible: viewState.page !== "home" && viewState.page !== "apps"
+                visible: viewState.page !== "home" && viewState.page !== "apps" && viewState.page !== "files"
                 model: visible ? window.itemModel : []
                 spacing: 10; currentIndex: viewState.index; keyNavigationEnabled: false
                 interactive: false
@@ -327,7 +365,7 @@ Window {
             }
 
             Column {
-                visible: viewState.items.length === 0
+                visible: viewState.page !== "files" && viewState.items.length === 0
                 anchors.centerIn: parent; spacing: 14
                 Text { textFormat: Text.PlainText; anchors.horizontalCenter: parent.horizontalCenter; text: viewState.busy ? window.tr("正在准备内容") : window.tr("这里还没有项目"); font.family: window.fontFamily; font.pixelSize: 30; color: window.ink }
                 Text { textFormat: Text.PlainText; anchors.horizontalCenter: parent.horizontalCenter; text: viewState.page === "files" ? window.tr("按 X 新建文件夹或刷新") : (viewState.page === "windows" ? window.tr("启动应用后，窗口会显示在这里") : window.tr("按 X 调整分类或搜索条件")); font.family: window.fontFamily; font.pixelSize: 24; color: window.muted }
@@ -382,8 +420,14 @@ Window {
                 property real menuChromeHeight: dialog.kind === "menu" ? 96 + dialogTitle.implicitHeight + modalFooter.implicitHeight
                     + (dialog.body ? dialogBody.implicitHeight + 20 : 0)
                     + (viewState.toast ? modalToast.height + 20 : 0) : 0
+                property real menuRowsHeight: Math.max(0, (dialog.options || []).reduce(function(total, option) { return total + (option.wrapSubtitle ? 106 : option.subtitle ? 75 : 64) + 5 }, 0) - 5)
+                property real previewChromeHeight: 96 + dialogTitle.implicitHeight + modalFooter.implicitHeight
+                    + (dialog.body ? (dialog.kind === "file-preview" ? previewDetails.height : dialogBody.height) + 20 : 0)
+                    + (dialog.truncated ? previewNotice.height + 20 : 0)
+                    + (viewState.toast ? modalToast.height + 20 : 0)
+                property real previewHeight: Math.max(80, Math.min(240, parent.height - 64 - previewChromeHeight))
                 height: Math.min(parent.height - (dialog.kind === "key-test" ? 32 : 64), dialog.kind === "menu"
-                    ? menuChromeHeight + (dialog.options || []).length * 80 : modalColumn.height + (dialog.kind === "key-test" ? 40 : 56))
+                    ? menuChromeHeight + menuRowsHeight : modalColumn.height + (dialog.kind === "key-test" ? 40 : 56))
                 radius: 16; color: window.colors.dialog; border.width: 1; border.color: window.colors.dialogBorder
 
                 Column {
@@ -392,7 +436,24 @@ Window {
                     x: dialog.kind === "key-test" ? 20 : 28; y: dialog.kind === "key-test" ? 20 : 26
                     width: parent.width - 2 * x; spacing: dialog.kind === "key-test" ? 8 : 20
                     Text { textFormat: Text.PlainText; id: dialogTitle; width: parent.width; text: dialog.title || ""; font.family: window.fontFamily; font.pixelSize: dialog.kind === "key-test" ? 28 : 32; font.weight: Font.DemiBold; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
-                    Text { textFormat: Text.PlainText; id: dialogBody; visible: !!dialog.body; width: parent.width; text: dialog.body || ""; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: 4; elide: Text.ElideRight }
+                    Text { textFormat: Text.PlainText; id: dialogBody; visible: !!dialog.body && dialog.kind !== "file-preview"; width: parent.width; text: dialog.body || ""; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: 4; elide: Text.ElideRight }
+
+                    Column {
+                        id: previewDetails
+                        objectName: "filePreviewDetails"
+                        visible: dialog.kind === "file-preview" && !!dialog.body
+                        width: parent.width; spacing: 2
+                        Repeater {
+                            model: dialog.kind === "file-preview" ? (dialog.body || "").split("\n").slice(0, 4) : []
+                            delegate: Text {
+                                objectName: "filePreviewMetadata"
+                                required property string modelData
+                                width: modalColumn.width; textFormat: Text.PlainText; text: modelData
+                                font.family: window.fontFamily; font.pixelSize: 21; color: window.muted
+                                maximumLineCount: 1; elide: Text.ElideMiddle; clip: true
+                            }
+                        }
+                    }
 
                     Column {
                         visible: !!dialog.metrics
@@ -410,9 +471,10 @@ Window {
 
                     ListView {
                         id: menuList
+                        objectName: "menuList"
                         visible: dialog.kind === "menu"
                         width: parent.width
-                        height: visible ? Math.max(0, Math.min((dialog.options || []).length * 80, window.height - 64 - panel.menuChromeHeight)) : 0
+                        height: visible ? Math.max(0, Math.min(panel.menuRowsHeight, window.height - 64 - panel.menuChromeHeight)) : 0
                         model: visible ? dialog.options : []
                         clip: true; spacing: 5; currentIndex: dialog.index || 0; keyNavigationEnabled: false
                         interactive: false
@@ -465,7 +527,34 @@ Window {
                         Rectangle { width: parent.width; height: 12; radius: 6; color: window.colors.track; Rectangle { width: parent.width * (dialog.value || 0); height: parent.height; radius: 6; color: window.accent } }
                     }
 
-                    ProgressBar { visible: dialog.kind === "progress"; width: parent.width; indeterminate: visible }
+                    ProgressBar { visible: dialog.kind === "progress" && !dialog.fileTaskId; width: parent.width; palette: window.colors.controls; indeterminate: true }
+                    FileProgress { visible: dialog.kind === "progress" && !!dialog.fileTaskId; width: parent.width; colors: window.colors; reducedMotion: viewState.reducedMotion || false; indeterminate: !dialog.task || dialog.task.phase === "preparing"; from: 0; to: Math.max(1, dialog.task ? dialog.task.totalBytes || dialog.task.totalFiles || 1 : 1); value: dialog.task ? dialog.task.doneBytes || dialog.task.doneFiles || 0 : 0 }
+
+                    Column {
+                        objectName: "fileTaskDetails"
+                        visible: !!dialog.fileTaskId && !!dialog.task
+                        width: parent.width; spacing: 8
+                        Text { width: parent.width; textFormat: Text.PlainText; text: dialog.task ? dialog.task.sourceLabel : ""; elide: Text.ElideMiddle; font.family: window.fontFamily; font.pixelSize: 21; color: window.muted }
+                        Text { width: parent.width; textFormat: Text.PlainText; text: dialog.task ? dialog.task.destinationLabel : ""; elide: Text.ElideMiddle; font.family: window.fontFamily; font.pixelSize: 21; color: window.muted }
+                        Text { width: parent.width; textFormat: Text.PlainText; text: dialog.task ? dialog.task.fileCountLabel + (dialog.task.etaLabel ? "   ·   " + dialog.task.etaLabel : "") : ""; elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 21; color: window.muted }
+                    }
+
+                    Flickable {
+                        id: previewContent
+                        objectName: "filePreviewContent"
+                        visible: dialog.kind === "file-preview" && dialog.previewType === "text"
+                        width: parent.width; height: panel.previewHeight
+                        clip: true; interactive: false; contentWidth: width; contentHeight: previewText.height
+                        Text { id: previewText; width: parent.width; textFormat: Text.PlainText; text: dialog.previewText || ""; wrapMode: Text.WrapAnywhere; font.family: window.fontFamily; font.pixelSize: 21; color: window.ink }
+                        ScrollBar.vertical: ScrollBar { palette: window.colors.controls; interactive: false }
+                    }
+                    Image {
+                        objectName: "filePreviewImage"
+                        visible: dialog.kind === "file-preview" && dialog.previewType === "image"
+                        width: parent.width; height: panel.previewHeight
+                        source: dialog.previewImage || ""; fillMode: Image.PreserveAspectFit
+                    }
+                    Text { id: previewNotice; visible: !!dialog.truncated; width: parent.width; textFormat: Text.PlainText; text: window.tr("Text preview limited to 64 KiB."); font.family: window.fontFamily; font.pixelSize: 20; color: window.muted }
 
                     Row {
                         visible: dialog.kind === "confirm" || dialog.kind === "text"
@@ -485,8 +574,16 @@ Window {
 
                     InputHints {
                         id: modalFooter; width: parent.width
+                        objectName: "modalFooter"
                         fontFamily: window.fontFamily; textColor: window.muted; fontSize: 22
-                        hints: dialog.kind === "key-test" ? [{keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr("Hold 1.2 s to return")}] : dialog.kind === "calibration" ? [{keys: ["keyboard_escape"], label: window.tr("取消")}] : [
+                        hints: dialog.fileTaskId && dialog.kind === "progress" ? [
+                            {keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr("Run in background")},
+                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr("Cancel task")}
+                        ] : dialog.kind === "file-preview" ? (dialog.previewType === "text" ? [
+                            {keys: ["keyboard_arrows"], label: window.tr("Scroll")}
+                        ] : []).concat([
+                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr("返回")}
+                        ]).concat(dialog.item && !dialog.item.directory && !dialog.item.trash ? [{keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr("打开")}] : []) : dialog.kind === "key-test" ? [{keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr("Hold 1.2 s to return")}] : dialog.kind === "calibration" ? [{keys: ["keyboard_escape"], label: window.tr("取消")}] : [
                             {keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr("确认")},
                             {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(dialog.kind === "text" ? "取消" : "返回")}].concat(dialog.kind === "text" && dialog.secret ? [
                             {keys: ["gamecube_button_x"], label: window.tr(dialog.reveal ? "Hide password" : "Show password")} ] : [])

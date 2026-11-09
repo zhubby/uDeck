@@ -1,14 +1,18 @@
 import ctypes
 import errno
+import mimetypes
 import os
+import re
 import shutil
 import stat
 import subprocess
 import sys
 import threading
 import uuid
+from datetime import datetime
 from pathlib import Path
 
+from .file_icons import file_icon
 from .i18n import tr
 
 
@@ -46,6 +50,56 @@ def validate_name(name):
     return name
 
 
+def natural_key(name):
+    return [int(part) if part.isdigit() else part.casefold()
+            for part in re.split(r"(\d+)", name)]
+
+
+def query_entries(entries, query="", sort="name", descending=False, kind="all"):
+    query = query.casefold().strip()
+    selected = [entry for entry in entries if (not query or query in entry["name"].casefold())
+                and (kind == "all" or entry.get("directory") or entry.get("kind") == kind)]
+    def key(entry):
+        name = natural_key(entry["name"])
+        return (entry.get(sort, 0), name) if sort in ("size", "modified") else name
+    directories = sorted((entry for entry in selected if entry.get("directory")), key=key, reverse=descending)
+    regular = sorted((entry for entry in selected if not entry.get("directory")), key=key, reverse=descending)
+    return directories + regular
+
+
+def available_name(directory, name):
+    directory, name = Path(directory), validate_name(name)
+    if not os.path.lexists(directory / name):
+        return name
+    suffix = Path(name).suffix
+    stem = name[:-len(suffix)] if suffix else name
+    number = 2
+    while os.path.lexists(directory / f"{stem} ({number}){suffix}"):
+        number += 1
+    return f"{stem} ({number}){suffix}"
+
+
+def file_kind(name, directory=False):
+    mime = mimetypes.guess_type(name)[0] or "application/octet-stream"
+    mime = {"audio/x-flac": "audio/flac", "audio/x-wav": "audio/wav"}.get(mime, mime)
+    icon = file_icon(name, mime, directory)
+    if directory:
+        return "folder", "inode/directory", icon
+    if mime.startswith(("audio/", "video/", "image/")):
+        kind = mime.split("/")[0]
+        return kind, mime, icon
+    if mime in ("application/pdf", "application/epub+zip"):
+        return "book", mime, icon
+    if (mime.startswith("text/") or Path(name).suffix.lower() in
+            (".md", ".rst", ".log", ".json", ".jsonl", ".yaml", ".yml", ".toml", ".ini", ".conf", ".cfg",
+             ".sh", ".bash", ".zsh", ".py", ".js", ".ts", ".xml", ".desktop", ".service")
+            or name.lower() in ("makefile", "dockerfile", ".bashrc", ".zshrc", ".profile", ".gitignore", ".env")):
+        return "text", mime, icon
+    if Path(name).suffix.lower() in (".zip", ".tar", ".gz", ".xz", ".7z", ".rar"):
+        return "archive", mime, icon
+    return "other", mime, icon
+
+
 class FileOperations:
     def list_directory(self, directory, show_hidden=False):
         directory = Path(directory)
@@ -60,15 +114,20 @@ class FileOperations:
                 subtitle = tr('文件夹') if is_directory else self.format_size(size)
                 if entry.is_symlink():
                     subtitle += tr(' · 链接')
+                kind, mime, icon = file_kind(entry.name, is_directory)
                 result.append({
                     "id": str(entry), "path": str(entry), "name": entry.name,
                     "directory": is_directory, "subtitle": subtitle,
-                    "icon": "folder" if is_directory else "text-x-generic",
+                    "icon": icon, "kind": kind, "mime": mime, "size": size,
+                    "modified": information.st_mtime_ns,
+                    "modifiedLabel": datetime.fromtimestamp(information.st_mtime).strftime("%Y-%m-%d %H:%M"),
+                    "sizeLabel": "" if is_directory else self.format_size(size),
+                    "symlink": entry.is_symlink(),
                 })
             except OSError:
                 result.append({"id": str(entry), "path": str(entry), "name": entry.name,
                                "directory": False, "subtitle": tr('不可访问'), "icon": "dialog-warning"})
-        return sorted(result, key=lambda entry: (not entry["directory"], entry["name"].casefold()))
+        return query_entries(result)
 
     @staticmethod
     def format_size(size):
@@ -95,10 +154,28 @@ class FileOperations:
         rename_noreplace(source, target)
         return target
 
-    def transfer(self, source, directory, move=False, replace=False, cancelled=None):
+    def measure(self, sources, cancelled=None):
+        cancelled = cancelled or threading.Event()
+        total = {"bytes": 0, "files": 0}
+        pending = [Path(source) for source in sources]
+        while pending:
+            if cancelled.is_set():
+                raise InterruptedError(tr('操作已取消'))
+            entry = pending.pop()
+            information = entry.lstat()
+            if stat.S_ISDIR(information.st_mode):
+                pending.extend(entry.iterdir())
+            else:
+                if stat.S_ISREG(information.st_mode):
+                    total["bytes"] += information.st_size
+                total["files"] += 1
+        return total
+
+    def transfer(self, source, directory, move=False, replace=False, cancelled=None,
+                 target_name=None, progress=None):
         source = Path(source)
         directory = Path(directory)
-        target = directory / source.name
+        target = directory / validate_name(target_name if target_name is not None else source.name)
         cancelled = cancelled or threading.Event()
         if source == target or (source.is_dir() and not source.is_symlink() and directory.resolve().is_relative_to(source.resolve())):
             raise ValueError(tr('不能复制到原位置或自己的子目录'))
@@ -134,6 +211,8 @@ class FileOperations:
             mode = versions[origin][2]
             if stat.S_ISLNK(mode):
                 destination.symlink_to(os.readlink(origin))
+                if progress:
+                    progress({"bytes": 0, "files": 1, "path": str(origin)})
             elif stat.S_ISDIR(mode):
                 destination.mkdir(mode=0o700)
                 for child in origin.iterdir():
@@ -151,7 +230,11 @@ class FileOperations:
                             if cancelled.is_set():
                                 raise InterruptedError(tr('操作已取消'))
                             writer.write(chunk)
+                            if progress:
+                                progress({"bytes": len(chunk), "files": 0, "path": str(origin)})
                 shutil.copystat(origin, destination, follow_symlinks=False)
+                if progress:
+                    progress({"bytes": 0, "files": 1, "path": str(origin)})
             else:
                 raise ValueError(tr('不复制设备、套接字或管道文件'))
 

@@ -35,7 +35,7 @@ where = ["src"]
 "share/udeck-terminal/color-schemes" = ["packaging/terminal.colorscheme", "packaging/terminal-dark.colorscheme"]
 
 [tool.setuptools.package-data]
-udeck = ["qml/*.qml", "locales/*.json", "fonts/*.ttf", "fonts/*.txt", "fonts/*.json", "fonts/*.md", "assets/input-prompts/*", "assets/interface-sounds/*"]
+udeck = ["qml/*.qml", "locales/*.json", "fonts/*.ttf", "fonts/*.txt", "fonts/*.json", "fonts/*.md", "assets/input-prompts/*", "assets/interface-sounds/*", "assets/file-icons/*"]
 "udeck.terminal" = ["qml/*.qml", "fonts/*.ttf", "fonts/*.txt", "fonts/*.json"]
 "udeck.apps" = ["qml/*.qml", "navigation.js", "reader_web/*", "reader_web/foliate/*"]
 

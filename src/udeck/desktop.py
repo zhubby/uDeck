@@ -2,6 +2,7 @@ import configparser
 import locale as system_locale
 import os
 import pwd
+import re
 import shlex
 import shutil
 import subprocess
@@ -31,19 +32,24 @@ def open_terminal(directory):
     return subprocess.Popen(arguments, cwd=str(directory), start_new_session=True)
 
 
-def parse_exec(command, name="", icon="", desktop_path=""):
+def parse_exec(command, name="", icon="", desktop_path="", files=()):
     result = []
+    paths = [str(Path(path).absolute()) for path in files]
+    substitutions = {"%": "%", "c": name, "k": desktop_path,
+                     "f": paths[0] if paths else "", "F": paths[0] if paths else "",
+                     "u": Path(paths[0]).as_uri() if paths else "", "U": Path(paths[0]).as_uri() if paths else ""}
     for token in shlex.split(command):
+        if token in ("%f", "%F", "%u", "%U"):
+            values = [Path(path).as_uri() for path in paths] if token in ("%u", "%U") else paths
+            result.extend(values[:1] if token in ("%f", "%u") else values)
+            continue
         if token in ("%f", "%F", "%u", "%U", "%d", "%D", "%n", "%N", "%v", "%m"):
             continue
         if token == "%i":
             if icon:
                 result.extend(("--icon", icon))
             continue
-        token = token.replace("%%", "\x00").replace("%c", name).replace("%k", desktop_path)
-        for field in ("%f", "%F", "%u", "%U"):
-            token = token.replace(field, "")
-        result.append(token.replace("\x00", "%"))
+        result.append(re.sub(r"%([%ckfFuU])", lambda match: substitutions[match[1]], token))
     if not result:
         raise ValueError(tr('应用没有可执行命令'))
     return result
@@ -96,13 +102,22 @@ class DesktopCatalog:
                         "category": category, "desktop": str(path), "exec": section.get("Exec", ""),
                         "terminal": section.get("Terminal", "false").lower() == "true",
                         "workingDirectory": section.get("Path", ""),
+                        "mimeTypes": list(filter(None, section.get("MimeType", "").split(";"))),
                     })
                 except (OSError, KeyError, ValueError, configparser.Error):
                     continue
         self.by_id = {entry["id"]: entry for entry in entries}
         return sorted(entries, key=lambda entry: entry["name"].casefold())
 
-    def launch(self, identifier):
+    def handlers(self, mime):
+        aliases = {"audio/wav": "audio/x-wav", "audio/flac": "audio/x-flac"}
+        accepted = {mime, aliases.get(mime, mime), mime.split("/")[0] + "/*"}
+        if mime.startswith("text/"):
+            accepted.add("text/plain")
+        return sorted((entry for entry in self.by_id.values() if accepted.intersection(entry.get("mimeTypes", []))),
+                      key=lambda entry: entry["name"].casefold())
+
+    def launch(self, identifier, files=()):
         entry = self.by_id[identifier]
         try:
             import gi
@@ -111,10 +126,10 @@ class DesktopCatalog:
             from gi.repository import Gio
 
             application = Gio.DesktopAppInfo.new_from_filename(entry["desktop"])
-            if application is None or not application.launch([], None):
+            if application is None or not application.launch([Gio.File.new_for_path(str(path)) for path in files], None):
                 raise RuntimeError(tr('系统拒绝启动应用'))
         except ImportError:
-            arguments = parse_exec(entry["exec"], entry["name"], entry["icon"], entry["desktop"])
+            arguments = parse_exec(entry["exec"], entry["name"], entry["icon"], entry["desktop"], files)
             if entry["terminal"]:
                 arguments = terminal_command(arguments)
             subprocess.Popen(arguments, cwd=entry["workingDirectory"] or None, start_new_session=True)

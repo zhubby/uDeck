@@ -1,0 +1,225 @@
+import re
+from pathlib import Path
+
+FILE_ICON_PREFIX = "udeck-file-"
+FILE_ICON_ROOT = Path(__file__).parent / "assets/file-icons"
+
+ICON_PALETTES = {
+    "neutral": ("#3B4148", "#D1D6DE"),
+    "folder": ("#4B4351", "#E6D6BE"),
+    "blue": ("#34485A", "#ACD0EF"),
+    "green": ("#314C41", "#A8D5BB"),
+    "orange": ("#5A4234", "#F2C094"),
+    "rose": ("#573D43", "#EDABB0"),
+    "violet": ("#4D4058", "#D5B9E8"),
+    "teal": ("#314F4E", "#B0DDD6"),
+    "plum": ("#504059", "#D9B4E7"),
+    "gold": ("#534A34", "#E7D49D"),
+    "audio": ("#3B455C", "#BBCFF0"),
+}
+
+ICON_SPECS = {
+    "unknown": ("file-unknown", "neutral"),
+    "folder": ("folder", "folder"),
+    "text": ("file-text", "neutral"),
+    "markdown": ("markdown", "neutral"),
+    "pdf": ("file-type-pdf", "rose"),
+    "word": ("file-type-doc", "blue"),
+    "wordx": ("file-type-docx", "blue"),
+    "document": ("file-word", "blue"),
+    "excel": ("file-type-xls", "green"),
+    "spreadsheet": ("file-spreadsheet", "green"),
+    "table": ("file-type-csv", "green"),
+    "powerpoint": ("file-type-ppt", "orange"),
+    "presentation": ("presentation", "orange"),
+    "ebook": ("book", "violet"),
+    "comic": ("file-stack", "violet"),
+    "image": ("photo", "teal"),
+    "jpeg": ("file-type-jpg", "teal"),
+    "png": ("file-type-png", "teal"),
+    "bitmap": ("file-type-bmp", "teal"),
+    "svg": ("file-type-svg", "plum"),
+    "raw": ("photo-scan", "teal"),
+    "vector": ("file-vector", "plum"),
+    "design": ("palette", "plum"),
+    "audio": ("music", "audio"),
+    "video": ("movie", "blue"),
+    "subtitle": ("subtitles", "teal"),
+    "playlist": ("playlist", "audio"),
+    "archive": ("file-zip", "gold"),
+    "zip": ("file-type-zip", "gold"),
+    "code": ("file-code-2", "teal"),
+    "html": ("file-type-html", "orange"),
+    "css": ("file-type-css", "blue"),
+    "javascript": ("file-type-js", "gold"),
+    "jsx": ("file-type-jsx", "blue"),
+    "typescript": ("file-type-ts", "blue"),
+    "tsx": ("file-type-tsx", "blue"),
+    "vue": ("file-type-vue", "green"),
+    "php": ("file-type-php", "violet"),
+    "rust": ("file-type-rs", "orange"),
+    "xml": ("file-type-xml", "gold"),
+    "json": ("json", "gold"),
+    "config": ("file-settings", "neutral"),
+    "script": ("terminal-2", "green"),
+    "sql": ("file-type-sql", "blue"),
+    "database": ("database", "violet"),
+    "font": ("typography", "plum"),
+    "package": ("package", "gold"),
+    "executable": ("app-window", "blue"),
+    "library": ("file-code", "violet"),
+    "disk": ("disc", "neutral"),
+    "game": ("device-gamepad", "green"),
+    "model": ("file-3d", "gold"),
+    "cad": ("vector-triangle", "plum"),
+    "certificate": ("file-certificate", "green"),
+    "encrypted": ("lock", "rose"),
+    "torrent": ("magnet", "green"),
+    "calendar": ("calendar-event", "orange"),
+    "contacts": ("address-book", "blue"),
+    "backup": ("file-time", "gold"),
+    "log": ("file-report", "neutral"),
+    "binary": ("binary", "neutral"),
+    "firmware": ("cpu", "blue"),
+    "ai": ("robot", "teal"),
+    "link": ("link", "blue"),
+    "email": ("mail", "blue"),
+}
+
+EXTENSION_GROUPS = {
+    "text": "txt text rtf rst org adoc asciidoc nfo info tex latex bib sty cls",
+    "markdown": "md markdown mdown mkd mdx qmd rmd",
+    "pdf": "pdf",
+    "word": "doc dot",
+    "wordx": "docx docm dotx dotm",
+    "document": "odt ott fodt pages wpd abw",
+    "excel": "xls xlsx xlsm xlsb xlt xltx xltm xlam",
+    "spreadsheet": "ods ots fods numbers",
+    "table": "csv tsv psv",
+    "powerpoint": "ppt pptx pptm pps ppsx ppsm pot potx potm",
+    "presentation": "odp otp fodp keynote",
+    "ebook": "epub mobi azw azw3 azw4 fb2 djvu djv lit lrf pdb",
+    "comic": "cbz cbr cb7 cbt cba",
+    "image": "gif webp avif heic heif tif tiff ico icns jxl apng pnm ppm pgm pbm xbm xpm tga dds exr hdr qoi",
+    "jpeg": "jpg jpeg jpe jfif",
+    "png": "png",
+    "bitmap": "bmp dib",
+    "svg": "svg svgz",
+    "raw": "raw arw cr2 cr3 crw dng nef nrw orf raf rw2 rwl pef srw x3f",
+    "vector": "eps ps ai cdr emf wmf sk1",
+    "design": "psd psb xcf kra ora afphoto afdesign sketch fig xd indd idml procreate",
+    "audio": "mp3 flac wav wave aac m4a alac ogg oga opus wma aif aiff aifc ape ac3 dts mka amr au caf aiffc mid midi kar mod xm it s3m tak wv dsf dff pcm",
+    "video": "mp4 mkv webm avi mov m4v mpg mpeg m2v mpe wmv flv f4v m2ts mts vob ogv 3gp 3g2 asf divx rm rmvb mxf nut",
+    "subtitle": "srt ass ssa vtt sub sbv scc ttml dfxp smi idx lrc",
+    "playlist": "m3u m3u8 pls xspf asx wpl cue",
+    "archive": "7z rar tar gz bz bz2 xz zst zstd lz lz4 lzma lzo br z tgz tbz tbz2 txz tzst taz ar cpio ace sit sitx tar.gz tar.bz2 tar.xz tar.zst tar.lz tar.lzma tar.br",
+    "zip": "zip zipx",
+    "code": "py pyw pyi c h cc cpp cxx hh hpp hxx cs java go rb r swift kt kts dart lua pl pm scala sc ex exs erl hrl hs lhs clj cljs cljc edn fs fsx vb vbs pas pp asm s jl m mm f for f90 f95 zig v sv vhd vhdl proto graphql gql svelte astro ino qml qrc cmake gradle ipy cbl cob awk sed wren gd hx nim d vala",
+    "html": "html htm xhtml shtml hbs handlebars mustache ejs pug twig jinja jinja2",
+    "css": "css scss sass less styl",
+    "javascript": "js mjs cjs",
+    "jsx": "jsx",
+    "typescript": "ts cts",
+    "tsx": "tsx",
+    "vue": "vue",
+    "php": "php phtml php3 php4 php5 phps",
+    "rust": "rs",
+    "xml": "xml xsl xslt xsd dtd xaml wsdl rss atom opml kml gpx drawio",
+    "json": "json jsonc json5 jsonl ndjson geojson topojson ipynb har map",
+    "config": "ini conf cfg config toml yaml yml env properties prefs service socket desktop timer target mount rules reg plist nix editorconfig gitconfig gitignore gitattributes dockerignore npmrc yarnrc lock",
+    "script": "sh bash zsh fish bat cmd ps1 psm1 psd1 command csh tcsh ksh nu",
+    "sql": "sql",
+    "database": "db db3 sqlite sqlite3 mdb accdb dbf odb rdb duckdb parquet arrow feather avro orc",
+    "font": "ttf otf woff woff2 ttc otc pfb pfa fon bdf pcf sfnt eot",
+    "package": "deb rpm pkg msi msix msixbundle apk apks aab appx appxbundle flatpak flatpakref snap whl egg jar war ear xpi crx vsix nupkg cab appimage",
+    "executable": "exe com app run out elf wasm",
+    "library": "so dylib dll a lib pyd o class pyc pyo beam node",
+    "disk": "iso img dmg vhd vhdx vmdk qcow qcow2 vdi udf vfd squashfs dsk toast nrg",
+    "game": "nes sfc smc gba gb gbc nds 3ds cia n64 z64 v64 sms gg smd gen pce chd cso pbp nsp xci wad dol gcm rvz wbfs wud wux rom sav srm state save nds nkit.iso",
+    "model": "stl obj ply gltf glb fbx blend 3mf dae usd usda usdc usdz abc bgeo off lwo",
+    "cad": "dwg dxf dwf dwt step stp iges igs 3dm skp scad f3d fcstd pcb kicad_pcb kicad_sch sch brd gerber gbr gcode",
+    "certificate": "pem crt cer der p12 pfx csr pub key keystore jks",
+    "encrypted": "gpg pgp age enc vault kdbx aes crypt",
+    "torrent": "torrent magnet",
+    "calendar": "ics ical icalendar",
+    "contacts": "vcf vcard",
+    "backup": "bak backup bkp old orig swp tmp temp",
+    "log": "log trace outlog crash",
+    "binary": "bin dat data pak cache pkl pickle msgpack npy npz mat h5 hdf5",
+    "firmware": "uf2 hex ihex dfu fw eeprom",
+    "ai": "onnx safetensors gguf ggml pt pth ckpt tflite pb mlmodel mlpackage",
+    "link": "url webloc lnk shortcut",
+    "email": "eml msg mbox pst ost",
+}
+EXTENSION_TYPES = {"." + suffix: category for category, suffixes in EXTENSION_GROUPS.items() for suffix in suffixes.split()}
+
+BASENAME_GROUPS = {
+    "markdown": "readme changelog changes contributing authors code_of_conduct",
+    "text": "license licence copying notice todo news install",
+    "config": ".env .gitignore .gitconfig .gitattributes .gitmodules .dockerignore .npmrc .yarnrc .editorconfig .prettierrc .eslintrc .babelrc .browserslistrc .bashrc .zshrc .profile .bash_profile .zprofile .zshenv .vimrc .nanorc .tmux.conf dockerfile containerfile pipfile gemfile vagrantfile cargo.lock package-lock.json yarn.lock pnpm-lock.yaml poetry.lock uv.lock cmakelists.txt meson.build",
+    "script": "makefile gnumakefile justfile rakefile procfile configure build.ninja",
+}
+BASENAME_TYPES = {name: category for category, names in BASENAME_GROUPS.items() for name in names.split()}
+
+MIME_GROUPS = {
+    "pdf": "application/pdf",
+    "word": "application/msword",
+    "wordx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document application/vnd.ms-word.document.macroenabled.12",
+    "document": "application/vnd.oasis.opendocument.text application/rtf",
+    "excel": "application/vnd.ms-excel application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "spreadsheet": "application/vnd.oasis.opendocument.spreadsheet",
+    "powerpoint": "application/vnd.ms-powerpoint application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "presentation": "application/vnd.oasis.opendocument.presentation",
+    "ebook": "application/epub+zip application/x-mobipocket-ebook application/vnd.amazon.ebook",
+    "comic": "application/vnd.comicbook+zip application/vnd.comicbook-rar",
+    "zip": "application/zip application/x-zip-compressed",
+    "archive": "application/x-7z-compressed application/x-rar-compressed application/vnd.rar application/x-tar application/gzip application/x-gzip application/x-bzip application/x-bzip2 application/x-xz application/zstd application/x-compress",
+    "table": "text/csv text/tab-separated-values",
+    "html": "text/html application/xhtml+xml",
+    "css": "text/css",
+    "javascript": "text/javascript application/javascript application/ecmascript",
+    "json": "application/json application/geo+json application/x-ndjson",
+    "xml": "application/xml text/xml application/rss+xml application/atom+xml",
+    "config": "application/toml application/yaml text/yaml application/x-desktop",
+    "script": "application/x-shellscript text/x-shellscript application/x-sh",
+    "code": "text/x-python application/x-python-code text/x-c text/x-c++ text/x-java-source text/x-rust",
+    "markdown": "text/markdown text/x-markdown",
+    "sql": "application/sql text/x-sql",
+    "database": "application/vnd.sqlite3 application/x-sqlite3 application/x-sqlite",
+    "font": "application/font-woff application/font-sfnt application/x-font-ttf application/x-font-opentype",
+    "package": "application/vnd.debian.binary-package application/x-debian-package application/x-rpm application/vnd.android.package-archive application/java-archive",
+    "executable": "application/x-executable application/x-pie-executable application/vnd.microsoft.portable-executable application/x-msdownload application/wasm",
+    "library": "application/x-sharedlib",
+    "disk": "application/x-iso9660-image application/x-raw-disk-image application/x-apple-diskimage",
+    "certificate": "application/pkix-cert application/x-pem-file application/x-x509-ca-cert application/pkcs12",
+    "encrypted": "application/pgp-encrypted",
+    "torrent": "application/x-bittorrent",
+    "calendar": "text/calendar",
+    "contacts": "text/vcard text/x-vcard",
+    "playlist": "application/vnd.apple.mpegurl application/x-mpegurl audio/x-mpegurl application/xspf+xml",
+    "subtitle": "text/vtt application/x-subrip",
+    "email": "message/rfc822 application/mbox",
+}
+MIME_TYPES = {mime: category for category, types in MIME_GROUPS.items() for mime in types.split()}
+
+
+def file_icon(name, mime="", directory=False):
+    if directory:
+        return FILE_ICON_PREFIX + "folder"
+    name = Path(name).name.casefold()
+    suffixes = Path(name).suffixes
+    category = BASENAME_TYPES.get(name)
+    if not category and name.startswith(".env."):
+        category = "config"
+    if not category:
+        category = EXTENSION_TYPES.get("".join(suffixes[-2:])) or EXTENSION_TYPES.get(Path(name).suffix)
+    if not category and re.search(r"\.so(?:\.\d+)+$", name):
+        category = "library"
+    mime = mime.partition(";")[0].strip().casefold()
+    if not category:
+        category = MIME_TYPES.get(mime)
+    if not category:
+        category = next((category for prefix, category in (("image/", "image"), ("audio/", "audio"),
+                        ("video/", "video"), ("font/", "font"), ("model/", "model"), ("text/", "text"))
+                         if mime.startswith(prefix)), "unknown")
+    return FILE_ICON_PREFIX + category

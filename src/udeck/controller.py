@@ -5,14 +5,15 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from PySide6.QtCore import Property, QTimer, Signal, Slot
+from PySide6.QtCore import Property, QObject, QTimer, Signal, Slot
 
 from .appearance import THEMES
 from .audio import AUDIO_ACTIONS
 from .battery import battery_details, battery_summary
 from .core import ALL_PAGES, PAGE_NAMES, PAGES, ConfigStore, Navigation, move_index
 from .desktop import DesktopCatalog, open_terminal
-from .files import FileOperations
+from .file_controller import FileControls
+from .files import FileOperations, file_kind, validate_name
 from .home import home_shortcuts
 from .i18n import LANGUAGES, error_text, render, tr
 from .key_test import KeyTestControls
@@ -26,7 +27,7 @@ CATEGORY_NAMES = {"All": tr('全部应用'), "Development": tr('开发'), "Netwo
                   "Utility": tr('工具'), "Game": tr('游戏'), "Graphics": tr('图形'), "Office": tr('办公'), "AudioVideo": tr('影音'), "Other": tr('其他')}
 
 
-class ShellController(KeyTestControls, WifiControls, SoundFeedback):
+class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback):
     changed = Signal()
     present = Signal()
     calibrationRequested = Signal()
@@ -35,6 +36,9 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
     applicationAction = Signal(str)
     inputSuspended = Signal(bool)
     taskFinished = Signal(object)
+    fileJobProgress = Signal(object)
+    fileJobFinished = Signal(object)
+    filePreviewScroll = Signal(int)
 
     def __init__(self, backend, window_service=None, config=None, catalog=None, mock=False):
         super().__init__()
@@ -65,6 +69,7 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
         self.operations = FileOperations()
         self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="udeck-files")
         self.cancelled = threading.Event()
+        self._init_file_controls()
         self.taskFinished.connect(self._finish_task)
         self.backend.updated.connect(self._update)
         self.backend.failed.connect(self._failure)
@@ -81,9 +86,15 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
             window_service.failed.connect(self._failure)
         if mock:
             self.data["directory"] = "/home/demo"
+            self._file_places_base = [{"id": name.lower(), "path": "/home/demo" + ("/" + name if name != "Home folder" else ""),
+                                      "name": tr(name), "icon": "folder"}
+                                     for name in ("Home folder", "Downloads", "Documents", "Music", "Videos", "Pictures")]
+            self._file_places_base.append({"id": "trash", "path": "trash:///", "name": tr("Trash"), "icon": "user-trash"})
             self.data["files"] = [{"id": "/home/demo/" + name, "path": "/home/demo/" + name,
                                    "name": name, "directory": directory, "icon": "folder" if directory else "text-x-generic", "subtitle": subtitle}
                                   for name, directory, subtitle in [("Documents", True, tr('文件夹')), ("Downloads", True, tr('文件夹')), ("Projects", True, tr('文件夹')), ("Pictures", True, tr('文件夹')), ("掌机使用笔记.md", False, "2.4 KiB"), ("README.txt", False, "1.2 KiB")]]
+            for entry in self.data["files"]:
+                entry["kind"], entry["mime"], entry["icon"] = file_kind(entry["name"], entry["directory"])
             self.data["windows"] = [{"id": "terminal", "name": "zhubby@uconsole: ~", "appId": "terminal", "subtitle": tr('终端'), "icon": "utilities-terminal", "active": False}, {"id": "editor", "name": "uDeck — 代码编辑器", "appId": "code", "subtitle": "Visual Studio Code", "icon": "visual-studio-code", "active": False}]
         else:
             self._browse(Path.home())
@@ -131,19 +142,42 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
 
     @Property(str, notify=changed)
     def snapshotJson(self):
+        return self._snapshot()
+
+    @Property(str, notify=changed)
+    def viewSnapshotJson(self):
+        return self._snapshot(compact=True)
+
+    @Property(QObject, constant=True)
+    def fileModel(self):
+        return self._file_model
+
+    @Slot(str, str)
+    @interaction
+    def fileAction(self, action, value):
+        self._execute_option({"action": "files", "command": action, "value": value})
+
+    @Slot(int)
+    def setFileGridColumns(self, columns):
+        self.file_columns = max(1, min(12, columns))
+
+    def _snapshot(self, compact=False):
         items = self._items()
         selected = max(0, min(self.navigation.index, len(items) - 1))
-        titles = {"home": tr('从这里开始'), "apps": CATEGORY_NAMES[self.category], "windows": tr('正在运行'), "files": Path(self.data["directory"]).name or "/", "settings": tr('设备设置')}
+        titles = {"home": tr('从这里开始'), "apps": CATEGORY_NAMES[self.category], "windows": tr('正在运行'), "files": tr("Trash") if self.data["directory"] == "trash:///" else Path(self.data["directory"]).name or "/", "settings": tr('设备设置')}
         descriptions = {"home": tr('Choose a destination with Left / Right'), "apps": tr('{value0} 个应用', value0=len(items)) + (tr(' · 搜索：{value0}', value0=self.query) if self.query else tr(' · X 筛选与操作')), "windows": tr('选择一个窗口，继续工作'), "files": self.data["directory"], "settings": tr('常用控制，直接完成')}
         return json.dumps(render({
-            **self.data, "mock": self.mock, "page": self.navigation.page,
+            **{key: value for key, value in self.data.items() if not compact or key != "files"},
+            "mock": self.mock, "page": self.navigation.page,
             "language": self.language, "theme": self.theme,
             "reducedMotion": os.environ.get("UDECK_REDUCED_MOTION") == "1",
             "categoryNames": CATEGORY_NAMES,
             "pageNames": list(PAGE_NAMES), "pages": list(PAGES), "activeTab": self.navigation.tab_page,
             "title": titles[self.navigation.page], "description": descriptions[self.navigation.page],
-            "index": selected, "zone": self.navigation.zone, "items": items,
-            "modal": self.modal, "toast": self.toast, "busy": self.busy,
+            "index": selected, "zone": self.navigation.zone, "items": [] if compact and self.navigation.page == "files" else items,
+            "fileState": self._file_state(),
+            "modal": {key: value for key, value in self.modal.items() if not compact or key not in ("items", "option")},
+            "toast": self.toast, "busy": self.busy,
             "busyLabel": self.busy_label, "favorites": self.config.data["favorites"],
             "clipboard": bool(self.clipboard), "pending": list(self.pending_system), "wifiSummary": wifi_summary(self.data["wifi"]),
             "wifiIndicators": wifi_indicators(self.data["wifi"]),
@@ -235,6 +269,7 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
     def _publish(self):
         items = self._items()
         self.navigation.index = max(0, min(self.navigation.index, len(items) - 1))
+        self._file_sync()
         self.changed.emit()
 
     @Slot(object)
@@ -390,6 +425,8 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
             self.feedback("open")
         self.navigation.set_page(page)
         self.navigation.zone = "content"
+        if page == "files" and not self.mock:
+            self._browse(self.data["directory"])
         self._publish()
 
     @Slot(int)
@@ -398,6 +435,8 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
         if (self.navigation.index, self.navigation.zone) != (max(0, index), "content"):
             self.feedback("navigate")
         self.navigation.select(index)
+        if self.navigation.page == "files":
+            self.file_section = "list"
         self._publish()
 
     @Slot(bool)
@@ -406,6 +445,8 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
         if not active:
             self._clear_test_inputs()
         self.foregroundChanged.emit(active)
+        if active:
+            self._request_files_refresh()
         if not active and self.data["bluetooth"].get("discovering"):
             self.backend.request("bluetooth_stop")
 
@@ -447,6 +488,8 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
             return
         if self.modal:
             self._dispatch_modal(action)
+            return
+        if self.navigation.page == "files" and self._file_dispatch(action):
             return
         items = self._items()
         if action in ("left", "right", "up", "down"):
@@ -494,12 +537,7 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
             else:
                 self.notify(tr('预览：切换到 ') + item["name"])
         elif self.navigation.page == "files":
-            if item["directory"]:
-                self._browse(item["path"])
-            elif self.mock:
-                self.notify(tr('预览：打开 ') + item["name"])
-            else:
-                self._run(tr('打开文件'), lambda: self.operations.open(item["path"]))
+            self._activate_file(item)
         elif self.navigation.page == "settings":
             self.activateSetting(item["id"])
 
@@ -522,19 +560,7 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
             options.extend([{"label": tr('搜索应用'), "action": "search"}, {"label": tr('应用分类'), "action": "categories"}, {"label": tr('清除搜索与筛选'), "action": "clear-search"}])
             self._menu(item["name"] if item else tr('应用操作'), options)
         elif page == "files":
-            options = []
-            if item:
-                options = [{"label": tr('打开'), "action": "open-file", "item": item},
-                           {"label": tr('重命名'), "action": "rename", "item": item},
-                           {"label": tr('复制'), "action": "copy", "item": item},
-                           {"label": tr('剪切'), "action": "cut", "item": item},
-                           {"label": tr('移入回收站'), "action": "trash", "item": item}]
-            options.append({"label": tr('新建文件夹'), "action": "mkdir"})
-            options.append({"label": tr('在此打开终端'), "action": "open-terminal", "directory": item["path"] if item and item.get("directory") else self.data["directory"]})
-            if self.clipboard:
-                options.append({"label": tr('粘贴到当前目录'), "action": "paste"})
-            options.extend([{"label": tr('隐藏点文件') if self.show_hidden else tr('显示点文件'), "action": "hidden"}, {"label": tr('上级目录'), "action": "parent"}, {"label": tr('刷新'), "action": "refresh-files"}])
-            self._menu(tr('文件操作'), options)
+            self._file_context(item)
         elif page == "windows" and item:
             self._menu(item["name"], [{"label": tr('切换到窗口'), "action": "activate-window", "item": item}, {"label": tr('请求关闭窗口'), "action": "close-window", "item": item}])
         else:
@@ -743,6 +769,8 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
         self._push({"kind": "text", "title": title, "body": body, "purpose": purpose, "text": text, **values})
 
     def _dispatch_modal(self, action):
+        if self._file_modal(action):
+            return
         modal = self.modal
         kind = modal["kind"]
         if action == "back":
@@ -844,7 +872,9 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
     def _apply_option(self, option):
         action = option["action"]
         item = option.get("item", {})
-        if action == "open-home":
+        if action == "files":
+            self._file_command(option["command"], option.get("value", ""), option)
+        elif action == "open-home":
             self._activate(item)
         elif action == "language":
             self.setLanguage(option["language"])
@@ -906,7 +936,7 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
             self.config.save()
             self.navigation.select(0)
         elif action == "open-file":
-            self._activate(item)
+            self._activate_file(item)
         elif action == "open-terminal":
             if self.mock:
                 self.notify(tr('预览：在此打开终端'))
@@ -965,6 +995,8 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
         self._publish()
 
     def _submit_text(self, modal, text):
+        if self._file_submit(modal, text):
+            return
         if modal.get("token"):
             self.backend.reply(modal["token"], text)
         elif modal.get("purpose") == "wifi-password":
@@ -974,69 +1006,32 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
             self.navigation.select(0)
             self.setPage("apps")
         elif self.mock:
-            if modal["purpose"] == "mkdir" and text.strip():
-                identifier = self.data["directory"] + "/" + text
-                self.data["files"].append({"id": identifier, "path": identifier, "name": text, "directory": True, "subtitle": tr('预览文件夹'), "icon": "folder"})
+            name = validate_name(text)
+            if modal["purpose"] == "mkdir":
+                identifier = str(Path(modal["directory"]) / name)
+                self._file_entries = [*self._file_entries, {"id": identifier, "path": identifier, "name": name, "directory": True, "subtitle": tr('预览文件夹'), "icon": "folder"}]
+                self._file_apply_query(identifier)
             elif modal["purpose"] == "rename":
-                for entry in self.data["files"]:
+                identifier = str(Path(modal["item"]["path"]).with_name(name))
+                entries = []
+                for entry in self._file_entries:
                     if entry["id"] == modal["item"]["id"]:
-                        entry["name"] = text
+                        kind, mime, icon = file_kind(name, entry.get("directory", False))
+                        entry = {**entry, "name": name, "path": identifier, "id": identifier, "kind": kind, "mime": mime, "icon": icon}
+                    entries.append(entry)
+                self._file_entries = entries
+                self._file_apply_query(identifier)
             self._publish()
         elif modal["purpose"] == "mkdir":
-            self._run(tr('创建文件夹'), lambda: self.operations.mkdir(modal["directory"], text), lambda result: self._browse(self.data["directory"]))
+            self._run(tr('创建文件夹'), lambda: self.operations.mkdir(modal["directory"], text), lambda result: self._browse(modal["directory"], str(result)))
         elif modal["purpose"] == "rename":
-            self._run(tr('重命名'), lambda: self.operations.rename(modal["item"]["path"], text), lambda result: self._browse(self.data["directory"]))
+            self._run(tr('重命名'), lambda: self.operations.rename(modal["item"]["path"], text), lambda result: self._browse(modal["directory"], str(result)))
 
-    def _browse(self, directory):
-        if self.mock:
-            self.data["directory"] = str(directory)
-            self.navigation.select(0)
-            self._publish()
-            return
-        directory = Path(directory).absolute()
-        if self.navigation.page == "files":
-            entries = self.data["files"]
-            selected = entries[min(self.navigation.index, len(entries) - 1)]["id"] if entries else None
-            self.directory_positions[self.data["directory"]] = {"id": selected, "index": self.navigation.index}
-
-        def loaded(entries):
-            self.data["directory"] = str(directory)
-            self.data["files"] = entries
-            if self.navigation.page == "files":
-                saved = self.directory_positions.get(str(directory), {})
-                position = next((index for index, entry in enumerate(entries) if entry["id"] == saved.get("id")), saved.get("index", 0))
-                self.navigation.select(position)
-
-        self._run(tr('读取文件夹'), lambda: self.operations.list_directory(directory, self.show_hidden), loaded, report_success=False)
+    def _browse(self, directory, select_path=None):
+        self._browse_files(directory, select_path)
 
     def _paste(self, replace=False):
-        if not self.clipboard:
-            return
-        if self.busy:
-            self.notify(tr('请等待当前文件操作完成'))
-            return
-        if self.mock:
-            self.notify(tr('预览：粘贴操作已模拟，未访问真实文件'))
-            return
-        clipboard = dict(self.clipboard)
-        directory = self.data["directory"]
-        target = Path(directory) / Path(clipboard["path"]).name
-        if not replace and os.path.lexists(target):
-            self._confirm(tr('覆盖同名文件？'), target.name + tr('\n文件夹不会被合并或覆盖。'), {"action": "overwrite"})
-            return
-        self.cancelled = threading.Event()
-        cancellation = self.cancelled
-        self._push({"kind": "progress", "title": tr('正在移动') if clipboard["move"] else tr('正在复制'), "body": Path(clipboard["path"]).name + tr('\nB 取消；取消不会删除源文件')})
-        modal_key = self.modal["key"]
-
-        def finished(result):
-            if self.modal.get("key") == modal_key:
-                self._pop()
-            if clipboard["move"]:
-                self.clipboard = None
-            self._browse(directory)
-
-        self._run(tr('移动文件') if clipboard["move"] else tr('复制文件'), lambda: self.operations.transfer(clipboard["path"], directory, move=clipboard["move"], replace=replace, cancelled=cancellation), finished)
+        self._file_paste("replace" if replace else "error")
 
     def _run(self, label, work, success=None, *, report_success=True):
         if self.busy:
@@ -1058,10 +1053,12 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
     def _finish_task(self, result):
         value, success, error, audible, report_success = result
         self.busy, self.busy_label = False, ""
+        if self._files_closing:
+            return
         if error:
             if audible:
                 self.soundRequested.emit("back" if isinstance(error, InterruptedError) else "error")
-            if self.modal.get("kind") == "progress":
+            if self.modal.get("kind") == "progress" and not self.modal.get("fileTaskId"):
                 self._pop()
             self.notify(tr('操作已取消') if isinstance(error, InterruptedError) else tr('操作失败：{value0}', value0=error))
         elif success:
@@ -1078,6 +1075,7 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
             if audible and report_success:
                 self.soundRequested.emit("success")
         self._publish()
+        self._file_pending()
 
     def _system(self, action, payload=None):
         if (action in self.pending_system or (action.startswith("wifi_") and action != "wifi_cancel_connect" and any(pending.startswith("wifi_") for pending in self.pending_system))
@@ -1138,6 +1136,7 @@ class ShellController(KeyTestControls, WifiControls, SoundFeedback):
         self._publish()
 
     def close(self):
+        self._close_files()
         self._cancel_modals()
         self.config.data["focus"] = self.navigation.positions
         try:

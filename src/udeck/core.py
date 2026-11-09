@@ -81,10 +81,24 @@ class ConfigStore:
             os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))
         ) / "udeck/settings.json"
         self.data = {"version": 1, "favorites": [], "recent": [], "focus": {}, "input": {}, "applicationInput": {},
+                     "fileManager": {"bookmarks": [], "sort": "name", "descending": False, "kind": "all"},
                      "preferences": {"showHidden": False, "category": "All", "language": "en", "theme": "classic", "uiSounds": True}}
         try:
             loaded = json.loads(self.path.read_text())
             if isinstance(loaded, dict):
+                manager = loaded.get("fileManager", {})
+                if isinstance(manager, dict):
+                    bookmarks = manager.get("bookmarks", [])
+                    if isinstance(bookmarks, list):
+                        self.data["fileManager"]["bookmarks"] = list(dict.fromkeys(
+                            path for path in bookmarks if isinstance(path, str) and 0 < len(path) <= 4096
+                            and "\x00" not in path and Path(path).is_absolute()))[:64]
+                    if manager.get("sort") in ("name", "modified", "size"):
+                        self.data["fileManager"]["sort"] = manager["sort"]
+                    if type(manager.get("descending")) is bool:
+                        self.data["fileManager"]["descending"] = manager["descending"]
+                    if manager.get("kind") in ("all", "audio", "video", "image", "book", "text", "archive", "other"):
+                        self.data["fileManager"]["kind"] = manager["kind"]
                 for field in ("favorites", "recent"):
                     values = loaded.get(field)
                     if isinstance(values, list):
@@ -116,11 +130,15 @@ class ConfigStore:
         except (OSError, ValueError, TypeError):
             pass
         self._saved_preferences = dict(self.data["preferences"])
+        self._saved_file_manager = {**self.data["fileManager"], "bookmarks": list(self.data["fileManager"]["bookmarks"])}
 
     def save(self):
         # Apps also update shared preferences. A cached shell store must not
         # overwrite their language/theme when saving focus or favorites.
-        latest = ConfigStore(self.path).data["preferences"]
+        latest_store = ConfigStore(self.path)
+        latest = latest_store.data["preferences"]
+        if self.data["fileManager"] == self._saved_file_manager:
+            self.data["fileManager"] = latest_store.data["fileManager"]
         preferences = dict(self.data["preferences"])
         for field in ("language", "theme", "uiSounds"):
             if preferences[field] == self._saved_preferences[field]:
@@ -136,6 +154,7 @@ class ConfigStore:
             os.replace(temporary, self.path)
             self.data["preferences"] = preferences
             self._saved_preferences = dict(preferences)
+            self._saved_file_manager = {**self.data["fileManager"], "bookmarks": list(self.data["fileManager"]["bookmarks"])}
         finally:
             Path(temporary).unlink(missing_ok=True)
 
