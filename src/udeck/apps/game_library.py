@@ -42,18 +42,25 @@ def confined_path(path, root):
     return current
 
 
-def content_dependencies(path, root):
-    references, visiting = [], set()
+def content_dependencies(path, root, cancelled=lambda: False):
+    references, referenced, visiting, visited = [], set(), set(), set()
+    edges, descriptor_bytes = 0, 0
 
     def visit(entry, depth=0):
+        nonlocal edges, descriptor_bytes
+        if cancelled():
+            raise OSError(tr("Scan cancelled"))
         entry = confined_path(entry, root)
         if entry in visiting or depth > 8:
             raise ValueError(tr("Circular or deeply nested disc playlist"))
-        if len(references) > 512:
-            raise ValueError(tr("Too many disc references"))
-        if entry.suffix.lower() not in DESCRIPTORS or not entry.is_file():
+        if entry in visited:
             return
-        if entry.stat().st_size > 2 * 1024 * 1024:
+        if entry.suffix.lower() not in DESCRIPTORS or not entry.is_file():
+            visited.add(entry)
+            return
+        size = entry.stat().st_size
+        descriptor_bytes += size
+        if size > 2 * 1024 * 1024 or descriptor_bytes > 8 * 1024 * 1024:
             raise ValueError(tr("Disc descriptor is too large"))
         text = entry.read_text(encoding="utf-8-sig", errors="replace")
         suffix = entry.suffix.lower()
@@ -75,14 +82,23 @@ def content_dependencies(path, root):
             raise ValueError(tr("Disc descriptor contains no entries"))
         visiting.add(entry)
         for name in names:
+            if cancelled():
+                raise OSError(tr("Scan cancelled"))
+            edges += 1
+            if edges > 8192:
+                raise ValueError(tr("Too many disc references"))
             name = name.replace("\\", "/")
             if Path(name).is_absolute() or re.match(r"^[A-Za-z]:", name):
                 raise ValueError(tr("Content reference leaves its platform folder: {path}", path=name))
             target = confined_path(entry.parent / name, root)
-            if target not in references:
+            if target not in referenced:
+                if len(references) >= 512:
+                    raise ValueError(tr("Too many disc references"))
+                referenced.add(target)
                 references.append(target)
             visit(target, depth + 1)
         visiting.remove(entry)
+        visited.add(entry)
 
     visit(Path(path))
     return references
@@ -146,7 +162,7 @@ def scan_games(source, catalog, cancelled=lambda: False, cache=None):
                 return GameScan()
             if path.suffix.lower() in DESCRIPTORS:
                 try:
-                    dependencies[path] = content_dependencies(path, directory)
+                    dependencies[path] = content_dependencies(path, directory, cancelled)
                     referenced.update(dependencies[path])
                 except (OSError, ValueError) as error:
                     errors[path] = error_text(error)
@@ -288,8 +304,15 @@ class GamesLibrary(Library):
         self.pending.clear()
         self.check_sources()
         self.errors.pop("rom-root", None)
-        if not Path(self.root_path).is_dir():
+        root = Path(self.root_path)
+        if not root.is_dir():
             self.errors["rom-root"] = tr("ROM root does not exist: {path}", path=self.root_path)
+        else:
+            try:
+                if not any(s.id == self.root_id and s.path == str(root.resolve()) for s in self.sources):
+                    self._attach_root(root, reconnect=False)
+            except OSError as error:
+                self.errors["rom-root"] = error_text(error)
         cache = {i["path"]: i for i in self.items}
         catalog = copy.deepcopy(self.catalog)
         platform_ids = self.state.data["preferences"].get("platformSources", [])

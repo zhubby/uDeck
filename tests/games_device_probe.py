@@ -2,6 +2,8 @@
 
 Run explicitly on the device's graphical session, without a second Games or
 RetroArch session. Results verify the software path, not physical buttons/audio.
+The default no-content cases are 2048 and Mr.Boom; extra core IDs may follow the
+evidence directory argument for separate platform compatibility checks.
 """
 
 import json
@@ -17,14 +19,18 @@ from PySide6.QtWidgets import QApplication
 
 from udeck.apps.game_catalog import probe_core
 from udeck.apps.games import GamesController
+from udeck.apps.state import AppState
 
 
-def run(root):
+def run(root, extra_cores=()):
     root.mkdir(parents=True, exist_ok=True)
     application = QApplication([])
+    paths = create_original_roms(root / "Games")
+    state = AppState("games", root / "state")
+    state.data["preferences"]["romRoot"] = str(root / "Games")
+    state.save()
     controller = GamesController(root / "state", root / "settings.json")
     controller.isolated = True
-    paths = create_original_roms(root / "Games")
     errors, events, reports = [], [], []
     controller.engine.failed.connect(lambda error: errors.append(str(error)))
     controller.engine.saved.connect(lambda slot: events.append("saved:" + slot))
@@ -92,8 +98,10 @@ def run(root):
             (root / (item["platform"] + "-retroarch.log")).write_text(controller.engine.log)
             events.clear()
             print(json.dumps(reports[-1]), flush=True)
-        core = controller.catalog.cores.get("2048")
-        if core and core.no_content:
+        for identifier in ("2048", "mrboom", *extra_cores):
+            core = controller.catalog.cores.get(identifier)
+            if not core or not core.no_content:
+                continue
             result = probe_core(core.path)
             assert result["status"] == "available", result
             controller.catalog.apply_probe(core.id, result)
@@ -104,10 +112,28 @@ def run(root):
             if core.savestate:
                 controller.engine.save("1")
                 wait(lambda: "saved:1" in events)
+                state, _ = controller.engine.store.load("1", controller.engine.metadata["contentHash"],
+                                                        controller.engine.metadata["coreHash"])
+                assert state.stat().st_size > 0
+                controller.engine.load("1")
+                wait(lambda: "loaded" in events)
+                wait(lambda: controller.engine.status == "playing")
+                controller.engine.pause()
+                wait(lambda: controller.engine.status == "paused")
+                controller.save_exit()
+                wait(lambda: not controller.engine.running())
+                events.clear()
+                controller.start_game(True)
+                wait(lambda: "loaded" in events and controller.engine.status == "playing")
+            state_name = controller.engine.state_path.name
             controller.engine.quit()
             wait(lambda: not controller.engine.running())
-            reports.append({"platform": "2048", "core": core.id, "checks": ["no-content-launch", "pause", "normal-exit"],
-                            "saved": "saved:1" in events})
+            reports.append({"platform": controller.current["platform"], "core": core.id,
+                            "libraryName": core.library_name, "stateName": state_name,
+                            "checks": ["no-content-launch", "pause", "normal-exit"] +
+                            (["save", "load", "save-return", "resume-after-restart"] if core.savestate else [])})
+            (root / (core.id + "-retroarch.log")).write_text(controller.engine.log)
+            events.clear()
             print(json.dumps(reports[-1]), flush=True)
         (root / "result.json").write_text(json.dumps({"reports": reports, "errors": errors}, indent=2))
     finally:
@@ -115,4 +141,4 @@ def run(root):
 
 
 if __name__ == "__main__":
-    run(Path(sys.argv[1]).resolve())
+    run(Path(sys.argv[1]).resolve(), sys.argv[2:])

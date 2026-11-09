@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+from PySide6.QtCore import QSignalBlocker
+
 from ..i18n import tr
 from .game_catalog import message_lines
 from .game_library import confined_path, create_platform_directories
@@ -135,15 +137,21 @@ class GamesSettings:
 
     def core_search(self, text):
         self.pop_menu()
-        query = text.strip().casefold()
+        self.core_search_results(text.strip().casefold())
+
+    def core_search_results(self, query, quiet=False):
         cores = [c for c in self.catalog.cores.values() if query in
                  (c.id + " " + c.name + " " + " ".join(c.platforms)).casefold()]
         self.menu(tr("Search cores"), [(c.name, lambda c=c: self.core_details(c.id),
                   c.id + " · " + self.core_status(c)) for c in sorted(cores, key=lambda c: c.name.casefold())],
-                  tr("{count} matching cores", count=len(cores)))
+                  tr("{count} matching cores", count=len(cores)), quiet=quiet)
+        self.menus[-1].update(coreView="search", coreQuery=query)
 
     def platform_cores_menu(self, platform, quiet=False):
-        value = self.catalog.platforms[platform]
+        value = self.catalog.platforms.get(platform)
+        if not value:
+            self.core_management(quiet=quiet)
+            return
         default = self.store.data["preferences"].get("platformCores", {}).get(platform)
         if not default:
             recommended = self.catalog.recommended(platform)
@@ -155,7 +163,9 @@ class GamesSettings:
         self.menus[-1].update(coreView="platform", platformId=platform)
 
     def core_details(self, identifier, platform=None, quiet=False):
-        core = self.catalog.cores[identifier]
+        core = self.catalog.cores.get(identifier)
+        if not core:
+            raise ValueError(tr("Selected core is unavailable: {core}", core=identifier))
         enable = not self.catalog.enabled(core, platform)
         options = [(tr("Enable core") if enable else tr("Disable core"),
                     (lambda: self.toggle_core(identifier, enable, platform))
@@ -167,7 +177,7 @@ class GamesSettings:
                 options.extend((tr("Default for {platform}", platform=self.catalog.platforms[p].title),
                                 lambda p=p: self.set_default_core(p, identifier)) for p in core.platforms)
             if core.no_content:
-                options.append((tr("Run core without content"), lambda: self.run_core(identifier)))
+                options.append((tr("Run core without content"), lambda: self.run_core(identifier, platform)))
         options.append((tr("Back"), self.pop_menu))
         formats = " · ".join(core.extensions) or tr("No content required")
         self.menu(core.name, options, message_lines([
@@ -178,23 +188,41 @@ class GamesSettings:
         self.menus[-1].update(coreView="detail", coreId=identifier, platformId=platform)
 
     def refresh_core_menu(self, identifier=None):
-        if not self.menus:
+        if not any(menu.get("coreView") for menu in self.menus):
             return
-        menu = self.menus[-1]
-        view = menu.get("coreView")
-        if not view or (view == "detail" and identifier and menu["coreId"] != identifier):
-            return
-        index = menu["index"]
-        self.pop_menu()
-        if view == "catalog":
-            self.core_management(quiet=True)
-        elif view == "platform":
-            self.platform_cores_menu(menu["platformId"], quiet=True)
-        else:
-            self.core_details(menu["coreId"], menu.get("platformId"), quiet=True)
-        options = self.menus[-1]["options"]
-        if index < len(options) and not options[index]["disabled"]:
-            self.menus[-1]["index"] = index
+        original = self.menus
+        # Reconcile ancestors too: Back must never expose callbacks from an old
+        # catalogue. Publish once so a search prompt keeps its draft and focus.
+        with QSignalBlocker(self):
+            self.menus = []
+            for position, menu in enumerate(original):
+                view = menu.get("coreView")
+                platform, core_id = menu.get("platformId"), menu.get("coreId")
+                if view and ((platform and platform not in self.catalog.platforms)
+                             or (core_id and core_id not in self.catalog.cores)):
+                    for discarded in original[position:]:
+                        for row in discarded["options"]:
+                            self._callbacks.pop(row["id"], None)
+                    break
+                if not view or (view == "detail" and identifier and core_id != identifier):
+                    self.menus.append(menu)
+                    continue
+                selected = menu["options"][menu["index"]]["title"]
+                for row in menu["options"]:
+                    self._callbacks.pop(row["id"], None)
+                if view == "catalog":
+                    self.core_management(quiet=True)
+                elif view == "platform":
+                    self.platform_cores_menu(platform, quiet=True)
+                elif view == "search":
+                    self.core_search_results(menu["coreQuery"], quiet=True)
+                else:
+                    self.core_details(core_id, platform, quiet=True)
+                refreshed = self.menus[-1]
+                refreshed["index"] = next((i for i, row in enumerate(refreshed["options"])
+                    if row["title"] == selected and not row["disabled"]), refreshed["index"])
+            if not self.menus:
+                self.core_management(quiet=True)
         self.publish()
 
     def toggle_core(self, identifier, enabled, platform=None):

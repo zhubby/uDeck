@@ -46,7 +46,7 @@ def content_hash(item, cancelled=lambda: False):
     if Path(item["path"]).suffix.lower() not in (".cue", ".gdi", ".m3u"):
         return base
     digest = hashlib.sha256(base.encode())
-    for track in content_dependencies(item["path"], item.get("platformRoot", Path(item["path"]).parent)):
+    for track in content_dependencies(item["path"], item.get("platformRoot", Path(item["path"]).parent), cancelled):
         digest.update(file_hash(track, cancelled).encode())
     return digest.hexdigest()
 
@@ -66,7 +66,7 @@ def preflight(item, preferences, executable=None, catalog=None, validate_native=
             if not path.is_file():
                 missing.append(tr("Game source is disconnected"))
             else:
-                dependencies = content_dependencies(path, item.get("platformRoot", path.parent))
+                dependencies = content_dependencies(path, item.get("platformRoot", path.parent), cancelled)
                 missing.extend(tr("Missing disc track: {name}", name=p.name) for p in dependencies if not p.is_file())
         except (OSError, ValueError) as error:
             missing.append(error_text(error))
@@ -89,6 +89,7 @@ def preflight(item, preferences, executable=None, catalog=None, validate_native=
         missing.append(error_text(error))
     checks = {"ready": not missing, "errors": missing, "core": core.path if core else "",
               "coreId": core.id if core else "", "coreHash": core.core_hash if core else "",
+              "libraryName": core.library_name if core else "",
               "coreSignature": core.signature if core else "", "optionalFirmware": optional,
               "savestate": core.savestate if core else False, "firmware": str(system),
               "executable": executable or "", "noContent": bool(item.get("noContent")),
@@ -295,7 +296,10 @@ class RetroEngine(QObject):
         root = Path(self.runtime.name)
         save_store.prepare_sram()
         sram = save_store.sram_root
-        self.state_path = root / ((Path(item.get("path", "")).stem or checks.get("coreId", "core")) + ".state")
+        # RetroArch uses retro_system_info.library_name when there is no content.
+        basename = (Path(item["path"]).stem if item.get("path") else
+                    checks.get("libraryName") or checks.get("coreId", "core"))
+        self.state_path = root / (basename + ".state")
         options = {"stdin_cmd_enable": "true", "network_cmd_enable": "false", "config_save_on_exit": "false",
                    "pause_nonactive": "false", "savestate_auto_save": "false", "savestate_auto_load": "false",
                    "savestate_auto_index": "false", "savestate_file_compression": "false",
@@ -553,6 +557,7 @@ class GamesController(GamesSettings, AppController):
         self.catalog = self.library.catalog = catalog
         self.cores_pending = sum(c.status == "unverified" for c in catalog.cores.values())
         self.update_checks()
+        self.refresh_core_menu()
         self.publish()
 
     @Slot(int, str, object)
@@ -740,12 +745,16 @@ class GamesController(GamesSettings, AppController):
                 raise
             return self.current
 
-    def run_core(self, identifier):
+    def run_core(self, identifier, platform=None):
         core = self.catalog.cores[identifier]
         if self.engine.running():
             raise RuntimeError(tr("A game is already running"))
+        platform = self.catalog.canonical(platform) if platform else next(
+            (p for p in core.platforms if self.catalog.enabled(core, p)), None)
+        if platform not in core.platforms or not self.catalog.enabled(core, platform):
+            raise ValueError(tr("Selected core is unavailable: {core}", core=identifier))
         self.current = {"id": "core:" + identifier, "title": core.name, "coreId": identifier,
-                        "platform": core.platforms[0], "noContent": True, "path": "", "format": "", "sourceId": ""}
+                        "platform": platform, "noContent": True, "path": "", "format": "", "sourceId": ""}
         self.page = "game-details"
         self.start_game()
 

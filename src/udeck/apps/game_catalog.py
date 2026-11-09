@@ -100,6 +100,7 @@ class Core:
     signature: str = ""
     core_hash: str = ""
     block_extract: bool = False
+    library_name: str = ""
 
     def supports(self, suffix):
         suffix = "." + suffix.lower().lstrip(".")
@@ -181,6 +182,7 @@ class CoreCatalog:
         core.status = result["status"]
         core.reason = result.get("reason", "")
         core.version = result.get("version") or core.version
+        core.library_name = result.get("name", "")
         core.core_hash = result.get("coreHash", "")
         core.block_extract = result.get("blockExtract", False)
         if not core.extensions and result.get("extensions"):

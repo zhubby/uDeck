@@ -43,7 +43,7 @@
     {"id":"gamegear","title":"Game Gear","aliases":["gg"],"cores":["genesis_plus_gx","gearsystem","smsplus"]},
     {"id":"sg1000","title":"SG-1000","cores":["gearsystem","genesis_plus_gx","smsplus"]},
     {"id":"sega32x","title":"Sega 32X","aliases":["32x"],"cores":["picodrive"]},
-    {"id":"segacd","title":"Sega CD / Mega CD","aliases":["megacd"],"cores":["genesis_plus_gx","genesis_plus_gx_wide","picodrive"]},
+    {"id":"segacd","title":"Sega CD / Mega CD","aliases":["megacd"],"cores":["genesis_plus_gx","genesis_plus_gx_wide","picodrive"],"firmwareGroups":{"genesis_plus_gx":[["bios_CD_E.bin","bios_CD_U.bin","bios_CD_J.bin"]],"genesis_plus_gx_wide":[["bios_CD_E.bin","bios_CD_U.bin","bios_CD_J.bin"]],"picodrive":[["bios_CD_E.bin","bios_CD_U.bin","bios_CD_J.bin"]]}},
     {"id":"saturn","title":"Sega Saturn","cores":["yabasanshiro","yabause","kronos","mednafen_saturn"],"firmwareGroups":{"yabasanshiro":[["saturn_bios.bin","mpr-17933.bin","sega_101.bin"]],"yabause":[["saturn_bios.bin","mpr-17933.bin","sega_101.bin"]],"mednafen_saturn":[["sega_101.bin","mpr-17933.bin"]],"kronos":[["saturn_bios.bin","mpr-17933.bin","sega_101.bin"]]}},
     {"id":"dreamcast","title":"Dreamcast / NAOMI","aliases":["dc","naomi"],"cores":["flycast","flycast2021","redream"]},
     {"id":"arcade","title":"Arcade","aliases":["mame","fbneo","fba"],"cores":["fbneo","mame2003_plus","mame2003","mame2010","mame2015","mame2016","mame","fbalpha2012","fbalpha2012_cps1","fbalpha2012_cps2","fbalpha2012_cps3","fbalpha2012_neogeo","mame2000","mame2009","mame2014","mame2021","mame2022","mame2023","mame2024","hbmame"]},
