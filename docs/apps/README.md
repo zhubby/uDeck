@@ -1,11 +1,12 @@
 # uDeck native applications
 
 Music, Video, Browser, Reader and Games are independent PySide6/Qt Quick processes.
-Install `udeck >= 0.1.8` and the optional `udeck-apps` Debian package. Each app has a
+Install `udeck >= 0.1.22` and the optional `udeck-apps >= 0.1.6` Debian package. Each app has a
 desktop entry and `udeck-{music,video,browser,reader,games}` launcher. Installation
 does not change default applications or move user files.
 
-Use Settings → Sources to add an absolute folder path. L/R (PageUp/PageDown) switches
+Use Settings → Sources to add media folders; Games uses Settings → ROM root and
+platform subfolders instead. L/R (PageUp/PageDown) switches
 collections; directions select; A/Enter opens; B/Esc returns; X/F2 opens actions;
 Y/F3 opens settings. Ordinary A/B/X/Y letters remain text. English is the default;
 Settings → Language shares the shell's persisted English/Chinese preference.
@@ -34,14 +35,25 @@ server exposes the selected book and renderer only. A nonce CSP blocks book scri
 remote resources, forms and objects; its off-the-record profile shares no browser
 cookies. Source loss closes the document and its menus while retaining local position.
 
-Games launches installed RetroArch cores in a separate process. Set core/firmware
-folders in Settings. GB/GBA/SNES/NES/PS1 extensions are indexed; each title still
-needs an installed compatible core and required firmware. No ROMs or BIOS files are
-distributed. Physical game buttons belong to RetroArch. In a uDeck session,
+Games discovers installed RetroArch cores and their metadata. Its default ROM root
+is `~/Games`: use `gba/`, `psp/`, `psx/`, `dreamcast/`, etc.; shared extensions never
+guess the platform. Settings provides a folder picker, explicit platform folder
+creation, searchable core management, enablement and platform defaults. Each title
+can select an enabled compatible core. CUE/GDI/M3U dependencies are deduplicated
+and confined to their platform folder. Archives stay single library entries;
+game engines use explicit entrypoints, and no-content cores can run independently.
+Core loading is checked in disposable subprocesses and does not establish game
+compatibility or performance. Required firmware and alternatives are checked
+before launch. No commercial games or firmware are distributed. See
+[Games directory and core rules](games.md). Physical game buttons belong to RetroArch. In a uDeck session,
 Ctrl+Alt+M requests the frontend pause menu; Ctrl+Alt+Esc keeps the desktop shortcut.
 The private stdin command channel is used; no network command port is opened.
 Manual slots 1–3 and the automatic resume point use separate local save groups with
-content/core hashes and checksums. Wrong-core or damaged states are rejected.
+content/core hashes and checksums. States are isolated by game/core/core hash;
+SRAM is isolated by game/core. Compatible legacy saves are copied on first read,
+leaving originals intact. Unsupported state operations are hidden. Old libraries,
+IDs and favorites remain reachable through Legacy sources. Wrong-core or damaged
+states are rejected, and resuming with another core requires an explicit choice.
 
 Local state: `$XDG_DATA_HOME/udeck/apps/` (normally `~/.local/share/udeck/apps/`).
 Global language: `$XDG_CONFIG_HOME/udeck/settings.json`. Use `udeck-app APP --doctor`

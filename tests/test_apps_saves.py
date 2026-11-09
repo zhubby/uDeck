@@ -6,6 +6,7 @@ from urllib.request import urlopen
 import pytest
 
 from udeck.apps.books import BookServer
+from udeck.apps.game_catalog import CoreCatalog
 from udeck.apps.games import SaveStore, content_hash, preflight, stock_controls
 
 
@@ -87,14 +88,18 @@ def test_preflight_reports_missing_core_firmware_and_disc_tracks(tmp_path):
     cue.write_text('FILE "track.bin" BINARY\n')
     core = tmp_path / "pcsx_rearmed_libretro.so"
     core.write_bytes(b"core-placeholder-only-for-preflight")
+    core.with_suffix(".info").write_text('supported_extensions = "cue|bin"\n')
+    preferences = {"coreDirectory": str(tmp_path), "firmwareDirectory": str(tmp_path)}
+    catalog = CoreCatalog.discover(preferences)
+    catalog.apply_probe("pcsx_rearmed", {"status": "available"})
     item = {"platform": "PS1", "path": str(cue), "format": "CUE"}
-    checks = preflight(item, {"coreDirectory": str(tmp_path), "firmwareDirectory": str(tmp_path)}, "/usr/bin/retroarch")
+    checks = preflight(item, preferences, "/usr/bin/retroarch", catalog=catalog, validate_native=False)
     assert not checks["ready"]
     assert any("scph5501.bin" in str(e) for e in checks["errors"])
     assert any("track.bin" in str(e) for e in checks["errors"])
     (tmp_path / "scph5501.bin").write_bytes(b"fixture")
     (tmp_path / "track.bin").write_bytes(b"fixture")
-    assert preflight(item, {"coreDirectory": str(tmp_path), "firmwareDirectory": str(tmp_path)}, "retroarch")["ready"]
+    assert preflight(item, preferences, "retroarch", catalog=catalog, validate_native=False)["ready"]
 
 
 def test_disc_save_identity_includes_track_content_when_cue_is_unchanged(tmp_path):

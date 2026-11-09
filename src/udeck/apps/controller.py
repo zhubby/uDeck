@@ -26,7 +26,7 @@ class AppController(SoundFeedback):
         self.config_path = language_path
         preferences = ConfigStore(language_path).data["preferences"]
         self.language, self.theme = preferences["language"], preferences["theme"]
-        self.library = Library(app, self.store, self) if app != "browser" else None
+        self.library = self.create_library(app) if app != "browser" else None
         self.window = None
         self.inputs = None
         self.isolated = False
@@ -45,6 +45,9 @@ class AppController(SoundFeedback):
         if self.library:
             self.library.changed.connect(self.publish)
             self.library.lost.connect(self.source_lost)
+
+    def create_library(self, app):
+        return Library(app, self.store, self)
 
     def start(self):
         if self.library:
@@ -89,7 +92,7 @@ class AppController(SoundFeedback):
         return {"app": self.app, "language": self.language, "theme": self.theme, "page": self.page,
                 "tabs": self.tabs(), "tab": self.tab, "cards": rows, "selected": self.selected,
                 "current": self.current or {}, "filter": self.filter, "folder": self.folder,
-                "menu": {k: v for k, v in self.menus[-1].items() if k != "submit"} if self.menus else {}, "error": self.error,
+                "menu": {k: v for k, v in self.menus[-1].items() if k not in ("submit", "pickerParent")} if self.menus else {}, "error": self.error,
                 "notice": self.notice, "scanning": bool(self.library and self.library.pending),
                 "sourceErrors": [value for value in self.library.errors.values() if value] if self.library else [],
                 "count": len(rows), **self.extra_state()}
@@ -122,8 +125,9 @@ class AppController(SoundFeedback):
             self.publish()
             return None
 
-    def menu(self, title, options=(), body="", owner=None):
-        self.feedback("open")
+    def menu(self, title, options=(), body="", owner=None, quiet=False):
+        if not quiet:
+            self.feedback("open")
         rows = []
         for label, callback, *detail in options:
             self._serial += 1

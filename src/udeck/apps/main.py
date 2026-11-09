@@ -83,7 +83,9 @@ class AppControl(QObject):
         for path in paths:
             if not path.is_file():
                 raise ValueError(tr("Choose a file"))
-            if path.suffix.lower() not in EXTENSIONS[controller.app]:
+            if controller.app == "games":
+                controller.accept_file_path(path)
+            elif path.suffix.lower() not in EXTENSIONS[controller.app]:
                 raise ValueError(tr("Unsupported file format: {name}", name=path.name))
         self.open_generation += 1
         generation = self.open_generation

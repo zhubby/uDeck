@@ -145,8 +145,8 @@ Window {
                             Column {
                                 anchors.centerIn: parent; width: Math.min(parent.width-36,540); spacing: 18
                                 Text { font.family: window.fontFamily; width: parent.width; text: window.state.scanning?window.tr("Scanning…"):window.tr("Nothing here yet"); color: window.ink; font.pixelSize: 30; horizontalAlignment: Text.AlignHCenter }
-                                Text { font.family: window.fontFamily; width: parent.width; text: window.tr("Choose a folder in Sources, or switch to another collection."); wrapMode: Text.Wrap; color: window.muted; font.pixelSize: 21; horizontalAlignment: Text.AlignHCenter }
-                                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; anchors.horizontalCenter: parent.horizontalCenter; promptKeys: ["gamecube_button_color_a"]; text: window.tr("Sources"); selected: true; onActivated: controller.command("sources") }
+                                Text { font.family: window.fontFamily; width: parent.width; text: window.state.app === "games" ? window.state.emptyHint : window.tr("Choose a folder in Sources, or switch to another collection."); wrapMode: window.state.app === "games" ? Text.WrapAnywhere : Text.Wrap; color: window.muted; font.pixelSize: 21; horizontalAlignment: Text.AlignHCenter }
+                                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; anchors.horizontalCenter: parent.horizontalCenter; promptKeys: ["gamecube_button_color_a"]; text: window.tr(window.state.app === "games" ? "Settings" : "Sources"); selected: true; onActivated: controller.command(window.state.app === "games" ? "settings" : "sources") }
                             }
                         }
                     }
@@ -198,7 +198,7 @@ Window {
         Text { font.family: window.fontFamily; id: toast; anchors.fill: parent; anchors.margins: 12; text: window.state.error||window.state.saveError||window.state.notice||(window.state.sourceErrors||[]).join("\n"); wrapMode: Text.Wrap; color: window.state.error && window.colors.dark ? window.colors.error : window.ink; font.pixelSize: 20; maximumLineCount: 4; elide: Text.ElideRight }
     }
     Item {
-        id: keys; anchors.fill: parent; focus: true
+        id: keys; objectName: "appKeys"; anchors.fill: parent; focus: true
         Keys.onPressed: function(event) {
             const map={};map[Qt.Key_Up]="up";map[Qt.Key_Down]="down";map[Qt.Key_Left]="left";map[Qt.Key_Right]="right";map[Qt.Key_Return]="accept";map[Qt.Key_Enter]="accept";map[Qt.Key_Escape]="back";map[Qt.Key_PageUp]="previous-tab";map[Qt.Key_PageDown]="next-tab";map[Qt.Key_F2]="context";map[Qt.Key_F3]="quick-settings"
             if(map[event.key]) {controller.dispatch(map[event.key]);event.accepted=true}
@@ -216,12 +216,18 @@ Window {
                 Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.menu.title||""; font.pixelSize: 30; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
                 Text { font.family: window.fontFamily; Layout.fillWidth: true; visible: !!window.state.menu.body; text: window.state.menu.body||""; font.pixelSize: 21; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: 5; elide: Text.ElideRight }
                 TextField { font.family: window.fontFamily; palette: window.colors.controls;
-                    id: draft; visible: !!window.state.menu.input; Layout.fillWidth: true
+                    id: draft; objectName: "menuDraft"; visible: !!window.state.menu.input; Layout.fillWidth: true
                     font.pixelSize: 23; color: window.ink; selectByMouse: true
                     background: Rectangle { color: window.colors.input; radius: 8; border.width: 2; border.color: window.accent }
                     onTextEdited: controller.setDraft(text)
-                    onAccepted: controller.submit(text)
-                    Keys.onEscapePressed: controller.dispatch("back")
+                    Keys.priority: Keys.BeforeItem
+                    Keys.onPressed: function(event) {
+                        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                            controller.submit(text); event.accepted = true
+                        } else if (event.key === Qt.Key_Escape) {
+                            controller.dispatch("back"); event.accepted = true
+                        }
+                    }
                 }
                 ListView {
                     id: options; objectName: "menuList"; Layout.fillWidth: true; Layout.fillHeight: true

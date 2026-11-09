@@ -1,31 +1,35 @@
 """External RetroArch ownership, preflight and atomically published save groups."""
 
+import copy
 import hashlib
 import json
 import os
 import re
 import shutil
 import tempfile
+import threading
 import time
 import uuid
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QProcess, QTimer, Signal, Slot
+from PySide6.QtCore import QObject, QProcess, QThreadPool, QTimer, Signal, Slot
 
 from ..i18n import error_text, tr
 from ..sounds import interaction
 from .controller import AppController
+from .game_catalog import CoreCatalog, message_lines, probe_core, probe_key
+from .game_library import GamesLibrary, confined_path, content_dependencies
+from .game_services import CoreInventoryTask, LaunchTask
+from .game_settings import GamesSettings
 from .state import atomic_json
 
-CORES = {"GB": ("gambatte_libretro.so", ()), "GBA": ("mgba_libretro.so", ()),
-         "SNES": ("snes9x_libretro.so", ()), "NES": ("nestopia_libretro.so", ()),
-         "PS1": ("pcsx_rearmed_libretro.so", ("scph5501.bin",))}
 
-
-def file_hash(path):
+def file_hash(path, cancelled=lambda: False):
     digest = hashlib.sha256()
     with Path(path).open("rb") as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            if cancelled():
+                raise OSError(tr("Scan cancelled"))
             digest.update(chunk)
     return digest.hexdigest()
 
@@ -35,44 +39,83 @@ def disc_tracks(path):
     return [Path(path).parent / (quoted or plain) for quoted, plain in names]
 
 
-def content_hash(item):
-    base = file_hash(item["path"])
-    if item["format"] != "CUE":
+def content_hash(item, cancelled=lambda: False):
+    if item.get("noContent"):
+        return hashlib.sha256(("no-content:" + item["coreId"]).encode()).hexdigest()
+    base = file_hash(item["path"], cancelled)
+    if Path(item["path"]).suffix.lower() not in (".cue", ".gdi", ".m3u"):
         return base
     digest = hashlib.sha256(base.encode())
-    for track in disc_tracks(item["path"]):
-        digest.update(file_hash(track).encode())
+    for track in content_dependencies(item["path"], item.get("platformRoot", Path(item["path"]).parent)):
+        digest.update(file_hash(track, cancelled).encode())
     return digest.hexdigest()
 
 
-def preflight(item, preferences, executable=None):
+def preflight(item, preferences, executable=None, catalog=None, validate_native=True, cancelled=lambda: False):
     executable = executable or shutil.which("retroarch")
-    core_name, firmware = CORES.get(item["platform"], ("", ()))
-    candidates = [Path(preferences.get("coreDirectory", "/usr/lib/aarch64-linux-gnu/libretro")),
-                  Path("/usr/lib/x86_64-linux-gnu/libretro"), Path("/usr/lib/libretro")]
-    core = next((p / core_name for p in candidates if core_name and (p / core_name).is_file()), None)
+    catalog = catalog or CoreCatalog.discover(preferences)
     system = Path(preferences.get("firmwareDirectory", str(Path.home() / ".config/retroarch/system")))
-    missing = []
+    missing, optional, dependencies = [], [], []
+    core = None
     if not executable:
         missing.append(tr("RetroArch is not installed"))
-    if not Path(item["path"]).is_file():
-        missing.append(tr("Game source is disconnected"))
-    if not core:
-        missing.append(tr("Missing core: {core}", core=core_name or item["platform"]))
-    for name in firmware:
-        if not (system / name).is_file():
-            missing.append(tr("Missing firmware: {name}", name=name))
-    if item["format"] == "CUE" and Path(item["path"]).is_file():
-        for track in disc_tracks(item["path"]):
-            if not track.is_file():
-                missing.append(tr("Missing disc track: {name}", name=track.name))
-    return {"ready": not missing, "errors": missing, "core": str(core) if core else core_name,
-            "firmware": str(system), "executable": executable or ""}
+    if not item.get("noContent"):
+        path = Path(item["path"])
+        try:
+            confined_path(path, item.get("platformRoot", path.parent))
+            if not path.is_file():
+                missing.append(tr("Game source is disconnected"))
+            else:
+                dependencies = content_dependencies(path, item.get("platformRoot", path.parent))
+                missing.extend(tr("Missing disc track: {name}", name=p.name) for p in dependencies if not p.is_file())
+        except (OSError, ValueError) as error:
+            missing.append(error_text(error))
+    try:
+        core = catalog.resolve(item, require_available=False)
+        if not Path(core.path).is_file():
+            raise ValueError(tr("Missing core: {core}", core=core.id))
+        if validate_native and (core.status != "available" or probe_key(core.path) != core.signature):
+            core.signature = probe_key(core.path)
+            catalog.apply_probe(core.id, probe_core(core.path))
+        if core.status != "available":
+            missing.append(tr("Core cannot be loaded: {core} · {reason}", core=core.id,
+                              reason=core.reason or tr("Checking…")))
+        firmware = catalog.firmware_check(core, item["platform"], system)
+        missing.extend(tr("Missing firmware: {name}", name=name) for name in firmware["required"])
+        optional = firmware["optional"]
+        if item.get("noContent") and not core.no_content:
+            missing.append(tr("This core requires content"))
+    except (OSError, ValueError) as error:
+        missing.append(error_text(error))
+    checks = {"ready": not missing, "errors": missing, "core": core.path if core else "",
+              "coreId": core.id if core else "", "coreHash": core.core_hash if core else "",
+              "coreSignature": core.signature if core else "", "optionalFirmware": optional,
+              "savestate": core.savestate if core else False, "firmware": str(system),
+              "executable": executable or "", "noContent": bool(item.get("noContent")),
+              "platform": catalog.canonical(item["platform"]), "content": item.get("path", "")}
+    if validate_native and checks["ready"]:
+        checks["contentHash"] = content_hash(item, cancelled)
+        checks["contentStamps"] = {str(p): [p.stat().st_size, p.stat().st_mtime_ns]
+                                  for p in dependencies + ([Path(item["path"])] if not item.get("noContent") else [])}
+    return checks
 
 
 class SaveStore:
     def __init__(self, root):
         self.root = Path(root)
+        self.sram_root = self.root / "sram"
+
+    def prepare_sram(self):
+        self.sram_root.mkdir(parents=True, exist_ok=True, mode=0o700)
+
+    def inspect(self, slot):
+        name = self.manifest().get(str(slot))
+        if not isinstance(name, str) or not re.fullmatch(r"[0-9a-f]{32}", name):
+            raise ValueError(tr("This save slot is empty"))
+        value = json.loads((self.root / name / "metadata.json").read_text())
+        if not isinstance(value, dict):
+            raise ValueError(tr("The save state is damaged"))
+        return value
 
     def manifest(self):
         try:
@@ -102,7 +145,7 @@ class SaveStore:
                 shutil.copyfile(thumbnail, staging / "thumbnail.png")
             atomic_json(staging / "metadata.json", data)
             os.replace(staging, self.root / name)
-            slots = self.manifest()
+            slots = SaveStore.manifest(self)
             slots[str(slot)] = name
             atomic_json(self.root / "slots.json", slots)
             return data
@@ -124,6 +167,65 @@ class SaveStore:
         if file_hash(path) != metadata.get("sha256"):
             raise ValueError(tr("The save state is damaged"))
         return path, metadata
+
+
+class CoreSaveStore(SaveStore):
+    def __init__(self, game_root, core_id, core_hash, legacy_sram=False):
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", core_id) or not re.fullmatch(r"[0-9a-f]{64}", core_hash):
+            raise ValueError(tr("Invalid core save identity"))
+        self.game_root, self.core_id, self.core_hash = Path(game_root), core_id, core_hash
+        super().__init__(self.game_root / "cores" / core_id / core_hash)
+        self.sram_root = self.root.parent / "sram"
+        self.legacy = SaveStore(game_root)
+        self.legacy_sram = legacy_sram
+
+    def legacy_slots(self):
+        slots = {}
+        for slot, name in self.legacy.manifest().items():
+            try:
+                metadata = self.legacy.inspect(slot)
+                if metadata.get("coreHash") == self.core_hash:
+                    slots[slot] = name
+            except (OSError, ValueError):
+                continue
+        return slots
+
+    def manifest(self):
+        return {**self.legacy_slots(), **super().manifest()}
+
+    def load(self, slot, content_hash, core_hash):
+        if str(slot) not in super().manifest() and str(slot) in self.legacy_slots():
+            path, metadata = self.legacy.load(slot, content_hash, core_hash)
+            self.publish(slot, path, {**metadata, "coreId": self.core_id}, path.parent / "thumbnail.png")
+        return super().load(slot, content_hash, core_hash)
+
+    def inspect(self, slot):
+        if str(slot) not in super().manifest() and str(slot) in self.legacy_slots():
+            return self.legacy.inspect(slot)
+        return super().inspect(slot)
+
+    def prepare_sram(self):
+        old = self.legacy.sram_root
+        if not self.sram_root.exists() and old.is_dir() and not old.is_symlink() and (self.legacy_sram or self.legacy_slots()):
+            self.sram_root.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+            shutil.copytree(old, self.sram_root, symlinks=True,
+                            ignore=lambda directory, names: [n for n in names if (Path(directory) / n).is_symlink()])
+        super().prepare_sram()
+
+
+def latest_save(game_root, slot="auto"):
+    root = Path(game_root)
+    candidates = []
+    for directory in [root, *root.glob("cores/*/*")]:
+        if directory.name == "sram":
+            continue
+        try:
+            store = SaveStore(directory)
+            metadata = store.inspect(slot)
+            candidates.append((float(metadata.get("created", 0)), store, metadata))
+        except (OSError, ValueError, TypeError):
+            continue
+    return max(candidates, key=lambda x: x[0])[1:] if candidates else (None, None)
 
 
 def config_quote(value):
@@ -185,14 +287,15 @@ class RetroEngine(QObject):
         if self.running():
             raise RuntimeError(tr("A game is already running"))
         self.store = save_store
-        core_hash = file_hash(checks["core"])
-        self.metadata = {"contentHash": content_hash(item), "coreHash": core_hash,
-                         "game": item["id"], "core": checks["core"], "coreVersion": core_hash[:16]}
+        core_hash = checks.get("coreHash") or file_hash(checks["core"])
+        self.metadata = {"contentHash": checks.get("contentHash") or content_hash(item), "coreHash": core_hash,
+                         "game": item["id"], "core": checks["core"], "coreId": checks.get("coreId", ""),
+                         "coreVersion": core_hash[:16], "savestate": checks.get("savestate", True)}
         self.runtime = tempfile.TemporaryDirectory(prefix="udeck-game-")
         root = Path(self.runtime.name)
-        sram = save_store.root / "sram"
-        sram.mkdir(parents=True, exist_ok=True, mode=0o700)
-        self.state_path = root / (Path(item["path"]).stem + ".state")
+        save_store.prepare_sram()
+        sram = save_store.sram_root
+        self.state_path = root / ((Path(item.get("path", "")).stem or checks.get("coreId", "core")) + ".state")
         options = {"stdin_cmd_enable": "true", "network_cmd_enable": "false", "config_save_on_exit": "false",
                    "pause_nonactive": "false", "savestate_auto_save": "false", "savestate_auto_load": "false",
                    "savestate_auto_index": "false", "savestate_file_compression": "false",
@@ -219,7 +322,10 @@ class RetroEngine(QObject):
         self.want_pause = False
         self.deadline = time.monotonic() + 20
         self.process.setProgram(checks["executable"])
-        self.process.setArguments(["--verbose", "--appendconfig", str(config), "-L", checks["core"], item["path"]])
+        arguments = ["--verbose", "--appendconfig", str(config), "-L", checks["core"]]
+        if not item.get("noContent"):
+            arguments.append(item["path"])
+        self.process.setArguments(arguments)
         self.process.start()
         self.timer.start()
         self.changed.emit()
@@ -337,6 +443,8 @@ class RetroEngine(QObject):
             self.send("PAUSE_TOGGLE")
 
     def save(self, slot):
+        if not self.metadata.get("savestate", True):
+            raise RuntimeError(tr("This core does not support save states"))
         if self.pending or self.status != "paused":
             raise RuntimeError(tr("Pause the game and wait for the current operation"))
         stat = self.state_path.stat() if self.state_path.exists() else None
@@ -346,6 +454,8 @@ class RetroEngine(QObject):
 
     def load(self, slot):
         try:
+            if not self.metadata.get("savestate", True):
+                raise RuntimeError(tr("This core does not support save states"))
             if self.pending or self.status != "paused":
                 raise RuntimeError(tr("Pause the game and wait for the current operation"))
             path, metadata = self.store.load(slot, self.metadata["contentHash"], self.metadata["coreHash"])
@@ -377,7 +487,11 @@ class RetroEngine(QObject):
             self.runtime.cleanup()
 
 
-class GamesController(AppController):
+class GamesController(GamesSettings, AppController):
+    def create_library(self, app):
+        self.catalog = CoreCatalog.discover(self.store.data["preferences"])
+        return GamesLibrary(self.store, self.catalog, self)
+
     def __init__(self, directory=None, language_path=None):
         super().__init__("games", directory, language_path)
         self.engine = RetroEngine(self)
@@ -393,12 +507,89 @@ class GamesController(AppController):
         self.checks = {}
         self.source_missing = False
         self.reconnect_checked = False
+        self.legacy_source = None
+        self.core_generation, self.launch_generation = 0, 0
+        self.core_cancel = threading.Event()
+        self.core_tasks, self.launch_tasks = {}, {}
+        self.cores_pending = 0
+        self.launching = False
+        self.launch_item = None
+        self.launch_cancel = threading.Event()
+        self.tab = 0 if self.store.data["recent"] else 1
+
+    def start(self):
+        self.refresh_catalog(force=False)
+        super().start()
+
+    def refresh_catalog(self, force=True):
+        self.core_cancel.set()
+        self.core_cancel = threading.Event()
+        self.core_generation += 1
+        cache = {}
+        if not force:
+            try:
+                value = json.loads(self.core_cache_path().read_text())
+                cache = value if isinstance(value, dict) else {}
+            except (OSError, ValueError):
+                pass
+        task = CoreInventoryTask(self.core_generation, copy.deepcopy(self.store.data["preferences"]),
+                                 cache, self.core_cancel)
+        task.signals.discovered.connect(self.catalog_discovered)
+        task.signals.progress.connect(self.core_progress)
+        task.signals.done.connect(self.catalog_finished)
+        self.core_tasks[self.core_generation] = task
+        self.cores_pending = len(self.catalog.cores)
+        QThreadPool.globalInstance().start(task)
+        self.publish()
+
+    def core_cache_path(self):
+        return self.store.path.parent / "game-core-cache.json"
+
+    @Slot(int, object)
+    def catalog_discovered(self, generation, catalog):
+        if generation != self.core_generation:
+            return
+        catalog.preferences = self.store.data["preferences"]
+        self.catalog = self.library.catalog = catalog
+        self.cores_pending = sum(c.status == "unverified" for c in catalog.cores.values())
+        self.update_checks()
+        self.publish()
+
+    @Slot(int, str, object)
+    def core_progress(self, generation, identifier, result):
+        if generation != self.core_generation:
+            return
+        self.catalog.apply_probe(identifier, result)
+        self.cores_pending = sum(c.status == "unverified" for c in self.catalog.cores.values())
+        if self.current and not self.engine.running():
+            self.update_checks()
+        self.refresh_core_menu(identifier)
+        self.publish()
+
+    @Slot(int, object)
+    def catalog_finished(self, generation, cache):
+        self.core_tasks.pop(generation, None)
+        if generation != self.core_generation:
+            return
+        self.cores_pending = 0
+        self.attempt(lambda: atomic_json(self.core_cache_path(), cache))
+        self.library.refresh()
+        self.update_checks()
+        self.refresh_core_menu()
+        self.publish()
+
+    def update_checks(self):
+        if self.current and not self.engine.running():
+            self.checks = preflight(self.current, self.store.data["preferences"],
+                                    catalog=self.catalog, validate_native=False)
 
     def tabs(self):
         return [tr("Recently played"), tr("All platforms"), tr("Favorites")]
 
     def rows(self):
         rows = super().rows()
+        rows = [r for r in rows if (r["sourceId"] == self.legacy_source and r.get("legacy")
+                                   if self.legacy_source else not r.get("legacy"))]
         if self.tab == 0:
             order = self.store.data["recent"]
             rows = [r for r in rows if r["id"] in order]
@@ -406,17 +597,31 @@ class GamesController(AppController):
         elif self.tab == 2:
             rows = [r for r in rows if r["id"] in self.store.data["favorites"]]
         if self.platform != "All":
-            rows = [r for r in rows if r["platform"] == self.platform]
-        return [{**r, "subtitle": r["platform"]} for r in rows]
+            rows = [r for r in rows if self.catalog.canonical(r["platform"]) == self.platform]
+        return [{**r, "subtitle": self.catalog.platforms[self.catalog.canonical(r["platform"])].title
+                 if self.catalog.canonical(r["platform"]) in self.catalog.platforms else r["platform"]} for r in rows]
+
+    def game_root(self):
+        identifier = self.current["id"]
+        if not re.fullmatch(r"[A-Za-z0-9:_-]+", identifier):
+            identifier = hashlib.sha256(identifier.encode()).hexdigest()
+        return self.store.path.parent / "game-saves" / identifier
 
     def save_store(self):
-        return SaveStore(self.store.path.parent / "game-saves" / self.current["id"])
+        if self.engine.running() and self.engine.store:
+            return self.engine.store
+        if re.fullmatch(r"[a-f0-9]{64}", self.checks.get("coreHash", "")):
+            legacy = {"gb": "gambatte", "gba": "mgba", "nes": "nestopia", "snes": "snes9x", "psx": "pcsx_rearmed"}
+            return CoreSaveStore(self.game_root(), self.checks["coreId"], self.checks["coreHash"],
+                                 legacy_sram=legacy.get(self.catalog.canonical(self.current["platform"])) == self.checks["coreId"])
+        return SaveStore(self.game_root())
 
     def open_item(self, identifier):
         if self.engine.running():
             raise RuntimeError(tr("A game is already running"))
         self.current = self.library.require(identifier)
-        self.checks = preflight(self.current, self.store.data["preferences"])
+        self.cancel_launch()
+        self.update_checks()
         self.enter("game-details")
 
     def extra_state(self):
@@ -428,35 +633,163 @@ class GamesController(AppController):
             save_error = tr("Cannot read saves: {error}", error=error)
         return {"platform": self.platform, "gameStatus": self.engine.status,
                 "gameChecks": self.checks, "saveSlots": list(slots),
-                "gameBusy": bool(self.engine.pending), "sourceMissing": self.source_missing,
-                "saveError": save_error}
+                "gameBusy": bool(self.engine.pending) or self.launching, "sourceMissing": self.source_missing,
+                "saveError": save_error, "romRoot": self.library.root_path,
+                "coreCount": len(self.catalog.cores), "coresPending": self.cores_pending,
+                "legacySource": self.legacy_source or "", "scanHints": self.library.reports.get(self.library.root_id, []),
+                "emptyHint": tr("ROM root: {path}\nUse platform folders: gba/ · psp/ · psx/ · dreamcast/",
+                                path=self.library.root_path)}
 
     def start_game(self, resume=False):
-        item = self.library.require(self.current["id"])
-        self.checks = preflight(item, self.store.data["preferences"])
-        if not self.checks["ready"]:
-            raise RuntimeError("\n".join(map(str, self.checks["errors"])))
-        self.engine.start(item, self.checks, self.save_store(), resume)
+        if self.launching or self.engine.running():
+            raise RuntimeError(tr("A game is already starting or running"))
+        item = self.require_current()
+        if resume:
+            _, metadata = latest_save(self.game_root())
+            if metadata:
+                original = metadata.get("coreId") or Path(metadata.get("core", "")).name.removesuffix("_libretro.so")
+                try:
+                    selected = self.catalog.resolve(item)
+                except ValueError:
+                    selected = None
+                saved_core = self.catalog.cores.get(original)
+                if (not selected or selected.id != original or selected.core_hash != metadata.get("coreHash")):
+                    restore = saved_core and saved_core.status == "available" and saved_core.core_hash == metadata.get("coreHash")
+                    self.menu(tr("Resume uses another core"), [
+                        (tr("Restore original core"), (lambda: self.restore_core(original)) if restore else None,
+                         original + " · " + str(metadata.get("coreVersion", ""))),
+                        (tr("Start fresh"), lambda: self.start_game(False)), (tr("Cancel"), self.pop_menu)],
+                        tr("The saved state requires its original core and version. Your saves are kept."))
+                    return
+            else:
+                resume = False
+        self.launch_generation += 1
+        self.launching, self.launch_item, self.launch_resume = True, dict(item), resume
+        self.launch_cancel = threading.Event()
+        task = LaunchTask(self.launch_generation, dict(item), copy.deepcopy(self.store.data["preferences"]),
+                          copy.deepcopy(self.catalog), self.launch_cancel)
+        task.signals.done.connect(self.launch_finished)
+        self.launch_tasks[self.launch_generation] = task
+        QThreadPool.globalInstance().start(task)
         self.clear_menus()
+        self.notice = tr("Preparing game…")
+        self.publish()
+
+    def restore_core(self, identifier):
+        prefs = self.store.data["preferences"]
+        prefs.setdefault("coreEnabled", {})[identifier] = True
+        prefs.setdefault("gameCores", {})[self.current["id"]] = identifier
+        self.persist()
+        self.library.refresh()
+        self.start_game(True)
+
+    @Slot(int, object)
+    def launch_finished(self, generation, checks):
+        self.launch_tasks.pop(generation, None)
+        if generation != self.launch_generation:
+            return
+        self.launching = False
+        self.checks, self.notice = checks, ""
+        if not checks["ready"]:
+            self.error = message_lines(checks["errors"])
+            self.publish()
+            return
+        self.attempt(self.complete_launch)
+        self.publish()
+
+    def complete_launch(self):
+        item = self.require_current()
+        if item["id"] != self.launch_item["id"] or probe_key(self.checks["core"]) != self.checks["coreSignature"]:
+            raise ValueError(tr("The game or core changed. Try again."))
+        for path, stamp in self.checks.get("contentStamps", {}).items():
+            stat = Path(path).stat()
+            if [stat.st_size, stat.st_mtime_ns] != stamp:
+                raise ValueError(tr("The file has changed. Refresh the library before opening it."))
+        saves = self.save_store()
+        if self.launch_resume:
+            if not self.checks["savestate"]:
+                raise ValueError(tr("This core does not support save states"))
+            saves.load("auto", self.checks["contentHash"], self.checks["coreHash"])
+        self.engine.start(item, self.checks, saves, self.launch_resume)
         self.page = "game-running"
         self.game_started = time.monotonic()
         self.source_missing = False
         self.store.remember(item["id"])
         self.persist()
 
+    def cancel_launch(self):
+        self.launch_generation += 1
+        self.launching = False
+        self.launch_cancel.set()
+
+    def require_current(self):
+        if self.current.get("noContent"):
+            return self.current
+        try:
+            return self.library.require(self.current["id"])
+        except OSError:
+            # Keep an already opened detail/resume request after a core switch.
+            # The original source and file identity must still match.
+            source = next((s for s in self.library.sources if s.id == self.current.get("sourceId")), None)
+            if not source or not source.available():
+                raise
+            confined_path(self.current["path"], source.path)
+            path = confined_path(self.current["path"], self.current.get("platformRoot", source.path))
+            stat = path.stat()
+            if [stat.st_size, stat.st_mtime_ns] != self.current["stamp"]:
+                raise
+            return self.current
+
+    def run_core(self, identifier):
+        core = self.catalog.cores[identifier]
+        if self.engine.running():
+            raise RuntimeError(tr("A game is already running"))
+        self.current = {"id": "core:" + identifier, "title": core.name, "coreId": identifier,
+                        "platform": core.platforms[0], "noContent": True, "path": "", "format": "", "sourceId": ""}
+        self.page = "game-details"
+        self.start_game()
+
+    def accept_file_path(self, path):
+        path = Path(path)
+        source = next((s for s in self.library.sources if Path(s.path) in path.parents), None)
+        if not source:
+            raise ValueError(tr("Place this game inside a platform folder under {path}", path=self.library.root_path))
+        if source.id in self.store.data["preferences"].get("platformSources", []):
+            relative = path.relative_to(source.path)
+            platform = self.catalog.platform_for_directory(relative.parts[0]) if len(relative.parts) > 1 else None
+            if not platform or not self.catalog.candidates(platform.id, path.suffix):
+                raise ValueError(tr("No enabled core supports this platform folder and format"))
+            confined_path(path, Path(source.path) / relative.parts[0])
+            if platform.mode in ("manual", "dos"):
+                entries = self.store.data["preferences"].setdefault("engineEntries", [])
+                if str(path) not in entries:
+                    entries.append(str(path))
+                    self.persist()
+                    self.library.refresh()
+        else:
+            from .library import EXTENSIONS
+
+            if path.suffix.lower() not in EXTENSIONS["games"]:
+                raise ValueError(tr("Unsupported file format: {name}", name=path.name))
+
     def pause_menu(self):
         if not self.engine.running():
             return
         self.clear_menus()
         self.present.emit()
-        self.menu(tr("Game paused"), [
+        options = [
             (tr("Resume"), self.resume_game if not self.source_missing else None,
-             tr("Reconnect the source first") if self.source_missing else ""),
+             tr("Reconnect the source first") if self.source_missing else "")]
+        if self.engine.metadata.get("savestate", True):
+            options.extend([
             (tr("Save state"), (lambda: self.slots_menu(False)) if not self.source_missing else None),
             (tr("Load state"), (lambda: self.slots_menu(True)) if not self.source_missing else None),
-            (tr("Controls"), self.controls_menu),
             (tr("Save and return to library"), self.save_exit if not self.source_missing else None),
             (tr("Return without saving"), self.confirm_quit)])
+        else:
+            options.append((tr("Return to library"), self.engine.quit))
+        options.extend([(tr("Controls"), self.controls_menu), (tr("Settings"), self.settings)])
+        self.menu(tr("Game paused"), options)
 
     def resume_game(self):
         if self.source_missing:
@@ -481,7 +814,7 @@ class GamesController(AppController):
                   tr("Loading replaces progress made since the saved state.") if load else "")
 
     def slot_action(self, slot, load):
-        self.library.require(self.current["id"])
+        self.require_current()
         self.pop_menu()
         self.engine.load(slot) if load else self.engine.save(slot)
 
@@ -501,7 +834,7 @@ class GamesController(AppController):
             self.attempt(self.resume_game)
 
     def save_exit(self):
-        self.library.require(self.current["id"])
+        self.require_current()
         self.engine.save("auto")
         self.exit_after_save = True
 
@@ -538,17 +871,24 @@ class GamesController(AppController):
             self.menu(tr("Games actions"), [(tr("Platform filter"), self.platform_menu),
                        (tr("Toggle favorite"), self.toggle_favorite),
                        (tr("Search"), lambda: self.prompt(tr("Search library"), self.search, self.filter)),
-                       (tr("Sources"), self.sources_menu), (tr("Refresh library"), self.refresh)])
+                       (tr("Browse ROM root"), self.show_rom_root),
+                       (tr("Legacy sources"), self.sources_menu), (tr("Refresh library"), self.refresh)],
+                       message_lines(self.library.reports.get(self.library.root_id, [])))
 
     def detail_menu(self):
         self.menu(self.current["title"], [
-            (tr("Continue"), lambda: self.start_game(True) if "auto" in self.save_store().manifest() else self.start_game()),
+            (tr("Continue"), lambda: self.start_game(True)),
             (tr("Restart"), lambda: self.start_game()),
+            (tr("Choose core"), self.choose_game_core),
             (tr("Toggle favorite"), self.toggle_favorite), (tr("Settings"), self.settings)],
-            "\n".join(map(str, self.checks.get("errors", []))))
+            message_lines(self.checks.get("errors", [])))
 
     def platform_menu(self):
-        self.menu(tr("Platform filter"), [(p, lambda p=p: self.set_platform(p)) for p in ("All", *CORES)])
+        platforms = [p for p in self.catalog.platforms.values() if self.catalog.platform_cores(p.id)
+                     or any(self.catalog.canonical(i["platform"]) == p.id for i in self.library.items)]
+        self.menu(tr("Platform filter"), [(tr("All"), lambda: self.set_platform("All"))] +
+                  [(p.title, lambda p=p: self.set_platform(p.id), p.directory + "/")
+                   for p in sorted(platforms, key=lambda p: p.title.casefold())])
 
     def set_platform(self, platform):
         self.platform = platform
@@ -562,23 +902,29 @@ class GamesController(AppController):
             self.persist()
         self.pop_menu()
 
-    def settings_options(self):
-        return [(tr("Core folder"), lambda: self.folder_prompt("coreDirectory", "/usr/lib/aarch64-linux-gnu/libretro")),
-                (tr("Firmware folder"), lambda: self.folder_prompt("firmwareDirectory", str(Path.home() / ".config/retroarch/system")))]
+    def back(self):
+        self.cancel_launch()
+        super().back()
 
-    def folder_prompt(self, key, default):
-        def set_path(path):
-            if not Path(path).expanduser().is_dir():
-                raise ValueError(tr("Folder does not exist"))
-            self.store.data["preferences"][key] = str(Path(path).expanduser().resolve())
-            self.persist()
-            if self.current:
-                self.checks = preflight(self.current, self.store.data["preferences"])
-        self.prompt(tr("Folder path"), set_path, self.store.data["preferences"].get(key, default))
+    @Slot(int)
+    def setTab(self, index):
+        self.cancel_launch()
+        super().setTab(index)
 
     @Slot(str)
     @interaction
     def dispatch(self, action):
+        if self.launching and action == "accept":
+            return
+        if self.menus and self.menus[-1].get("picker") and action == "left":
+            parent = self.menus[-1].get("pickerParent")
+            if parent:
+                self.attempt(parent)
+            self.publish()
+            return
+        if not self.menus and self.page == "library" and action == "accept" and not self.rows():
+            self.settings()
+            return
         if self.engine.running() and not self.menus:
             # Physical B remains a game button; only the dedicated shortcut pauses.
             return
@@ -622,6 +968,9 @@ class GamesController(AppController):
         self.attempt(self.persist)
 
     def close(self):
+        self.cancel_launch()
+        self.core_generation += 1
+        self.core_cancel.set()
         self.engine.close()
         super().close()
 
@@ -637,5 +986,9 @@ class GamesController(AppController):
     def command(self, command):
         if command == "pause-game":
             self.attempt(self.engine.pause)
+        elif command in ("core-management", "rom-library", "rom-root"):
+            self.attempt({"core-management": self.core_management, "rom-library": self.show_rom_root,
+                          "rom-root": self.rom_picker}[command])
         else:
             super().command(command)
+        self.publish()
