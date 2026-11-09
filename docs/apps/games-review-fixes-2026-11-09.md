@@ -55,6 +55,14 @@ wheel 中 **311** 个源码/资源逐项核对一致；两个 arm64 Debian 包�
 | `udeck_0.1.23_arm64.deb` | `39c18e14e378fdd4d07825cc0ccdeda26c59663e0f3c6fd0c729c8ed5b58e49e` |
 | `udeck-apps_0.1.7_arm64.deb` | `d35b1bfaa09fe9177c312afd88645fc1e02751f3afc10be8f6faaee289535d3d` |
 
+## main 与 uConsole 部署
+
+修复提交 `5c68587dd8c17fd02881f83d083ca7ae7b12825e` 已快进合并并推送 main，远端引用独立核对一致。uConsole 安装上述两个 Debian 包后，正常启动器报告 0.1.23、Games 报告 0.1.7、242 个核心、零个待检查核心，实际服务为非 Mock，无 QML 或启动器服务错误。再次核对全部 **278** 个安装资源一致。
+
+部署只重启启动器并重开空闲 Games。Terminal PID 381833、Reader PID 3911312、Video PID 3911863 及被保护的子进程，其 PID 和启动时间均保留。Terminal 包仍为 0.1.5；输入、收藏、最近记录、语言/主题偏好及桌面配置核对保留。没有重启 compositor 或登录会话。
+
+重启启动器期间临时设置 `KillMode=process` 保留应用，完成后恢复 `control-group`。最终没有运行中的 RetroArch。旧版两个安装包及配置备份保留于设备 `~/.local/state/udeck/deployments/games-fixes-5c68587-20261109/`，安装清单、原生报告、失败诊断及实际 Wayland 截图保留在本次任务附件中。
+
 ## 验收边界
 
 本次确认上述原生流程及六项回归，不把已安装核心的 API 加载检查等同于所有平台可玩。实体按键、音频听感、其他核心的游戏兼容性和长时间运行仍需分别验收。
