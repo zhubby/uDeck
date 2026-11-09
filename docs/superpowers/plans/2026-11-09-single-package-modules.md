@@ -7,7 +7,7 @@
 - [x] 合并为一个 arm64 udeck 包；安装时自动设置系统默认终端。
 - [x] 更新 Release 构建、安装器、软件包生命周期检查和文档。
 - [x] 完成原生测试、资源及界面检查、Debian 构建与安装验证。
-- [ ] 审查、提交、合并 main、推送并验证远端 SHA。
+- [x] 审查、提交、合并 main、推送并验证远端 SHA。
 
 发行目标：CM4 v3.1 / Debian 13 Trixie arm64，Python 3.11–3.13，Qt 6.8，labwc >= 0.9。
 GitHub Actions 仅在 release: published 构建；本次不创建 Release。

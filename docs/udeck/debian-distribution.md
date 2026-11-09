@@ -129,4 +129,4 @@ GitHub Actions **只监听 `release: published`**，不监听 push、pull_reques
 
 尚需分别记录原始 v3.1 SD 镜像安装，以及 CM4 的完整登录/退出、1280×720 屏幕方向、ABXY/L/R、中文候选框、真实蓝牙播放、背光、电源、存储卸载和原桌面恢复。容器检查不把这些项目判为通过。
 
-0.2.2 的历史四包验证记录保留在 `debian-release-2026-11-09.md`；0.2.3 单包结果独立记录。
+0.2.2 的历史四包验证记录保留在 `debian-release-2026-11-09.md`；0.2.3 单包结果见[单包发行验证记录](debian-single-package-0.2.3.md)。
