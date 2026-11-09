@@ -1,0 +1,15 @@
+src/udeck/*.py usr/lib/python3/dist-packages/udeck
+src/udeck/qml usr/lib/python3/dist-packages/udeck
+src/udeck/locales usr/lib/python3/dist-packages/udeck
+src/udeck/fonts usr/lib/python3/dist-packages/udeck
+src/udeck/assets usr/lib/python3/dist-packages/udeck
+packaging/bin/udeck usr/bin
+packaging/bin/udeckctl usr/bin
+packaging/bin/udeck-session usr/bin
+packaging/bin/udeck-preflight usr/bin
+packaging/session usr/libexec/udeck
+packaging/labwc usr/share/udeck
+packaging/udeck.desktop usr/share/wayland-sessions
+packaging/io.github.zhubby.uDeck.desktop usr/share/applications
+packaging/udeck.svg usr/share/icons/hicolor/scalable/apps
+packaging/udeck-portals.conf usr/share/xdg-desktop-portal

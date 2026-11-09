@@ -7,6 +7,7 @@ from pathlib import Path
 
 from . import __version__
 from .core import ConfigStore
+from .preflight import collect_report, command
 
 SERVICE = "io.github.zhubby.uDeck"
 OBJECT = "/io/github/zhubby/uDeck"
@@ -24,6 +25,16 @@ def doctor():
               "inputProfileConfigured": bool(profile.get("buttons")),
               "physicalAcceptance": "需要人手验证；设备枚举、映射文件和模拟事件不代表物理验收通过",
               "inputDevices": [], "windowProtocol": False, "runningShell": None}
+    result["system"] = collect_report()
+    if sys.platform == "linux":
+        result["system"]["services"] = {
+            name: command(["systemctl", "is-active", name]) or "inactive-or-unavailable"
+            for name in ("NetworkManager.service", "bluetooth.service", "systemd-logind.service")
+        }
+        result["system"]["userServices"] = {
+            name: command(["systemctl", "--user", "is-active", name]) or "inactive-or-unavailable"
+            for name in ("pipewire.service", "pipewire-pulse.service", "wireplumber.service")
+        }
     if sys.platform == "linux" and libraries["evdev"]:
         from evdev import InputDevice, list_devices
 

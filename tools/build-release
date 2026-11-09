@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+"""Build the complete arm64 Debian suite and matching source in an isolated directory."""
+
+import argparse
+import ast
+import hashlib
+import json
+import os
+import re
+import shutil
+import subprocess
+import tarfile
+import tempfile
+from pathlib import Path
+
+
+def release_version(root, tag=None):
+    module = ast.parse((root / "src/udeck/__init__.py").read_text())
+    version = next(ast.literal_eval(node.value) for node in module.body
+                   if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == "__version__" for target in node.targets))
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        raise ValueError("Release version must use the stable X.Y.Z format")
+    if tag is not None and tag != "v" + version:
+        raise ValueError(f"Release tag must be v{version}; received {tag!r}")
+    first_line = (root / "debian/changelog").read_text().splitlines()[0]
+    if not first_line.startswith(f"udeck ({version}) "):
+        raise ValueError("debian/changelog must match the source release version")
+    return version
+
+
+def sha256sums(directory):
+    lines = [f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.name}\n"
+             for path in sorted(directory.iterdir()) if path.is_file() and path.name != "SHA256SUMS"]
+    (directory / "SHA256SUMS").write_text("".join(lines))
+
+
+def assemble(root, built, output, version):
+    expected = [f"{name}_{version}_{architecture}.deb" for name, architecture in
+                (("udeck-shell", "all"), ("udeck-terminal", "arm64"), ("udeck-apps", "all"), ("udeck", "all"))]
+    expected += [f"udeck_{version}.{suffix}" for suffix in ("dsc", "tar.xz")]
+    expected += [f"udeck_{version}_arm64.{suffix}" for suffix in ("buildinfo", "changes")]
+    output.mkdir(parents=True, exist_ok=True)
+    if any(output.iterdir()):
+        raise ValueError(f"Use an empty output directory to prevent mixing releases: {output}")
+    for name in expected:
+        if not (built / name).is_file():
+            raise ValueError(f"Missing release artifact: {name}")
+        shutil.copy2(built / name, output / name)
+    shutil.copy2(root / "src/udeck/preflight.py", output / "udeck-preflight")
+    (output / "udeck-preflight").chmod(0o755)
+    shutil.copy2(root / "packaging/install-release", output / "install.sh")
+    (output / "install.sh").chmod(0o755)
+    shutil.copy2(root / "docs/udeck/debian-distribution.md", output / "INSTALL.md")
+    shutil.copy2(root / "debian/control", output / "DEPENDENCIES.debian-control")
+    git_arguments = ["git", "-c", f"safe.directory={root}"]
+    git = subprocess.run([*git_arguments, "rev-parse", "HEAD"], cwd=root, text=True, capture_output=True, check=False)
+    revision = git.stdout.strip() if git.returncode == 0 else None
+    dirty = bool(subprocess.check_output([*git_arguments, "status", "--porcelain"], cwd=root, text=True)) if revision else None
+    packages = []
+    for name in expected[:4]:
+        metadata = subprocess.check_output(["dpkg-deb", "--field", str(output / name)], text=True)
+        packages.append({"file": name, "control": metadata,
+                         "sha256": hashlib.sha256((output / name).read_bytes()).hexdigest()})
+    manifest = {"version": version, "gitRevision": revision, "gitDirty": dirty, "architecture": "arm64",
+                "target": "uConsole CM4 v3.1 / Debian 13 (trixie)", "packages": packages,
+                "physicalAcceptance": "Not established by this build; see INSTALL.md"}
+    (output / "build-manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
+    with tempfile.TemporaryDirectory(prefix="udeck-bundle-") as temporary:
+        bundle = Path(temporary) / f"udeck_{version}_arm64"
+        bundle.mkdir()
+        for name in [*expected[:4], "udeck-preflight", "install.sh", "INSTALL.md", "DEPENDENCIES.debian-control", "build-manifest.json"]:
+            shutil.copy2(output / name, bundle / name)
+        sha256sums(bundle)
+        archive = output / (bundle.name + ".tar.xz")
+        with tarfile.open(archive, "w:xz") as stream:
+            stream.add(bundle, arcname=bundle.name)
+    sha256sums(output)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--tag", help="Published release tag, exactly vX.Y.Z")
+    parser.add_argument("--output", type=Path, default=Path("dist/release"))
+    parser.add_argument("--check-version", action="store_true")
+    options = parser.parse_args(argv)
+    root = Path(__file__).resolve().parents[1]
+    version = release_version(root, options.tag)
+    if options.check_version:
+        print(version)
+        return 0
+    if options.output.exists() and any(options.output.iterdir()):
+        raise ValueError(f"Use an empty output directory to prevent mixing releases: {options.output}")
+    if subprocess.check_output(["dpkg", "--print-architecture"], text=True).strip() != "arm64":
+        raise ValueError("Build on Debian arm64; use tools/debian-build.Dockerfile on other hosts")
+    if options.tag and "nocheck" in os.environ.get("DEB_BUILD_OPTIONS", "").split():
+        raise ValueError("Published release builds must run the test suite")
+    with tempfile.TemporaryDirectory(prefix="udeck-release-") as temporary:
+        built = Path(temporary)
+        source = built / f"udeck-{version}"
+        source.mkdir()
+        ignored = shutil.ignore_patterns("__pycache__", "*.pyc", "._*", "*.egg-info", ".pytest_cache", ".ruff_cache")
+        for name in ("src", "vendor", "packaging", "tools", "tests", "debian", "docs", ".github"):
+            shutil.copytree(root / name, source / name, ignore=ignored)
+        for name in ("README.md", "pyproject.toml", "LICENSE"):
+            shutil.copy2(root / name, source / name)
+        subprocess.run(["dpkg-buildpackage", "--build=full", "--no-sign"], cwd=source, check=True)
+        assemble(root, built, options.output.resolve(), version)
+    print(options.output.resolve())
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except (ValueError, OSError, subprocess.CalledProcessError) as error:
+        raise SystemExit(str(error)) from error

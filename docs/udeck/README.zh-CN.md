@@ -2,7 +2,7 @@
 
 ## 运行边界
 
-uDeck 0.1.16 是原生 PySide6 / Qt Quick 桌面壳，不包含 Electron、Chromium 或 HTTP 服务。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。第三方应用兼容层需要独立 uDeck 会话，原桌面中运行壳不会启用。
+uDeck 是原生 PySide6 / Qt Quick 桌面壳，完整套件的浏览器与 EPUB 阅读使用 QtWebEngine。真实后端仅在 Linux 运行；macOS 和开发机使用 `--mock --windowed`。第三方应用兼容层需要独立 uDeck 会话，原桌面中运行壳不会启用。
 
 首次默认英文。在 `Settings → Language` 或 `Y → Language` 选择 `English` / `简体中文`，立即切换并保存。已安装的 Terminal 0.1.4 同步界面语言，保留会话和输出。详见 [中英文界面记录](i18n-2026-11-06.md)。
 
@@ -30,12 +30,12 @@ Qt 6.8 的 Python 开发环境使用 3.11–3.13，不使用系统默认的 Pyth
 
 ## Debian 软件包
 
-构建脚本使用当前 Debian 架构，不做交叉编译。在 arm64 设备的源码目录执行：
+完整发行包名为 `udeck`，严格拉齐 `udeck-shell`、`udeck-terminal`、`udeck-apps`。安装目标、完整依赖、GitHub Release 下载及旧 XFCE 镜像迁移见 [Debian 发行与安装](debian-distribution.md)。在 Debian 13 arm64 源码目录构建：
 
 ```sh
-sh tools/build-deb
-dpkg-deb --info dist/udeck_0.1.16_arm64.deb
-sudo apt-get install ./dist/udeck_0.1.16_arm64.deb
+sudo apt-get build-dep .
+python3 tools/build-release --output dist/release
+sh dist/release/install.sh
 ```
 
 依赖由 Debian 提供，包括 PySide6 Qt 6.8、Qt Quick Controls、dbus-next、evdev、Gio、NetworkManager、BlueZ、PipeWire/WirePlumber、wlr-randr、swayidle/swaylock、wlopm、fcitx5 和 lxpolkit。构建不打包 358 MiB 的硬件资料、虚拟环境或测试缓存。
@@ -159,7 +159,7 @@ sudo lightdm --show-config
 未开启自动登录时，退出 uDeck 后可在登录界面选择原「Raspberry Pi Desktop on Wayland」。已经开启 uDeck 自动登录时，先恢复工具打印的 LightDM 备份，再保存工作并在现场注销或重启；具体命令见 [开机配置记录](boot-2026-11-06.md)。卸载前也必须恢复登录配置，避免默认会话指向已移除的程序：
 
 ```sh
-sudo apt-get remove udeck
+sudo apt-get remove udeck udeck-shell udeck-terminal udeck-apps
 ```
 
 不要附带执行 `autoremove`、删除原桌面配置或删除用户数据。`~/.config/udeck/settings.json` 包含收藏、偏好、焦点和校准结果；卸载后保留，是否清理由用户另行决定。

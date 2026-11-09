@@ -4,7 +4,7 @@ uDeck 是面向 1280×720 横屏 uConsole 的原生 Qt Quick 桌面壳：方向�
 
 基于现有 Debian 13 / labwc / Wayland 添加**独立可选会话**，不刷镜像、不改驱动、不替换合成器。软件包不修改原桌面配置或默认登录项；开机自动进入 uDeck 通过单独授权的配置工具开启。第三方应用使用自身焦点系统，Y 菜单切换按键、指针或原生输入模式。
 
-当前基础包与原生应用包版本：**0.2.1**，独立终端为 **0.1.5**。默认英文与经典主题，可在设置中切换简体中文及黑暗主题；英文界面使用 Saira Semi Condensed，中文界面使用 LXGW WenKai Screen（霞鹜文楷屏幕阅读版）。支持内置与 USB 多无线网卡分别管理，包含第三方应用手柄兼容层。完整兼容层仅在独立 uDeck 会话启用；自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
+当前统一版本：**0.2.2**。`udeck` 安装完整桌面套件，包含 `udeck-shell`、`udeck-terminal`、`udeck-apps`。默认英文与经典主题，可在设置中切换简体中文及黑暗主题；英文界面使用 Saira Semi Condensed，中文界面使用 LXGW WenKai Screen（霞鹜文楷屏幕阅读版）。支持内置与 USB 多无线网卡分别管理，包含第三方应用手柄兼容层。完整兼容层仅在独立 uDeck 会话启用；自动化与窗口化实机验证不等同于物理按键、真实配对或完整登录会话验收。
 
 ## 桌面功能
 
@@ -50,14 +50,16 @@ QT_QPA_PLATFORM=offscreen PYTHONPATH=src .venv/bin/python -m udeck.main \
 
 ## Debian 安装与运行
 
-在 Debian arm64 设备上的源码目录构建、安装：
+以官方 **uConsole CM4 v3.1 / arm64 / Trixie** 为安装目标。从 [GitHub Releases](https://github.com/zhubby/uDeck/releases) 下载套件压缩包、校验并解压后执行：
 
 ```sh
-sh tools/build-deb
-sudo apt-get install ./dist/udeck_0.1.14_arm64.deb
+python3 ./udeck-preflight --json
+sh ./install.sh
 udeck --windowed
 udeckctl doctor --json
 ```
+
+系统依赖由 APT 获取。软件包、依赖清单、旧 XFCE 镜像迁移、标准 Debian 构建及仅在 Release 发布时运行的 GitHub Actions，见 [Debian 发行与安装](docs/udeck/debian-distribution.md)。源码构建入口为 `python3 tools/build-release --output dist/release`。
 
 安装只新增程序、依赖和会话入口；**不会重启显示管理器、切换当前会话或更改自动登录**。完整会话需在现场保存工作后，通过登录界面选择 **uDeck**；原 **Raspberry Pi Desktop on Wayland** 保留。
 

@@ -1,0 +1,9 @@
+src/udeck/terminal usr/lib/python3/dist-packages/udeck
+packaging/bin/udeck-terminal usr/bin
+packaging/bin/udeck-terminal-default usr/bin
+packaging/io.github.zhubby.uDeck.Terminal.desktop usr/share/applications
+packaging/terminal.svg usr/share/icons/hicolor/scalable/apps
+build/terminal-plugin/QMLTermWidget usr/lib/udeck-terminal/qml
+build/terminal-plugin/build-info.json usr/share/udeck-terminal
+packaging/terminal.colorscheme usr/share/udeck-terminal/color-schemes
+packaging/terminal-dark.colorscheme usr/share/udeck-terminal/color-schemes

@@ -1,0 +1,36 @@
+#!/usr/bin/make -f
+
+export PYTHONDONTWRITEBYTECODE = 1
+export QT_QPA_PLATFORM = offscreen
+export QT_QUICK_BACKEND = software
+export QT_QUICK_CONTROLS_STYLE = Basic
+# Tests use isolated generated content; the installed application keeps Chromium's sandbox.
+export QTWEBENGINE_DISABLE_SANDBOX = 1
+export PYTHONPATH = $(CURDIR)/src
+export UDECK_TERMINAL_PLUGIN_PATH = $(CURDIR)/build/terminal-plugin
+export UDECK_REQUIRE_NATIVE = 1
+
+%:
+	dh $@ --with python3 --buildsystem=none
+
+override_dh_auto_build:
+	python3 tools/build-terminal-plugin
+
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	dbus-run-session -- python3 -m pytest -q -o cache_dir=build/pytest-cache
+endif
+
+override_dh_auto_clean:
+	rm -rf build/terminal-plugin build/pytest-cache
+
+override_dh_python3:
+# The private .so is a QML plugin; qmldir requires its original filename.
+	dh_python3 --no-ext-rename
+
+override_dh_missing:
+	dh_missing --fail-missing
+
+override_dh_strip:
+	dh_strip --no-automatic-dbgsym
+	python3 tools/update-terminal-build-info

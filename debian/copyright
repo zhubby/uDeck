@@ -1,0 +1,41 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: uDeck
+Source: https://github.com/zhubby/uDeck
+
+Files: *
+Copyright: 2026 uDeck contributors
+License: GPL-2.0-or-later
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2, or any later version.
+ .
+ On Debian systems see /usr/share/common-licenses/GPL-2.
+
+Files: vendor/qmltermwidget/*
+Copyright: See original source file headers
+License: GPL-2.0-or-later and LGPL-2.0-or-later and BSD-3-clause
+Comment: The matching source archive includes the complete upstream license
+ texts and all source headers. LGPL/BSD notices and patch provenance are
+ also installed in /usr/share/doc/udeck-terminal/.
+
+Files: src/udeck/fonts/* src/udeck/terminal/fonts/*
+Copyright: See individual font notices and manifest.json
+License: OFL-1.1 and MIT and CC-BY-4.0 and Apache-2.0 and Unlicense and Bitstream-Vera and CC-BY-3.0
+Comment: The installed font directories retain original licenses, notices,
+ attribution tables and source/version/hash manifests beside each font.
+ NerdFontsSymbolsOnly-NOTICE.txt identifies the individual icon sets.
+
+Files: src/udeck/assets/input-prompts/* src/udeck/assets/interface-sounds/*
+Copyright: Kenney (www.kenney.nl)
+License: CC0-1.0
+Comment: Original License.txt and provenance manifests are installed with the assets.
+
+Files: src/udeck/assets/file-icons/*
+Copyright: 2020-2026 Paweł Kuna
+License: MIT
+Comment: The complete original LICENSE.txt and provenance manifest are installed with the icons.
+
+Files: src/udeck/apps/reader_web/foliate/*
+Copyright: 2022 John Factotum
+License: MIT
+Comment: The complete original LICENSE is installed with the unmodified upstream reader.

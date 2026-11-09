@@ -4,19 +4,16 @@ uDeck Terminal 是独立的 QApplication / Qt Quick 应用，每个标签拥有�
 
 ## 构建与安装
 
-目标为 Debian 13 arm64、系统 PySide6 / Qt 6.8、labwc。先使用设备系统的 Qt 开发包编译私有插件：
+目标为 Debian 13 arm64、系统 PySide6 / Qt 6.8、labwc。正式包与桌面、应用同步版本，统一构建入口会编译私有插件、运行测试并产生完整套件：
 
 ```sh
-sudo apt-get install --no-install-recommends build-essential qt6-base-dev qt6-declarative-dev libutempter-dev python3-pytest python3-pyside6.qttest
-python3 tools/build-terminal-plugin
-QT_QPA_PLATFORM=offscreen UDECK_REQUIRE_NATIVE=1 PYTHONPATH=src python3 -m pytest -q
-sh tools/build-deb
-python3 tools/build-terminal-deb
-sudo apt-get install ./dist/udeck_0.1.6_arm64.deb ./dist/udeck-terminal_0.1.1_arm64.deb
+sudo apt-get build-dep .
+python3 tools/build-release --output dist/release
+sh dist/release/install.sh
 udeck-terminal
 ```
 
-插件安装在 `/usr/lib/udeck-terminal/qml/QMLTermWidget`，不占用系统公共 QML 模块目录。`udeck-terminal` 0.1.1 包依赖 `udeck >= 0.1.6` 以复用输入基础代码和中英文词条，运行不依赖 uDeck 桌面进程。基础包不拥有 `udeck/terminal`，避免重复文件归属。源码安装的 Python wheel 包含 Python/QML 文件与翻译词条，仍需要单独构建原生插件；wheel 不携带任意平台的二进制。
+插件安装在 `/usr/lib/udeck-terminal/qml/QMLTermWidget`，不占用系统公共 QML 模块目录。`udeck-terminal` 严格依赖同版本的 `udeck-shell` 以复用输入基础代码和中英文词条，运行不依赖 uDeck 桌面进程。桌面壳包不拥有 `udeck/terminal`，避免重复文件归属。源码安装的 Python wheel 包含 Python/QML 文件与翻译词条，仍需要单独构建原生插件；wheel 不携带任意平台的二进制。完整安装与发布说明见 [Debian 发行文档](debian-distribution.md)。
 
 语言跟随 uDeck 的 `Settings → Language` 设置，首次默认英文。已打开的 0.1.1 终端会在一秒内同步切换菜单和提示，不重建 PTY，也不翻译命令、输出、窗口标题或粘贴内容。旧版本中正在运行的终端保留原进程，关闭后再次启动才加载新版本。
 

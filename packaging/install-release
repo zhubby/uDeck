@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+root=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+cd "$root"
+sha256sum --check SHA256SUMS
+python3 ./udeck-preflight --json
+if [ "$(id -u)" -eq 0 ]; then
+    apt-get update
+    apt-get install ./*.deb
+else
+    sudo apt-get update
+    sudo apt-get install ./*.deb
+fi
+printf '%s\n' 'Installed. Select uDeck at the next graphical login; the current session and login defaults were not changed.'

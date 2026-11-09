@@ -2,7 +2,11 @@
 """Build the private QML plugin with the same Qt 6.8 used by PySide6."""
 
 import argparse
+import ast
+import hashlib
+import json
 import os
+import platform
 import shlex
 import shutil
 import subprocess
@@ -27,4 +31,18 @@ subprocess.run([qmake, *flags, str(root / "vendor/qmltermwidget/qmltermwidget.pr
 subprocess.run(["make", f"-j{min(4, os.cpu_count() or 1)}"], cwd=output, check=True)
 shutil.copyfile(root / "packaging/terminal.colorscheme", output / "QMLTermWidget/color-schemes/udeck.colorscheme")
 shutil.copyfile(root / "packaging/terminal-dark.colorscheme", output / "QMLTermWidget/color-schemes/udeck-dark.colorscheme")
+digest = hashlib.sha256()
+for base in (root / "src/udeck", output / "QMLTermWidget"):
+    for source in sorted(base.rglob("*")):
+        if source.is_file() and "__pycache__" not in source.parts and source.suffix != ".pyc":
+            digest.update(str(source.relative_to(base)).encode())
+            digest.update(source.read_bytes())
+module = ast.parse((root / "src/udeck/__init__.py").read_text())
+release_version = next(ast.literal_eval(node.value) for node in module.body
+                       if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == "__version__" for target in node.targets))
+(output / "build-info.json").write_text(json.dumps({
+    "buildId": digest.hexdigest(), "version": release_version, "qtVersion": version,
+    "architecture": platform.machine(),
+    "pluginSha256": hashlib.sha256((output / "QMLTermWidget/libqmltermwidget.so").read_bytes()).hexdigest(),
+}, indent=2) + "\n")
 print(f"Built Qt {version} QML plugin: {output / 'QMLTermWidget'}")

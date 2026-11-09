@@ -1,0 +1,12 @@
+tar-ignore = .git
+tar-ignore = .venv
+tar-ignore = __pycache__
+tar-ignore = *.pyc
+tar-ignore = *.egg-info
+tar-ignore = .pytest_cache
+tar-ignore = .ruff_cache
+tar-ignore = build
+tar-ignore = dist
+tar-ignore = artifacts
+tar-ignore = references
+tar-ignore = docs/uconsole

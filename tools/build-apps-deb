@@ -1,41 +1,5 @@
 #!/bin/sh
+# Compatibility entrypoint: build the matching desktop, terminal and app suite.
 set -eu
-umask 022
-root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-version=$(PYTHONPATH="$root/src" python3 -c 'from udeck.apps import __version__; print(__version__)')
-architecture=$(dpkg --print-architecture)
-output=${1:-"$root/dist"}
-mkdir -p "$output"
-output=$(CDPATH= cd -- "$output" && pwd)
-staging=$(mktemp -d)
-chmod 755 "$staging"
-trap 'rm -rf "$staging"' EXIT HUP INT TERM
-mkdir -p "$staging/DEBIAN" "$staging/usr/bin" "$staging/usr/lib/python3/dist-packages/udeck" "$staging/usr/share/applications" "$staging/usr/share/icons/hicolor/scalable/apps" "$staging/usr/share/doc/udeck-apps"
-cp -R "$root/src/udeck/apps" "$staging/usr/lib/python3/dist-packages/udeck/"
-find "$staging/usr/lib" -type d -name __pycache__ -prune -exec rm -rf '{}' ';'
-cp "$root/packaging/bin/udeck-app" "$root/packaging/bin/udeck-music" "$root/packaging/bin/udeck-video" "$root/packaging/bin/udeck-browser" "$root/packaging/bin/udeck-reader" "$root/packaging/bin/udeck-games" "$staging/usr/bin/"
-chmod 755 "$staging/usr/bin/"*
-cp "$root/packaging/apps/"*.desktop "$staging/usr/share/applications/"
-cp "$root/packaging/apps/"*.svg "$staging/usr/share/icons/hicolor/scalable/apps/"
-cp "$root/docs/apps/README.md" "$staging/usr/share/doc/udeck-apps/README.md"
-cp "$root/docs/apps/games.md" "$staging/usr/share/doc/udeck-apps/games.md"
-cp "$root/src/udeck/apps/reader_web/UPSTREAM.md" "$staging/usr/share/doc/udeck-apps/UPSTREAM.md"
-cp "$root/src/udeck/apps/reader_web/foliate/LICENSE" "$staging/usr/share/doc/udeck-apps/foliate-LICENSE"
-cp "$root/packaging/apps/copyright" "$staging/usr/share/doc/udeck-apps/copyright"
-find "$staging" -type f -name '._*' -delete
-cat > "$staging/DEBIAN/control" <<EOF
-Package: udeck-apps
-Version: $version
-Architecture: $architecture
-Maintainer: uDeck Project
-Section: x11
-Priority: optional
-Depends: udeck (= $version), python3-pyside6.qtwidgets, python3-pyside6.qttest, python3-pyside6.qtmultimedia (>= 6.8), python3-pyside6.qtwebenginequick (>= 6.8), python3-pyside6.qtwebenginecore, python3-pyside6.qtpdf, qml6-module-qtmultimedia, qml6-module-qtwebengine, ffmpeg
-Recommends: retroarch, libretro-gambatte, libretro-mgba, libretro-snes9x
-Description: Native Music, Video, Browser, Reader and Games applications for uDeck
- Independent Qt Quick applications with local libraries, QtMultimedia playback,
- QtWebEngine browsing, QtPdf and EPUB reading, and an external RetroArch frontend.
- No games, commercial media or firmware are included. No default applications,
- user libraries or existing RetroArch configuration are changed.
-EOF
-dpkg-deb --root-owner-group --build "$staging" "$output/udeck-apps_${version}_${architecture}.deb"
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
+exec python3 "$root/tools/build-release" --output "${1:-$root/dist/release}"

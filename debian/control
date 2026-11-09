@@ -1,0 +1,174 @@
+Source: udeck
+Section: x11
+Priority: optional
+Maintainer: uDeck Project <zhubby@users.noreply.github.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-python,
+ python3 (>= 3.11),
+ python3 (<< 3.14),
+ qt6-base-dev (>= 6.8),
+ qt6-base-dev (<< 6.9),
+ qt6-declarative-dev (>= 6.8),
+ qt6-declarative-dev (<< 6.9),
+ libutempter-dev,
+ python3-pytest <!nocheck>,
+ python3-dbus-next,
+ python3-evdev,
+ python3-gi,
+ python3-pyside6.qtquick (>= 6.8),
+ python3-pyside6.qtquick (<< 6.9),
+ python3-pyside6.qtqml,
+ python3-pyside6.qtdbus,
+ python3-pyside6.qtwidgets,
+ python3-pyside6.qtquickcontrols2,
+ python3-pyside6.qtmultimedia,
+ python3-pyside6.qttest,
+ python3-pyside6.qtwebenginequick,
+ python3-pyside6.qtwebenginecore,
+ python3-pyside6.qtpdf,
+ qml6-module-qtquick,
+ qml6-module-qtquick-controls,
+ qml6-module-qtquick-layouts,
+ qml6-module-qtquick-window,
+ qml6-module-qtqml-workerscript,
+ qml6-module-qtquick-templates,
+ qml6-module-qtmultimedia,
+ qml6-module-qtwebengine,
+ qt6-svg-plugins,
+ fonts-noto-cjk,
+ dbus-daemon,
+ xdg-terminal-exec,
+ ffmpeg,
+ ca-certificates,
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+Homepage: https://github.com/zhubby/uDeck
+Vcs-Git: https://github.com/zhubby/uDeck.git
+Vcs-Browser: https://github.com/zhubby/uDeck
+
+Package: udeck-shell
+Architecture: all
+Breaks: udeck (<< 0.2.2)
+Replaces: udeck (<< 0.2.2)
+Depends:
+ ${python3:Depends},
+ ${misc:Depends},
+ python3 (>= 3.11),
+ python3 (<< 3.14),
+ python3-pyside6.qtquick (>= 6.8),
+ python3-pyside6.qtquick (<< 6.9),
+ python3-pyside6.qtqml (>= 6.8),
+ python3-pyside6.qtqml (<< 6.9),
+ python3-pyside6.qtdbus (>= 6.8),
+ python3-pyside6.qtdbus (<< 6.9),
+ python3-pyside6.qtmultimedia (>= 6.8),
+ python3-pyside6.qtmultimedia (<< 6.9),
+ python3-pyside6.qtquickcontrols2 (>= 6.8),
+ python3-pyside6.qtquickcontrols2 (<< 6.9),
+ python3-dbus-next,
+ python3-evdev,
+ python3-gi,
+ qml6-module-qtquick,
+ qml6-module-qtquick-controls,
+ qml6-module-qtquick-layouts,
+ qml6-module-qtquick-window,
+ qml6-module-qtqml-workerscript,
+ qml6-module-qtquick-templates,
+ qt6-svg-plugins,
+ qt6-wayland,
+ labwc (>= 0.9),
+ xwayland,
+ wlr-randr,
+ libwayland-client0,
+ libxkbcommon0,
+ xkb-data,
+ procps,
+ network-manager,
+ wpasupplicant,
+ dnsmasq-base,
+ nftables,
+ bluez,
+ systemd,
+ libpam-systemd,
+ tzdata,
+ pipewire-audio,
+ pulseaudio-utils,
+ libglib2.0-bin,
+ gvfs,
+ udisks2,
+ xdg-utils,
+ shared-mime-info,
+ hicolor-icon-theme,
+ swayidle,
+ swaylock,
+ wlopm,
+ fcitx5,
+ fcitx5-frontend-qt6,
+ fcitx5-pinyin,
+ lxpolkit,
+ dbus-user-session,
+ xdg-desktop-portal-wlr,
+ xdg-desktop-portal-gtk,
+ fonts-noto-cjk,
+ xdg-terminal-exec,
+Recommends: fcitx5-frontend-gtk3, fcitx5-frontend-gtk4, gvfs-backends, gvfs-fuse
+Description: Button-first desktop shell for ClockworkPi uConsole
+ Native Qt Quick shell with application and window management, files,
+ Wi-Fi, hotspots, Bluetooth, audio and power controls. Adds an optional
+ labwc session without changing the existing desktop or login defaults.
+
+Package: udeck-terminal
+Architecture: arm64
+Depends:
+ ${python3:Depends},
+ ${shlibs:Depends},
+ ${misc:Depends},
+ udeck-shell (= ${binary:Version}),
+ python3-pyside6.qtwidgets (>= 6.8),
+ python3-pyside6.qtwidgets (<< 6.9),
+ libutempter0,
+ xdg-terminal-exec,
+Description: Independent native terminal for uDeck
+ Qt Quick terminal with a private QMLTermWidget built against system Qt,
+ local PTYs, multiple windows and tabs, keyboard search and safe paste.
+ Default-terminal changes require separate explicit configuration.
+
+Package: udeck-apps
+Architecture: all
+Depends:
+ ${python3:Depends},
+ ${misc:Depends},
+ udeck-shell (= ${binary:Version}),
+ python3-pyside6.qtwidgets (>= 6.8),
+ python3-pyside6.qtwidgets (<< 6.9),
+ python3-pyside6.qttest (>= 6.8),
+ python3-pyside6.qttest (<< 6.9),
+ python3-pyside6.qtwebenginequick (>= 6.8),
+ python3-pyside6.qtwebenginequick (<< 6.9),
+ python3-pyside6.qtwebenginecore (>= 6.8),
+ python3-pyside6.qtwebenginecore (<< 6.9),
+ python3-pyside6.qtpdf (>= 6.8),
+ python3-pyside6.qtpdf (<< 6.9),
+ qml6-module-qtmultimedia,
+ qml6-module-qtwebengine,
+ ffmpeg,
+ ca-certificates,
+Recommends: retroarch, libretro-gambatte, libretro-mgba, libretro-nestopia
+Suggests: libretro-snes9x
+Description: Native Music, Video, Browser, Reader and Games applications
+ Independent Qt Quick applications with local libraries, QtMultimedia,
+ QtWebEngine, QtPdf, EPUB reading and an external RetroArch frontend.
+ No games, commercial media, BIOS or firmware are included.
+
+Package: udeck
+Architecture: all
+Depends:
+ ${misc:Depends},
+ udeck-shell (= ${binary:Version}),
+ udeck-terminal (= ${binary:Version}),
+ udeck-apps (= ${binary:Version}),
+Description: Complete uDeck desktop suite (metapackage)
+ Installs the uDeck desktop, native terminal and five content applications.
+ Intended for the official uConsole CM4 v3.1 arm64 image with Debian 13
+ and the image's Raspberry Pi software sources.

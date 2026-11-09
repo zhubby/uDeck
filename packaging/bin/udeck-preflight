@@ -1,0 +1,3 @@
+#!/usr/bin/python3
+from udeck.preflight import main
+raise SystemExit(main())

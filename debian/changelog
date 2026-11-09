@@ -1,0 +1,8 @@
+udeck (0.2.2) unstable; urgency=medium
+
+  * Package the complete desktop suite for the official CM4 v3.1 image.
+  * Add standalone compatibility checks and release-only automated builds.
+  * Preserve independent optional sessions and existing user configuration.
+  * Make udeck the complete-suite entrypoint; migrate the shell to udeck-shell.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Mon, 09 Nov 2026 16:00:00 +0800

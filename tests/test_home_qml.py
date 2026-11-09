@@ -2,15 +2,8 @@ import json
 import os
 import subprocess
 import sys
-from pathlib import Path
 
 import pytest
-
-
-def test_shell_package_declares_the_svg_loader_for_home_icons():
-    script = (Path(__file__).resolve().parents[1] / "tools/build-deb").read_text()
-    dependencies = next(line for line in script.splitlines() if line.startswith("Depends:"))
-    assert "qt6-svg-plugins" in [package.strip() for package in dependencies.removeprefix("Depends:").split(",")]
 
 
 @pytest.mark.parametrize("width,height", [(1280, 720), (960, 600)])
