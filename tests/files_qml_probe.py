@@ -183,6 +183,27 @@ assert len(controller.clipboard["paths"]) == len(controller.data["files"])
 position = controller.navigation.index
 QTest.keyClick(window, Qt.Key.Key_J)
 assert controller.navigation.index == position
+for confirm_key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+    controller.file_selection = False
+    controller.file_marked.clear()
+    controller._publish()
+    QTest.keyClick(window, Qt.Key.Key_L, Qt.KeyboardModifier.ControlModifier)
+    QTest.qWait(40)
+    assert controller.modal.get("purpose") == "file-location"
+    destination = "/TMP/ENTERED-FOLDER"
+    QTest.keyClick(window, Qt.Key.Key_A, Qt.KeyboardModifier.ControlModifier)
+    for character in destination:
+        QTest.keyClick(window, ord(character))
+    assert controller.modal["text"] == destination, repr(controller.modal["text"])
+    activated = []
+    original_activate = controller._activate_file
+    controller._activate_file = lambda item, activations=activated: activations.append(item["id"])
+    QTest.keyClick(window, confirm_key)
+    QTest.qWait(60)
+    controller._activate_file = original_activate
+    assert not controller.modal
+    assert controller.data["directory"] == destination
+    assert not activated, "The confirmation key also activated the underlying file"
 assert not errors, errors
 print(json.dumps({"theme": theme, "language": language, "size": [width, height],
                   "count": len(controller.data["files"]), "gridHeight": file_grid.property("height"),

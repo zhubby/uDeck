@@ -517,6 +517,9 @@ Window {
                         background: Rectangle { radius: 8; color: window.colors.input; border.width: 2; border.color: window.accent }
                         onTextEdited: controller.editText(text)
                         onAccepted: controller.dispatch("accept")
+                        Keys.priority: Keys.AfterItem
+                        Keys.onReturnPressed: function(event) { event.accepted = true }
+                        Keys.onEnterPressed: function(event) { event.accepted = true }
                         Keys.onEscapePressed: function(event) { if (!inputMethodComposing) { controller.dispatch("back"); event.accepted = true } }
                     }
 
