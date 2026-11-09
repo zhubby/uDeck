@@ -1,7 +1,7 @@
 # uDeck 0.2.3 单包发行验证
 
 日期：2026-11-09。目标：uConsole CM4 v3.1 / Debian 13 Trixie arm64。
-本记录来自本机 arm64 Debian 容器和 Qt 离屏验证；未安装到官方 SD 镜像或物理 CM4。
+本记录为本机 arm64 Debian 容器和 Qt 离屏构建验证快照，当时未安装到官方 SD 镜像或物理 CM4。随后已完成现有 CM4 的升级，结果见[实机部署记录](debian-device-0.2.3.md)。
 
 ## 实现与交付
 
