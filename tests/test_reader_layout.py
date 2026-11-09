@@ -46,11 +46,23 @@ def test_reader_preferences_accept_supported_layout_values():
     }
 
 
-def test_reader_layout_menu_hides_reflow_controls_for_pdf():
+@pytest.fixture
+def reader_controller(tmp_path):
     pytest.importorskip("PySide6")
+    from PySide6.QtCore import QCoreApplication
+
     from udeck.apps.reader import ReaderController
 
-    controller = object.__new__(ReaderController)
+    application = QCoreApplication.instance() or QCoreApplication([])
+    controller = ReaderController(tmp_path, tmp_path / "settings.json")
+    yield controller
+    controller.current = None  # Layout fixtures do not open an actual document.
+    controller.close()
+    application.processEvents()
+
+
+def test_reader_layout_menu_hides_reflow_controls_for_pdf(reader_controller):
+    controller = reader_controller
     captured = {}
     controller.current = {"format": "PDF"}
     controller.page = "document"
@@ -62,11 +74,8 @@ def test_reader_layout_menu_hides_reflow_controls_for_pdf():
     assert [str(label) for label, _ in captured["options"]] == ["Background"]
 
 
-def test_reader_layout_menu_exposes_reflow_controls_for_epub():
-    pytest.importorskip("PySide6")
-    from udeck.apps.reader import ReaderController
-
-    controller = object.__new__(ReaderController)
+def test_reader_layout_menu_exposes_reflow_controls_for_epub(reader_controller):
+    controller = reader_controller
     captured = {}
     controller.current = {"format": "EPUB"}
     controller.page = "document"
