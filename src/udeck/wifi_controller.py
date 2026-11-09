@@ -1,10 +1,12 @@
 """Wi-Fi menus keep stable device, network and profile identities."""
 
+from .hotspot import HOTSPOT_BUSY
+from .hotspot_controller import HotspotControls
 from .i18n import tr
 from .wifi import network_key, wifi_label, wifi_status
 
 
-class WifiControls:
+class WifiControls(HotspotControls):
     def _wifi_options(self):
         information = self.data["wifi"]
         if not information.get("available"):
@@ -22,13 +24,18 @@ class WifiControls:
         return device
 
     def _wifi_usable(self, device):
-        return self.data["wifi"].get("enabled") and device.get("available") and device.get("managed", True) and device.get("deviceState") not in (10, 20)
+        return (self.data["wifi"].get("enabled") and device.get("available") and device.get("managed", True)
+                and device.get("deviceState") not in (10, 20) and device.get("mode") != "ap"
+                and device.get("hotspot", {}).get("status") not in HOTSPOT_BUSY)
 
     @staticmethod
     def _network_key(network):
         return network.get("key") or network_key(network.get("ssid", network["name"].encode()), network.get("securityId", "open" if not network.get("secured") else "wpa3" if network["security"] == "WPA3" else "wpa2"))
 
     def _wifi_device_options(self, device):
+        if device.get("mode") == "ap" or device.get("hotspot", {}).get("status") in HOTSPOT_BUSY:
+            return [{"id": "hotspot", "label": tr("Manage hotspot"), "action": "hotspot-device", "deviceId": device["id"]},
+                    {"id": "saved", "label": tr('已保存的网络'), "action": "wifi-saved", "deviceId": device["id"]}]
         usable, identifier = self._wifi_usable(device), device["id"]
         scan = device.get("scan", {})
         scan_label = tr("Scanning…") if scan.get("status") == "scanning" else tr('搜索网络')

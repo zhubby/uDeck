@@ -22,11 +22,11 @@ Item {
     readonly property point hoverPosition: hoverSurface && hoverSurface.containsMouse
         ? mapFromItem(hoverSurface, hoverSurface.mouseX, hoverSurface.mouseY) : Qt.point(-1, -1)
     readonly property real pixelRatio: Screen.devicePixelRatio
-    readonly property color activeColor: status === "connecting" ? colors.accent : colors.text
+    readonly property color activeColor: status === "connecting" || kind === "hotspot" ? colors.accent : colors.text
     readonly property color inactiveColor: colors.signalInactive
-    readonly property color markerColor: status === "unavailable" ? colors.error : colors.muted
+    readonly property color markerColor: status === "unavailable" || status === "failed" ? colors.error : colors.muted
     readonly property color baseColor: colors.background
-    readonly property string marker: status === "unavailable" ? "!" : status === "unmanaged" ? "−"
+    readonly property string marker: status === "unavailable" || status === "failed" ? "!" : status === "unmanaged" ? "−"
                                     : status === "connected" && !strengthKnown ? "?" : ""
 
     Accessible.role: Accessible.StaticText
@@ -68,6 +68,40 @@ Item {
                 ctx.lineTo(23, 10)
                 ctx.lineTo(10, 23)
                 ctx.stroke()
+                return
+            }
+            if (root.kind === "hotspot") {
+                const busy = ["starting", "stopping", "restoring"].indexOf(root.status) >= 0
+                ctx.strokeStyle = root.status === "failed" ? root.markerColor
+                    : root.status === "active" || busy ? root.activeColor : root.inactiveColor
+                for (let radius of [7, 13]) {
+                    ctx.beginPath()
+                    ctx.arc(16, 14, radius, -Math.PI / 3, Math.PI / 3)
+                    ctx.stroke()
+                    ctx.beginPath()
+                    ctx.arc(16, 14, radius, 2 * Math.PI / 3, 4 * Math.PI / 3)
+                    ctx.stroke()
+                }
+                ctx.beginPath()
+                ctx.arc(16, 14, 2, 0, 2 * Math.PI)
+                ctx.fillStyle = ctx.strokeStyle
+                ctx.fill()
+                ctx.beginPath()
+                ctx.moveTo(16, 18)
+                ctx.lineTo(16, 25)
+                ctx.stroke()
+                if (busy) {
+                    for (let x of [11, 16, 21]) {
+                        ctx.beginPath()
+                        ctx.arc(x, 29, 1, 0, 2 * Math.PI)
+                        ctx.fill()
+                    }
+                } else if (root.status !== "failed") {
+                    ctx.beginPath()
+                    ctx.moveTo(12, 28)
+                    ctx.lineTo(20, 28)
+                    ctx.stroke()
+                }
                 return
             }
             const connected = root.status === "connected"
@@ -114,7 +148,7 @@ Item {
     }
 
     Text {
-        visible: root.kind === "wifi" && root.marker !== ""
+        visible: root.kind !== "bluetooth" && root.marker !== ""
         x: 8; y: 18; width: 16; height: 15
         text: root.marker
         textFormat: Text.PlainText

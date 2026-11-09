@@ -126,7 +126,8 @@ def test_live_backend_messages_and_password_input_keep_their_ownership(controlle
     assert controller.setLanguage("zh_CN")
     state = snapshot(controller)
     assert state["modal"]["title"] == "Wi-Fi 密码"
-    assert state["modal"]["text"] == "secret{}中文"
+    assert state["modal"]["text"] == ""
+    assert json.loads(controller.viewSnapshotJson)["modal"]["text"] == "secret{}中文"
     assert state["modal"]["key"] == key
     assert state["modal"]["token"] == "wifi-test"
     assert state["modal"]["deviceId"] == "usb"

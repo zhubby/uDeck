@@ -91,6 +91,7 @@ class MockBackend(QObject):
         })
         self._mock_audio = deepcopy(self.state["audio"])
         self.state["wifi"]["epoch"] = "mock-networkmanager"
+        self._mock_hotspot_restore = {}
         self._refresh_mock_wifi()
 
     def start(self):
@@ -118,6 +119,8 @@ class MockBackend(QObject):
             self.state["wifi"]["enabled"] = payload["enabled"]
             if not payload["enabled"]:
                 for device in self.state["wifi"]["devices"]:
+                    device["mode"] = "infrastructure"
+                    device["hotspot"].update(status="off", owned=False, activePath="/", operationId="")
                     device["connected"], device["deviceState"] = "", 30
                     device["strength"] = None
                     device["activeProfile"] = ""
@@ -195,6 +198,12 @@ class MockBackend(QObject):
         from .wifi import network_key
         devices = self.state["wifi"]["devices"]
         for device in devices:
+            device.setdefault("apSupported", True)
+            device.setdefault("mode", "infrastructure")
+            device.setdefault("activeConnection", device.get("activeProfile", "/"))
+            device.setdefault("hotspot", {"configured": False, "ssid": "uDeck-" + device["interface"],
+                              "profileUuid": "", "revision": "", "status": "off", "owned": False,
+                              "activePath": "/", "operationId": "", "message": ""})
             device.setdefault("scan", {})
             device.setdefault("operation", {})
             device.setdefault("addresses", {"ip": [], "gateway": [], "dns": []})
@@ -219,6 +228,9 @@ class MockBackend(QObject):
         device = next((entry for entry in self.state["wifi"]["devices"] if entry["id"] == payload.get("deviceId")), None)
         if device is None:
             raise RuntimeError(tr('目标无线网卡已移除'))
+        if action.startswith("wifi_hotspot_"):
+            self._mock_hotspot_action(action, payload, device)
+            return
         profile = next((p for p in device["saved"] if p.get("uuid") == payload.get("profileUuid") or p["id"] == payload.get("id")), None)
         if action in ("wifi_forget", "wifi_update_password", "wifi_set_autoconnect"):
             if not profile or profile.get("revision") != payload.get("revision"):
@@ -275,6 +287,42 @@ class MockBackend(QObject):
 
     def reply(self, token, value):
         pass
+
+    def _mock_hotspot_action(self, action, payload, device):
+        from .hotspot import validate_hotspot_name
+        from .wifi_backend import validate_wifi_password
+        hotspot = device["hotspot"]
+        if payload.get("wifiEpoch", self.state["wifi"]["epoch"]) != self.state["wifi"]["epoch"]:
+            raise RuntimeError(tr("The Wi-Fi service restarted. Reopen the adapter and try again."))
+        if action == "wifi_hotspot_configure":
+            validate_hotspot_name(payload["ssid"])
+            if "password" in payload:
+                validate_wifi_password(payload["password"], "WPA2")
+            if hotspot["status"] == "active" or payload.get("revision", "") != hotspot["revision"]:
+                raise RuntimeError(tr("The hotspot configuration changed. Reopen it and try again."))
+            if not hotspot["configured"] and "password" not in payload:
+                raise ValueError(tr("Set a password before starting this hotspot"))
+            hotspot.update(configured=True, ssid=payload["ssid"], revision=uuid.uuid4().hex,
+                           profileUuid="mock-hotspot:" + device["id"])
+        elif action == "wifi_hotspot_start":
+            if not hotspot["configured"] or payload.get("revision") != hotspot["revision"]:
+                raise RuntimeError(tr("The hotspot configuration changed. Reopen it and try again."))
+            self._mock_hotspot_restore[device["id"]] = {key: device.get(key) for key in ("connected", "strength", "activeProfile", "deviceState", "activeConnection")}
+            active = "mock-hotspot:" + uuid.uuid4().hex
+            device.update(mode="ap", connected="", strength=None, activeProfile="", deviceState=100, activeConnection=active)
+            hotspot.update(status="active", owned=True, activePath=active, operationId=uuid.uuid4().hex, activeSsid=hotspot["ssid"])
+            device["addresses"] = {"ip": ["10.42.0.1/24"], "gateway": [], "dns": []}
+            for network in device["networks"]:
+                network["connected"] = False
+        elif action == "wifi_hotspot_stop":
+            if hotspot["operationId"] != payload.get("operationId") or hotspot["activePath"] != payload.get("activePath"):
+                raise RuntimeError(tr("The hotspot connection changed; reopen it and try again"))
+            device.update(self._mock_hotspot_restore.pop(device["id"], {}))
+            device["mode"] = "infrastructure"
+            device["addresses"] = {"ip": [], "gateway": [], "dns": []}
+            hotspot.update(status="off", owned=False, activePath="/", operationId="", activeSsid="")
+            for network in device["networks"]:
+                network["connected"] = network["name"] == device.get("connected")
 
     def close(self):
         pass

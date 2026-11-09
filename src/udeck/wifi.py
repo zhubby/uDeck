@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from .hotspot import HOTSPOT_BUSY, hotspot_status
 from .i18n import tr
 
 
@@ -29,6 +30,9 @@ def wifi_status(device, enabled=True):
         return tr('未由系统管理')
     if device.get("error"):
         return device["error"]
+    if device.get("mode") == "ap" or device.get("hotspot", {}).get("status") in HOTSPOT_BUSY:
+        hotspot = device.get("hotspot", {})
+        return hotspot_status(hotspot) + " · " + (hotspot.get("activeSsid") or hotspot.get("ssid", ""))
     if device.get("connected"):
         return tr('已连接 · ') + device["connected"]
     state = device.get("deviceState", 0)
@@ -49,7 +53,7 @@ def wifi_summary(information):
         return tr('Wi-Fi 已关闭') if len(devices) == 1 else tr('{value0} 张网卡 · Wi-Fi 已关闭', value0=len(devices))
     if len(devices) == 1:
         return wifi_status(devices[0])
-    connected = sum(bool(device.get("connected")) or device.get("deviceState") == 100 for device in devices)
+    connected = sum(device.get("mode") != "ap" and (bool(device.get("connected")) or device.get("deviceState") == 100) for device in devices)
     return tr('{value0} 张网卡 · {value1} 已连接', value0=len(devices), value1=connected)
 
 
@@ -61,25 +65,36 @@ def wifi_indicators(information):
     enabled = information.get("enabled", False)
     for device in devices:
         state = device.get("deviceState", 0)
+        hotspot = device.get("hotspot", {})
+        kind = "hotspot" if (device.get("mode") == "ap" or hotspot.get("status") in HOTSPOT_BUSY
+                             or hotspot.get("status") == "failed" and state != 100) else "wifi"
         if not enabled:
             status = "off"
         elif not device.get("managed", True):
             status = "unmanaged"
+        elif kind == "hotspot" and hotspot.get("status") == "failed":
+            status = "failed"
         elif not device.get("available", False) or device.get("error") or state in (0, 10, 20, 120):
             status = "unavailable"
+        elif kind == "hotspot":
+            status = hotspot.get("status", "active" if state == 100 else "starting")
         elif state == 100:
             status = "connected"
         elif 40 <= state < 100:
             status = "connecting"
         else:
             status = "disconnected"
-        strength = device.get("strength") if status == "connected" else None
+        strength = device.get("strength") if status == "connected" and kind == "wifi" else None
         if strength is not None:
             strength = max(0, min(100, int(strength)))
-        label = wifi_label(device) + "\n" + wifi_status(device, enabled)
+        description = (hotspot_status(hotspot) + " · " + (hotspot.get("activeSsid") or hotspot.get("ssid", ""))
+                       if kind == "hotspot" else wifi_status(device, enabled))
+        label = wifi_label(device) + "\n" + description
         if status == "connected":
             label += "\n" + (tr('信号强度：{strength}%', strength=strength) if strength is not None else tr('信号强度暂不可用'))
-        indicators.append({"id": device["id"], "status": status, "strength": strength,
+        if kind == "hotspot" and hotspot.get("message"):
+            label += "\n" + hotspot["message"]
+        indicators.append({"id": device["id"], "kind": kind, "status": status, "strength": strength,
                            "level": (strength + 24) // 25 if strength is not None else 0, "label": label})
     return indicators
 

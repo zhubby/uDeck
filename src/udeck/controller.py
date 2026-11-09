@@ -15,6 +15,7 @@ from .desktop import DesktopCatalog, open_terminal
 from .file_controller import FileControls
 from .files import FileOperations, file_kind, validate_name
 from .home import home_shortcuts
+from .hotspot import hotspot_summary, validate_hotspot_name
 from .i18n import LANGUAGES, error_text, render, tr
 from .key_test import KeyTestControls
 from .mock import mock_apps
@@ -125,6 +126,7 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
             {"id": "output", "name": tr('音频输出'), "subtitle": next((output["name"] for output in audio.get("outputs", []) if output.get("active")), tr('未检测到音频输出')), "icon": "audio-card", "disabled": not audio.get("available")},
             {"id": "microphone", "name": tr("Microphone input"), "subtitle": microphone.get("name", tr("No microphone detected")), "icon": "audio-input-microphone", "disabled": not audio.get("available")},
             {"id": "wifi", "name": "Wi-Fi", "subtitle": wifi_summary(wifi), "icon": "network-wireless", "disabled": not wifi.get("available")},
+            {"id": "hotspot", "name": tr("Hotspot"), "subtitle": hotspot_summary(wifi), "icon": "network-wireless", "disabled": not wifi.get("available")},
             {"id": "bluetooth", "name": tr('蓝牙'), "subtitle": tr('已开启') if bluetooth.get("powered") else tr('已关闭'), "icon": "bluetooth", "disabled": not bluetooth.get("available")},
             {"id": "battery", "name": tr('电池'), "subtitle": battery_summary(battery), "icon": "battery"},
             {"id": "input", "name": tr('按键与控制器'), "subtitle": tr('ABXY 已校准') if self.data["input"].get("verified") else (tr('ABXY 固件映射 · 可重新校准') if self.data["input"].get("mapped") else tr('校准物理 ABXY；不占用普通键盘字母')), "icon": "input-gaming"},
@@ -164,6 +166,9 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
     def _snapshot(self, compact=False):
         items = self._items()
         selected = max(0, min(self.navigation.index, len(items) - 1))
+        modal = {key: value for key, value in self.modal.items() if not compact or key not in ("items", "option")}
+        if not compact and modal.get("secret"):
+            modal["text"] = ""
         titles = {"home": tr('从这里开始'), "apps": CATEGORY_NAMES[self.category], "windows": tr('正在运行'), "files": tr("Trash") if self.data["directory"] == "trash:///" else Path(self.data["directory"]).name or "/", "settings": tr('设备设置')}
         descriptions = {"home": tr('Choose a destination with Left / Right'), "apps": tr('{value0} 个应用', value0=len(items)) + (tr(' · 搜索：{value0}', value0=self.query) if self.query else tr(' · X 筛选与操作')), "windows": tr('选择一个窗口，继续工作'), "files": self.data["directory"], "settings": tr('常用控制，直接完成')}
         return json.dumps(render({
@@ -176,7 +181,7 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
             "title": titles[self.navigation.page], "description": descriptions[self.navigation.page],
             "index": selected, "zone": self.navigation.zone, "items": [] if compact and self.navigation.page == "files" else items,
             "fileState": self._file_state(),
-            "modal": {key: value for key, value in self.modal.items() if not compact or key not in ("items", "option")},
+            "modal": modal,
             "toast": self.toast, "busy": self.busy,
             "busyLabel": self.busy_label, "favorites": self.config.data["favorites"],
             "clipboard": bool(self.clipboard), "pending": list(self.pending_system), "wifiSummary": wifi_summary(self.data["wifi"]),
@@ -215,7 +220,7 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
         return True
 
     def _quick_options(self):
-        controls = {"volume", "brightness", "output", "microphone", "wifi", "bluetooth", "battery", "input", "key-test", "language", "theme", "timezone", "ui-sounds"}
+        controls = {"volume", "brightness", "output", "microphone", "wifi", "hotspot", "bluetooth", "battery", "input", "key-test", "language", "theme", "timezone", "ui-sounds"}
         return [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"],
                  "disabled": entry.get("disabled", False)} for entry in self._settings() if entry["id"] in controls] + [
             {"label": tr('电源与会话'), "action": "power-menu"}, {"label": tr('运行中应用'), "action": "switcher"}]
@@ -313,6 +318,11 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
                   and not any(profile.get("uuid") == self._modals[index]["profileUuid"] for profile in devices[device_id].get("saved", []))):
                 self._remove_modal(index, reject=True)
                 removed = True
+            elif (device_id and "hotspotRevision" in self._modals[index] and
+                  (self._modals[index]["hotspotRevision"] != devices[device_id].get("hotspot", {}).get("revision", "")
+                   or devices[device_id].get("mode") == "ap")):
+                self._remove_modal(index, reject=True)
+                removed = True
             elif ((self._modals[index].get("cardId") and self._modals[index]["cardId"] not in cards)
                   or (self._modals[index].get("audioInputId") and self._modals[index]["audioInputId"] not in inputs)):
                 self._remove_modal(index, reject=True)
@@ -327,6 +337,11 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
             if source == "wifi":
                 options = self._wifi_options()
                 modal["body"] = wifi_summary(self.data["wifi"])
+            elif source == "hotspot":
+                options = self._hotspot_options()
+                modal["body"] = hotspot_summary(self.data["wifi"])
+            elif source == "hotspot-device":
+                options = self._hotspot_device_options(devices[modal["deviceId"]])
             elif source in ("wifi-device", "wifi-saved"):
                 device = devices[modal["deviceId"]]
                 options = self._wifi_device_options(device) if source == "wifi-device" else self._wifi_saved_options(device)
@@ -399,9 +414,11 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
             self.notify(tr("Auto-join preference saved"))
         elif action == "wifi_forget":
             self.notify(tr("Saved configuration forgotten"))
+        elif action == "wifi_hotspot_configure":
+            self.notify(tr("Hotspot configuration saved. Turn it on when ready."))
         elif action == "timezone_set":
             self.notify(tr("Time zone updated") if not self.mock else tr("Preview time zone updated"))
-        elif action not in ("refresh", "bluetooth_stop", "wifi_connect", "wifi_connect_saved", "wifi_reconnect", "wifi_scan", "wifi_cancel_connect"):
+        elif action not in ("refresh", "bluetooth_stop", "wifi_connect", "wifi_connect_saved", "wifi_reconnect", "wifi_scan", "wifi_cancel_connect", "wifi_hotspot_start", "wifi_hotspot_stop"):
             self.notify(tr('预览操作已模拟，未操作真实设备') if self.mock else tr('请求已处理；连接结果以设备状态为准'))
         self._publish()
 
@@ -627,6 +644,8 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
         elif identifier == "wifi":
             self._menu(tr('Wi-Fi 网卡'), self._wifi_options(), source="wifi", body=wifi_summary(self.data["wifi"]),
                        index=1 if self.data["wifi"].get("devices") else 0)
+        elif identifier == "hotspot":
+            self._menu(tr("Hotspot adapters"), self._hotspot_options(), source="hotspot", body=hotspot_summary(self.data["wifi"]))
         elif identifier == "bluetooth":
             self._menu(tr('蓝牙'), self._bluetooth_options(), source="bluetooth")
         elif identifier in ("poweroff", "reboot", "logout"):
@@ -795,8 +814,8 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
                     self.feedback("error")
                     self.notify(option.get("reason") or tr('此项目当前不可用'))
                     return
-                keep_parent = modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds")
-                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
+                keep_parent = modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot")
+                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "hotspot", "hotspot-device", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
                     self._pop()
                 self._execute_option(option)
         elif kind == "confirm":
@@ -820,6 +839,14 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
             self.feedback("toggle-on" if modal["reveal"] else "toggle-off")
         elif kind == "text" and action == "accept":
             self.feedback("accept")
+            if modal.get("purpose") == "hotspot-name":
+                try:
+                    validate_hotspot_name(self._text)
+                except ValueError as error:
+                    modal["error"] = error_text(error)
+                    self.feedback("error")
+                    self._publish()
+                    return
             if modal.get("wifiSecurity"):
                 from .wifi_backend import validate_wifi_password
                 try:
@@ -964,6 +991,8 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
                 self.data["files"] = [entry for entry in self.data["files"] if entry["id"] != item["id"]]
             else:
                 self._run(tr('移入回收站'), lambda: self.operations.trash(item["path"]), lambda result: self._browse(self.data["directory"]))
+        elif action.startswith("hotspot-"):
+            self._apply_hotspot_option(option)
         elif action.startswith("wifi-"):
             self._apply_wifi_option(option)
         elif action == "device":
@@ -1001,6 +1030,8 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
             self.backend.reply(modal["token"], text)
         elif modal.get("purpose") == "wifi-password":
             self._system("wifi_update_password", {**modal["payload"], "password": text})
+        elif modal.get("purpose") in ("hotspot-name", "hotspot-password"):
+            self._submit_hotspot_text(modal, text)
         elif modal["purpose"] == "search":
             self.query = text.strip()
             self.navigation.select(0)

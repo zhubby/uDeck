@@ -10,6 +10,7 @@ from copy import deepcopy
 
 from dbus_next import DBusError, Variant
 
+from .hotspot_backend import HotspotBackend
 from .i18n import error_text, tr
 from .wifi import (
     network_key,
@@ -48,8 +49,9 @@ def validate_wifi_password(password, security):
 
 
 
-class WifiBackend:
+class WifiBackend(HotspotBackend):
     def _init_wifi(self):
+        self._init_hotspots()
         self.wifi_profile_devices = {}
         self.wifi_settings = {}
         self.wifi_operations = {}
@@ -59,6 +61,7 @@ class WifiBackend:
         self.wifi_disconnect_timeout = 10
 
     def _reset_wifi(self):
+        self._clear_hotspots()
         self.cancel_prompts("network")
         if self.wifi_monitor and not self.wifi_monitor.done():
             self.wifi_monitor.cancel()
@@ -107,6 +110,10 @@ class WifiBackend:
                 self.cancel_prompts("network", device_id=device_id)
             self.wifi_profile_devices = {profile: device for profile, device in self.wifi_profile_devices.items() if device in present}
             for removed_id in previous.keys() - present:
+                task = self.hotspot_tasks.pop(removed_id, None)
+                if task:
+                    task.cancel()
+                self.hotspot_operations.pop(removed_id, None)
                 self.wifi_operations.pop(removed_id, None)
                 self.wifi_scans.pop(removed_id, None)
             if not enabled:
@@ -148,6 +155,9 @@ class WifiBackend:
             result["addresses"] = await self._wifi_addresses(device)
             result["saved"] = profiles
             wireless = await self.properties(NM, path, NM + ".Device.Wireless")
+            result.update(mode="ap" if wireless.get("Mode") == 3 else "infrastructure",
+                          apSupported=wireless.get("WirelessCapabilities", 0) & 0x68 == 0x68,
+                          hotspot=await self._read_hotspot(path, device, wireless))
             networks = {}
             active_ap = wireless.get("ActiveAccessPoint", "/")
             access_points = list(wireless.get("AccessPoints", []))
@@ -183,7 +193,9 @@ class WifiBackend:
             result.update({"available": True, "networks": entries,
                            "connected": next((entry["name"] for entry in entries if entry["connected"]), ""),
                            "connecting": next((entry["name"] for entry in entries if entry["connecting"]), ""), "error": failure})
-            if device_state == 100 and not result["connected"] and usage is not None:
+            if result["mode"] == "ap":
+                result.update(connected="", connecting="", strength=None, networks=[])
+            if result["mode"] != "ap" and device_state == 100 and not result["connected"] and usage is not None:
                 profile = next((profile for profile in saved if path in usage.get(profile["id"], set())), None)
                 if profile:
                     result["connected"] = bytes(profile["ssid"]).decode("utf-8", errors="replace")
@@ -237,7 +249,12 @@ class WifiBackend:
 
     @staticmethod
     def _wifi_revision(settings, version=None):
-        return hashlib.sha256(json.dumps([unwrap(settings), version], sort_keys=True,
+        configuration = unwrap(settings)
+        # GetSettings includes NM's runtime history even when VersionId is unchanged.
+        # It must not invalidate restoration or edits to the saved configuration.
+        configuration.get("connection", {}).pop("timestamp", None)
+        configuration.get("802-11-wireless", {}).pop("seen-bssids", None)
+        return hashlib.sha256(json.dumps([configuration, version], sort_keys=True,
                                          default=lambda value: list(value)).encode()).hexdigest()
 
     async def _wifi_profile_version(self, path):
@@ -252,6 +269,7 @@ class WifiBackend:
 
     async def _saved_wifi(self):
         profiles, snapshots = [], {}
+        hotspots = {}
         connections = (await self.call(NM, NM_ROOT + "/Settings", NM + ".Settings", "ListConnections"))[0]
         for path in connections:
             try:
@@ -261,6 +279,9 @@ class WifiBackend:
                     continue  # A refresh will read a consistent snapshot after Updated.
                 settings = unwrap(raw)
                 wireless = settings.get("802-11-wireless")
+                if wireless and wireless.get("mode") == "ap":
+                    self._remember_hotspot_profile(path, raw, version)
+                    hotspots[path] = self.hotspot_profiles[path]
                 if not wireless or wireless.get("mode", "infrastructure") != "infrastructure":
                     continue
                 connection = settings.get("connection", {})
@@ -278,6 +299,7 @@ class WifiBackend:
             except Exception:
                 continue
         self.wifi_settings = snapshots
+        self.hotspot_profiles = hotspots
         return profiles
 
     async def _wifi_addresses(self, device):
@@ -497,9 +519,13 @@ class WifiBackend:
         previous_operation = self.wifi_operations.get(device_id)
         try:
             self._check_wifi_epoch(epoch)
-            if action == "wifi_power":
+            if action.startswith("wifi_hotspot_"):
+                await self._execute_hotspot(action, payload)
+            elif action == "wifi_power":
                 await self.set_property(NM, NM_ROOT, NM, "WirelessEnabled", "b", bool(payload["enabled"]))
                 if not payload["enabled"]:
+                    self._clear_hotspots()
+                    self.hotspot_operations.clear()
                     self.cancel_prompts("network")
                     for operation in self.wifi_operations.values():
                         if operation["status"] in ("preparing", "connecting"):
@@ -507,6 +533,8 @@ class WifiBackend:
             elif action == "wifi_scan":
                 await self._require_wifi_device(device_id)
                 wireless = await self.properties(NM, device_id, NM + ".Device.Wireless")
+                if wireless.get("Mode") == 3 or self.hotspot_operations.get(device_id, {}).get("status") in ("starting", "stopping", "restoring"):
+                    raise RuntimeError(tr("Turn off the hotspot before using Wi-Fi on this adapter"))
                 self._check_wifi_epoch(epoch)
                 if self.wifi_scans.get(device_id, {}).get("status") == "scanning":
                     raise RuntimeError(tr("This adapter is already scanning"))
@@ -520,6 +548,9 @@ class WifiBackend:
                 self._monitor_wifi()
             elif action == "wifi_disconnect":
                 await self._require_wifi_device(device_id)
+                wireless = await self.properties(NM, device_id, NM + ".Device.Wireless")
+                if wireless.get("Mode") == 3 or self.hotspot_operations.get(device_id, {}).get("status") in ("starting", "stopping", "restoring"):
+                    raise RuntimeError(tr("Turn off the hotspot before using Wi-Fi on this adapter"))
                 self._check_wifi_epoch(epoch)
                 await self.call(NM, device_id, NM + ".Device", "Disconnect")
                 self.cancel_prompts("network", device_id=device_id)
@@ -542,6 +573,9 @@ class WifiBackend:
             elif action in ("wifi_connect", "wifi_connect_saved", "wifi_reconnect"):
                 await self.refresh_wifi()
                 self._check_wifi_epoch(epoch)
+                selected = next((d for d in self.state["wifi"]["devices"] if d["id"] == device_id), {})
+                if selected.get("mode") == "ap" or selected.get("hotspot", {}).get("status") in ("starting", "stopping", "restoring"):
+                    raise RuntimeError(tr("Turn off the hotspot before using Wi-Fi on this adapter"))
                 if action == "wifi_connect":
                     await self._wifi_connect(device_id, payload.get("networkKey") or payload.get("id"))
                 else:

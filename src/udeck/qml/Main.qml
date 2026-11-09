@@ -188,6 +188,7 @@ Window {
                             width: 32; height: 32
                             colors: window.colors; fontFamily: window.fontFamily
                             hoverSurface: navigationPointer
+                            kind: modelData.kind || "wifi"
                             deviceId: modelData.id
                             status: modelData.status
                             signalLevel: modelData.level
