@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "udeck"
-version = "0.1.23"
+dynamic = ["version"]
 description = "A button-first desktop shell for ClockworkPi uConsole"
 requires-python = ">=3.11,<3.14"
 dependencies = [
@@ -27,6 +27,9 @@ udeck-video = "udeck.apps.main:video"
 udeck-browser = "udeck.apps.main:browser"
 udeck-reader = "udeck.apps.main:reader"
 udeck-games = "udeck.apps.main:games"
+
+[tool.setuptools.dynamic]
+version = {attr = "udeck.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]

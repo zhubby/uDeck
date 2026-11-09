@@ -1,7 +1,9 @@
 # uDeck native applications
 
 Music, Video, Browser, Reader and Games are independent PySide6/Qt Quick processes.
-Install `udeck >= 0.1.23` and the optional `udeck-apps >= 0.1.7` Debian package. Each app has a
+Install `udeck 0.2.0` and the optional `udeck-apps 0.2.0` Debian package. The shell and
+application suite share `udeck.__version__`; their Debian packages require matching
+versions and are upgraded together. Each app has a
 desktop entry and `udeck-{music,video,browser,reader,games}` launcher. Installation
 does not change default applications or move user files.
 

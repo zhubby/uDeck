@@ -1,6 +1,6 @@
 # Games：目录、核心与存档
 
-适用于 uDeck 0.1.23、udeck-apps 0.1.7。
+适用于 uDeck 0.2.0、udeck-apps 0.2.0。两者采用统一版本，Debian 包需配套升级。
 
 ## 放置游戏
 
