@@ -1073,5 +1073,7 @@
   "{count} hotspots on": "{count} hotspots on",
   "The previous Wi-Fi configuration was removed; reconnect manually": "The previous Wi-Fi configuration was removed; reconnect manually",
   "Cannot confirm exclusive use of the previous Wi-Fi configuration; reconnect manually": "Cannot confirm exclusive use of the previous Wi-Fi configuration; reconnect manually",
-  "The previous Wi-Fi configuration is in use by another adapter; reconnect manually": "The previous Wi-Fi configuration is in use by another adapter; reconnect manually"
+  "The previous Wi-Fi configuration is in use by another adapter; reconnect manually": "The previous Wi-Fi configuration is in use by another adapter; reconnect manually",
+  "Emulator": "Emulator",
+  "Emulator actions": "Emulator actions"
 }

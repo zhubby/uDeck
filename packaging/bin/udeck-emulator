@@ -1,0 +1,4 @@
+#!/usr/bin/python3
+from udeck.apps.main import emulator
+
+raise SystemExit(emulator())

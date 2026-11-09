@@ -16,7 +16,7 @@ Copyright: See original source file headers
 License: GPL-2.0-or-later and LGPL-2.0-or-later and BSD-3-clause
 Comment: The matching source archive includes the complete upstream license
  texts and all source headers. LGPL/BSD notices and patch provenance are
- also installed in /usr/share/doc/udeck-terminal/.
+ also installed in /usr/share/doc/udeck/.
 
 Files: src/udeck/fonts/* src/udeck/terminal/fonts/*
 Copyright: See individual font notices and manifest.json
@@ -35,7 +35,7 @@ Copyright: 2020-2026 Paweł Kuna
 License: MIT
 Comment: The complete original LICENSE.txt and provenance manifest are installed with the icons.
 
-Files: src/udeck/apps/reader_web/foliate/*
+Files: src/udeck/apps/reader/web/foliate/*
 Copyright: 2022 John Factotum
 License: MIT
 Comment: The complete original LICENSE is installed with the unmodified upstream reader.

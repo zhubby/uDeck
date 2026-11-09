@@ -8,11 +8,11 @@ from pathlib import Path
 
 import pytest
 
-from udeck.apps.library import Source
+from udeck.apps.common.library import Source
 
 
 def installed(tmp_path, definitions, preferences=None):
-    from udeck.apps.game_catalog import CoreCatalog
+    from udeck.apps.emulator.catalog import CoreCatalog
 
     cores, info = tmp_path / "cores", tmp_path / "info"
     cores.mkdir(exist_ok=True)
@@ -29,7 +29,7 @@ def installed(tmp_path, definitions, preferences=None):
 
 
 def test_shared_formats_follow_platform_directories_and_aliases(tmp_path):
-    from udeck.apps.game_library import scan_games
+    from udeck.apps.emulator.library import scan_games
 
     catalog = installed(tmp_path, {
         "pcsx_rearmed": {"supported_extensions": "bin|cue|chd|pbp|iso"},
@@ -123,7 +123,7 @@ def test_machine_bios_alternatives_require_complete_pairs_and_accept_resource_fo
 
 
 def test_zip_and_7z_are_single_entries_not_extracted(tmp_path):
-    from udeck.apps.game_library import scan_games
+    from udeck.apps.emulator.library import scan_games
 
     catalog = installed(tmp_path, {"fbneo": {"supported_extensions": "zip|7z"}})
     root = tmp_path / "Games"
@@ -135,7 +135,7 @@ def test_zip_and_7z_are_single_entries_not_extracted(tmp_path):
 
 
 def test_disc_entrypoints_deduplicate_tracks_and_playlist_discs(tmp_path):
-    from udeck.apps.game_library import scan_games
+    from udeck.apps.emulator.library import scan_games
 
     catalog = installed(tmp_path, {"pcsx_rearmed": {"supported_extensions": "cue|bin|chd|m3u"}})
     root = tmp_path / "Games"
@@ -152,7 +152,7 @@ def test_disc_entrypoints_deduplicate_tracks_and_playlist_discs(tmp_path):
 
 @pytest.mark.parametrize("reference", ["../../outside.bin", "/etc/passwd", "linked/track.bin"])
 def test_disc_references_cannot_escape_platform_or_traverse_links(tmp_path, reference):
-    from udeck.apps.game_library import content_dependencies
+    from udeck.apps.emulator.library import content_dependencies
 
     root = tmp_path / "psx"
     root.mkdir()
@@ -167,7 +167,7 @@ def test_disc_references_cannot_escape_platform_or_traverse_links(tmp_path, refe
 
 
 def test_gdi_parser_preserves_quoted_names_and_detects_missing_tracks(tmp_path):
-    from udeck.apps.game_library import content_dependencies
+    from udeck.apps.emulator.library import content_dependencies
 
     entry = tmp_path / "disc.gdi"
     entry.write_text('2\n1 0 4 2352 "track 01.bin" 0\n2 100 0 2352 track02.raw 0\n')
@@ -177,7 +177,7 @@ def test_gdi_parser_preserves_quoted_names_and_detects_missing_tracks(tmp_path):
 
 
 def test_scummvm_assets_are_not_games_and_manual_engines_need_registered_entry(tmp_path):
-    from udeck.apps.game_library import scan_games
+    from udeck.apps.emulator.library import scan_games
 
     catalog = installed(tmp_path, {
         "scummvm": {"supported_extensions": "scummvm|dat|bin|exe", "categories": "Game engine"},
@@ -197,7 +197,7 @@ def test_scummvm_assets_are_not_games_and_manual_engines_need_registered_entry(t
 
 
 def test_scan_cancel_returns_no_partial_library_and_keeps_identity(tmp_path):
-    from udeck.apps.game_library import scan_games
+    from udeck.apps.emulator.library import scan_games
 
     catalog = installed(tmp_path, {"mgba": {"supported_extensions": "gba"}})
     root = tmp_path / "Games"
@@ -210,7 +210,7 @@ def test_scan_cancel_returns_no_partial_library_and_keeps_identity(tmp_path):
 
 
 def test_core_probe_is_isolated_and_rejects_invalid_shared_library(tmp_path):
-    from udeck.apps.game_catalog import probe_core
+    from udeck.apps.emulator.catalog import probe_core
 
     bad = tmp_path / "bad_libretro.so"
     bad.write_bytes(b"invalid shared object")
@@ -222,7 +222,7 @@ def test_core_probe_is_isolated_and_rejects_invalid_shared_library(tmp_path):
 
 @pytest.mark.parametrize("crash_in_query", [False, True])
 def test_probe_distinguishes_api_failure_from_uninitialized_core_cleanup(tmp_path, crash_in_query):
-    from udeck.apps.game_catalog import probe_core
+    from udeck.apps.emulator.catalog import probe_core
 
     compiler = shutil.which("cc")
     if not compiler:

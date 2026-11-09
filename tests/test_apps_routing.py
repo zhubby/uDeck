@@ -3,10 +3,10 @@ from types import SimpleNamespace
 from PySide6.QtCore import QCoreApplication, QObject, Signal
 
 from udeck.app_routing import APP_IDS
-from udeck.apps.controller import AppController
-from udeck.apps.games import GamesController, content_hash
-from udeck.apps.input import AppInput
-from udeck.apps.library import Source, scan
+from udeck.apps.common.controller import AppController
+from udeck.apps.common.input import AppInput
+from udeck.apps.common.library import Source, scan
+from udeck.apps.emulator.controller import EmulatorController, content_hash
 from udeck.compatibility import application_profile
 from udeck.terminal_routing import SuiteInputBroker
 
@@ -104,7 +104,7 @@ def test_library_refresh_retains_stable_focus_and_removed_item_selects_neighbor(
 
 def test_loaded_game_resumes_and_source_loss_disables_save_and_load(tmp_path):
     application = QCoreApplication.instance() or QCoreApplication([])
-    controller = GamesController(tmp_path, tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
     commands, minimized = [], []
     controller.engine.status = "paused"
     controller.engine.send = commands.append
@@ -127,9 +127,9 @@ def test_reconnecting_same_game_source_reenables_resume_without_starting_new_gam
     card.mkdir()
     (card / "original.gb").write_bytes(b"original fixture content")
     source = Source.create(card)
-    controller = GamesController(tmp_path / "state", tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path / "state", tmp_path / "settings.json")
     controller.library.sources = [source]
-    controller.library.items = scan(source, "games")
+    controller.library.items = scan(source, "emulator")
     controller.current = controller.library.items[0]
     controller.engine.metadata = {"contentHash": content_hash(controller.current)}
     controller.engine.status = "paused"

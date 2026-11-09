@@ -17,19 +17,19 @@ from game_fixtures import create_original_roms
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
-from udeck.apps.game_catalog import probe_core
-from udeck.apps.games import GamesController
-from udeck.apps.state import AppState
+from udeck.apps.common.state import AppState
+from udeck.apps.emulator.catalog import probe_core
+from udeck.apps.emulator.controller import EmulatorController
 
 
 def run(root, extra_cores=()):
     root.mkdir(parents=True, exist_ok=True)
     application = QApplication([])
     paths = create_original_roms(root / "Games")
-    state = AppState("games", root / "state")
+    state = AppState("emulator", root / "state")
     state.data["preferences"]["romRoot"] = str(root / "Games")
     state.save()
-    controller = GamesController(root / "state", root / "settings.json")
+    controller = EmulatorController(root / "state", root / "settings.json")
     controller.isolated = True
     errors, events, reports = [], [], []
     controller.engine.failed.connect(lambda error: errors.append(str(error)))

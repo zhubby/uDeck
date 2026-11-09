@@ -24,7 +24,10 @@ REQUIRED_PACKAGES = (
     "pulseaudio-utils", "libglib2.0-bin", "gvfs", "udisks2", "swayidle", "swaylock", "wlopm",
     "fcitx5", "fcitx5-frontend-qt6", "fcitx5-pinyin", "lxpolkit", "dbus-user-session",
     "xdg-desktop-portal-wlr", "xdg-desktop-portal-gtk", "fonts-noto-cjk", "xdg-terminal-exec",
-    "xdg-utils", "shared-mime-info", "hicolor-icon-theme",
+    "xdg-utils", "shared-mime-info", "hicolor-icon-theme", "python3-pyside6.qtwidgets",
+    "python3-pyside6.qttest", "python3-pyside6.qtwebenginequick", "python3-pyside6.qtwebenginecore",
+    "python3-pyside6.qtpdf", "qml6-module-qtmultimedia", "qml6-module-qtwebengine",
+    "ffmpeg", "ca-certificates", "libutempter0",
 )
 
 

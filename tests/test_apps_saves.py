@@ -5,9 +5,9 @@ from urllib.request import urlopen
 
 import pytest
 
-from udeck.apps.books import BookServer
-from udeck.apps.game_catalog import CoreCatalog
-from udeck.apps.games import SaveStore, content_hash, preflight, stock_controls
+from udeck.apps.emulator.catalog import CoreCatalog
+from udeck.apps.emulator.controller import SaveStore, content_hash, preflight, stock_controls
+from udeck.apps.reader.server import BookServer
 
 
 def test_save_group_rejects_wrong_core_and_content_and_detects_corruption(tmp_path):
@@ -41,7 +41,7 @@ def test_failed_new_save_retains_previous_slot_and_auto_is_separate(tmp_path, mo
         if str(b).endswith("slots.json"):
             raise OSError("disk full")
         return original(a, b)
-    monkeypatch.setattr("udeck.apps.state.os.replace", fail_manifest)
+    monkeypatch.setattr("udeck.apps.common.state.os.replace", fail_manifest)
     with pytest.raises(OSError):
         store.publish("1", source, meta)
     assert store.manifest() == previous

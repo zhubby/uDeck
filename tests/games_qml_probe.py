@@ -13,7 +13,7 @@ from PySide6.QtWidgets import QApplication
 from shiboken6 import delete
 from test_games_catalog import installed
 
-from udeck.apps.games import GamesController
+from udeck.apps.emulator.controller import EmulatorController
 from udeck.core import ConfigStore
 
 
@@ -23,7 +23,7 @@ def run(root, language, theme):
     config = ConfigStore(root / "settings.json")
     config.data["preferences"].update(language=language, theme=theme)
     config.save()
-    controller = GamesController(root / "state", root / "settings.json")
+    controller = EmulatorController(root / "state", root / "settings.json")
     controller.isolated = True
     definitions = {"gambatte": {"supported_extensions": "gb|gbc"},
                    "mgba": {"supported_extensions": "gb|gba|gbc"},
@@ -45,7 +45,7 @@ def run(root, language, theme):
     engine.warnings.connect(lambda warnings: errors.extend(w.toString() for w in warnings))
     engine.rootContext().setContextProperty("controller", controller)
     engine.rootContext().setContextProperty("windowed", True)
-    engine.load(QUrl.fromLocalFile(str(Path(__file__).parents[1] / "src/udeck/apps/qml/Main.qml")))
+    engine.load(QUrl.fromLocalFile(str(Path(__file__).parents[1] / "src/udeck/apps/common/qml/Main.qml")))
     assert engine.rootObjects(), errors
     window = engine.rootObjects()[0]
 

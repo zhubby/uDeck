@@ -15,30 +15,36 @@ from PySide6.QtQuick import QQuickWindow  # noqa: F401
 from PySide6.QtWidgets import QApplication
 from shiboken6 import delete
 
-from ..app_routing import APP_IDS, object_path, service_name
-from ..core import ConfigStore
-from ..i18n import tr
-from ..sounds import InterfaceSounds
-from . import __version__
-from .library import EXTENSIONS
+from udeck.app_routing import APP_IDS, object_path, service_name
+from udeck.apps import __version__
+from udeck.apps.common.library import EXTENSIONS
+from udeck.core import ConfigStore
+from udeck.i18n import tr
+from udeck.sounds import InterfaceSounds
 
 
 def make_controller(app, directory=None, language_path=None):
-    if app in ("music", "video"):
-        from .media import MediaController
+    if app == "music":
+        from udeck.apps.music.controller import MusicController
 
-        return MediaController(app, directory, language_path)
+        return MusicController(directory, language_path)
+    if app == "video":
+        from udeck.apps.video.controller import VideoController
+
+        return VideoController(directory, language_path)
     if app == "browser":
-        from .web import BrowserController
+        from udeck.apps.browser.controller import BrowserController
 
         return BrowserController(directory, language_path)
     if app == "reader":
-        from .reader import ReaderController
+        from udeck.apps.reader.controller import ReaderController
 
         return ReaderController(directory, language_path)
-    from .games import GamesController
+    if app == "emulator":
+        from udeck.apps.emulator.controller import EmulatorController
 
-    return GamesController(directory, language_path)
+        return EmulatorController(directory, language_path)
+    raise ValueError(f"Unknown uDeck application: {app}")
 
 
 class AppControl(QObject):
@@ -83,7 +89,7 @@ class AppControl(QObject):
         for path in paths:
             if not path.is_file():
                 raise ValueError(tr("Choose a file"))
-            if controller.app == "games":
+            if controller.app == "emulator":
                 controller.accept_file_path(path)
             elif path.suffix.lower() not in EXTENSIONS[controller.app]:
                 raise ValueError(tr("Unsupported file format: {name}", name=path.name))
@@ -222,18 +228,18 @@ def main(argv=None):
         controller.language = options.language
     engine = QQmlApplicationEngine()
     if options.app in ("music", "video"):
-        from .media import FrameImages
+        from udeck.apps.media.engine import FrameImages
 
         engine.addImageProvider("video", FrameImages(controller))
     if options.app == "reader":
-        from .reader import PdfImages
+        from udeck.apps.reader.controller import PdfImages
 
         engine.addImageProvider("pdf", PdfImages(controller))
     errors = []
     engine.warnings.connect(lambda warnings: errors.extend(w.toString() for w in warnings))
     engine.rootContext().setContextProperty("controller", controller)
     engine.rootContext().setContextProperty("windowed", options.windowed or options.isolated)
-    engine.load(QUrl.fromLocalFile(str(Path(__file__).with_name("qml") / "Main.qml")))
+    engine.load(QUrl.fromLocalFile(str(Path(__file__).parent / "common/qml/Main.qml")))
     if not engine.rootObjects():
         controller.close()
         return 2
@@ -255,7 +261,7 @@ def main(argv=None):
     controller.present.connect(show)
     controller.closed.connect(application.quit)
     if not options.isolated and not options.no_input and sys.platform == "linux":
-        from .input import AppInput
+        from udeck.apps.common.input import AppInput
 
         controller.inputs = AppInput(controller, app_id, ConfigStore().data["input"])
         window.activeChanged.connect(lambda: controller.inputs.set_foreground(window.isActive()))
@@ -278,7 +284,8 @@ def main(argv=None):
                 controller.dispatch(action)
         controller.setTab(0)
         print(json.dumps({"smoke": "failed" if errors else "passed", "qmlErrors": errors,
-                           "app": options.app}, ensure_ascii=False), flush=True)
+                           "app": options.app, "appId": application.desktopFileName(),
+                           "title": window.title()}, ensure_ascii=False), flush=True)
     if options.smoke_test:
         QTimer.singleShot(1200, smoke)
     if options.screenshot:
@@ -322,8 +329,8 @@ def reader():
     return main(["reader", *sys.argv[1:]])
 
 
-def games():
-    return main(["games", *sys.argv[1:]])
+def emulator():
+    return main(["emulator", *sys.argv[1:]])
 
 
 if __name__ == "__main__":

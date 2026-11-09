@@ -1,9 +1,0 @@
-src/udeck/apps usr/lib/python3/dist-packages/udeck
-packaging/bin/udeck-app usr/bin
-packaging/bin/udeck-music usr/bin
-packaging/bin/udeck-video usr/bin
-packaging/bin/udeck-browser usr/bin
-packaging/bin/udeck-reader usr/bin
-packaging/bin/udeck-games usr/bin
-packaging/apps/*.desktop usr/share/applications
-packaging/apps/*.svg usr/share/icons/hicolor/scalable/apps

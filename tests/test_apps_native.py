@@ -19,7 +19,7 @@ def test_real_engines_with_original_content_and_qml_workflows(tmp_path, app):
     assert report["qmlErrors"] == [] and report["checks"]
 
 
-@pytest.mark.parametrize("app", ["music", "video", "browser", "reader", "games"])
+@pytest.mark.parametrize("app", ["music", "video", "browser", "reader", "emulator"])
 @pytest.mark.parametrize("language", ["en", "zh_CN"])
 def test_native_app_empty_library_menus_and_translations(tmp_path, app, language):
     result = subprocess.run([sys.executable, "-m", "udeck.apps.main", app, "--isolated", "--smoke-test",
@@ -28,5 +28,9 @@ def test_native_app_empty_library_menus_and_translations(tmp_path, app, language
                             env={**os.environ, "QT_QPA_PLATFORM": "offscreen", "QT_QUICK_BACKEND": "software",
                                  "PYTHONPATH": "src"}, capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stdout + result.stderr
-    assert json.loads(result.stdout.strip().splitlines()[-1])["qmlErrors"] == []
+    report = json.loads(result.stdout.strip().splitlines()[-1])
+    assert report["qmlErrors"] == []
+    names = {"music": "音乐", "video": "视频", "browser": "浏览器", "reader": "阅读器", "emulator": "模拟器"}
+    assert report["title"] == "uDeck " + (names[app] if language == "zh_CN" else app.title())
+    assert report["appId"] == "io.github.zhubby.uDeck." + app.title()
     assert (tmp_path / "screen.png").stat().st_size > 10000

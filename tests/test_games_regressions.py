@@ -10,11 +10,11 @@ from PySide6.QtCore import QCoreApplication, QThreadPool
 from PySide6.QtTest import QTest
 from test_games_catalog import installed
 
-from udeck.apps.game_catalog import CoreCatalog
-from udeck.apps.game_library import GamesLibrary, content_dependencies, scan_games
-from udeck.apps.games import GamesController, RetroEngine, SaveStore, preflight
-from udeck.apps.library import Source
-from udeck.apps.state import AppState
+from udeck.apps.common.library import Source
+from udeck.apps.common.state import AppState
+from udeck.apps.emulator.catalog import CoreCatalog
+from udeck.apps.emulator.controller import EmulatorController, RetroEngine, SaveStore, preflight
+from udeck.apps.emulator.library import EmulatorLibrary, content_dependencies, scan_games
 
 
 @pytest.fixture
@@ -84,10 +84,10 @@ for command in sys.stdin:
 
 def test_refresh_discovers_a_rom_root_created_after_startup(application, tmp_path):
     root = tmp_path / "Games"
-    state = AppState("games", tmp_path / "state")
+    state = AppState("emulator", tmp_path / "state")
     state.data["preferences"]["romRoot"] = str(root)
     catalog = installed(tmp_path, {"mgba": {"supported_extensions": "gba"}})
-    library = GamesLibrary(state, catalog)
+    library = EmulatorLibrary(state, catalog)
     (root / "gba").mkdir(parents=True)
     rom = root / "gba/original.gba"
     rom.write_bytes(b"original")
@@ -100,7 +100,7 @@ def test_refresh_discovers_a_rom_root_created_after_startup(application, tmp_pat
         wait_for(lambda: not library.pending)
         assert library.items[0]["id"] == identifier
         assert len(library.sources) == 1
-        restored = GamesLibrary(AppState("games", tmp_path / "state"), catalog)
+        restored = EmulatorLibrary(AppState("emulator", tmp_path / "state"), catalog)
         try:
             assert restored.root_id == library.root_id
         finally:
@@ -114,7 +114,7 @@ def test_refresh_discovers_a_rom_root_created_after_startup(application, tmp_pat
 def test_replacing_catalogue_removes_stale_core_menus(application, tmp_path, view):
     old = installed(tmp_path, {"removed": {"systemid": "unique-console", "supported_extensions": "rom"},
                                "gambatte": {"supported_extensions": "gb"}})
-    controller = GamesController(tmp_path / "state", tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path / "state", tmp_path / "settings.json")
     controller.catalog = controller.library.catalog = old
     controller.core_management()
     if view == "detail":
@@ -144,7 +144,7 @@ def test_replacing_catalogue_removes_stale_core_menus(application, tmp_path, vie
 
 def test_catalogue_refresh_preserves_an_open_search_draft(application, tmp_path):
     catalog = installed(tmp_path, {"gambatte": {"supported_extensions": "gb"}})
-    controller = GamesController(tmp_path / "state", tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path / "state", tmp_path / "settings.json")
     controller.catalog = controller.library.catalog = catalog
     try:
         controller.core_management()
@@ -160,7 +160,7 @@ def test_catalogue_refresh_preserves_an_open_search_draft(application, tmp_path)
 def test_core_check_preserves_the_focused_action(application, tmp_path):
     catalog = installed(tmp_path, {"gambatte": {"supported_extensions": "gb"}})
     catalog.cores["gambatte"].status = "unverified"
-    controller = GamesController(tmp_path / "state", tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path / "state", tmp_path / "settings.json")
     controller.catalog = controller.library.catalog = catalog
     try:
         controller.core_details("gambatte", "gb")
@@ -177,7 +177,7 @@ def test_core_check_preserves_the_focused_action(application, tmp_path):
 def test_no_content_uses_the_enabled_platform(application, tmp_path, monkeypatch, platform):
     catalog = installed(tmp_path, {"a5200": {"supported_extensions": "a52"},
                                    "atari800": {"supported_extensions": "atr", "supports_no_game": "true"}})
-    controller = GamesController(tmp_path / "state", tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path / "state", tmp_path / "settings.json")
     controller.store.data["preferences"] = catalog.preferences
     controller.catalog = controller.library.catalog = catalog
     tasks = []

@@ -13,7 +13,7 @@ import pytest
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
-from udeck.apps.games import RetroEngine, SaveStore, file_hash, preflight
+from udeck.apps.emulator.controller import RetroEngine, SaveStore, file_hash, preflight
 
 
 def original_rom(path):

@@ -1,1 +1,10 @@
 docs/udeck/debian-distribution.md
+docs/apps/README.md
+docs/apps/emulator.md
+src/udeck/apps/reader/web/UPSTREAM.md
+docs/udeck/README.zh-CN.md
+docs/udeck/terminal.md
+vendor/qmltermwidget/UPSTREAM.json
+vendor/qmltermwidget/LICENSE.BSD-3-clause
+vendor/qmltermwidget/LICENSE.LGPL2+
+vendor/qmltermwidget/patches

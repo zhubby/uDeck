@@ -8,7 +8,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QCoreApplication
 
-from udeck.apps.game_services import CoreInventoryTask
+from udeck.apps.emulator.services import CoreInventoryTask
 
 
 def run(root):

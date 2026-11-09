@@ -35,8 +35,8 @@ def sha256sums(directory):
 
 
 def assemble(root, built, output, version):
-    expected = [f"{name}_{version}_{architecture}.deb" for name, architecture in
-                (("udeck-shell", "all"), ("udeck-terminal", "arm64"), ("udeck-apps", "all"), ("udeck", "all"))]
+    binaries = [f"udeck_{version}_arm64.deb"]
+    expected = list(binaries)
     expected += [f"udeck_{version}.{suffix}" for suffix in ("dsc", "tar.xz")]
     expected += [f"udeck_{version}_arm64.{suffix}" for suffix in ("buildinfo", "changes")]
     output.mkdir(parents=True, exist_ok=True)
@@ -57,7 +57,7 @@ def assemble(root, built, output, version):
     revision = git.stdout.strip() if git.returncode == 0 else None
     dirty = bool(subprocess.check_output([*git_arguments, "status", "--porcelain"], cwd=root, text=True)) if revision else None
     packages = []
-    for name in expected[:4]:
+    for name in binaries:
         metadata = subprocess.check_output(["dpkg-deb", "--field", str(output / name)], text=True)
         packages.append({"file": name, "control": metadata,
                          "sha256": hashlib.sha256((output / name).read_bytes()).hexdigest()})
@@ -68,7 +68,7 @@ def assemble(root, built, output, version):
     with tempfile.TemporaryDirectory(prefix="udeck-bundle-") as temporary:
         bundle = Path(temporary) / f"udeck_{version}_arm64"
         bundle.mkdir()
-        for name in [*expected[:4], "udeck-preflight", "install.sh", "INSTALL.md", "DEPENDENCIES.debian-control", "build-manifest.json"]:
+        for name in [*binaries, "udeck-preflight", "install.sh", "INSTALL.md", "DEPENDENCIES.debian-control", "build-manifest.json"]:
             shutil.copy2(output / name, bundle / name)
         sha256sums(bundle)
         archive = output / (bundle.name + ".tar.xz")

@@ -23,8 +23,8 @@ from PySide6.QtWebEngineQuick import QtWebEngineQuick
 from PySide6.QtWidgets import QApplication
 
 from udeck.apps.main import AppControl, make_controller
-from udeck.apps.media import FrameImages
-from udeck.apps.reader import PdfImages
+from udeck.apps.media.engine import FrameImages
+from udeck.apps.reader.controller import PdfImages
 from udeck.core import ConfigStore
 from udeck.i18n import render, tr
 
@@ -85,7 +85,7 @@ def run(app, root, language="en", width=1280, height=720):
         engine.addImageProvider("pdf", PdfImages(controller))
     elif app in ("music", "video"):
         engine.addImageProvider("video", FrameImages(controller))
-    engine.load(QUrl.fromLocalFile(str(Path(__file__).parents[1] / "src/udeck/apps/qml/Main.qml")))
+    engine.load(QUrl.fromLocalFile(str(Path(__file__).parents[1] / "src/udeck/apps/common/qml/Main.qml")))
     assert engine.rootObjects(), errors
     window = engine.rootObjects()[0]
     window.setWidth(width)
@@ -132,7 +132,7 @@ def run(app, root, language="en", width=1280, height=720):
     if controller.library:
         controller.library.add(content)
         wait(lambda: not controller.library.pending)
-        controller.setTab(1 if app in ("reader", "games", "video") else 0)
+        controller.setTab(1 if app in ("reader", "emulator", "video") else 0)
         assert controller.library.items
         capture("library")
     if app == "music":

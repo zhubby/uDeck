@@ -1,4 +1,0 @@
-#!/usr/bin/python3
-from udeck.apps.main import games
-
-raise SystemExit(games())

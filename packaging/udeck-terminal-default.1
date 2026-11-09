@@ -1,29 +1,38 @@
-.TH UDECK-TERMINAL-DEFAULT 1 "2026-11-06" "uDeck Terminal 0.1.0"
+.TH UDECK-TERMINAL-DEFAULT 1 "2026-11-09" "uDeck 0.2.3"
 .SH NAME
 udeck-terminal-default \- configure or restore Debian and XDG terminal defaults
 .SH SYNOPSIS
 .B udeck-terminal-default status
 .RI [ --user " USER" ]
 .br
-.B sudo udeck-terminal-default apply --user USER --acceptance REPORT.json
+.B sudo udeck-terminal-default apply --system
+.br
+.B sudo udeck-terminal-default restore --system
+.br
+.B sudo udeck-terminal-default apply --user USER
 .br
 .B sudo udeck-terminal-default restore --user USER --backup BACKUP.json
 .SH DESCRIPTION
-Apply requires passing acceptance for the installed build. It registers the
+Package installation automatically applies system defaults. It registers the
 x-terminal-emulator alternative at priority 20 with its manual-page slave,
-backs up the previous auto/manual selection, system and user XDG preferences,
-and supported desktop bindings. It then selects uDeck Terminal. Existing
-desktop-specific user preference lists are updated as well.
-Registration is deferred until apply so installation cannot switch an automatic
-default before acceptance. Packages never silently change the current default.
+backs up the previous auto/manual selection and system XDG preferences,
+and explicitly selects uDeck Terminal. System mode does not edit user profiles.
+Physical acceptance is recorded independently and is not required to apply.
 .PP
-Restore recovers the original files and alternatives mode, and removes a newly
-registered alternative. Restoration refuses to overwrite configuration changed
-after apply. Keep the backup and reconcile such changes manually.
+Explicit user mode also updates the target user's XDG lists and supported
+desktop bindings, with a separate recovery manifest printed by apply.
+.PP
+System restore is also run on package removal. It removes this package's
+preferences, keeps subsequent administrator changes and restores the previous
+terminal when still available. User restore refuses to overwrite files changed
+after apply; keep the backup and reconcile those changes manually.
 .SH FILES
 .I /var/lib/udeck-terminal/defaults/
 contains private, root-owned recovery manifests. Configuration symlinks and
 unsupported explicit terminal flags require manual migration before apply.
+.PP
+.I /var/lib/udeck-terminal/system-defaults.json
+records package-managed system defaults and is removed on restoration.
 .SH VERIFICATION
 Configuration success does not prove launch behavior. Verify the alternative,
 xdg-terminal-exec, Gio Terminal=true, keyboard shortcuts and file managers in

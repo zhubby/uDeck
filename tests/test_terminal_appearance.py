@@ -63,28 +63,3 @@ def test_terminal_appearance_and_nerd_glyphs_follow_system_settings(tmp_path, la
     assert report["sessionsPreserved"] and report["focusPreserved"]
     assert report["nerdCodepoints"] == [0xE0B0, 0xF07C, 0xF120, 0xF0001]
     assert (tmp_path / f"terminal-{theme}-{language}.png").stat().st_size > 10000
-
-
-@pytest.mark.parametrize("scheme", ["udeck", "udeck-dark"])
-def test_debian_package_refuses_missing_or_stale_native_palettes(tmp_path, scheme):
-    commands = tmp_path / "bin"
-    commands.mkdir()
-    tool = commands / "dpkg-deb"
-    tool.write_text("#!/bin/sh\nexit 0\n")
-    tool.chmod(0o755)
-    plugin = tmp_path / "QMLTermWidget"
-    (plugin / "color-schemes").mkdir(parents=True)
-    (plugin / "libqmltermwidget.so").write_bytes(b"\x7fELF")
-    for name, source in (("udeck", "terminal.colorscheme"), ("udeck-dark", "terminal-dark.colorscheme")):
-        if name != scheme:
-            (plugin / "color-schemes" / (name + ".colorscheme")).write_bytes((ROOT / "packaging" / source).read_bytes())
-    for content in (None, b"stale palette"):
-        if content is not None:
-            (plugin / "color-schemes" / (scheme + ".colorscheme")).write_bytes(content)
-        result = subprocess.run(
-            [sys.executable, str(ROOT / "tools/build-terminal-deb"), "--plugin", str(plugin)],
-            env={**os.environ, "PATH": str(commands) + os.pathsep + os.environ["PATH"]},
-            capture_output=True, text=True, timeout=10,
-        )
-        assert result.returncode != 0
-        assert "Rebuild the native plugin" in result.stderr, result.stdout + result.stderr

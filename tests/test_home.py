@@ -12,7 +12,7 @@ HOME_IDS = [
     "io.github.zhubby.uDeck.Music.desktop",
     "io.github.zhubby.uDeck.Video.desktop",
     "io.github.zhubby.uDeck.Reader.desktop",
-    "io.github.zhubby.uDeck.Games.desktop",
+    "io.github.zhubby.uDeck.Emulator.desktop",
     "settings",
 ]
 
@@ -35,7 +35,7 @@ def test_home_has_six_fixed_shortcuts_independent_of_favorites_and_recent(contro
 
     assert [item["id"] for item in state["items"]] == HOME_IDS
     assert [item["name"] for item in state["items"]] == [
-        "Terminal", "Music", "Video", "Books", "Games", "Settings"
+        "Terminal", "Music", "Video", "Reader", "Emulator", "Settings"
     ]
     assert state["pages"] == ["home", "apps", "windows", "files"]
     assert state["pageNames"] == ["Home", "Apps", "Running", "Files"]
@@ -160,5 +160,5 @@ def test_language_switch_preserves_home_order_and_focus(controller):
     controller.setLanguage("zh_CN")
     state = json.loads(controller.snapshotJson)
     assert [item["id"] for item in state["items"]] == HOME_IDS
-    assert [item["name"] for item in state["items"]] == ["终端", "音乐", "视频", "电子书", "游戏", "设置"]
+    assert [item["name"] for item in state["items"]] == ["终端", "音乐", "视频", "阅读器", "模拟器", "设置"]
     assert controller.navigation.index == 3

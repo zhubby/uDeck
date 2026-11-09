@@ -1,13 +1,12 @@
 # uDeck native applications
 
-Music, Video, Browser, Reader and Games are independent PySide6/Qt Quick processes.
-Install `udeck 0.2.0` and the optional `udeck-apps 0.2.0` Debian package. The shell and
-application suite share `udeck.__version__`; their Debian packages require matching
-versions and are upgraded together. Each app has a
-desktop entry and `udeck-{music,video,browser,reader,games}` launcher. Installation
-does not change default applications or move user files.
+Music, Video, Browser, Reader and Emulator are independent PySide6/Qt Quick processes.
+Install the complete `udeck 0.2.3` Debian package. The shell, terminal and
+application suite share `udeck.__version__`. Each app has a
+desktop entry and `udeck-{music,video,browser,reader,emulator}` launcher. Installation
+selects uDeck Terminal as the system default terminal.
 
-Use Settings → Sources to add media folders; Games uses Settings → ROM root and
+Use Settings → Sources to add media folders; Emulator uses Settings → ROM root and
 platform subfolders instead. L/R (PageUp/PageDown) switches
 collections; directions select; A/Enter opens; B/Esc returns; X/F2 opens actions;
 Y/F3 opens settings. Ordinary A/B/X/Y letters remain text. English is the default;
@@ -37,7 +36,7 @@ server exposes the selected book and renderer only. A nonce CSP blocks book scri
 remote resources, forms and objects; its off-the-record profile shares no browser
 cookies. Source loss closes the document and its menus while retaining local position.
 
-Games discovers installed RetroArch cores and their metadata. Its default ROM root
+Emulator discovers installed RetroArch cores and their metadata. Its default ROM root
 is `~/Games`: use `gba/`, `psp/`, `psx/`, `dreamcast/`, etc.; shared extensions never
 guess the platform. Settings provides a folder picker, explicit platform folder
 creation, searchable core management, enablement and platform defaults. Each title
@@ -47,14 +46,14 @@ game engines use explicit entrypoints, and no-content cores can run independentl
 Core loading is checked in disposable subprocesses and does not establish game
 compatibility or performance. Required firmware and alternatives are checked
 before launch. No commercial games or firmware are distributed. See
-[Games directory and core rules](games.md). Physical game buttons belong to RetroArch. In a uDeck session,
+[Emulator directory and core rules](emulator.md). Physical game buttons belong to RetroArch. In a uDeck session,
 Ctrl+Alt+M requests the frontend pause menu; Ctrl+Alt+Esc keeps the desktop shortcut.
 The private stdin command channel is used; no network command port is opened.
 Manual slots 1–3 and the automatic resume point use separate local save groups with
 content/core hashes and checksums. States are isolated by game/core/core hash;
-SRAM is isolated by game/core. Compatible legacy saves are copied on first read,
-leaving originals intact. Unsupported state operations are hidden. Old libraries,
-IDs and favorites remain reachable through Legacy sources. Wrong-core or damaged
+SRAM is isolated by game/core. Unsupported state operations are hidden.
+The Emulator uses fresh state and saves; old Games state is neither read nor migrated.
+Wrong-core or damaged
 states are rejected, and resuming with another core requires an explicit choice.
 
 Local state: `$XDG_DATA_HOME/udeck/apps/` (normally `~/.local/share/udeck/apps/`).
@@ -63,7 +62,7 @@ for the running app's diagnostics. `--isolated --windowed --no-input` uses tempo
 state and no session IPC/hardware reader. Native tests generate original fixtures;
 they are distinct from the approved offline design in `docs/design/app-suite/`.
 
-Build: `tools/build-deb` and `tools/build-apps-deb` on Debian. Run `pytest`,
+Build: `tools/build-release` on Debian arm64. Run `pytest`,
 `ruff check src tests`, and native probes described in `verification.md` before delivery.
 
 See [verification](verification.md) for reproducible checks, native screenshots and
@@ -72,3 +71,15 @@ the boundary between automated/device evidence and physical acceptance. The
 `docs/design/app-suite/` directory remains the approved offline design; these apps
 are the native implementation. QtMultimedia replaced the candidate mpv adapter
 after actual composited playback was verified on the target Qt/Wayland environment.
+
+## Source modules and distribution
+
+`src/udeck/apps/` contains `music`, `video`, `browser`, `reader` and `emulator`.
+Each owns its controller, QML and resources. `common` holds shared application
+state, indexing, input and window components; `media` holds the shared player
+and playback controller. Reader's local server and pinned Foliate files live
+inside `reader`; core inventory, probing and platform metadata live inside
+`emulator`. Applications retain independent processes and session D-Bus control.
+
+All modules ship in one arm64 `udeck` Debian package. Development installs remove
+the previous package first; old Games commands, identities and state are not migrated.

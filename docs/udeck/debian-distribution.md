@@ -6,12 +6,9 @@
 
 | 包 | 内容 |
 | --- | --- |
-| `udeck` | 完整套件入口，严格依赖同版本的以下三个包 |
-| `udeck-shell` | 桌面壳、共享资源、独立 labwc 会话、`udeckctl`、`udeck-preflight` |
-| `udeck-terminal` | 原生终端及与系统 Qt 同系列编译的私有 QMLTermWidget |
-| `udeck-apps` | 音乐、视频、浏览器、阅读器、游戏前端 |
+| `udeck`（arm64） | 桌面壳、共享资源、labwc 会话、原生终端及 Music、Video、Browser、Reader、Emulator 全部应用 |
 
-四个包同步版本。旧版名为 `udeck` 的桌面壳通过 `Breaks/Replaces` 迁移到 `udeck-shell`；程序命令 `udeck`、用户配置位置和原应用标识保持兼容。只需要桌面壳时可以单独安装 `udeck-shell`，完整体验安装 `udeck`。
+一个包统一版本、完整安装。安装器先卸载现有 `udeck`、`udeck-shell`、`udeck-terminal`、`udeck-apps`，再安装新包；开发阶段不提供旧包兼容、旧命令别名或旧状态迁移。源码按 common/media 和五应用模块组织。
 
 ## 镜像基线及证据边界
 
@@ -66,7 +63,7 @@ sh ./install.sh
 
 `udeck-preflight` 只用 Python 标准库，旧镜像的 Python 3.9 也能运行。默认退出码 0 表示发行版、用户空间架构与 Python 满足目标条件；缺少的软件依赖单独列出，由 APT 安装。`--check-installed` 进一步要求桌面运行依赖齐全。检测通过不证明该 SD 镜像或硬件已经通过验收。
 
-安装器先核对压缩包内的校验值、执行兼容检测，再运行 APT 更新索引和安装这四个包；APT 展示实际依赖变更供用户确认。不执行整机 `upgrade`、`autoremove`、固件刷写或显示管理器重启。
+安装器先核对压缩包内的校验值、执行兼容检测，再运行 APT 更新索引和安装单个 `udeck` 包；APT 展示实际依赖变更供用户确认。不执行整机 `upgrade`、`autoremove`、固件刷写或显示管理器重启。
 
 安装后：
 
@@ -78,20 +75,21 @@ udeckctl doctor --json
 
 `doctor` 保留原字段，新增 `system`，报告发行版、架构、包版本、缺失/不兼容组件、服务状态和背光可写性。无图形会话时 Wayland 诊断可失败；这与系统依赖检查分开解释。真实模式的文件、网络和音量操作会生效；安全预览使用 `udeck --mock --windowed`。
 
-通过登录界面选择 **uDeck** 启动完整会话。安装保留原桌面、默认登录和默认终端。可选自动登录管理仍使用源码中的独立 `tools/configure-login.py`，终端默认切换仍使用需要验收记录的 `udeck-terminal-default`。
+通过登录界面选择 **uDeck** 启动完整会话。安装保留原桌面与默认登录，并自动将 uDeck Terminal 设为系统默认终端。可选自动登录管理仍使用源码中的独立 `tools/configure-login.py`，终端默认管理使用 `udeck-terminal-default status/apply/restore --system`，无需验收 JSON。
 
 输入读取与背光权限沿用镜像已有的 udev/logind/厂商规则。`rpi-backlight` 并非 Debian 主仓库依赖；已有硬件快捷键会调用它，检测报告是否存在。缺权限时显示不可用及原因，不给整个桌面 root 权限、不把用户加入通用 `input` 组。物理亮度键与设置滑杆分别验收。
 
 ## 升级、卸载与旧版迁移
 
-升级时解压新套件，执行其中的 `install.sh`，四个包同步更新。正在运行的程序在下次启动时加载新代码；安装器不主动结束终端或用户应用。
+开发阶段更新时解压新套件，执行其中的 `install.sh`。安装器先卸载已安装的四个旧包名，再安装一个完整 `udeck` 包；不执行旧包接管或状态迁移。安装前保存并关闭正在运行的应用。
 
-卸载前，如果曾显式启用 uDeck 自动登录或默认终端，先按各配置工具的备份记录恢复原值。随后：
+卸载完整套件：
 
 ```sh
-sudo apt-get remove udeck udeck-shell udeck-terminal udeck-apps
+sudo apt-get remove udeck
 ```
 
+卸载会撤销本包的系统默认终端配置；如曾手动配置用户级终端或 uDeck 自动登录，按各工具备份单独恢复。
 不附带 `autoremove`。用户的 `~/.config/udeck`、终端与应用状态、媒体库和游戏存档保留。
 
 旧 `v0.1b` 系统迁移流程：备份 SD 卡及用户数据，另备可恢复的网络/登录方式；使用新卡部署官方 v3.1，核对硬件驱动、系统发行版和 APT 源，再安装 uDeck。按需恢复主目录配置与媒体/存档；不整目录覆盖新系统的 `/etc`、系统 Python、Qt、网络和音频服务配置。不提供跨 Bullseye 到 Trixie 的自动就地升级脚本。
@@ -114,21 +112,21 @@ docker run --rm --platform linux/arm64 -v "$PWD:/workspace" \
   udeck-debian-builder python3 tools/build-release --output dist/release
 ```
 
-构建器在临时目录中构建插件及完整源码包，执行包括真实 PTY 的测试，再输出四个 `.deb`、`.dsc`、源码 `.tar.xz`、`.buildinfo`、`.changes`、套件压缩包、安装器、依赖清单、构建清单与 SHA-256。源码归档包含 vendor 原件、补丁和许可证，不包含硬件参考资料、虚拟环境或开发缓存。
+构建器在临时目录中构建插件及完整源码包，执行包括真实 PTY 的测试，再输出一个 arm64 `.deb`、`.dsc`、源码 `.tar.xz`、`.buildinfo`、`.changes`、套件压缩包、安装器、依赖清单、构建清单与 SHA-256。源码归档包含 vendor 原件、补丁和许可证，不包含硬件参考资料、虚拟环境或开发缓存。
 
 GitHub Actions **只监听 `release: published`**，不监听 push、pull_request、tag push 或 workflow_dispatch。发布步骤：
 
 1. 同步源码版本与 `debian/changelog`，提交构建所需文件。
 2. 创建匹配的 `vX.Y.Z` 标签并发布 GitHub Release；草稿保存不触发构建。
-3. Action 使用原生 arm64 runner 和 Debian 13 容器，校验标签、源码及 changelog，构建并运行软件包安装/升级/卸载检查。
+3. Action 使用原生 arm64 runner 和 Debian 13 容器，校验标签、源码及 changelog，构建并运行软件包安装/卸载/重装与默认终端检查。
 4. 所有检查通过后才将产物附加到该 Release。重新运行同一次发布会替换同名附件。
 
 普通 tag push 只创建标签，不构建；从草稿转为已发布 Release 才构建。稳定版本格式为 `vX.Y.Z`，版本不匹配时停止。Release 构建禁止 `nocheck` 跳过测试。默认分支保留该工作流，发布标签也必须包含该工作流及打包文件。
 
 ## 验收层次
 
-自动检查覆盖：版本拒绝、旧系统/armhf 拒绝、依赖缺失与 Qt/labwc 版本、原生插件/PTY、已安装包 QML/SVG 与五应用启动、源码对应、文件所有权和安装生命周期。CI 使用 Raspberry Pi 签名 APT 源补足 labwc，且以 `--no-install-recommends` 安装，防止推荐包掩盖必需依赖。
+自动检查覆盖：版本拒绝、旧系统/armhf 拒绝、依赖缺失与 Qt/labwc 版本、原生插件/PTY、已安装包 QML/SVG 与五应用启动、源码对应、文件所有权、旧包先卸载、新包安装生命周期与默认终端实际启动。CI 使用 Raspberry Pi 签名 APT 源补足 labwc，且以 `--no-install-recommends` 安装，防止推荐包掩盖必需依赖。
 
 尚需分别记录原始 v3.1 SD 镜像安装，以及 CM4 的完整登录/退出、1280×720 屏幕方向、ABXY/L/R、中文候选框、真实蓝牙播放、背光、电源、存储卸载和原桌面恢复。容器检查不把这些项目判为通过。
 
-本轮软件构建与安装结果见 [0.2.2 构建验证记录](https://github.com/zhubby/uDeck/blob/main/docs/udeck/debian-release-2026-11-09.md)。
+0.2.2 的历史四包验证记录保留在 `debian-release-2026-11-09.md`；0.2.3 单包结果独立记录。

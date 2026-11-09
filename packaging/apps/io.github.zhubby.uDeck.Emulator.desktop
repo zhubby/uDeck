@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=uDeck Emulator
+Name[zh_CN]=uDeck 模拟器
+Comment=Native emulator frontend
+Comment[zh_CN]=原生模拟器前端
+Exec=udeck-emulator %U
+TryExec=udeck-emulator
+Icon=io.github.zhubby.uDeck.Emulator
+Terminal=false
+Categories=Game;Emulator;
+MimeType=
+StartupWMClass=io.github.zhubby.uDeck.Emulator

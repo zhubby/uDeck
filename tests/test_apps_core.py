@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from udeck.apps.library import Source, scan
-from udeck.apps.state import AppState, PlayQueue
-from udeck.apps.web import address_url
+from udeck.apps.browser.controller import address_url
+from udeck.apps.common.library import Source, scan
+from udeck.apps.common.state import AppState, PlayQueue
 
 
 def test_atomic_state_preserves_old_file_on_failed_replace(tmp_path, monkeypatch):
@@ -14,7 +14,7 @@ def test_atomic_state_preserves_old_file_on_failed_replace(tmp_path, monkeypatch
     state.save()
     old = state.path.read_bytes()
     state.data["positions"]["track"] = 18
-    monkeypatch.setattr("udeck.apps.state.os.replace", lambda *args: (_ for _ in ()).throw(OSError("full")))
+    monkeypatch.setattr("udeck.apps.common.state.os.replace", lambda *args: (_ for _ in ()).throw(OSError("full")))
     with pytest.raises(OSError):
         state.save()
     assert state.path.read_bytes() == old

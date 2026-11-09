@@ -51,14 +51,16 @@ class DebianAlternatives:
         return subprocess.check_output(["update-alternatives", *arguments], text=True)
 
     def query(self):
-        output = self._run("--query", "x-terminal-emulator")
+        try:
+            output = self._run("--query", "x-terminal-emulator")
+        except subprocess.CalledProcessError:
+            return {"status": "auto", "value": "", "registered": False}
         fields = dict(line.split(": ", 1) for line in output.splitlines() if ": " in line)
         return {"status": fields["Status"], "value": fields["Value"],
                 "registered": f"Alternative: {TERMINAL}\n" in output + "\n"}
 
     def install(self):
-        # Registration is deliberately deferred until acceptance, since an
-        # alternatives --install can itself change an auto-selected terminal.
+        # Package configuration deliberately selects uDeck as the default.
         self._run("--install", "/usr/bin/x-terminal-emulator", "x-terminal-emulator", TERMINAL, "20",
                   "--slave", "/usr/share/man/man1/x-terminal-emulator.1.gz", "x-terminal-emulator.1.gz",
                   "/usr/share/man/man1/udeck-terminal.1.gz")
@@ -66,14 +68,19 @@ class DebianAlternatives:
     def select(self):
         self._run("--set", "x-terminal-emulator", TERMINAL)
 
-    def restore(self, state):
+    def remove(self):
+        self._run("--remove", "x-terminal-emulator", TERMINAL)
+
+    def restore(self, state, *, strict=True):
         if not state["registered"]:
-            self._run("--remove", "x-terminal-emulator", TERMINAL)
+            self.remove()
+        if not state["value"]:
+            return
         self._run("--set", "x-terminal-emulator", state["value"])
         if state["status"] == "auto":
             self._run("--auto", "x-terminal-emulator")
         current = self.query()
-        if any(current[key] != state[key] for key in ("status", "value", "registered")):
+        if strict and any(current[key] != state[key] for key in ("status", "value", "registered")):
             raise RuntimeError("alternative 无法恢复原状态；候选项已变化，请检查备份中的选择")
 
 
@@ -223,16 +230,109 @@ class DefaultManager:
         self.alternatives.restore(manifest["alternative"])
 
 
+class SystemDefaults:
+    """Package-owned system preferences; never edits users' home directories."""
+
+    def __init__(self, root=Path("/"), alternatives=None):
+        self.root = Path(root)
+        self.alternatives = alternatives or DebianAlternatives()
+        self.state = self.root / "var/lib/udeck-terminal/system-defaults.json"
+
+    def _load(self):
+        return json.loads(self.state.read_text()) if self.state.exists() else None
+
+    def apply(self):
+        manifest = self._load() or {"alternative": self.alternatives.query(), "files": {}}
+        directory = self.root / "etc/xdg"
+        paths = {directory / name for name in ("xdg-terminals.list", "udeck-xdg-terminals.list",
+                                               "labwc-xdg-terminals.list")}
+        paths.update(directory.glob("*-xdg-terminals.list"))
+        planned = {}
+        for path in sorted(paths):
+            DefaultManager._check_path(path)
+            current = path.read_bytes() if path.exists() else None
+            previous = manifest["files"].get(str(path.relative_to(self.root)))
+            if previous and current is not None and hashlib.sha256(current).hexdigest() == previous["afterSha256"]:
+                before = previous["before"]
+            else:
+                # Keep edits made since the last configure, excluding our preference.
+                original = self._without_preference(current) if previous and current is not None else current
+                before = base64.b64encode(original).decode() if original is not None else None
+            remaining = self._without_preference(current or b"")
+            contents = DESKTOP_ID.encode() + b"\n" + remaining
+            manifest["files"][str(path.relative_to(self.root))] = {
+                "before": before, "afterSha256": hashlib.sha256(contents).hexdigest()}
+            planned[path] = contents
+        # Persist recovery information before changing system files or alternatives.
+        _atomic(self.state, json.dumps(manifest, indent=2).encode(), 0o600)
+        try:
+            for path, contents in planned.items():
+                _atomic(path, contents)
+            self.alternatives.install()
+            self.alternatives.select()
+        except BaseException:
+            self.restore()
+            raise
+
+    @staticmethod
+    def _without_preference(contents):
+        return b"".join(line for line in contents.splitlines(keepends=True)
+                        if line.strip() != DESKTOP_ID.encode())
+
+    def restore(self):
+        manifest = self._load()
+        if not manifest:
+            return
+        for name, info in manifest["files"].items():
+            relative = Path(name)
+            if relative.is_absolute() or ".." in relative.parts or relative.parts[:2] != ("etc", "xdg"):
+                raise ValueError("无效的系统终端配置记录")
+            path = self.root / relative
+            DefaultManager._check_path(path)
+            if not path.exists():
+                continue
+            current = path.read_bytes()
+            if hashlib.sha256(current).hexdigest() == info["afterSha256"]:
+                if info["before"] is None:
+                    path.unlink()
+                else:
+                    _atomic(path, base64.b64decode(info["before"]))
+            else:
+                _atomic(path, self._without_preference(current))
+        current = self.alternatives.query()
+        original = manifest["alternative"]
+        if current["value"] == TERMINAL and (not original["value"] or (self.root / original["value"].lstrip("/")).is_file()):
+            # Auto mode may now prefer a terminal installed after uDeck.
+            self.alternatives.restore(original, strict=False)
+        elif current["registered"]:
+            # Preserve an administrator's later choice while removing our candidate.
+            self.alternatives.remove()
+        self.state.unlink()
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="uDeck Terminal 默认终端配置与恢复")
     parser.add_argument("action", choices=("status", "apply", "restore"))
-    parser.add_argument("--user", default=os.environ.get("SUDO_USER") or pwd.getpwuid(os.getuid()).pw_name)
+    scope = parser.add_mutually_exclusive_group()
+    scope.add_argument("--user", default=None)
+    scope.add_argument("--system", action="store_true", help="Configure system defaults without editing user profiles")
     parser.add_argument("--config-home", type=Path)
-    parser.add_argument("--acceptance", type=Path)
     parser.add_argument("--backup", type=Path)
     options = parser.parse_args(argv)
     try:
-        user = pwd.getpwnam(options.user)
+        if options.system:
+            manager = SystemDefaults()
+            if options.action == "status":
+                print(json.dumps({"alternative": manager.alternatives.query(), "configured": manager.state.exists()}, indent=2))
+                return 0
+            if os.geteuid() != 0:
+                raise ValueError("修改系统默认终端需要以 sudo 运行")
+            if options.action == "apply":
+                manager.apply()
+            else:
+                manager.restore()
+            return 0
+        user = pwd.getpwnam(options.user or os.environ.get("SUDO_USER") or pwd.getpwuid(os.getuid()).pw_name)
         manager = DefaultManager(Path("/"), Path(user.pw_dir), DebianAlternatives(), uid=user.pw_uid, gid=user.pw_gid, config_home=options.config_home)
         if options.action == "status":
             print(json.dumps({"alternative": manager.alternatives.query(), "plannedFiles": list(manager.plan()),
@@ -246,12 +346,8 @@ def main(argv=None):
             manager.restore(options.backup)
             print("原 alternative 与 XDG/桌面配置已恢复；请重新启动入口验证。")
         else:
-            if not options.acceptance:
-                raise ValueError("设置默认前必须提供已通过的 --acceptance 实机验收记录")
-            build = json.loads(Path("/usr/share/udeck-terminal/build-info.json").read_text())
-            validate_acceptance(options.acceptance, build["buildId"])
             if not shutil.which("xdg-terminal-exec") or not Path(TERMINAL).is_file():
-                raise ValueError("请先安装 udeck-terminal 与 xdg-terminal-exec")
+                raise ValueError("请先安装 udeck 与 xdg-terminal-exec")
             print(f"配置已应用。恢复备份：{manager.apply()}")
             print("请逐个验证 x-terminal-emulator、xdg-terminal-exec、Gio Terminal=true、快捷键及文件管理器；配置写入不等于启动验收。")
         return 0

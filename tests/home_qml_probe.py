@@ -95,7 +95,7 @@ def run():
             assert controller.navigation.index == index
             selected_visible()
             if index == 3:
-                capture("home-books")
+                capture("home-reader")
         key(Qt.Key.Key_Right)
         assert controller.navigation.index == 5
         if options.width < 1280:

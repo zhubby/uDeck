@@ -5,9 +5,9 @@ import pytest
 from PySide6.QtCore import QCoreApplication
 from test_games_catalog import installed
 
-from udeck.apps.games import GamesController, SaveStore
-from udeck.apps.library import Source, scan
-from udeck.apps.state import AppState
+from udeck.apps.common.library import Source, scan
+from udeck.apps.common.state import AppState
+from udeck.apps.emulator.controller import EmulatorController, SaveStore
 
 
 @pytest.fixture
@@ -15,17 +15,18 @@ def application():
     return QCoreApplication.instance() or QCoreApplication([])
 
 
-def test_switch_root_preserves_legacy_ids_favorites_and_rejects_invalid_choice(application, tmp_path):
-    from udeck.apps.game_library import GamesLibrary
+def test_switch_root_preserves_current_app_favorites_and_rejects_invalid_choice(application, tmp_path):
+    from udeck.apps.emulator.library import EmulatorLibrary, scan_games
 
     old = tmp_path / "Old"
-    old.mkdir()
-    (old / "original.gb").write_bytes(b"original")
+    (old / "gb").mkdir(parents=True)
+    (old / "gb/original.gb").write_bytes(b"original")
     source = Source.create(old)
-    item = scan(source, "games")[0]
-    state = AppState("games", tmp_path / "state")
+    catalog = installed(tmp_path, {"gambatte": {"supported_extensions": "gb"}})
+    item = scan_games(source, catalog).items[0]
+    state = AppState("emulator", tmp_path / "state")
     state.data.update(sources=[source.to_dict()], index=[item], favorites=[item["id"]])
-    library = GamesLibrary(state, installed(tmp_path, {"gambatte": {"supported_extensions": "gb"}}))
+    library = EmulatorLibrary(state, catalog)
     library.refresh = lambda: None
     new = tmp_path / "New"
     new.mkdir()
@@ -35,7 +36,7 @@ def test_switch_root_preserves_legacy_ids_favorites_and_rejects_invalid_choice(a
         with pytest.raises(OSError):
             library.configure_root(tmp_path / "missing")
         assert state.data == before
-        assert library.items[0]["id"] == item["id"] and library.items[0]["legacy"]
+        assert library.items[0]["id"] == item["id"]
         assert state.data["favorites"] == [item["id"]]
         assert source.id in {s.id for s in library.sources}
     finally:
@@ -43,10 +44,10 @@ def test_switch_root_preserves_legacy_ids_favorites_and_rejects_invalid_choice(a
 
 
 def test_old_scan_completion_cannot_replace_new_root_or_cancelled_results(application, tmp_path):
-    from udeck.apps.game_library import GamesLibrary
+    from udeck.apps.emulator.library import EmulatorLibrary
 
-    state = AppState("games", tmp_path / "state")
-    library = GamesLibrary(state, installed(tmp_path, {}))
+    state = AppState("emulator", tmp_path / "state")
+    library = EmulatorLibrary(state, installed(tmp_path, {}))
     library.generation = 3
     library.items = [{"id": "new", "path": "/new", "sourceId": "new"}]
     library._done(2, "old", [{"id": "stale"}], {"error": "", "hints": []})
@@ -56,24 +57,40 @@ def test_old_scan_completion_cannot_replace_new_root_or_cancelled_results(applic
     assert [i["id"] for i in library.items] == ["new"]
 
 
-def test_choosing_a_legacy_source_as_root_keeps_its_existing_loose_games(application, tmp_path):
-    from udeck.apps.game_library import GameScanTask
+def test_platform_scan_does_not_import_old_loose_games_from_cache(application, tmp_path):
+    from udeck.apps.emulator.library import GameScanTask
 
     root = tmp_path / "Old"
     root.mkdir()
     (root / "original.gb").write_bytes(b"original")
     source = Source.create(root)
-    item = {**scan(source, "games")[0], "legacyOrigin": True}
+    item = {**scan(source, "emulator")[0], "legacyOrigin": True}
     catalog = installed(tmp_path, {"gambatte": {"supported_extensions": "gb"}})
     results = []
-    task = GameScanTask(1, source, catalog, threading.Event(), {item["path"]: item}, True)
+    task = GameScanTask(1, source, catalog, threading.Event(), {item["path"]: item})
     task.signals.done.connect(lambda generation, source_id, items, report: results.extend(items))
     task.run()
-    assert len(results) == 1 and results[0]["id"] == item["id"] and results[0]["legacyOrigin"]
+    assert results == []
+
+
+def test_emulator_does_not_read_or_migrate_games_state(application, tmp_path):
+    previous = tmp_path / "games.json"
+    previous.write_text(json.dumps({"version": 1, "favorites": ["old-game"], "recent": ["old-game"]}))
+    original = previous.read_bytes()
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
+    try:
+        assert controller.store.path == tmp_path / "emulator.json"
+        assert controller.store.data["favorites"] == [] and controller.store.data["recent"] == []
+        controller.persist()
+        assert previous.read_bytes() == original
+        controller.settings()
+        assert not any(row["title"] == "Legacy sources" for row in controller.menus[-1]["options"])
+    finally:
+        controller.close()
 
 
 def test_core_and_hash_scoped_states_share_only_the_same_cores_sram(tmp_path):
-    from udeck.apps.games import CoreSaveStore
+    from udeck.apps.emulator.controller import CoreSaveStore
 
     root = tmp_path / "game"
     source = tmp_path / "serialized"
@@ -86,25 +103,30 @@ def test_core_and_hash_scoped_states_share_only_the_same_cores_sram(tmp_path):
     assert a.sram_root == b.sram_root and a.sram_root != other.sram_root
 
 
-def test_legacy_state_is_copied_on_read_without_changing_the_original(tmp_path):
-    from udeck.apps.games import CoreSaveStore
+def test_old_saves_and_sram_are_not_read_or_migrated(tmp_path):
+    from udeck.apps.emulator.controller import CoreSaveStore, latest_save
 
     root = tmp_path / "game"
     source = tmp_path / "serialized"
     source.write_bytes(b"legacy original")
     legacy = SaveStore(root)
     legacy.publish("auto", source, {"core": "/old/mgba_libretro.so", "coreHash": "a" * 64, "contentHash": "game"})
+    legacy.prepare_sram()
+    (legacy.sram_root / "original.srm").write_bytes(b"original SRAM")
     original = {str(p.relative_to(root)): p.read_bytes() for p in root.rglob("*") if p.is_file()}
     store = CoreSaveStore(root, "mgba", "a" * 64)
-    assert "auto" in store.manifest()
-    assert store.load("auto", "game", "a" * 64)[0].read_bytes() == b"legacy original"
-    assert (store.root / "slots.json").is_file()
+    assert not store.manifest() and latest_save(root) == (None, None)
+    with pytest.raises(ValueError, match="empty"):
+        store.load("auto", "game", "a" * 64)
+    store.prepare_sram()
+    assert list(store.sram_root.iterdir()) == []
+    assert not (store.root / "slots.json").exists()
     assert all((root / name).read_bytes() == value for name, value in original.items())
     assert not CoreSaveStore(root, "vbam", "b" * 64).manifest()
 
 
-def test_migrating_one_legacy_slot_does_not_publish_other_legacy_slot_paths(tmp_path):
-    from udeck.apps.games import CoreSaveStore
+def test_new_scoped_save_does_not_expose_old_slots(tmp_path):
+    from udeck.apps.emulator.controller import CoreSaveStore
 
     root = tmp_path / "game"
     source = tmp_path / "serialized"
@@ -112,14 +134,15 @@ def test_migrating_one_legacy_slot_does_not_publish_other_legacy_slot_paths(tmp_
     legacy = SaveStore(root)
     for slot in ("1", "auto"):
         legacy.publish(slot, source, {"coreHash": "a" * 64, "contentHash": "game"})
+    original = (root / "slots.json").read_bytes()
     store = CoreSaveStore(root, "mgba", "a" * 64)
-    store.load("1", "game", "a" * 64)
+    store.publish("1", source, {"coreId": "mgba", "coreHash": "a" * 64, "contentHash": "game"})
     assert set(json.loads((store.root / "slots.json").read_text())) == {"1"}
-    assert store.load("auto", "game", "a" * 64)[0].read_bytes() == b"legacy original"
+    assert set(store.manifest()) == {"1"} and (root / "slots.json").read_bytes() == original
 
 
 def test_stale_launch_completion_cannot_start_a_game(application, tmp_path):
-    controller = GamesController(tmp_path, tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
     try:
         generation = controller.launch_generation
         controller.cancel_launch()
@@ -130,7 +153,7 @@ def test_stale_launch_completion_cannot_start_a_game(application, tmp_path):
 
 
 def test_opening_settings_cancels_a_launch_that_is_still_being_prepared(application, tmp_path):
-    controller = GamesController(tmp_path, tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
     controller.launching = True
     generation = controller.launch_generation
     try:
@@ -142,11 +165,11 @@ def test_opening_settings_cancels_a_launch_that_is_still_being_prepared(applicat
 
 
 def test_open_details_keep_their_source_when_a_core_switch_removes_the_index_entry(application, tmp_path):
-    controller = GamesController(tmp_path / "state", tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path / "state", tmp_path / "settings.json")
     rom = tmp_path / "original.gb"
     rom.write_bytes(b"original")
     source = Source.create(tmp_path)
-    item = scan(source, "games")[0]
+    item = scan(source, "emulator")[0]
     controller.library.sources = [source]
     controller.current = item
     controller.library.items = []
@@ -157,7 +180,7 @@ def test_open_details_keep_their_source_when_a_core_switch_removes_the_index_ent
 
 
 def test_picker_cancel_and_enter_path_validation_preserve_configuration(application, tmp_path):
-    controller = GamesController(tmp_path, tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
     before = json.loads(json.dumps(controller.store.data["preferences"]))
     try:
         controller.settings()
@@ -171,12 +194,12 @@ def test_picker_cancel_and_enter_path_validation_preserve_configuration(applicat
 
 
 def test_unreadable_rom_root_does_not_replace_the_configuration(application, tmp_path, monkeypatch):
-    controller = GamesController(tmp_path / "state", tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path / "state", tmp_path / "settings.json")
     before = json.loads(json.dumps(controller.store.data["preferences"]))
     def denied(path):
         raise PermissionError("unreadable root")
     try:
-        monkeypatch.setattr("udeck.apps.game_library.os.scandir", denied)
+        monkeypatch.setattr("udeck.apps.emulator.library.os.scandir", denied)
         with pytest.raises(PermissionError):
             controller.library.configure_root(tmp_path)
         assert controller.store.data["preferences"] == before
@@ -185,7 +208,7 @@ def test_unreadable_rom_root_does_not_replace_the_configuration(application, tmp
 
 
 def test_unsupported_state_core_pause_menu_offers_normal_exit(application, tmp_path):
-    controller = GamesController(tmp_path, tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
     controller.engine.running = lambda: True
     controller.engine.metadata = {"savestate": False}
     try:
@@ -199,7 +222,7 @@ def test_unsupported_state_core_pause_menu_offers_normal_exit(application, tmp_p
 
 
 def test_creating_platform_folders_merges_existing_without_overwriting_roms(tmp_path):
-    from udeck.apps.game_library import create_platform_directories
+    from udeck.apps.emulator.library import create_platform_directories
 
     catalog = installed(tmp_path, {"mgba": {"supported_extensions": "gba"}})
     root = tmp_path / "Games"
@@ -215,7 +238,7 @@ def test_creating_platform_folders_merges_existing_without_overwriting_roms(tmp_
 
 
 def test_inventory_worker_cancel_does_not_publish_an_obsolete_result(application, tmp_path):
-    from udeck.apps.game_services import CoreInventoryTask
+    from udeck.apps.emulator.services import CoreInventoryTask
 
     catalog = installed(tmp_path, {"gambatte": {"supported_extensions": "gb"}})
     cancel = threading.Event()

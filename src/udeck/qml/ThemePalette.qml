@@ -47,8 +47,8 @@ QtObject {
     readonly property color artText: dark ? accent : "#e8cc9f"
 
     function artwork(kind) {
-        const classic = {music:"#344749", video:"#42495a", reader:"#4e4535", games:"#384738"}
-        const night = {music:"#193034", video:"#252c40", reader:"#3a2f1f", games:"#243426"}
+        const classic = {music:"#344749", video:"#42495a", reader:"#4e4535", emulator:"#384738"}
+        const night = {music:"#193034", video:"#252c40", reader:"#3a2f1f", emulator:"#243426"}
         return (dark ? night : classic)[kind] || (dark ? panel : "#334346")
     }
 

@@ -5,10 +5,10 @@ import hashlib
 import json
 from pathlib import Path
 
-directory = Path("debian/udeck-terminal/usr/share/udeck-terminal")
+directory = Path("debian/udeck/usr/share/udeck-terminal")
 path = directory / "build-info.json"
 info = json.loads(path.read_text())
-plugin = Path("debian/udeck-terminal/usr/lib/udeck-terminal/qml/QMLTermWidget/libqmltermwidget.so")
+plugin = Path("debian/udeck/usr/lib/udeck-terminal/qml/QMLTermWidget/libqmltermwidget.so")
 info["pluginSha256"] = hashlib.sha256(plugin.read_bytes()).hexdigest()
 info["buildId"] = hashlib.sha256((info["buildId"] + info["pluginSha256"]).encode()).hexdigest()
 path.write_text(json.dumps(info, indent=2) + "\n")

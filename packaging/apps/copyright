@@ -2,7 +2,7 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: uDeck Apps
 Source: https://github.com/zhubby/uDeck
 
-Files: src/udeck/apps/* packaging/apps/* packaging/bin/udeck-* tools/build-apps-deb
+Files: src/udeck/apps/* packaging/apps/* packaging/bin/udeck-*
 Copyright: 2026 uDeck contributors
 License: GPL-2.0-or-later
  This program is free software: you can redistribute it and/or modify it
@@ -13,9 +13,9 @@ License: GPL-2.0-or-later
  On Debian systems the full GPL version 2 is available in
  /usr/share/common-licenses/GPL-2.
 
-Files: src/udeck/apps/reader_web/foliate/*
+Files: src/udeck/apps/reader/web/foliate/*
 Copyright: 2022 John Factotum
 License: MIT
  The complete upstream license is included in foliate-LICENSE and in
- src/udeck/apps/reader_web/foliate/LICENSE. Upstream files are unmodified;
+ src/udeck/apps/reader/web/foliate/LICENSE. Upstream files are unmodified;
  UPSTREAM.md records the pinned source revision.

@@ -1073,5 +1073,7 @@
   "{count} hotspots on": "{count} 个热点已开启",
   "The previous Wi-Fi configuration was removed; reconnect manually": "原 Wi-Fi 配置已被删除，请手动重新连接",
   "Cannot confirm exclusive use of the previous Wi-Fi configuration; reconnect manually": "无法确认原 Wi-Fi 配置是否被独占使用，请手动重新连接",
-  "The previous Wi-Fi configuration is in use by another adapter; reconnect manually": "原 Wi-Fi 配置正由另一张网卡使用，请手动重新连接"
+  "The previous Wi-Fi configuration is in use by another adapter; reconnect manually": "原 Wi-Fi 配置正由另一张网卡使用，请手动重新连接",
+  "Emulator": "模拟器",
+  "Emulator actions": "模拟器操作"
 }

@@ -1,6 +1,6 @@
 import pytest
 
-from udeck.apps.reader_style import normalize_reader_preferences
+from udeck.apps.reader.style import normalize_reader_preferences
 
 
 def test_reader_preferences_have_safe_defaults_and_reject_invalid_values():
@@ -51,7 +51,7 @@ def reader_controller(tmp_path):
     pytest.importorskip("PySide6")
     from PySide6.QtCore import QCoreApplication
 
-    from udeck.apps.reader import ReaderController
+    from udeck.apps.reader.controller import ReaderController
 
     application = QCoreApplication.instance() or QCoreApplication([])
     controller = ReaderController(tmp_path, tmp_path / "settings.json")

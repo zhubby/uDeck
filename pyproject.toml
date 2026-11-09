@@ -27,7 +27,7 @@ udeck-music = "udeck.apps.main:music"
 udeck-video = "udeck.apps.main:video"
 udeck-browser = "udeck.apps.main:browser"
 udeck-reader = "udeck.apps.main:reader"
-udeck-games = "udeck.apps.main:games"
+udeck-emulator = "udeck.apps.main:emulator"
 
 [tool.setuptools.dynamic]
 version = {attr = "udeck.__version__"}
@@ -41,7 +41,12 @@ where = ["src"]
 [tool.setuptools.package-data]
 udeck = ["qml/*.qml", "locales/*.json", "fonts/*.ttf", "fonts/*.txt", "fonts/*.json", "fonts/*.md", "assets/input-prompts/*", "assets/interface-sounds/*", "assets/file-icons/*"]
 "udeck.terminal" = ["qml/*.qml", "fonts/*.ttf", "fonts/*.txt", "fonts/*.json"]
-"udeck.apps" = ["qml/*.qml", "resources/*.json", "navigation.js", "reader_web/*", "reader_web/foliate/*"]
+"udeck.apps.common" = ["qml/*.qml"]
+"udeck.apps.music" = ["qml/*.qml"]
+"udeck.apps.video" = ["qml/*.qml"]
+"udeck.apps.browser" = ["qml/*.qml", "navigation.js"]
+"udeck.apps.reader" = ["qml/*.qml", "web/*", "web/foliate/*"]
+"udeck.apps.emulator" = ["qml/*.qml", "resources/*.json"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

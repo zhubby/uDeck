@@ -19,8 +19,8 @@ from shiboken6 import delete
 
 from udeck import main
 from udeck.apps.main import make_controller
-from udeck.apps.media import FrameImages
-from udeck.apps.reader import PdfImages
+from udeck.apps.media.engine import FrameImages
+from udeck.apps.reader.controller import PdfImages
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
 from udeck.i18n import tr
@@ -209,10 +209,10 @@ def run():
             else:
                 entry["controller"].command("menu")
         terminal_before = [json.loads(e["controller"].snapshotJson) for e in coordinator.windows]
-        for app in ("music", "video", "browser", "reader", "games"):
+        for app in ("music", "video", "browser", "reader", "emulator"):
             controller = make_controller(app, path / app, config_path)
             controller.isolated = True
-            app_engine, app_window = engine_for(controller, root / "apps/qml/Main.qml")
+            app_engine, app_window = engine_for(controller, root / "apps/common/qml/Main.qml")
             controller.window = app_window
             controller.start()
             apps.append((controller, app_engine, app_window))

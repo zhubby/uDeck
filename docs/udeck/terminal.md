@@ -13,7 +13,7 @@ sh dist/release/install.sh
 udeck-terminal
 ```
 
-插件安装在 `/usr/lib/udeck-terminal/qml/QMLTermWidget`，不占用系统公共 QML 模块目录。`udeck-terminal` 严格依赖同版本的 `udeck-shell` 以复用输入基础代码和中英文词条，运行不依赖 uDeck 桌面进程。桌面壳包不拥有 `udeck/terminal`，避免重复文件归属。源码安装的 Python wheel 包含 Python/QML 文件与翻译词条，仍需要单独构建原生插件；wheel 不携带任意平台的二进制。完整安装与发布说明见 [Debian 发行文档](debian-distribution.md)。
+插件安装在 `/usr/lib/udeck-terminal/qml/QMLTermWidget`，不占用系统公共 QML 模块目录。终端及共享代码统一由 `udeck` 包拥有，运行不依赖桌面进程。源码 wheel 包含 Python/QML、字体和词条，仍需单独构建目标 Qt 的原生插件；wheel 不携带平台二进制。完整安装与发布说明见 [Debian 发行文档](debian-distribution.md)。
 
 语言跟随 uDeck 的 `Settings → Language` 设置，首次默认英文。已打开的 0.1.1 终端会在一秒内同步切换菜单和提示，不重建 PTY，也不翻译命令、输出、窗口标题或粘贴内容。旧版本中正在运行的终端保留原进程，关闭后再次启动才加载新版本。
 
@@ -79,8 +79,15 @@ uDeck 的 PointerGuard 持续持有会话级鼠标接口。桌面依据 foreign-
 
 ## 默认终端与恢复
 
-安装包不会改变默认终端。`update-alternatives --install` 本身可能切换 auto 选择，因此优先级 **20** 的注册和 man page slave 延后到验收通过后的 apply 操作。
+安装 `udeck` 时自动注册优先级 **20** 的 `x-terminal-emulator` 候选项及 man page slave，并显式选中 uDeck Terminal。系统 XDG 列表、uDeck 会话快捷键与文件管理器的系统终端入口也使用它；已有用户级显式设置仍遵循 XDG 优先级。配置无需验收 JSON，不编辑用户主目录或原桌面快捷键。卸载时撤销本包配置，保留管理员后续修改，恢复仍可用的原系统选择。
 
+```sh
+udeck-terminal-default status --system
+sudo udeck-terminal-default apply --system
+sudo udeck-terminal-default restore --system
+```
+
+以下实机验收独立记录，不作为安装或默认切换的前置条件。
 先完成安装版验收。只保留一个窗口、一个本地 shell，空闲后采样：
 
 ```sh
@@ -94,7 +101,7 @@ udeck-terminal --doctor
 
 ```sh
 udeck-terminal-default status --user zhubby
-sudo udeck-terminal-default apply --user zhubby --acceptance artifacts/cm4-terminal-acceptance.json
+sudo udeck-terminal-default apply --user zhubby
 sudo udeck-terminal-default restore --user zhubby --backup /var/lib/udeck-terminal/defaults/<id>.json
 ```
 
@@ -108,7 +115,7 @@ sudo udeck-terminal-default restore --user zhubby --backup /var/lib/udeck-termin
 4. 原桌面的终端快捷键及文件管理器动作，包括含中文和空格的目录。
 5. 恢复原默认并重新验证，再根据验收结果重新 apply。
 
-未通过关键检查时保留原默认。`--config-home` 可指定目标用户实际使用的非标准 XDG 配置目录。其他桌面自身的设置后端或自定义脚本需根据 status 清单和实机入口另行核查。
+如实机检查失败，可使用系统 restore 或对应用户备份恢复默认。`--config-home` 可指定目标用户实际使用的非标准 XDG 配置目录。其他桌面自身的设置后端或自定义脚本需根据 status 清单和实机入口另行核查。
 
 ## 原生组件维护
 

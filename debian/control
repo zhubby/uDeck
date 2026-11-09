@@ -47,10 +47,9 @@ Homepage: https://github.com/zhubby/uDeck
 Vcs-Git: https://github.com/zhubby/uDeck.git
 Vcs-Browser: https://github.com/zhubby/uDeck
 
-Package: udeck-shell
-Architecture: all
-Breaks: udeck (<< 0.2.2)
-Replaces: udeck (<< 0.2.2)
+Package: udeck
+Architecture: arm64
+Conflicts: udeck-shell, udeck-terminal, udeck-apps
 Depends:
  ${python3:Depends},
  ${misc:Depends},
@@ -112,36 +111,10 @@ Depends:
  xdg-desktop-portal-gtk,
  fonts-noto-cjk,
  xdg-terminal-exec,
-Recommends: fcitx5-frontend-gtk3, fcitx5-frontend-gtk4, gvfs-backends, gvfs-fuse
-Description: Button-first desktop shell for ClockworkPi uConsole
- Native Qt Quick shell with application and window management, files,
- Wi-Fi, hotspots, Bluetooth, audio and power controls. Adds an optional
- labwc session without changing the existing desktop or login defaults.
-
-Package: udeck-terminal
-Architecture: arm64
-Depends:
- ${python3:Depends},
  ${shlibs:Depends},
- ${misc:Depends},
- udeck-shell (= ${binary:Version}),
  python3-pyside6.qtwidgets (>= 6.8),
  python3-pyside6.qtwidgets (<< 6.9),
  libutempter0,
- xdg-terminal-exec,
-Description: Independent native terminal for uDeck
- Qt Quick terminal with a private QMLTermWidget built against system Qt,
- local PTYs, multiple windows and tabs, keyboard search and safe paste.
- Default-terminal changes require separate explicit configuration.
-
-Package: udeck-apps
-Architecture: all
-Depends:
- ${python3:Depends},
- ${misc:Depends},
- udeck-shell (= ${binary:Version}),
- python3-pyside6.qtwidgets (>= 6.8),
- python3-pyside6.qtwidgets (<< 6.9),
  python3-pyside6.qttest (>= 6.8),
  python3-pyside6.qttest (<< 6.9),
  python3-pyside6.qtwebenginequick (>= 6.8),
@@ -154,21 +127,9 @@ Depends:
  qml6-module-qtwebengine,
  ffmpeg,
  ca-certificates,
-Recommends: retroarch, libretro-gambatte, libretro-mgba, libretro-nestopia
+Recommends: fcitx5-frontend-gtk3, fcitx5-frontend-gtk4, gvfs-backends, gvfs-fuse, retroarch, libretro-gambatte, libretro-mgba, libretro-nestopia
 Suggests: libretro-snes9x
-Description: Native Music, Video, Browser, Reader and Games applications
- Independent Qt Quick applications with local libraries, QtMultimedia,
- QtWebEngine, QtPdf, EPUB reading and an external RetroArch frontend.
- No games, commercial media, BIOS or firmware are included.
-
-Package: udeck
-Architecture: all
-Depends:
- ${misc:Depends},
- udeck-shell (= ${binary:Version}),
- udeck-terminal (= ${binary:Version}),
- udeck-apps (= ${binary:Version}),
-Description: Complete uDeck desktop suite (metapackage)
- Installs the uDeck desktop, native terminal and five content applications.
- Intended for the official uConsole CM4 v3.1 arm64 image with Debian 13
- and the image's Raspberry Pi software sources.
+Description: Complete button-first desktop suite for ClockworkPi uConsole
+ Native Qt Quick desktop, terminal, Music, Video, Browser, Reader and Emulator
+ applications. Adds a labwc session and selects uDeck Terminal as the system
+ default terminal. Targets the official CM4 v3.1 arm64 / Debian 13 image.

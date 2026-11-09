@@ -4,11 +4,24 @@ root=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 cd "$root"
 sha256sum --check SHA256SUMS
 python3 ./udeck-preflight --json
-if [ "$(id -u)" -eq 0 ]; then
-    apt-get update
-    apt-get install ./*.deb
-else
-    sudo apt-get update
-    sudo apt-get install ./*.deb
+set -- ./*.deb
+if [ "$#" -ne 1 ] || [ ! -f "$1" ] || [ "$(dpkg-deb --field "$1" Package)" != udeck ]; then
+    printf '%s\n' 'Expected exactly one udeck Debian package.' >&2
+    exit 1
 fi
-printf '%s\n' 'Installed. Select uDeck at the next graphical login; the current session and login defaults were not changed.'
+archive=$1
+if [ "$(id -u)" -ne 0 ]; then
+    exec sudo sh "$root/$(basename -- "$0")"
+fi
+apt-get update
+set --
+for package in udeck udeck-shell udeck-terminal udeck-apps; do
+    if [ "$(dpkg-query -W -f='${db:Status-Status}' "$package" 2>/dev/null || true)" = installed ]; then
+        set -- "$@" "$package"
+    fi
+done
+if [ "$#" -gt 0 ]; then
+    apt-get remove "$@"
+fi
+apt-get install "$archive"
+printf '%s\n' 'Installed uDeck and selected uDeck Terminal as the system default terminal. Select uDeck at the next graphical login.'

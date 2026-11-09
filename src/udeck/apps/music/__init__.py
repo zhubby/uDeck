@@ -1,0 +1,1 @@
+"""uDeck music module."""

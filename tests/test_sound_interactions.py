@@ -5,8 +5,8 @@ from copy import deepcopy
 import pytest
 from PySide6.QtCore import QCoreApplication
 
-from udeck.apps.controller import AppController
-from udeck.apps.web import BrowserController
+from udeck.apps.browser.controller import BrowserController
+from udeck.apps.common.controller import AppController
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
 from udeck.mock import MockBackend

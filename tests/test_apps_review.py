@@ -4,11 +4,11 @@ import time
 import pytest
 from PySide6.QtCore import QCoreApplication, QTimer
 
-from udeck.apps.books import BookServer
-from udeck.apps.controller import AppController
-from udeck.apps.games import GamesController
+from udeck.apps.browser.controller import BrowserController
+from udeck.apps.common.controller import AppController
+from udeck.apps.emulator.controller import EmulatorController
 from udeck.apps.main import AppControl
-from udeck.apps.web import BrowserController
+from udeck.apps.reader.server import BookServer
 
 
 @pytest.fixture
@@ -140,7 +140,7 @@ def test_finishing_download_removes_only_its_own_menu(application, tmp_path):
 
 
 def test_new_open_request_cannot_replace_identity_of_running_game(application, tmp_path):
-    controller = GamesController(tmp_path, tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
     first = {"id": "running", "title": "Running game"}
     controller.current = first
     controller.library.require = lambda identifier: {
@@ -156,7 +156,7 @@ def test_new_open_request_cannot_replace_identity_of_running_game(application, t
 
 
 def test_rejected_save_and_exit_does_not_exit_after_inflight_manual_save(application, tmp_path):
-    controller = GamesController(tmp_path, tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
     controller.current = {"id": "original"}
     controller.library.require = lambda identifier: controller.current
     controller.engine.status = "paused"
@@ -176,7 +176,7 @@ def test_rejected_save_and_exit_does_not_exit_after_inflight_manual_save(applica
 
 
 def test_pending_load_keeps_game_paused_and_keeps_menu(application, tmp_path):
-    controller = GamesController(tmp_path, tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
     controller.engine.status = "paused"
     controller.engine.pending = {"kind": "load"}
     sent = []
@@ -191,7 +191,7 @@ def test_pending_load_keeps_game_paused_and_keeps_menu(application, tmp_path):
 
 
 def test_game_exit_clears_save_and_return_intent(application, tmp_path):
-    controller = GamesController(tmp_path, tmp_path / "settings.json")
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
     controller.exit_after_save = True
     try:
         # The user can confirm "Return without saving" while an auto-save is pending.
