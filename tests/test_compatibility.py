@@ -122,6 +122,28 @@ def test_pointer_waits_for_ack_before_return_and_drags_until_release(routing):
     assert not routing.router.motion.isActive()
 
 
+def test_console_resume_waits_for_pointer_isolation_before_restoring_window(routing):
+    focus(routing)
+    routing.controller.config.data['applicationInput']['firefox'] = 'pointer'
+    routing.router.window_active(True)
+    assert routing.router.resume_window('10')
+    assert ('10', 'activate') not in routing.windows.requests
+    routing.isolation.complete()
+    assert routing.windows.requests[-1] == ('10', 'activate')
+    assert not routing.router.resume_window('gone')
+
+
+def test_console_resume_preserves_parent_application_profile(routing):
+    routing.windows.rows = [
+        {'id': '10', 'appId': 'firefox', 'name': 'Parent', 'active': False, 'parentId': ''},
+        {'id': '11', 'appId': '', 'name': 'Dialog', 'active': True, 'parentId': '10'},
+    ]
+    routing.controller.config.data['applicationInput']['firefox'] = 'pointer'
+    assert routing.router.resume_window('11')
+    assert routing.router.return_target['application'] == 'firefox'
+    assert routing.isolation.pending is True
+
+
 def test_reload_failure_keeps_menu_and_does_not_inject(routing):
     focus(routing)
     routing.router.open_menu()

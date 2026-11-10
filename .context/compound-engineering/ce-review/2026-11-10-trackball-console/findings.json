@@ -1,0 +1,50 @@
+{
+  "mode": "autofix",
+  "base": "f3bf6d62716d6e6416e214f858c9361060a6b8f0",
+  "execution": "Sequential review in the main thread, as required by AGENTS.md; no independent reviewer agents were used.",
+  "scope": "Built-in trackball clicks, virtual pointer routing, console panel, labwc/CLI entrypoints, focused regression tests and documentation. Unrelated dirty main-checkout loading/cursor work is excluded from the commit.",
+  "reviewer": "correctness, testing, maintainability, project-standards, agent-native, reliability, CLI and Python review passes",
+  "findings": [],
+  "applied_fixes": [
+    {
+      "title": "Classify queued trackball edges using kernel event time",
+      "file": "src/udeck/pointer.py",
+      "severity": "P2",
+      "confidence": 1.0,
+      "evidence": "Request CLOCK_MONOTONIC on the stock evdev stream and emit separate timed edges; the gesture uses their physical duration. Regressions verify batched down/up and fallback when the clock ioctl is unavailable."
+    },
+    {
+      "title": "Preserve parent application profile when restoring a dialog",
+      "file": "src/udeck/compatibility.py",
+      "severity": "P2",
+      "confidence": 1.0,
+      "evidence": "resume_window now shares _window_target with observed focus routing; a regression verifies pointer isolation for a child with no appId."
+    },
+    {
+      "title": "Recapture foreground after reopening an existing panel",
+      "file": "src/udeck/console.py",
+      "severity": "P2",
+      "confidence": 1.0,
+      "evidence": "open refreshes the return target when another application is active, while repeated invocation keeps the existing menu and confirmation. A regression restores the new application."
+    },
+    {
+      "title": "Report configuration backup before compositor reload",
+      "file": "src/udeck/cli.py",
+      "severity": "P2",
+      "confidence": 1.0,
+      "evidence": "bind-console emits backup metadata before reconfigure; a failed-reload regression confirms the backup remains discoverable and the command fails."
+    },
+    {
+      "title": "Use current emulator command in compositor template",
+      "file": "packaging/labwc/rc.xml",
+      "severity": "P2",
+      "confidence": 1.0,
+      "evidence": "The touched template still used the removed games module for pause. It now invokes udeck-app emulator; configuration regression rejects the stale command."
+    }
+  ],
+  "residual_risks": [
+    "Physical trackball timing and device-side shutdown/reboot remain untested. SSH to the previously authorized device timed out in this session.",
+    "Existing desktop sessions require udeckctl bind-console once; the separate uDeck session includes the compositor binding directly."
+  ],
+  "testing_gaps": ["Physical event capture, device deployment and manual hardware acceptance are pending device access."]
+}

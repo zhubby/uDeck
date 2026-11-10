@@ -1075,5 +1075,10 @@
   "Cannot confirm exclusive use of the previous Wi-Fi configuration; reconnect manually": "Cannot confirm exclusive use of the previous Wi-Fi configuration; reconnect manually",
   "The previous Wi-Fi configuration is in use by another adapter; reconnect manually": "The previous Wi-Fi configuration is in use by another adapter; reconnect manually",
   "Emulator": "Emulator",
-  "Emulator actions": "Emulator actions"
+  "Emulator actions": "Emulator actions",
+  "控制台": "Control Panel",
+  "回到主界面": "Back to Home",
+  "关机": "Power Off",
+  "重启": "Restart",
+  "Ctrl+Shift+Esc 打开 · Esc / B 返回应用": "Ctrl+Shift+Esc to open · Esc / B to return to app"
 }

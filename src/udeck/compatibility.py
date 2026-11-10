@@ -87,16 +87,19 @@ class ApplicationRouter(QObject):
     def _windows(self, rows):
         self.windows_revision += 1
         active = next((entry for entry in rows if entry.get('active')), None)
+        self.target = self._window_target(rows, active)
+        self.refresh()
+
+    @staticmethod
+    def _window_target(rows, active):
         if active:
             parent = active
             seen = set()
             while parent.get('parentId') and parent['parentId'] not in seen:
                 seen.add(parent['parentId'])
                 parent = next((entry for entry in rows if entry['id'] == parent['parentId']), parent)
-            self.target = {**active, 'application': parent.get('appId') or active.get('appId') or ''}
-        else:
-            self.target = None
-        self.refresh()
+            return {**active, 'application': parent.get('appId') or active.get('appId') or ''}
+        return None
 
     def window_active(self, active):
         self.shell = active
@@ -372,6 +375,16 @@ class ApplicationRouter(QObject):
             self.controller.config.data['applicationInput'] = previous
             self.controller.notify(tr('输入模式保存失败：') + error_text(error))
             return False
+        self.resume()
+        return True
+
+    def resume_window(self, identifier):
+        rows = self.windows.entries()
+        target = next((entry for entry in rows if entry['id'] == identifier), None)
+        if not target or not self.enabled or self.suspended or not self.session_safe or self.protocol_failed:
+            return False
+        self.return_target = self._window_target(rows, target)
+        self.menu_open = True
         self.resume()
         return True
 

@@ -1075,5 +1075,10 @@
   "Cannot confirm exclusive use of the previous Wi-Fi configuration; reconnect manually": "无法确认原 Wi-Fi 配置是否被独占使用，请手动重新连接",
   "The previous Wi-Fi configuration is in use by another adapter; reconnect manually": "原 Wi-Fi 配置正由另一张网卡使用，请手动重新连接",
   "Emulator": "模拟器",
-  "Emulator actions": "模拟器操作"
+  "Emulator actions": "模拟器操作",
+  "控制台": "控制台",
+  "回到主界面": "回到主界面",
+  "关机": "关机",
+  "重启": "重启",
+  "Ctrl+Shift+Esc 打开 · Esc / B 返回应用": "Ctrl+Shift+Esc 打开 · Esc / B 返回应用"
 }

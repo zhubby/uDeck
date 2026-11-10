@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from types import SimpleNamespace
 
 import pytest
@@ -100,6 +101,69 @@ def test_trackball_click_motion_and_scroll_are_diagnostic_only(pointer_device):
     guard._read(device.path)
     guard._remove(device.path)
     assert edges[-2:] == [True, False]
+
+
+def test_trackball_recovery_cancels_gesture_before_releasing_diagnostic_edge(pointer_device):
+    guard, device, events, _ = pointer_device
+    edges = []
+    guard.middleButton.connect(lambda pressed: edges.append(('button', pressed)))
+    guard.reset.connect(lambda: edges.append(('reset',)))
+    guard.start()
+    events[:] = [SimpleNamespace(type=1, code=274, value=1), SimpleNamespace(type=0, code=3, value=0)]
+    guard._read(device.path)
+    assert edges == [('button', True), ('reset',), ('button', False)]
+    events[:] = [SimpleNamespace(type=0, code=0, value=0), SimpleNamespace(type=1, code=274, value=1)]
+    guard._read(device.path)
+    guard._remove(device.path)
+    assert edges[-3:] == [('button', True), ('reset',), ('button', False)]
+
+
+def test_native_trackball_recovery_does_not_confirm_selected_shell_app(pointer_device, tmp_path):
+    from udeck.controller import ShellController
+    from udeck.core import ConfigStore
+    from udeck.mock import MockBackend
+    from udeck.trackball import TrackballInput
+
+    guard, device, events, _ = pointer_device
+    controller = ShellController(MockBackend(), config=ConfigStore(tmp_path / 'config.json'), mock=True)
+    trackball = TrackballInput(guard, controller)
+    controller.foregroundChanged.emit(True)
+    guard.start()
+    try:
+        events[:] = [SimpleNamespace(type=1, code=274, value=1), SimpleNamespace(type=0, code=3, value=0)]
+        guard._read(device.path)
+        assert not controller.config.data['recent']
+        events[:] = [SimpleNamespace(type=0, code=0, value=0)]
+        events.extend(SimpleNamespace(type=1, code=274, value=value) for value in (1, 2, 1, 0))
+        guard._read(device.path)
+        assert len(controller.config.data['recent']) == 1
+    finally:
+        trackball.close()
+        controller.close()
+
+
+def test_kernel_monotonic_event_times_survive_batched_reads(pointer_device, tmp_path, monkeypatch):
+    from udeck.controller import ShellController
+    from udeck.core import ConfigStore
+    from udeck.mock import MockBackend
+    from udeck.trackball import TrackballInput
+
+    monkeypatch.setattr('udeck.pointer.fcntl.ioctl', lambda *args: 0)
+    guard, device, events, _ = pointer_device
+    controller = ShellController(MockBackend(), config=ConfigStore(tmp_path / 'config.json'), mock=True)
+    trackball = TrackballInput(guard, controller)
+    controller.foregroundChanged.emit(True)
+    guard.start()
+    try:
+        now = time.monotonic()
+        events[:] = [SimpleNamespace(type=1, code=274, value=pressed, timestamp=lambda stamp=stamp: stamp)
+                     for pressed, stamp in ((1, now - 4), (0, now - 0.1))]
+        guard._read(device.path)
+        assert controller.modal['kind'] == 'menu'
+        assert not controller.config.data['recent']
+    finally:
+        trackball.close()
+        controller.close()
 
 
 def test_keyboard_and_gamepad_are_not_blocked(pointer_device):

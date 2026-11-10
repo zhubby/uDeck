@@ -35,6 +35,7 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
     calibrationDirection = Signal(str)
     foregroundChanged = Signal(bool)
     applicationAction = Signal(str)
+    consoleAction = Signal(str)
     inputSuspended = Signal(bool)
     taskFinished = Signal(object)
     fileJobProgress = Signal(object)
@@ -470,6 +471,18 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
     @Slot(str)
     @interaction
     def dispatch(self, action):
+        if action == 'console':
+            if not any(modal.get('source') == 'console' for modal in self._modals):
+                self._cancel_modals()
+                self._menu(tr('控制台'), [
+                    {'id': command, 'label': label, 'action': 'console-control', 'command': command}
+                    for command, label in (
+                        ('home', tr('回到主界面')), ('switcher', tr('运行中')), ('settings', tr('设置')),
+                        ('poweroff', tr('关机')), ('reboot', tr('重启')),
+                    )
+                ], source='console', body=tr('Ctrl+Shift+Esc 打开 · Esc / B 返回应用'))
+            self.present.emit()
+            return
         if self.modal.get("kind") == "key-test":
             if action == "back" and not self.modal["exitHolding"]:
                 self._pop()
@@ -799,6 +812,8 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
             self._pop(reject=True)
             if modal.get('source') == 'application' and not self.modal:
                 self.applicationAction.emit('return')
+            elif modal.get('source') == 'console':
+                self.consoleAction.emit('dismiss')
             return
         if kind == "menu":
             options = modal["options"]
@@ -814,7 +829,7 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
                     self.feedback("error")
                     self.notify(option.get("reason") or tr('此项目当前不可用'))
                     return
-                keep_parent = modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot")
+                keep_parent = modal.get('source') == 'console' or (modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot"))
                 if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "hotspot", "hotspot-device", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
                     self._pop()
                 self._execute_option(option)
@@ -923,6 +938,8 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
                 self._system("timezone_set", {"timezone": option["timezone"]})
         elif action == "application-control":
             self.applicationAction.emit(option['command'])
+        elif action == 'console-control':
+            self.consoleAction.emit(option['command'])
         elif action == "setting":
             self.activateSetting(option.get("idSetting", option["id"]))
         elif action == "audio-card":

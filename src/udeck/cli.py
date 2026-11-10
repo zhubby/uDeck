@@ -2,6 +2,7 @@ import argparse
 import importlib.util
 import json
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -73,8 +74,8 @@ def doctor():
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="uDeck 本机会话控制与只读诊断")
-    parser.add_argument("command", choices=("home", "switcher", "quick-settings", "doctor", "app-menu", "input-mode", "input-ack", "lock"))
+    parser = argparse.ArgumentParser(description="uDeck 本机会话控制、快捷键配置与诊断")
+    parser.add_argument("command", choices=("home", "switcher", "console", "bind-console", "quick-settings", "doctor", "app-menu", "input-mode", "input-ack", "lock"))
     parser.add_argument('value', nargs='?')
     parser.add_argument("--json", action="store_true", help="输出 JSON 诊断报告")
     options = parser.parse_args(argv)
@@ -84,6 +85,17 @@ def main(argv=None):
         parser.error('无效的配置代次')
     if options.command not in ('input-mode', 'input-ack') and options.value:
         parser.error('此命令不接受附加参数')
+    if options.command == 'bind-console':
+        from .session_shortcuts import install
+
+        try:
+            result = install()
+            print(json.dumps(result, ensure_ascii=False))
+            subprocess.run(['labwc', '--reconfigure'], check=True, timeout=5)
+            return 0
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            print(str(error), file=sys.stderr)
+            return 1
     if options.command == "doctor":
         report = doctor()
         print(json.dumps(report, ensure_ascii=False, indent=2) if options.json else "\n".join(f"{key}: {value}" for key, value in report.items()))
@@ -96,7 +108,7 @@ def main(argv=None):
         interface = QDBusInterface(SERVICE, OBJECT, INTERFACE, QDBusConnection.sessionBus())
         if not interface.isValid():
             raise RuntimeError("当前会话没有运行 uDeck")
-        method_name = {"home": "Home", "switcher": "Switcher", "quick-settings": "QuickSettings", 'app-menu': 'AppMenu',
+        method_name = {"home": "Home", "switcher": "Switcher", "console": "Console", "quick-settings": "QuickSettings", 'app-menu': 'AppMenu',
                        'input-mode': 'InputMode', 'input-ack': 'InputConfigApplied', 'lock': 'Lock'}[options.command]
         response = interface.call(method_name, options.value) if options.value is not None else interface.call(method_name)
         if response.type() == QDBusMessage.MessageType.ErrorMessage:

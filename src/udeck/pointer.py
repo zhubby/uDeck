@@ -1,7 +1,13 @@
+import fcntl
+import struct
+import time
+
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
 from .i18n import error_text, tr
 from .input import STOCK_FINGERPRINT
+
+EVIOCSCLOCKID = 0x400445A0
 
 
 class PointerGuard(QObject):
@@ -9,6 +15,8 @@ class PointerGuard(QObject):
     shoulder = Signal(str)
     button = Signal(str, bool)
     middleButton = Signal(bool)
+    middleButtonTimed = Signal(bool, float)
+    reset = Signal()
     motion = Signal(int, int)
     status = Signal(object)
 
@@ -61,10 +69,18 @@ class PointerGuard(QObject):
                     errors.append(tr('{value0}: 请松开鼠标按键', value0=device.name))
                     continue
                 device.grab()
+                monotonic = False
+                if built_in:
+                    try:
+                        fcntl.ioctl(device.fd, EVIOCSCLOCKID, struct.pack('i', time.CLOCK_MONOTONIC))
+                        monotonic = True
+                    except OSError:
+                        pass
                 notifier = QSocketNotifier(device.fd, QSocketNotifier.Type.Read, self)
                 notifier.activated.connect(lambda *arguments, path=path: self._read(path))
                 self.devices[path] = {"device": device, "notifier": notifier, "pressed": set(),
                                       "shoulders": built_in,
+                                      "monotonic": monotonic,
                                       "syncing": False}
                 device = None
             except OSError as error:
@@ -105,6 +121,7 @@ class PointerGuard(QObject):
                 if event.value == 0:
                     if event.code == 274 and event.code in entry["pressed"] and entry["shoulders"]:
                         self.middleButton.emit(False)
+                        self.middleButtonTimed.emit(False, self._timestamp(entry, event))
                     if event.code in entry["pressed"] and entry["shoulders"] and event.code in (272, 273):
                         self.button.emit("previous-page" if event.code == 272 else "next-page", False)
                     entry["pressed"].discard(event.code)
@@ -112,6 +129,7 @@ class PointerGuard(QObject):
                     entry["pressed"].add(event.code)
                     if entry["shoulders"] and event.code == 274:
                         self.middleButton.emit(True)
+                        self.middleButtonTimed.emit(True, self._timestamp(entry, event))
                     if entry["shoulders"] and event.code in (272, 273):
                         action = "previous-page" if event.code == 272 else "next-page"
                         self.button.emit(action, True)
@@ -123,6 +141,10 @@ class PointerGuard(QObject):
         except OSError as error:
             self._remove(path)
             self._report([error_text(error)])
+
+    @staticmethod
+    def _timestamp(entry, event):
+        return event.timestamp() if entry.get('monotonic') else time.monotonic()
 
     def _remove(self, path):
         entry = self.devices.pop(path)
@@ -137,6 +159,8 @@ class PointerGuard(QObject):
 
     def _release_buttons(self, entry):
         if entry["shoulders"]:
+            # These releases describe lost ownership, not a completed click.
+            self.reset.emit()
             if 274 in entry["pressed"]:
                 self.middleButton.emit(False)
             for code in sorted(entry["pressed"] & {272, 273}):

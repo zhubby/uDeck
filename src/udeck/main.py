@@ -34,6 +34,7 @@ from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickImageProvider
 
 from . import __version__
+from .console import ConsolePanel, ConsoleShortcut
 from .controller import ShellController
 from .core import ConfigStore
 from .file_icons import FILE_ICON_PREFIX, FILE_ICON_ROOT, ICON_PALETTES, ICON_SPECS
@@ -211,6 +212,12 @@ class Control(QObject):
         self.terminal_broker = None
         self.application_router = None
         self.isolation = None
+        self.console_panel = None
+
+    @Slot()
+    def Console(self):
+        if self.console_panel:
+            self.console_panel.open()
 
     @Slot()
     def Home(self):
@@ -342,14 +349,15 @@ def main(argv=None):
     virtual_input = None
     direction_reader = None
     isolation = None
-    if gamepad and pointer and os.environ.get('UDECK_SESSION') == '1':
-        from .compatibility import ApplicationRouter
-        from .directions import DirectionReader
-        from .session_config import DirectionIsolation
+    if pointer:
         from .virtual_input import VirtualInput
 
         virtual_input = VirtualInput()
         virtual_input.start()
+    if gamepad and pointer and os.environ.get('UDECK_SESSION') == '1':
+        from .compatibility import ApplicationRouter
+        from .directions import DirectionReader
+        from .session_config import DirectionIsolation
         isolation = DirectionIsolation(virtual_input)
         if isolation.available:
             application_router = ApplicationRouter(controller, windows, gamepad, virtual_input, isolation)
@@ -380,6 +388,13 @@ def main(argv=None):
         pointer.motion.connect(controller.testPointerMotion)
         pointer.status.connect(controller.input_status)
         controller.foregroundChanged.connect(pointer.set_foreground)
+    console_panel = ConsolePanel(controller, windows, application_router)
+    control.console_panel = console_panel
+    trackball = None
+    if pointer:
+        from .trackball import TrackballInput
+
+        trackball = TrackballInput(pointer, controller, windows, virtual_input)
     calibration = {"buttons": {}, "axes": {}, "keyboard": {}, "step": 0}
 
     if gamepad:
@@ -450,6 +465,7 @@ def main(argv=None):
     from .key_test import KeyTestFilter
 
     key_test_filter = KeyTestFilter(controller, window)
+    console_shortcut = ConsoleShortcut(console_panel, window)
     from .key_test_device import KeyTestReader
 
     key_test_reader = KeyTestReader()
@@ -509,6 +525,10 @@ def main(argv=None):
         QTimer.singleShot(2000, application.quit)
     result = application.exec()
     key_test_reader.close()
+    console_shortcut.close()
+    console_panel.close()
+    if trackball:
+        trackball.close()
     window.removeEventFilter(key_test_filter)
     if application_router:
         application_router.close()

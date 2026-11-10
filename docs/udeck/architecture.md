@@ -8,7 +8,8 @@
 | `controller.py` | 五页快照、上下文菜单、弹层栈、焦点恢复、文件异步任务和操作反馈 |
 | `core.py` | 非循环空间导航、XDG 配置校验与私有原子保存 |
 | `input.py` | evdev 独立手柄发现、八步映射、前台 grab/release、方向长按重复和热拔插恢复 |
-| `pointer.py` | 会话内持续屏蔽独立鼠标接口，仅将已确认的内置 L/R 前台按下沿转为切页 |
+| `pointer.py`、`trackball.py` | 持有独立鼠标接口，内置 L/R 切页；内置轨迹球短按左键、超过 2 秒右键，分离恢复事件与真实松开 |
+| `console.py`、`session_shortcuts.py` | Ctrl+Shift+Esc 控制台、原窗口焦点恢复及已有 labwc 配置的备份与快捷键安装 |
 | `compatibility.py` | 按真实前台窗口选择桌面、按键、指针、原生或暂停状态，管理应用菜单与释放交接 |
 | `virtual_input.py` | 普通用户的 Wayland 虚拟键盘与指针客户端，只注入固定应用操作 |
 | `directions.py` | 只读监听已确认的内置 Keyboard；识别无修饰方向键及热拔插，不独占键盘 |
@@ -40,9 +41,9 @@ ABXY 仅打开符合已确认 uConsole VID/PID 的独立游戏手柄事件节点
 
 八步校准支持混合输入：独立手柄按钮/轴经 evdev 采集，原生键盘方向经 Qt 前台事件进入校准状态机并保存为 `keyboardDirections`，不会因此独占键盘。校准取消立即退出采集状态，未完成的映射不保存。
 
-0.1.3 的真实全屏模式由 `PointerGuard` 另行持有独立鼠标接口：识别左键及相对/绝对双轴能力，排除任何含普通键盘键位的混合接口。独占后丢弃移动、滚轮及鼠标按键事件；只在壳前台时，将已确认 fingerprint 和设备名的内置 L/R 新按下沿转为上一页/下一页。外接独立鼠标也被屏蔽，但不成为切页键。L/R 不重复触发、不循环翻页，弹层期间无效，返回页面恢复原选中项。
+真实全屏模式由 `PointerGuard` 持有独立鼠标接口：识别左键及相对/绝对双轴能力，排除任何含普通键盘键位的混合接口。只将确认 fingerprint 和设备名的内置 L/R 新按下沿转为上一页/下一页；外接独立鼠标不成为切页键。L/R 不重复触发、不循环翻页，弹层期间无效，返回页面恢复原选中项。内置 `BTN_MIDDLE` 下按由 `TrackballInput` 分类：松开不超过 2 秒为一次左键，超过 2 秒立即发出一次右键，松开后不再点击。壳内分别转为确认、上下文菜单；其他应用经虚拟指针收到真实鼠标点击与移动。
 
-鼠标接管持续到壳退出，壳失焦后仍屏蔽第三方应用的鼠标操作；手柄继续按前台所有权释放。扫描支持热拔插，事件溢出后重同步按住状态，不制造按键；权限失败报告到诊断而不强占键盘。未改变的扫描状态不重复发布 UI。关闭壳释放所有鼠标接口。独立 labwc 配置仅对精确名称 `ClockworkPI uConsole Mouse` 设置 `sendEventsMode=no`，使内置指针从会话启动即被禁用；不覆盖原桌面配置。
+鼠标接管持续到壳退出，内置轨迹球在前台应用中通过 Wayland 虚拟指针输出；外接鼠标维持屏蔽。手柄继续按前台所有权释放。扫描支持热拔插，事件溢出后重同步按住状态，不制造按键；恢复前发出独立 reset，取消未完成的点击。焦点改变、测试/校准、会话失活或锁屏也取消点击；诊断仍显示原始下按/松开。权限失败报告到诊断而不强占键盘。未改变的扫描状态不重复发布 UI。关闭壳释放所有鼠标接口。独立 labwc 配置对精确名称 `ClockworkPI uConsole Mouse` 设置 `sendEventsMode=no`，阻止原始事件与虚拟指针重复分发。
 
 QML 列表与滚动条不接受指针滚动/拖动，输入框不允许鼠标选字；没有项目单击、双击或位置选中逻辑。唯一的顶层鼠标区域消耗移动/滚轮/双击，将窗口化预览中的左/右按下模拟为 L/R 切页。壳内隐藏光标，第三方应用指针模式显示虚拟光标。窗口化、mock 和 `--no-input` 不接管其他应用输入。
 
@@ -72,7 +73,9 @@ QML 列表与滚动条不接受指针滚动/拖动，输入框不允许鼠标选
 
 ## 本机通信与数据
 
-会话 D-Bus 名称 `io.github.zhubby.uDeck`，对象 `/io/github/zhubby/uDeck`，接口 `io.github.zhubby.uDeck.Control`。暴露 `Home`、`Switcher`、`QuickSettings`、`AppMenu`、`InputMode`、`InputConfigApplied`、`Lock`、`Diagnose`，并保留终端路由诊断；不开放 TCP/HTTP，不接受任意脚本、文件或按键序列。应用快捷键由内置 app_id / WM_CLASS 白名单配置提供。
+会话 D-Bus 名称 `io.github.zhubby.uDeck`，对象 `/io/github/zhubby/uDeck`，接口 `io.github.zhubby.uDeck.Control`。暴露 `Home`、`Switcher`、`Console`、`QuickSettings`、`AppMenu`、`InputMode`、`InputConfigApplied`、`Lock`、`Diagnose`，并保留终端路由诊断；不开放 TCP/HTTP，不接受任意脚本、文件或按键序列。应用快捷键由内置 app_id / WM_CLASS 白名单配置提供。
+
+全局控制台使用现有菜单弹层和确认框。labwc 的 `C-S-Escape` 绑定执行 `udeckctl console`，重复调用保留现有面板与确认框。Esc/B 关闭时按窗口标识恢复前台；原窗口已关闭、会话失活或锁屏时不抢焦点。在兼容指针模式下先完成方向键隔离确认，再返回应用。已有 labwc 桌面可执行 `udeckctl bind-console` 备份并添加单个快捷键；保留其他配置与默认登录方式。
 
 配置位于 `$XDG_CONFIG_HOME/udeck/settings.json`，未设置时为 `~/.config/udeck/settings.json`；包含 favorites、recent、focus、preferences、input 和按应用保存的 `applicationInput`。旧字段与校准保留，保存失败恢复当前配置。临时文件以 0600 创建，fsync 后原子替换。输入密码和配对确认只存在于瞬时内存；SSH 密码没有部署文件或日志入口。
 

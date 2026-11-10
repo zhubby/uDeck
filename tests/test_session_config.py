@@ -1,9 +1,22 @@
 import xml.etree.ElementTree as ElementTree
+from pathlib import Path
 from types import SimpleNamespace
 
 from PySide6.QtCore import QCoreApplication
 
 from udeck.session_config import DirectionIsolation, render_config
+
+
+def test_global_console_binding_survives_direction_mode_and_restore():
+    original = Path('packaging/labwc/rc.xml').read_text()
+    for pointer in (False, True):
+        root = ElementTree.fromstring(render_config(original, pointer, 'abc123'))
+        bindings = root.findall('keyboard/keybind')
+        console = [entry for entry in bindings if entry.get('key') == 'C-S-Escape']
+        assert len(console) == 1
+        assert console[0].get('allowWhenLocked') != 'yes'
+        assert console[0].find('action').get('command') == 'udeckctl console'
+        assert 'udeck-app games' not in ElementTree.tostring(root, encoding='unicode')
 
 
 def test_pointer_config_consumes_only_unmodified_directions_and_acknowledges_generation():
