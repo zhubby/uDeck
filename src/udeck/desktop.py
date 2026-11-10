@@ -99,6 +99,7 @@ class DesktopCatalog:
                     entries.append({
                         "id": identifier, "name": name, "subtitle": comment,
                         "icon": section.get("Icon", "application-x-executable"),
+                        "startupWMClass": section.get("StartupWMClass", ""),
                         "category": category, "desktop": str(path), "exec": section.get("Exec", ""),
                         "terminal": section.get("Terminal", "false").lower() == "true",
                         "workingDirectory": section.get("Path", ""),

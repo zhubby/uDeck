@@ -615,4 +615,33 @@ Window {
             onWheel: function(wheel) { wheel.accepted = true }
         }
     }
+
+    LoadingOverlay {
+        objectName: "startupOverlay"
+        anchors.fill: parent
+        z: 30
+        colors: window.colors
+        fontFamily: window.fontFamily
+        shown: window.viewState.startup.active
+        brand: true
+        applicationName: "uDeck"
+        message: window.tr("Preparing desktop…")
+        reducedMotion: window.viewState.reducedMotion
+    }
+
+    LoadingOverlay {
+        objectName: "appLaunchOverlay"
+        anchors.fill: parent
+        z: 20
+        colors: window.colors
+        fontFamily: window.fontFamily
+        shown: window.viewState.appLaunch.visible
+        applicationName: window.viewState.appLaunch.name || ""
+        applicationIcon: window.viewState.appLaunch.icon || "application-x-executable"
+        homeKind: window.viewState.appLaunch.homeKind || ""
+        message: window.viewState.appLaunch.message || ""
+        returnLabel: window.tr("Return to desktop")
+        reducedMotion: window.viewState.reducedMotion
+        immediateHide: !window.active && !headlessPreview
+    }
 }

@@ -1080,5 +1080,13 @@
   "回到主界面": "回到主界面",
   "关机": "关机",
   "重启": "重启",
-  "Ctrl+Shift+Esc 打开 · Esc / B 返回应用": "Ctrl+Shift+Esc 打开 · Esc / B 返回应用"
+  "Ctrl+Shift+Esc 打开 · Esc / B 返回应用": "Ctrl+Shift+Esc 打开 · Esc / B 返回应用",
+  "Preparing desktop…": "正在准备桌面…",
+  "Opening application…": "正在打开应用…",
+  "Still waiting for the application window…": "仍在等待应用窗口…",
+  "Return to desktop": "返回桌面",
+  "Could not read the application list: {error}": "无法读取应用列表：{error}",
+  "Could not start {name}: {error}": "无法启动 {name}：{error}",
+  "{name}: Launch request sent.": "{name}：已发送启动请求。",
+  "{name}: No application window detected; the application may still be starting.": "{name}：尚未检测到应用窗口，应用可能仍在启动。"
 }

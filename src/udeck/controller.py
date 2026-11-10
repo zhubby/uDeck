@@ -18,6 +18,7 @@ from .home import home_shortcuts
 from .hotspot import hotspot_summary, validate_hotspot_name
 from .i18n import LANGUAGES, error_text, render, tr
 from .key_test import KeyTestControls
+from .launch_controller import LaunchControls
 from .mock import mock_apps
 from .sounds import SoundFeedback, interaction
 from .timezone import REGIONS, local_clock, region, zone_label, zone_summary
@@ -28,7 +29,7 @@ CATEGORY_NAMES = {"All": tr('全部应用'), "Development": tr('开发'), "Netwo
                   "Utility": tr('工具'), "Game": tr('游戏'), "Graphics": tr('图形'), "Office": tr('办公'), "AudioVideo": tr('影音'), "Other": tr('其他')}
 
 
-class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback):
+class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControls, SoundFeedback):
     changed = Signal()
     present = Signal()
     calibrationRequested = Signal()
@@ -38,11 +39,13 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
     consoleAction = Signal(str)
     inputSuspended = Signal(bool)
     taskFinished = Signal(object)
+    launchFinished = Signal(object)
+    startupLoaded = Signal(object)
     fileJobProgress = Signal(object)
     fileJobFinished = Signal(object)
     filePreviewScroll = Signal(int)
 
-    def __init__(self, backend, window_service=None, config=None, catalog=None, mock=False):
+    def __init__(self, backend, window_service=None, config=None, catalog=None, mock=False, *, defer_startup=False):
         super().__init__()
         self.backend = backend
         self.window_service = window_service
@@ -52,7 +55,7 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
         self.mock = mock
         self.navigation = Navigation(self.config.data["focus"])
         self.catalog = catalog or DesktopCatalog(locale=self.language)
-        self.applications = mock_apps() if mock else self.catalog.entries()
+        self.applications = [] if defer_startup else mock_apps() if mock else self.catalog.entries()
         self.data = dict(backend.state)
         self.data.update({"windows": [], "files": [], "directory": str(Path.home()),
                           "input": {"available": False, "verified": False}})
@@ -83,6 +86,7 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
         self.toast_timer = QTimer(self)
         self.toast_timer.setSingleShot(True)
         self.toast_timer.timeout.connect(self._clear_toast)
+        self._init_loading(defer_startup)
         if window_service:
             window_service.changed.connect(self._windows_changed)
             window_service.failed.connect(self._failure)
@@ -98,7 +102,7 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
             for entry in self.data["files"]:
                 entry["kind"], entry["mime"], entry["icon"] = file_kind(entry["name"], entry["directory"])
             self.data["windows"] = [{"id": "terminal", "name": "zhubby@uconsole: ~", "appId": "terminal", "subtitle": tr('终端'), "icon": "utilities-terminal", "active": False}, {"id": "editor", "name": "uDeck — 代码编辑器", "appId": "code", "subtitle": "Visual Studio Code", "icon": "visual-studio-code", "active": False}]
-        else:
+        elif not defer_startup:
             self._browse(Path.home())
 
     @property
@@ -176,6 +180,7 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
             **{key: value for key, value in self.data.items() if not compact or key != "files"},
             "mock": self.mock, "page": self.navigation.page,
             "language": self.language, "theme": self.theme,
+            "startup": self.startup, "appLaunch": self.app_launch,
             "reducedMotion": os.environ.get("UDECK_REDUCED_MOTION") == "1",
             "categoryNames": CATEGORY_NAMES,
             "pageNames": list(PAGE_NAMES), "pages": list(PAGES), "activeTab": self.navigation.tab_page,
@@ -274,7 +279,8 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
 
     def _publish(self):
         items = self._items()
-        self.navigation.index = max(0, min(self.navigation.index, len(items) - 1))
+        if self.startup["phase"] not in ("preparing", "scanning"):
+            self.navigation.index = max(0, min(self.navigation.index, len(items) - 1))
         self._file_sync()
         self.changed.emit()
 
@@ -379,7 +385,21 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
     @Slot(object)
     def _windows_changed(self, windows):
         self.data["windows"] = windows
+        self.launches.windows_changed(windows)
+        self._refresh_launch()
         self._publish()
+
+    @Slot()
+    def startupFrameSwapped(self):
+        self._startup_frame()
+
+    @Slot(object)
+    def _startup_loaded(self, result):
+        self._complete_startup(result)
+
+    @Slot(object)
+    def _launch_finished(self, result):
+        self._complete_launch(result)
 
     @Slot(object)
     def _failure(self, message):
@@ -450,6 +470,8 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
     @Slot(int)
     @interaction
     def select(self, index):
+        if self.startup["active"] or self.app_launch["pending"]:
+            return
         if (self.navigation.index, self.navigation.zone) != (max(0, index), "content"):
             self.feedback("navigate")
         self.navigation.select(index)
@@ -460,6 +482,9 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
     @Slot(bool)
     def windowActive(self, active):
         self._test_active = active
+        self.launches.foreground_changed(active)
+        self._refresh_launch()
+        self._publish()
         if not active:
             self._clear_test_inputs()
         self.foregroundChanged.emit(active)
@@ -471,6 +496,16 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
     @Slot(str)
     @interaction
     def dispatch(self, action):
+        if self.startup["active"]:
+            return
+        if self.app_launch["pending"]:
+            if action in ("back", "home", "switcher", "quick-settings", "console"):
+                self._dismiss_launch()
+                if action == "back":
+                    self.feedback("back")
+                    return
+            else:
+                return
         if action == 'console':
             if not any(modal.get('source') == 'console' for modal in self._modals):
                 self._cancel_modals()
@@ -572,11 +607,7 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
             self.activateSetting(item["id"])
 
     def _launch(self, item):
-        if self.mock:
-            self.config.remember(item["id"])
-            self.notify(tr('预览：启动 ') + item["name"])
-        else:
-            self._run(tr('启动 ') + item["name"], lambda: self.catalog.launch(item["id"]), lambda result: self.config.remember(item["id"]))
+        self._start_application(item)
 
     def _context(self, item):
         page = self.navigation.page
@@ -1184,6 +1215,7 @@ class ShellController(KeyTestControls, WifiControls, FileControls, SoundFeedback
         self._publish()
 
     def close(self):
+        self._close_loading()
         self._close_files()
         self._cancel_modals()
         self.config.data["focus"] = self.navigation.positions

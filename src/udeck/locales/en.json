@@ -1080,5 +1080,13 @@
   "回到主界面": "Back to Home",
   "关机": "Power Off",
   "重启": "Restart",
-  "Ctrl+Shift+Esc 打开 · Esc / B 返回应用": "Ctrl+Shift+Esc to open · Esc / B to return to app"
+  "Ctrl+Shift+Esc 打开 · Esc / B 返回应用": "Ctrl+Shift+Esc to open · Esc / B to return to app",
+  "Preparing desktop…": "Preparing desktop…",
+  "Opening application…": "Opening application…",
+  "Still waiting for the application window…": "Still waiting for the application window…",
+  "Return to desktop": "Return to desktop",
+  "Could not read the application list: {error}": "Could not read the application list: {error}",
+  "Could not start {name}: {error}": "Could not start {name}: {error}",
+  "{name}: Launch request sent.": "{name}: Launch request sent.",
+  "{name}: No application window detected; the application may still be starting.": "{name}: No application window detected; the application may still be starting."
 }

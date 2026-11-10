@@ -209,6 +209,7 @@ class Control(QObject):
         self.windows = windows
         self.started = time.monotonic()
         self.first_frame = None
+        self.startup_frame = None
         self.terminal_broker = None
         self.application_router = None
         self.isolation = None
@@ -283,6 +284,7 @@ class Control(QObject):
             "version": __version__, "mock": self.controller.mock,
             "uptimeSeconds": round(time.monotonic() - self.started, 3),
             "firstFrameSeconds": self.first_frame,
+            "startupFrameSeconds": self.startup_frame,
             "page": self.controller.navigation.page,
             "windowProtocol": bool(self.windows and self.windows.available),
             "windowCount": len(self.controller.data["windows"]),
@@ -326,7 +328,7 @@ def main(argv=None):
 
         backend = SystemBackend()
         windows = WindowService()
-    controller = ShellController(backend, windows, config=config, mock=options.mock)
+    controller = ShellController(backend, windows, config=config, mock=options.mock, defer_startup=True)
     control = Control(controller, windows)
     session_bus = QDBusConnection.sessionBus()
     service_name = APP_ID + (".Preview" if options.mock else "")
@@ -485,10 +487,13 @@ def main(argv=None):
         not options.mock and active and controller.modal.get("kind") == "key-test"))
 
     def first_frame():
-        if control.first_frame is None:
+        if control.startup_frame is None:
+            control.startup_frame = round(time.monotonic() - started, 3)
+        if control.first_frame is None and not controller.startup["active"]:
             control.first_frame = round(time.monotonic() - started, 3)
 
     window.frameSwapped.connect(first_frame)
+    window.frameSwapped.connect(controller.startupFrameSwapped)
     if windows:
         windows.start()
         controller.present.connect(windows.activate_shell)

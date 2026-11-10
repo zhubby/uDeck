@@ -44,6 +44,10 @@ def test_shell_sounds_follow_real_changes_not_keypresses_or_refreshes(shell):
     shell.dispatch("accept")
     assert events[-1] == "accept"
     shell.dispatch("context")
+    assert events[-1] == "accept"
+    shell.dispatch("back")
+    assert events[-1] == "back"
+    shell.dispatch("context")
     assert events[-1] == "open"
     shell.dispatch("back")
     assert events[-1] == "back"
