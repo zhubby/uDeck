@@ -1,6 +1,7 @@
 import json
 import threading
 import time
+from concurrent.futures import Future
 from pathlib import Path
 
 import pytest
@@ -128,6 +129,32 @@ def test_batch_keep_both_does_not_overwrite_and_can_run_in_background(controller
     assert (destination / "b.txt").read_text() == "b.txt"
     assert instance.navigation.page == "home"
     assert not instance.busy
+
+
+def test_completed_task_ignores_progress_queued_by_an_eager_worker(controller):
+    instance, application, directory = controller
+
+    class EagerExecutor:
+        def submit(self, work):
+            future = Future()
+            worker = threading.Thread(target=lambda: future.set_result(work()))
+            worker.start()
+            worker.join()
+            return future
+
+        def shutdown(self, **options):
+            pass
+
+    instance._file_job_executor.shutdown(wait=True)
+    instance._file_job_executor = EagerExecutor()
+    destination = directory / 'destination'
+    destination.mkdir()
+    instance.setPage('home')
+    instance._file_start_job('copy', [str(directory / 'a.txt')], str(destination))
+    assert instance.file_task['state'] == 'completed'
+    application.processEvents()
+    assert instance.file_task['state'] == 'completed'
+    assert (destination / 'a.txt').read_text() == 'a.txt'
 
 
 def test_grid_and_breadcrumb_navigation_preserve_global_page_switching(controller):

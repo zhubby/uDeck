@@ -541,7 +541,7 @@ class FileControls:
 
     def _file_job_progress(self, message):
         identifier, update = message
-        if self._files_closing or identifier != self.file_task.get("id"):
+        if self._files_closing or identifier != self.file_task.get("id") or not self._file_active():
             return
         cancelling = self.file_task.get("state") == "cancelling"
         self.file_task.update(update)
