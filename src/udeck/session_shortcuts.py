@@ -16,19 +16,23 @@ def bind_console(config, backups):
         root = ET.fromstring(original, parser=ET.XMLParser(target=ET.TreeBuilder(insert_comments=True)))
     except ET.ParseError as error:
         raise ValueError('Invalid labwc XML: ' + str(error)) from error
-    if root.tag != 'labwc_config':
+    namespace, separator, root_name = root.tag.rpartition('}')
+    prefix = namespace + '}' if separator else ''
+    if root_name not in ('labwc_config', 'openbox_config'):
         raise ValueError('Not a labwc configuration')
-    keyboard = root.find('keyboard')
+    if prefix:
+        ET.register_namespace('', namespace.removeprefix('{'))
+    keyboard = root.find(prefix + 'keyboard')
     if keyboard is None:
-        keyboard = ET.SubElement(root, 'keyboard')
-    matches = [node for node in keyboard.findall('keybind') if set(node.get('key', '').split('-')) == {'C', 'S', 'Escape'}]
+        keyboard = ET.SubElement(root, prefix + 'keyboard')
+    matches = [node for node in keyboard.findall(prefix + 'keybind') if set(node.get('key', '').split('-')) == {'C', 'S', 'Escape'}]
     if (len(matches) == 1 and len(matches[0]) == 1 and matches[0][0].get('name') == 'Execute'
             and matches[0][0].get('command') == 'udeckctl console'):
         return {'changed': False, 'config': str(config)}
     for node in matches:
         keyboard.remove(node)
-    binding = ET.SubElement(keyboard, 'keybind', key='C-S-Escape')
-    ET.SubElement(binding, 'action', name='Execute', command='udeckctl console')
+    binding = ET.SubElement(keyboard, prefix + 'keybind', key='C-S-Escape')
+    ET.SubElement(binding, prefix + 'action', name='Execute', command='udeckctl console')
     backups.mkdir(parents=True, exist_ok=True, mode=0o700)
     if backups.is_symlink() or backups.stat().st_uid != os.getuid():
         raise ValueError('Unsafe shortcut backup directory')
