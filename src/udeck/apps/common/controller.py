@@ -3,10 +3,11 @@
 import json
 from pathlib import Path
 
-from PySide6.QtCore import Property, QTimer, Signal, Slot
+from PySide6.QtCore import Property, QObject, QTimer, Signal, Slot
 from PySide6.QtDBus import QDBusConnection, QDBusMessage
 
 from udeck.apps.common.library import Library
+from udeck.apps.common.model import CardListModel
 from udeck.apps.common.state import AppState
 from udeck.core import ConfigStore, move_index
 from udeck.i18n import language_code, render, tr
@@ -18,11 +19,16 @@ class AppController(SoundFeedback):
     closed = Signal()
     present = Signal()
     webAction = Signal(str, str)
+    selectionChanged = Signal()
+    saveFailed = Signal(object)
 
     def __init__(self, app, directory=None, language_path=None):
         super().__init__()
         self.app = app
-        self.store = AppState(app, directory)
+        self.store = AppState(app, directory, background=True)
+        self.store.on_error = self.saveFailed.emit
+        self.saveFailed.connect(self._save_failed)
+        self._closed = False
         self.config_path = language_path
         preferences = ConfigStore(language_path).data["preferences"]
         self.language, self.theme = preferences["language"], preferences["theme"]
@@ -37,13 +43,17 @@ class AppController(SoundFeedback):
         self.error, self.notice, self.current = "", "", None
         self._callbacks, self._serial = {}, 0
         self._rows = []
+        self._card_model = CardListModel(self)
+        self._card_key = None
+        self._row_revision = 0
+        self._published_selection = None
         self._last_saved = ""
         self.poller = QTimer(self)
         self.poller.setInterval(1000)
         self.poller.timeout.connect(self.poll)
         self.poller.start()
         if self.library:
-            self.library.changed.connect(self.publish)
+            self.library.changed.connect(self._library_changed)
             self.library.lost.connect(self.source_lost)
 
     def create_library(self, app):
@@ -83,14 +93,38 @@ class AppController(SoundFeedback):
     def extra_state(self):
         return {}
 
-    def snapshot(self):
-        rows = self.rows()
+    def _library_changed(self):
+        self._row_revision += 1
+        self.publish()
+
+    def _view_rows(self):
+        library = self.library
+        key = (self._row_revision, id(library.items) if library else 0,
+               len(library.items) if library else 0,
+               frozenset(library.unavailable) if library else frozenset(),
+               self.page, self.tab, self.folder, self.filter, self.language,
+               getattr(self, 'album', ''), getattr(self, 'platform', ''),
+               id(getattr(self, 'catalog', None)), getattr(library, 'root_id', ''),
+               tuple(self.store.data['recent']), tuple(self.store.data['favorites']),
+               tuple(self.queue.items) if hasattr(self, 'queue') else ())
+        if key != self._card_key:
+            self._reconcile_rows(self.rows())
+            self._card_model.set_entries(self._rows, self.language)
+            self._card_key = key
+        return self._rows
+
+    def _reconcile_rows(self, rows):
         previous_index = next((i for i, row in enumerate(self._rows) if row["id"] == self.selected), 0)
         if self.selected not in {row["id"] for row in rows}:
             self.selected = rows[min(previous_index, len(rows) - 1)]["id"] if rows else ""
         self._rows = rows
+
+    def snapshot(self, compact=False):
+        rows = self._view_rows() if compact else self.rows()
+        if not compact:
+            self._view_rows()
         return {"app": self.app, "language": self.language, "theme": self.theme, "page": self.page,
-                "tabs": self.tabs(), "tab": self.tab, "cards": rows, "selected": self.selected,
+                "tabs": self.tabs(), "tab": self.tab, **({} if compact else {"cards": rows}), "selected": self.selected,
                 "current": self.current or {}, "filter": self.filter, "folder": self.folder,
                 "menu": {k: v for k, v in self.menus[-1].items() if k not in ("submit", "pickerParent")} if self.menus else {}, "error": self.error,
                 "notice": self.notice, "scanning": bool(self.library and self.library.pending),
@@ -101,6 +135,22 @@ class AppController(SoundFeedback):
     def snapshotJson(self):
         return json.dumps(render(self.snapshot(), self.language), ensure_ascii=False)
 
+    @Property(str, notify=changed)
+    def viewSnapshotJson(self):
+        return json.dumps(render(self.snapshot(compact=True), self.language), ensure_ascii=False)
+
+    @Property(QObject, constant=True)
+    def cardModel(self):
+        return self._card_model
+
+    @Property(int, notify=selectionChanged)
+    def selectedIndex(self):
+        return self._card_model.by_id.get(self.selected, -1)
+
+    @Property('QVariantMap', notify=selectionChanged)
+    def selectedItem(self):
+        return self._card_model.item(self.selected)
+
     @Property(bool, constant=True)
     def isolatedMode(self):
         return self.isolated
@@ -110,6 +160,11 @@ class AppController(SoundFeedback):
         return render(tr(source), language)
 
     def publish(self):
+        self._view_rows()
+        selection = (self.selected, self.selectedIndex, self._card_key)
+        if selection != self._published_selection:
+            self._published_selection = selection
+            self.selectionChanged.emit()
         self.changed.emit()
 
     def persist(self):
@@ -124,6 +179,12 @@ class AppController(SoundFeedback):
             self.error = tr("Operation failed: {error}", error=error)
             self.publish()
             return None
+
+    @Slot(object)
+    def _save_failed(self, error):
+        self.feedback('error')
+        self.error = tr('Operation failed: {error}', error=error)
+        self.publish()
 
     def menu(self, title, options=(), body="", owner=None, quiet=False):
         if not quiet:
@@ -194,7 +255,8 @@ class AppController(SoundFeedback):
     @Slot(str)
     @interaction
     def select(self, identifier):
-        if identifier in {row["id"] for row in self.rows()}:
+        self._view_rows()
+        if identifier in self._card_model.by_id:
             if identifier != self.selected:
                 self.feedback("navigate")
             self.selected = identifier
@@ -275,15 +337,15 @@ class AppController(SoundFeedback):
         elif action in ("previous-tab", "next-tab"):
             self.setTab((self.tab + (-1 if action == "previous-tab" else 1)) % len(self.tabs()))
         elif action == "accept":
-            row = next((row for row in self.rows() if row["id"] == self.selected), None)
+            row = next((row for row in self._view_rows() if row["id"] == self.selected), None)
             if row:
                 self.feedback("accept")
                 self.attempt(lambda: self.activate(row))
-            elif not self.rows():
+            elif not self._view_rows():
                 self.sources_menu() if self.library else self.command("address")
         elif action in ("up", "down", "left", "right"):
-            rows = self.rows()
-            index = next((i for i, r in enumerate(rows) if r["id"] == self.selected), 0)
+            rows = self._view_rows()
+            index = max(0, self.selectedIndex)
             if rows:
                 previous = self.selected
                 self.selected = rows[move_index(index, action, len(rows),
@@ -386,9 +448,13 @@ class AppController(SoundFeedback):
         self.closed.emit()
 
     def close(self):
+        if self._closed:
+            return
+        self._closed = True
         self.poller.stop()
         if self.inputs:
             self.inputs.close()
         if self.library:
             self.library.close()
         self.attempt(self.persist)
+        self.attempt(self.store.close)

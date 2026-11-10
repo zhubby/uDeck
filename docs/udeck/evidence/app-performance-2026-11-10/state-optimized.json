@@ -1,0 +1,29 @@
+{
+  "qmlParsingAndRenderingIncluded": false,
+  "updates": [
+    {
+      "items": 100,
+      "samples": 100,
+      "compactView": true,
+      "payloadBytes": 269,
+      "medianMs": 0.06620850035687909,
+      "p95Ms": 0.07729199933237396
+    },
+    {
+      "items": 1000,
+      "samples": 100,
+      "compactView": true,
+      "payloadBytes": 270,
+      "medianMs": 0.06512500112876296,
+      "p95Ms": 0.07541599916294217
+    },
+    {
+      "items": 10000,
+      "samples": 100,
+      "compactView": true,
+      "payloadBytes": 271,
+      "medianMs": 0.06520900205941871,
+      "p95Ms": 0.07095800174283795
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "baseline": {
+    "version": "baseline",
+    "exitCode": 0,
+    "seconds": 634.2783161350001
+  },
+  "optimized": {
+    "version": "optimized",
+    "exitCode": 0,
+    "seconds": 442.0273313780001
+  }
+}

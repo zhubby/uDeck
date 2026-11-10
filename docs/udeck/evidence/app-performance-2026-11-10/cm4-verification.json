@@ -1,0 +1,12 @@
+{
+  "applicationLogCount": 36,
+  "errorPatterns": [
+    "ReferenceError",
+    "TypeError",
+    "Binding loop",
+    "Python traceback"
+  ],
+  "matches": {},
+  "sourceAndFontHashesMatchedLocalCopies": true,
+  "note": "Log scan complements automated QML tests; it does not establish physical input or content acceptance"
+}

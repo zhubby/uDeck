@@ -1,0 +1,16 @@
+{
+  "en": {
+    "pngSha256": {
+      "baseline": "2d891433c9a8fa26cf01a3fb0f2a5d4616f24a57881a7a670a9e9fab96168792",
+      "optimized": "2d891433c9a8fa26cf01a3fb0f2a5d4616f24a57881a7a670a9e9fab96168792"
+    },
+    "byteIdentical": true
+  },
+  "zh_CN": {
+    "pngSha256": {
+      "baseline": "a897be894bdd2c88cb5b3519387567f76379c2d4bd757090ecde7ffcec732f51",
+      "optimized": "a897be894bdd2c88cb5b3519387567f76379c2d4bd757090ecde7ffcec732f51"
+    },
+    "byteIdentical": true
+  }
+}

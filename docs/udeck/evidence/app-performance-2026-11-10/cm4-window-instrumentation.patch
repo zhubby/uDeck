@@ -1,0 +1,44 @@
+--- baseline/src/udeck/apps/common/qml/Main.qml
++++ baseline/src/udeck/apps/common/qml/Main.qml
+@@ -12,7 +12,7 @@
+     visible: true
+     visibility: windowed ? Window.Windowed : Window.FullScreen
+     color: window.colors.background
+-    title: "uDeck " + window.tr(state.app.charAt(0).toUpperCase() + state.app.slice(1))
++    title: ("uDeck " + window.tr(state.app.charAt(0).toUpperCase() + state.app.slice(1))) + " [udeck-perf-f2dfb025faee4c09bea09dde1f804778]"
+     property var state: JSON.parse(controller.snapshotJson)
+     property alias colors: themeColors
+     Shared.ThemePalette { id: themeColors; theme: window.state.theme; profile: "apps" }
+--- baseline/src/udeck/terminal/qml/Main.qml
++++ baseline/src/udeck/terminal/qml/Main.qml
+@@ -15,7 +15,7 @@
+     visible: true
+     visibility: windowed ? Window.Windowed : Window.FullScreen
+     color: window.colors.background
+-    title: (state.tabs.find(function(tab) { return tab.id === state.current }) || {}).title || "uDeck Terminal"
++    title: ((state.tabs.find(function(tab) { return tab.id === state.current }) || {}).title || "uDeck Terminal") + " [udeck-perf-f2dfb025faee4c09bea09dde1f804778]"
+     property var state: JSON.parse(controller.snapshotJson)
+     property var optionModel: []
+     property string optionsStamp: ""
+--- optimized/src/udeck/apps/common/qml/Main.qml
++++ optimized/src/udeck/apps/common/qml/Main.qml
+@@ -12,7 +12,7 @@
+     visible: true
+     visibility: windowed ? Window.Windowed : Window.FullScreen
+     color: window.colors.background
+-    title: "uDeck " + window.tr(state.app.charAt(0).toUpperCase() + state.app.slice(1))
++    title: ("uDeck " + window.tr(state.app.charAt(0).toUpperCase() + state.app.slice(1))) + " [udeck-perf-f2dfb025faee4c09bea09dde1f804778]"
+     property var state: JSON.parse(controller.viewSnapshotJson)
+     property alias colors: themeColors
+     Shared.ThemePalette { id: themeColors; theme: window.state.theme; profile: "apps" }
+--- optimized/src/udeck/terminal/qml/Main.qml
++++ optimized/src/udeck/terminal/qml/Main.qml
+@@ -15,7 +15,7 @@
+     visible: true
+     visibility: windowed ? Window.Windowed : Window.FullScreen
+     color: window.colors.background
+-    title: (state.tabs.find(function(tab) { return tab.id === state.current }) || {}).title || "uDeck Terminal"
++    title: ((state.tabs.find(function(tab) { return tab.id === state.current }) || {}).title || "uDeck Terminal") + " [udeck-perf-f2dfb025faee4c09bea09dde1f804778]"
+     property var state: JSON.parse(controller.snapshotJson)
+     property var optionModel: []
+     property string optionsStamp: ""

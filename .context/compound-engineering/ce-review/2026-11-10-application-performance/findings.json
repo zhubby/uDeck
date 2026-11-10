@@ -1,0 +1,119 @@
+{
+  "mode": "autofix",
+  "base": "1f26587a9449ccdc0714ddafb9605193c5143677",
+  "execution": "Sequential self-review using persona instructions; no delegated or independent reviewer",
+  "reviewers": [
+    "correctness",
+    "testing",
+    "maintainability",
+    "project-standards",
+    "agent-native",
+    "api-contract",
+    "data-migrations",
+    "performance",
+    "reliability",
+    "adversarial",
+    "cli-readiness",
+    "kieran-python"
+  ],
+  "appliedFixes": [
+    {
+      "severity": "P1",
+      "file": "src/udeck/apps/common/qml/Main.qml",
+      "title": "Preserve immediate browser navigation while deferring non-browser surfaces",
+      "verification": "Real browser QML workflow passed"
+    },
+    {
+      "severity": "P1",
+      "file": "src/udeck/apps/reader/qml/ReaderSurface.qml",
+      "title": "Restore first-use PDF pan after asynchronous construction",
+      "verification": "Lazy PDF/text and retained surface probes passed"
+    },
+    {
+      "severity": "P2",
+      "file": "src/udeck/apps/common/state.py",
+      "title": "Keep serial writer alive after serialization and notification failures; retain index source and explicit revision",
+      "verification": "Delayed fsync, coalescing, in-place index, migration failure and recovery tests passed"
+    },
+    {
+      "severity": "P2",
+      "file": "src/udeck/terminal/main.py",
+      "title": "Keep terminal startup failure exit status 2",
+      "verification": "English/Chinese startup errors and independent D-Bus failures passed"
+    },
+    {
+      "severity": "P2",
+      "file": "src/udeck/apps/common/model.py",
+      "title": "Keep first-match selection when a music queue contains repeated tracks",
+      "verification": "Regression failed with index 2 before fix; now returns index 0"
+    },
+    {
+      "severity": "P2",
+      "file": "tools/measure-applications.py",
+      "title": "Own a private bus, reject reused output directories, and separate active-window timing from frame timing",
+      "verification": "Independent sampling run; missing focus/frame samples remain absent"
+    },
+    {
+      "severity": "P2",
+      "file": "tools/performance-wayland-bridge.py",
+      "title": "Restrict private compositor activation to a unique newly created window with a random title marker",
+      "verification": "Three safety tests plus actual CM4 activation; original desktop/Reader/Emulator PIDs survived and all test processes exited"
+    }
+  ],
+  "residualActionableCodeFindings": [],
+  "advisory": [
+    {
+      "owner": "release",
+      "severity": "P2",
+      "title": "Physical input, actual installed desktop path, real content and terminal restoration remain unverified",
+      "evidence": [
+        "CM4 automated isolated A/B completed successfully for six applications; original processes preserved",
+        "Five non-terminal applications have complete active-window samples; most optimized redraw samples are absent",
+        "Terminal benchmark covers a visible window, not minimized restoration",
+        "ABXY/L/R, real IME, original-session recovery, first content readiness and sustained media frame timing require further acceptance"
+      ]
+    },
+    {
+      "owner": "release",
+      "severity": "P3",
+      "title": "Split index is a rebuildable cache; downgrade restores it by scanning sources",
+      "evidence": [
+        "Legacy embedded index is read and retained until an atomic runtime write succeeds",
+        "Runtime preferences, positions, favorites, queue and source definitions keep their schema"
+      ]
+    },
+    {
+      "owner": "performance",
+      "severity": "P2",
+      "title": "First launch does not improve universally; external Python entrypoint remains slower than direct IPC",
+      "evidence": [
+        "CM4 Reader first-frame median 3307 ms to 2917 ms; PSS 187.4 MiB to 114.9 MiB",
+        "Other first-frame medians slightly regress; external launcher activation P95 remains 446 to 797 ms",
+        "Initial high-swap snapshot differs from benchmark start; original load conditions were not reproduced"
+      ]
+    }
+  ],
+  "verdict": {
+    "software": "No remaining confirmed code defects after fixes and verification",
+    "cm4Acceptance": "Automated private-session activation target met for five non-terminal apps; physical/content/installed-session gates remain open"
+  },
+  "knownSolutions": "No docs/solutions directory exists in this checkout; input and terminal acceptance boundaries checked against source and retained documentation",
+  "verification": {
+    "linuxArm64": {
+      "modules": 84,
+      "tests": 1231,
+      "failures": 0,
+      "skipped": 0,
+      "combinedPytestSeconds": 362.603,
+      "nativeTerminalRequired": true
+    },
+    "performance": {
+      "linux": "6 applications, 3 fresh processes each, 20 launcher requests per process",
+      "cm4": "6 applications, same counts under existing Wayland/labwc/OpenGL; 5 non-terminal applications also 20 independent Open requests per process",
+      "maximumPerRunDirectActivationP95Ms": 206.868,
+      "aggregation": "Per-run P95, never pooled across process runs"
+    },
+    "visual": "English/Chinese Reader screenshots with 3 resources are byte-identical",
+    "packaging": "wheel and arm64 .deb built; .deb unpack/entrypoint probes passed; full runtime dependency configuration not performed"
+  }
+}

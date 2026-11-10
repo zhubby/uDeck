@@ -94,4 +94,9 @@ Item {
         }
         function onPdfMoved(){Qt.callLater(function(){pdfView.contentX=appState.pdfX||0;pdfView.contentY=appState.pdfY||0})}
     }
+    Component.onCompleted: Qt.callLater(function() {
+        pdfView.contentX = appState.pdfX || 0
+        pdfView.contentY = appState.pdfY || 0
+        if (!surface.pdf && book.url.toString() !== book.documentUrl) book.url = book.documentUrl
+    })
 }

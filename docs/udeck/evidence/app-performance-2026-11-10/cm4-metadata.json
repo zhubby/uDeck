@@ -1,0 +1,159 @@
+{
+  "capturedAtUnix": 1794308886.3643155,
+  "contentCounts": {
+    "baseline": {
+      "music": [
+        {
+          "run": 0,
+          "sourceCount": 1,
+          "indexItems": 0
+        },
+        {
+          "run": 1,
+          "sourceCount": 1,
+          "indexItems": 0
+        },
+        {
+          "run": 2,
+          "sourceCount": 1,
+          "indexItems": 0
+        }
+      ],
+      "video": [
+        {
+          "run": 0,
+          "sourceCount": 1,
+          "indexItems": 0
+        },
+        {
+          "run": 1,
+          "sourceCount": 1,
+          "indexItems": 0
+        },
+        {
+          "run": 2,
+          "sourceCount": 1,
+          "indexItems": 0
+        }
+      ],
+      "reader": [
+        {
+          "run": 0,
+          "sourceCount": 1,
+          "indexItems": 1
+        },
+        {
+          "run": 1,
+          "sourceCount": 1,
+          "indexItems": 1
+        },
+        {
+          "run": 2,
+          "sourceCount": 1,
+          "indexItems": 1
+        }
+      ],
+      "browser": [],
+      "emulator": [
+        {
+          "run": 0,
+          "sourceCount": 1,
+          "indexItems": 3
+        },
+        {
+          "run": 1,
+          "sourceCount": 1,
+          "indexItems": 3
+        },
+        {
+          "run": 2,
+          "sourceCount": 1,
+          "indexItems": 3
+        }
+      ],
+      "terminal": []
+    },
+    "optimized": {
+      "music": [
+        {
+          "run": 0,
+          "sourceCount": 1,
+          "indexItems": 0
+        },
+        {
+          "run": 1,
+          "sourceCount": 1,
+          "indexItems": 0
+        },
+        {
+          "run": 2,
+          "sourceCount": 1,
+          "indexItems": 0
+        }
+      ],
+      "video": [
+        {
+          "run": 0,
+          "sourceCount": 1,
+          "indexItems": 0
+        },
+        {
+          "run": 1,
+          "sourceCount": 1,
+          "indexItems": 0
+        },
+        {
+          "run": 2,
+          "sourceCount": 1,
+          "indexItems": 0
+        }
+      ],
+      "reader": [
+        {
+          "run": 0,
+          "sourceCount": 1,
+          "indexItems": 1
+        },
+        {
+          "run": 1,
+          "sourceCount": 1,
+          "indexItems": 1
+        },
+        {
+          "run": 2,
+          "sourceCount": 1,
+          "indexItems": 1
+        }
+      ],
+      "browser": [],
+      "emulator": [
+        {
+          "run": 0,
+          "sourceCount": 1,
+          "indexItems": 3
+        },
+        {
+          "run": 1,
+          "sourceCount": 1,
+          "indexItems": 3
+        },
+        {
+          "run": 2,
+          "sourceCount": 1,
+          "indexItems": 3
+        }
+      ],
+      "terminal": []
+    }
+  },
+  "originalProcesses": {
+    "1266": "/usr/bin/python3 /usr/bin/udeck ",
+    "2521": "/usr/bin/python3 /usr/bin/udeck-reader ",
+    "3322": "/usr/bin/python3 /usr/bin/udeck-emulator "
+  },
+  "remainingTestProcesses": [],
+  "temperatureMillidegrees": "38946",
+  "cpuFrequencyKHz": "1500000",
+  "cpuGovernor": "ondemand",
+  "throttled": "throttled=0x0"
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "name": "fonts/SairaSemiCondensed-Medium.ttf",
+    "sha256": "bd886bd6f632b4906a4f469c81ccb37b1f0d68d4c175bef7277c8addb86cff2d"
+  },
+  {
+    "name": "fonts/SairaSemiCondensed-Bold.ttf",
+    "sha256": "2ab7a35f798e149db1908ddae844024bcb975bdccbfc81dbac3429d0f6270b14"
+  },
+  {
+    "name": "fonts/SairaSemiCondensed-Regular.ttf",
+    "sha256": "9dad0fea2405ebc740092a0ca34e350ac235c0a040095068e0054b337520f93a"
+  },
+  {
+    "name": "fonts/SairaSemiCondensed-SemiBold.ttf",
+    "sha256": "f7a32aded607fb364a940ca08b4dbe514346b4fbfa6bb1777c71edf6d7f0fe56"
+  },
+  {
+    "name": "fonts/LXGWWenKaiScreen.ttf",
+    "sha256": "abd13364163e3cd84372b333f2fdcee9efb848634668f1c0ce5788dcd059ee61"
+  },
+  {
+    "name": "terminal/fonts/LXGWWenKaiMono-Regular.ttf",
+    "sha256": "895ce1d2fa00d5ca3bec0329d38e3190454f4b5fa7b4733f491c419faf9753a1"
+  },
+  {
+    "name": "terminal/fonts/JetBrainsMono-Bold.ttf",
+    "sha256": "5590990c82e097397517f275f430af4546e1c45cff408bde4255dad142479dcb"
+  },
+  {
+    "name": "terminal/fonts/JetBrainsMono-Regular.ttf",
+    "sha256": "a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f"
+  },
+  {
+    "name": "terminal/fonts/SymbolsNerdFontMono-Regular.ttf",
+    "sha256": "fe471e538392f51910faab985fa8e192a39dd3426125edd15b71b3680df0e749"
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "package": "udeck_0.2.3_arm64.deb",
+  "sha256": "a18eea3dffd11b604fb164f8a6ac4baa1d91df24546a3ad8b0f018bfde81c93b",
+  "unpackedFilesMatchSource": true,
+  "dependencyConfiguration": "Not performed: builder image has build dependencies rather than the complete desktop runtime",
+  "entrypoints": [
+    {
+      "command": [
+        "udeck-reader",
+        "--doctor"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"app\": \"reader\", \"running\": false}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "udeck-terminal",
+        "--doctor"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"running\": false, \"plugins\": [\"/work/build/performance-terminal-plugin\", \"/usr/lib/udeck-terminal/qml\"]}\n",
+      "stderr": ""
+    }
+  ]
+}

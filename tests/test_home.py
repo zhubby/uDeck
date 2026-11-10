@@ -1,4 +1,5 @@
 import json
+import time
 
 import pytest
 from PySide6.QtCore import QCoreApplication
@@ -141,6 +142,10 @@ def test_home_dispatches_native_desktop_entries_outside_preview(controller, monk
     controller.select(index)
     controller.dispatch("accept")
 
+    deadline = time.monotonic() + 2
+    while controller.config.data['recent'] != [HOME_IDS[index]] and time.monotonic() < deadline:
+        controller._test_application.processEvents()
+        time.sleep(.001)
     assert launched == [HOME_IDS[index]]
     assert controller.config.data["recent"] == [HOME_IDS[index]]
     assert not controller.backend.actions

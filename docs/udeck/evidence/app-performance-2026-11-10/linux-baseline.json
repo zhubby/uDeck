@@ -1,0 +1,1904 @@
+{
+  "mode": "new process with existing OS caches; private D-Bus and XDG state",
+  "host": "1b95f91cded6",
+  "kernel": "7.2.12-orbstack-00394-gbecdd6130068",
+  "architecture": "aarch64",
+  "python": "3.13.5 (main, Aug 10 2026, 12:06:59) [GCC 14.2.0]",
+  "graphicsEnvironment": {
+    "WAYLAND_DISPLAY": "",
+    "DISPLAY": ":98",
+    "QT_QPA_PLATFORM": "xcb",
+    "QT_QUICK_BACKEND": "software",
+    "QSG_RHI_BACKEND": null,
+    "LIBGL_ALWAYS_SOFTWARE": null
+  },
+  "systemBefore": {
+    "loadAverage": [
+      1.5087890625,
+      1.71875,
+      1.9501953125
+    ],
+    "cpuTicks": 25795427,
+    "ioWaitTicks": 33453,
+    "swapInPages": 0,
+    "swapOutPages": 0,
+    "memoryKiB": {
+      "MemTotal": 16424796,
+      "MemAvailable": 14085376,
+      "SwapTotal": 17473364,
+      "SwapFree": 17473364
+    },
+    "pressure": {}
+  },
+  "apps": {
+    "music": [
+      {
+        "observedFirstFrameMs": 237.355,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30430.289777083,
+          "stages": {
+            "runtimeImported": 0.117558,
+            "qtReady": 0.124943,
+            "controllerReady": 0.152524,
+            "qmlReady": 0.225283,
+            "libraryReady": 0.226725,
+            "firstFrame": 0.235356
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 1,
+          "pssKiB": 105431,
+          "swapPssKiB": 0,
+          "cpuTicks": 23,
+          "majorFaults": 139,
+          "readBytes": 73449472,
+          "writeBytes": 139263,
+          "pssReadableProcesses": 1
+        },
+        "idleSample": {
+          "seconds": 2.0155967009995948,
+          "cpuPercentOfOneCore": 0.4961309965947404,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.0,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 111.49,
+          "p95Ms": 133.458,
+          "minMs": 108.23,
+          "maxMs": 137.231
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.694,
+          "p95Ms": 0.968,
+          "minMs": 0.536,
+          "maxMs": 1.613
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 4.145,
+          "p95Ms": 7.363,
+          "minMs": 2.306,
+          "maxMs": 7.643
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 97.685,
+          "p95Ms": 107.88,
+          "minMs": 95.24,
+          "maxMs": 120.315
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.636,
+          "p95Ms": 2.983,
+          "minMs": 2.334,
+          "maxMs": 3.539
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 97.812,
+          "p95Ms": 108.043,
+          "minMs": 95.35,
+          "maxMs": 120.475
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.29,
+          "p95Ms": 2.431,
+          "minMs": 1.878,
+          "maxMs": 3.079
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30430.289777083,
+          "stages": {
+            "runtimeImported": 0.117558,
+            "qtReady": 0.124943,
+            "controllerReady": 0.152524,
+            "qmlReady": 0.225283,
+            "libraryReady": 0.226725,
+            "firstFrame": 0.235356
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 6.623229422002623,
+            "toActiveMs": 0.095,
+            "toFrameMs": 0.555
+          },
+          "graphicsApi": "Software"
+        }
+      },
+      {
+        "observedFirstFrameMs": 203.834,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30436.919845916997,
+          "stages": {
+            "runtimeImported": 0.104477,
+            "qtReady": 0.110055,
+            "controllerReady": 0.125105,
+            "qmlReady": 0.200938,
+            "libraryReady": 0.20246,
+            "firstFrame": 0.211378
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 1,
+          "pssKiB": 105387,
+          "swapPssKiB": 0,
+          "cpuTicks": 20,
+          "majorFaults": 1,
+          "readBytes": 0,
+          "writeBytes": 139263,
+          "pssReadableProcesses": 1
+        },
+        "idleSample": {
+          "seconds": 2.0090540749988577,
+          "cpuPercentOfOneCore": 0.4977466821048948,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.1141552511415525,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 112.249,
+          "p95Ms": 128.514,
+          "minMs": 110.06,
+          "maxMs": 145.717
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.63,
+          "p95Ms": 0.725,
+          "minMs": 0.492,
+          "maxMs": 0.745
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 3.127,
+          "p95Ms": 5.547,
+          "minMs": 2.765,
+          "maxMs": 5.783
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 98.85,
+          "p95Ms": 114.317,
+          "minMs": 96.658,
+          "maxMs": 130.013
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.753,
+          "p95Ms": 2.991,
+          "minMs": 2.317,
+          "maxMs": 3.041
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 98.977,
+          "p95Ms": 114.468,
+          "minMs": 96.796,
+          "maxMs": 130.161
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.358,
+          "p95Ms": 2.721,
+          "minMs": 2.083,
+          "maxMs": 2.759
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30436.919845916997,
+          "stages": {
+            "runtimeImported": 0.104477,
+            "qtReady": 0.110055,
+            "controllerReady": 0.125105,
+            "qmlReady": 0.200938,
+            "libraryReady": 0.20246,
+            "firstFrame": 0.211378
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 6.672530302002997,
+            "toActiveMs": 0.226,
+            "toFrameMs": 0.563
+          },
+          "graphicsApi": "Software"
+        }
+      },
+      {
+        "observedFirstFrameMs": 190.247,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30443.599857792,
+          "stages": {
+            "runtimeImported": 0.096979,
+            "qtReady": 0.102559,
+            "controllerReady": 0.117383,
+            "qmlReady": 0.177568,
+            "libraryReady": 0.179056,
+            "firstFrame": 0.18795
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 1,
+          "pssKiB": 105371,
+          "swapPssKiB": 0,
+          "cpuTicks": 20,
+          "majorFaults": 1,
+          "readBytes": 0,
+          "writeBytes": 139263,
+          "pssReadableProcesses": 1
+        },
+        "idleSample": {
+          "seconds": 2.0155409930011956,
+          "cpuPercentOfOneCore": 0.9922894185456113,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.0,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 113.48,
+          "p95Ms": 116.918,
+          "minMs": 110.183,
+          "maxMs": 120.72
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.613,
+          "p95Ms": 0.765,
+          "minMs": 0.46,
+          "maxMs": 0.812
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 3.271,
+          "p95Ms": 6.458,
+          "minMs": 2.683,
+          "maxMs": 7.463
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 99.354,
+          "p95Ms": 102.198,
+          "minMs": 96.178,
+          "maxMs": 106.878
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.712,
+          "p95Ms": 2.975,
+          "minMs": 2.342,
+          "maxMs": 3.439
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 99.505,
+          "p95Ms": 102.336,
+          "minMs": 96.312,
+          "maxMs": 107.023
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.336,
+          "p95Ms": 2.489,
+          "minMs": 1.977,
+          "maxMs": 3.036
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30443.599857792,
+          "stages": {
+            "runtimeImported": 0.096979,
+            "qtReady": 0.102559,
+            "controllerReady": 0.117383,
+            "qmlReady": 0.177568,
+            "libraryReady": 0.179056,
+            "firstFrame": 0.18795
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 6.556680598998355,
+            "toActiveMs": 0.113,
+            "toFrameMs": 0.516
+          },
+          "graphicsApi": "Software"
+        }
+      }
+    ],
+    "video": [
+      {
+        "observedFirstFrameMs": 187.386,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30450.169841125,
+          "stages": {
+            "runtimeImported": 0.093437,
+            "qtReady": 0.098527,
+            "controllerReady": 0.116829,
+            "qmlReady": 0.180017,
+            "libraryReady": 0.181416,
+            "firstFrame": 0.187626
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 1,
+          "pssKiB": 105815,
+          "swapPssKiB": 0,
+          "cpuTicks": 20,
+          "majorFaults": 4,
+          "readBytes": 163840,
+          "writeBytes": 162748,
+          "pssReadableProcesses": 1
+        },
+        "idleSample": {
+          "seconds": 2.0192187860011472,
+          "cpuPercentOfOneCore": 0.990482068543346,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.11299435028248588,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 112.001,
+          "p95Ms": 120.148,
+          "minMs": 107.484,
+          "maxMs": 139.444
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.672,
+          "p95Ms": 0.895,
+          "minMs": 0.545,
+          "maxMs": 0.923
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 2.727,
+          "p95Ms": 6.388,
+          "minMs": 2.4,
+          "maxMs": 7.336
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 98.531,
+          "p95Ms": 106.041,
+          "minMs": 93.947,
+          "maxMs": 125.911
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.481,
+          "p95Ms": 2.791,
+          "minMs": 2.141,
+          "maxMs": 3.062
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 98.69,
+          "p95Ms": 106.194,
+          "minMs": 94.067,
+          "maxMs": 126.074
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.142,
+          "p95Ms": 2.443,
+          "minMs": 1.932,
+          "maxMs": 2.534
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30450.169841125,
+          "stages": {
+            "runtimeImported": 0.093437,
+            "qtReady": 0.098527,
+            "controllerReady": 0.116829,
+            "qmlReady": 0.180017,
+            "libraryReady": 0.181416,
+            "firstFrame": 0.187626
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 6.571335278000333,
+            "toActiveMs": 0.086,
+            "toFrameMs": 0.448
+          },
+          "graphicsApi": "Software"
+        }
+      },
+      {
+        "observedFirstFrameMs": 185.798,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30456.749829333,
+          "stages": {
+            "runtimeImported": 0.092586,
+            "qtReady": 0.098402,
+            "controllerReady": 0.114573,
+            "qmlReady": 0.17636,
+            "libraryReady": 0.177697,
+            "firstFrame": 0.183849
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 1,
+          "pssKiB": 105756,
+          "swapPssKiB": 0,
+          "cpuTicks": 18,
+          "majorFaults": 1,
+          "readBytes": 0,
+          "writeBytes": 143023,
+          "pssReadableProcesses": 1
+        },
+        "idleSample": {
+          "seconds": 2.0170294109993847,
+          "cpuPercentOfOneCore": 0.495778591302011,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.17371163867979156,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 112.246,
+          "p95Ms": 117.592,
+          "minMs": 109.701,
+          "maxMs": 137.538
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.661,
+          "p95Ms": 0.828,
+          "minMs": 0.479,
+          "maxMs": 0.869
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 3.101,
+          "p95Ms": 5.825,
+          "minMs": 2.444,
+          "maxMs": 6.149
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 98.802,
+          "p95Ms": 102.362,
+          "minMs": 96.089,
+          "maxMs": 124.451
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.591,
+          "p95Ms": 3.169,
+          "minMs": 2.26,
+          "maxMs": 3.392
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 98.949,
+          "p95Ms": 102.539,
+          "minMs": 96.196,
+          "maxMs": 124.683
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.289,
+          "p95Ms": 2.576,
+          "minMs": 1.928,
+          "maxMs": 2.98
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30456.749829333,
+          "stages": {
+            "runtimeImported": 0.092586,
+            "qtReady": 0.098402,
+            "controllerReady": 0.114573,
+            "qmlReady": 0.17636,
+            "libraryReady": 0.177697,
+            "firstFrame": 0.183849
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 6.575677957000153,
+            "toActiveMs": 0.089,
+            "toFrameMs": 0.506
+          },
+          "graphicsApi": "Software"
+        }
+      },
+      {
+        "observedFirstFrameMs": 194.439,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30463.339864,
+          "stages": {
+            "runtimeImported": 0.091289,
+            "qtReady": 0.096571,
+            "controllerReady": 0.121924,
+            "qmlReady": 0.185022,
+            "libraryReady": 0.186436,
+            "firstFrame": 0.194415
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 1,
+          "pssKiB": 105799,
+          "swapPssKiB": 0,
+          "cpuTicks": 19,
+          "majorFaults": 102,
+          "readBytes": 43565056,
+          "writeBytes": 143023,
+          "pssReadableProcesses": 1
+        },
+        "idleSample": {
+          "seconds": 2.0209680779989867,
+          "cpuPercentOfOneCore": 0.4948123678381532,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.05747126436781609,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 113.345,
+          "p95Ms": 119.594,
+          "minMs": 110.364,
+          "maxMs": 127.429
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.67,
+          "p95Ms": 0.785,
+          "minMs": 0.438,
+          "maxMs": 0.931
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 2.968,
+          "p95Ms": 7.13,
+          "minMs": 2.486,
+          "maxMs": 7.433
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 100.056,
+          "p95Ms": 104.408,
+          "minMs": 97.495,
+          "maxMs": 114.417
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.407,
+          "p95Ms": 2.692,
+          "minMs": 2.235,
+          "maxMs": 3.146
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 100.19,
+          "p95Ms": 104.565,
+          "minMs": 97.632,
+          "maxMs": 114.558
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.121,
+          "p95Ms": 2.369,
+          "minMs": 1.968,
+          "maxMs": 2.717
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30463.339864,
+          "stages": {
+            "runtimeImported": 0.091289,
+            "qtReady": 0.096571,
+            "controllerReady": 0.121924,
+            "qmlReady": 0.185022,
+            "libraryReady": 0.186436,
+            "firstFrame": 0.194415
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 6.641064829000243,
+            "toActiveMs": 0.061,
+            "toFrameMs": 0.552
+          },
+          "graphicsApi": "Software"
+        }
+      }
+    ],
+    "reader": [
+      {
+        "observedFirstFrameMs": 422.407,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30469.999857917,
+          "stages": {
+            "runtimeImported": 0.091479,
+            "qtReady": 0.223225,
+            "controllerReady": 0.247042,
+            "qmlReady": 0.38539,
+            "libraryReady": 0.40017,
+            "firstFrame": 0.416015
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 4,
+          "pssKiB": 347410,
+          "swapPssKiB": 0,
+          "cpuTicks": 45,
+          "majorFaults": 265,
+          "readBytes": 292065280,
+          "writeBytes": 234451,
+          "pssReadableProcesses": 4
+        },
+        "idleSample": {
+          "seconds": 2.0273934559991176,
+          "cpuPercentOfOneCore": 0.9864883375656266,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.056593095642331635,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 140.841,
+          "p95Ms": 144.86,
+          "minMs": 139.044,
+          "maxMs": 181.128
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.727,
+          "p95Ms": 1.624,
+          "minMs": 0.632,
+          "maxMs": 1.678
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 3.262,
+          "p95Ms": 7.732,
+          "minMs": 2.677,
+          "maxMs": 8.234
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 124.153,
+          "p95Ms": 127.52,
+          "minMs": 122.065,
+          "maxMs": 154.031
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.673,
+          "p95Ms": 3.037,
+          "minMs": 2.385,
+          "maxMs": 3.087
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 124.307,
+          "p95Ms": 127.683,
+          "minMs": 122.229,
+          "maxMs": 154.185
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.291,
+          "p95Ms": 2.665,
+          "minMs": 1.99,
+          "maxMs": 2.705
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30469.999857917,
+          "stages": {
+            "runtimeImported": 0.091479,
+            "qtReady": 0.223225,
+            "controllerReady": 0.247042,
+            "qmlReady": 0.38539,
+            "libraryReady": 0.40017,
+            "firstFrame": 0.416015
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 7.463628047000384,
+            "toActiveMs": 0.061,
+            "toFrameMs": 0.303
+          },
+          "graphicsApi": "Software"
+        }
+      },
+      {
+        "observedFirstFrameMs": 321.495,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30477.479845458998,
+          "stages": {
+            "runtimeImported": 0.09288,
+            "qtReady": 0.155323,
+            "controllerReady": 0.172017,
+            "qmlReady": 0.288578,
+            "libraryReady": 0.303345,
+            "firstFrame": 0.315196
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 4,
+          "pssKiB": 348711,
+          "swapPssKiB": 0,
+          "cpuTicks": 34,
+          "majorFaults": 3,
+          "readBytes": 0,
+          "writeBytes": 152531,
+          "pssReadableProcesses": 4
+        },
+        "idleSample": {
+          "seconds": 2.0310873000016727,
+          "cpuPercentOfOneCore": 0.0,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.17301038062283738,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 142.635,
+          "p95Ms": 150.094,
+          "minMs": 137.417,
+          "maxMs": 162.901
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.739,
+          "p95Ms": 1.493,
+          "minMs": 0.496,
+          "maxMs": 1.637
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 3.1,
+          "p95Ms": 6.726,
+          "minMs": 2.407,
+          "maxMs": 7.774
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 125.055,
+          "p95Ms": 134.349,
+          "minMs": 121.755,
+          "maxMs": 141.4
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.738,
+          "p95Ms": 3.141,
+          "minMs": 2.45,
+          "maxMs": 3.32
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 125.214,
+          "p95Ms": 134.499,
+          "minMs": 121.905,
+          "maxMs": 141.567
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.331,
+          "p95Ms": 2.648,
+          "minMs": 1.996,
+          "maxMs": 2.771
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30477.479845458998,
+          "stages": {
+            "runtimeImported": 0.09288,
+            "qtReady": 0.155323,
+            "controllerReady": 0.172017,
+            "qmlReady": 0.288578,
+            "libraryReady": 0.303345,
+            "firstFrame": 0.315196
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 7.411460950002947,
+            "toActiveMs": 0.079,
+            "toFrameMs": 0.532
+          },
+          "graphicsApi": "Software"
+        }
+      },
+      {
+        "observedFirstFrameMs": 310.557,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30484.899851752,
+          "stages": {
+            "runtimeImported": 0.100271,
+            "qtReady": 0.159706,
+            "controllerReady": 0.177081,
+            "qmlReady": 0.291306,
+            "libraryReady": 0.304817,
+            "firstFrame": 0.316106
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 4,
+          "pssKiB": 348414,
+          "swapPssKiB": 0,
+          "cpuTicks": 33,
+          "majorFaults": 5,
+          "readBytes": 0,
+          "writeBytes": 152531,
+          "pssReadableProcesses": 4
+        },
+        "idleSample": {
+          "seconds": 2.0288394460003474,
+          "cpuPercentOfOneCore": 0.0,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.057937427578215524,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 142.298,
+          "p95Ms": 150.22,
+          "minMs": 138.902,
+          "maxMs": 162.633
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.762,
+          "p95Ms": 1.589,
+          "minMs": 0.531,
+          "maxMs": 1.902
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 4.345,
+          "p95Ms": 6.442,
+          "minMs": 2.757,
+          "maxMs": 6.506
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 125.64,
+          "p95Ms": 129.595,
+          "minMs": 122.016,
+          "maxMs": 146.295
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.711,
+          "p95Ms": 3.357,
+          "minMs": 2.409,
+          "maxMs": 3.361
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 125.796,
+          "p95Ms": 129.745,
+          "minMs": 122.168,
+          "maxMs": 146.446
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.297,
+          "p95Ms": 2.795,
+          "minMs": 2.025,
+          "maxMs": 2.802
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30484.899851752,
+          "stages": {
+            "runtimeImported": 0.100271,
+            "qtReady": 0.159706,
+            "controllerReady": 0.177081,
+            "qmlReady": 0.291306,
+            "libraryReady": 0.304817,
+            "firstFrame": 0.316106
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 7.3634693209969555,
+            "toActiveMs": 0.104,
+            "toFrameMs": 0.579
+          },
+          "graphicsApi": "Software"
+        }
+      }
+    ],
+    "browser": [
+      {
+        "observedFirstFrameMs": 341.934,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30492.279854835997,
+          "stages": {
+            "runtimeImported": 0.100285,
+            "qtReady": 0.161985,
+            "controllerReady": 0.18106,
+            "qmlReady": 0.309948,
+            "firstFrame": 0.341261
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 4,
+          "pssKiB": 350127,
+          "swapPssKiB": 0,
+          "cpuTicks": 42,
+          "majorFaults": 17,
+          "readBytes": 385024,
+          "writeBytes": 1322483,
+          "pssReadableProcesses": 4
+        },
+        "idleSample": {
+          "seconds": 2.0303768440026033,
+          "cpuPercentOfOneCore": 0.49251940739662897,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.11702750146284377,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 144.872,
+          "p95Ms": 165.187,
+          "minMs": 137.865,
+          "maxMs": 169.17
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.857,
+          "p95Ms": 1.894,
+          "minMs": 0.676,
+          "maxMs": 2.129
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 3.102,
+          "p95Ms": 6.167,
+          "minMs": 2.53,
+          "maxMs": 7.39
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 125.262,
+          "p95Ms": 148.631,
+          "minMs": 121.402,
+          "maxMs": 152.633
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.699,
+          "p95Ms": 3.18,
+          "minMs": 2.206,
+          "maxMs": 3.413
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 125.457,
+          "p95Ms": 148.819,
+          "minMs": 121.601,
+          "maxMs": 152.83
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.268,
+          "p95Ms": 2.62,
+          "minMs": 1.951,
+          "maxMs": 2.745
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30492.279854835997,
+          "stages": {
+            "runtimeImported": 0.100285,
+            "qtReady": 0.161985,
+            "controllerReady": 0.18106,
+            "qmlReady": 0.309948,
+            "firstFrame": 0.341261
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 7.451243996001722,
+            "toActiveMs": 0.065,
+            "toFrameMs": 0.487
+          },
+          "graphicsApi": "Software"
+        }
+      },
+      {
+        "observedFirstFrameMs": 332.02,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30499.74981971,
+          "stages": {
+            "runtimeImported": 0.097926,
+            "qtReady": 0.162715,
+            "controllerReady": 0.176535,
+            "qmlReady": 0.298989,
+            "firstFrame": 0.327161
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 4,
+          "pssKiB": 348564,
+          "swapPssKiB": 0,
+          "cpuTicks": 43,
+          "majorFaults": 14,
+          "readBytes": 0,
+          "writeBytes": 1268039,
+          "pssReadableProcesses": 4
+        },
+        "idleSample": {
+          "seconds": 2.01438330900055,
+          "cpuPercentOfOneCore": 0.0,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.05790387955993051,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 144.249,
+          "p95Ms": 154.9,
+          "minMs": 138.445,
+          "maxMs": 178.687
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.856,
+          "p95Ms": 1.981,
+          "minMs": 0.611,
+          "maxMs": 2.008
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 3.725,
+          "p95Ms": 6.509,
+          "minMs": 2.83,
+          "maxMs": 6.749
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 127.576,
+          "p95Ms": 137.874,
+          "minMs": 122.04,
+          "maxMs": 161.384
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.767,
+          "p95Ms": 3.228,
+          "minMs": 2.352,
+          "maxMs": 4.377
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 127.766,
+          "p95Ms": 138.053,
+          "minMs": 122.218,
+          "maxMs": 161.583
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.356,
+          "p95Ms": 2.777,
+          "minMs": 2.045,
+          "maxMs": 3.677
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30499.74981971,
+          "stages": {
+            "runtimeImported": 0.097926,
+            "qtReady": 0.162715,
+            "controllerReady": 0.176535,
+            "qmlReady": 0.298989,
+            "firstFrame": 0.327161
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 7.4057059200022195,
+            "toActiveMs": 0.059,
+            "toFrameMs": 0.356
+          },
+          "graphicsApi": "Software"
+        }
+      },
+      {
+        "observedFirstFrameMs": 344.323,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30507.169852793,
+          "stages": {
+            "runtimeImported": 0.101592,
+            "qtReady": 0.16421,
+            "controllerReady": 0.178207,
+            "qmlReady": 0.309662,
+            "firstFrame": 0.344446
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 4,
+          "pssKiB": 348206,
+          "swapPssKiB": 0,
+          "cpuTicks": 44,
+          "majorFaults": 104,
+          "readBytes": 40603648,
+          "writeBytes": 1268039,
+          "pssReadableProcesses": 4
+        },
+        "idleSample": {
+          "seconds": 2.030377886003407,
+          "cpuPercentOfOneCore": 0.9850383092660633,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.05807200929152149,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 142.616,
+          "p95Ms": 151.084,
+          "minMs": 138.026,
+          "maxMs": 155.939
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.95,
+          "p95Ms": 1.766,
+          "minMs": 0.69,
+          "maxMs": 1.785
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 4.504,
+          "p95Ms": 7.135,
+          "minMs": 2.616,
+          "maxMs": 8.212
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 125.323,
+          "p95Ms": 134.464,
+          "minMs": 122.163,
+          "maxMs": 139.784
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.739,
+          "p95Ms": 2.996,
+          "minMs": 2.299,
+          "maxMs": 3.49
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 125.514,
+          "p95Ms": 134.653,
+          "minMs": 122.335,
+          "maxMs": 139.998
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.286,
+          "p95Ms": 2.567,
+          "minMs": 2.094,
+          "maxMs": 2.963
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30507.169852793,
+          "stages": {
+            "runtimeImported": 0.101592,
+            "qtReady": 0.16421,
+            "controllerReady": 0.178207,
+            "qmlReady": 0.309662,
+            "firstFrame": 0.344446
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 7.404875080002967,
+            "toActiveMs": 0.067,
+            "toFrameMs": 0.33
+          },
+          "graphicsApi": "Software"
+        }
+      }
+    ],
+    "emulator": [
+      {
+        "observedFirstFrameMs": 214.984,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30514.589833336,
+          "stages": {
+            "runtimeImported": 0.095233,
+            "qtReady": 0.099446,
+            "controllerReady": 0.125451,
+            "qmlReady": 0.185974,
+            "libraryReady": 0.200982,
+            "firstFrame": 0.211939
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 1,
+          "pssKiB": 106957,
+          "swapPssKiB": 0,
+          "cpuTicks": 20,
+          "majorFaults": 5,
+          "readBytes": 1060864,
+          "writeBytes": 306366,
+          "pssReadableProcesses": 1
+        },
+        "idleSample": {
+          "seconds": 2.0173498100011784,
+          "cpuPercentOfOneCore": 0.0,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.05747126436781609,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 112.857,
+          "p95Ms": 132.501,
+          "minMs": 110.133,
+          "maxMs": 146.5
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.654,
+          "p95Ms": 0.974,
+          "minMs": 0.534,
+          "maxMs": 1.675
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 2.986,
+          "p95Ms": 5.63,
+          "minMs": 2.391,
+          "maxMs": 6.126
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 99.099,
+          "p95Ms": 119.259,
+          "minMs": 96.204,
+          "maxMs": 132.424
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.649,
+          "p95Ms": 2.945,
+          "minMs": 2.223,
+          "maxMs": 3.158
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 99.23,
+          "p95Ms": 119.393,
+          "minMs": 96.331,
+          "maxMs": 132.572
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.26,
+          "p95Ms": 2.455,
+          "minMs": 1.875,
+          "maxMs": 2.529
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30514.589833336,
+          "stages": {
+            "runtimeImported": 0.095233,
+            "qtReady": 0.099446,
+            "controllerReady": 0.125451,
+            "qmlReady": 0.185974,
+            "libraryReady": 0.200982,
+            "firstFrame": 0.211939
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 6.6693840800035105,
+            "toActiveMs": 0.105,
+            "toFrameMs": 0.531
+          },
+          "graphicsApi": "Software"
+        }
+      },
+      {
+        "observedFirstFrameMs": 192.635,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30521.269853211,
+          "stages": {
+            "runtimeImported": 0.091011,
+            "qtReady": 0.096127,
+            "controllerReady": 0.105028,
+            "qmlReady": 0.166219,
+            "libraryReady": 0.180123,
+            "firstFrame": 0.191456
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 1,
+          "pssKiB": 106797,
+          "swapPssKiB": 0,
+          "cpuTicks": 18,
+          "majorFaults": 1,
+          "readBytes": 0,
+          "writeBytes": 135473,
+          "pssReadableProcesses": 1
+        },
+        "idleSample": {
+          "seconds": 2.0236235599986685,
+          "cpuPercentOfOneCore": 0.0,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.2304147465437788,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 112.532,
+          "p95Ms": 116.26,
+          "minMs": 109.94,
+          "maxMs": 132.984
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.607,
+          "p95Ms": 0.741,
+          "minMs": 0.428,
+          "maxMs": 1.0
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 3.09,
+          "p95Ms": 6.364,
+          "minMs": 2.406,
+          "maxMs": 7.218
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 99.094,
+          "p95Ms": 101.023,
+          "minMs": 96.744,
+          "maxMs": 118.909
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.631,
+          "p95Ms": 3.007,
+          "minMs": 2.106,
+          "maxMs": 3.291
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 99.207,
+          "p95Ms": 101.17,
+          "minMs": 96.865,
+          "maxMs": 119.049
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.333,
+          "p95Ms": 2.633,
+          "minMs": 1.896,
+          "maxMs": 2.729
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30521.269853211,
+          "stages": {
+            "runtimeImported": 0.091011,
+            "qtReady": 0.096127,
+            "controllerReady": 0.105028,
+            "qmlReady": 0.166219,
+            "libraryReady": 0.180123,
+            "firstFrame": 0.191456
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 6.606321610997838,
+            "toActiveMs": 0.073,
+            "toFrameMs": 0.351
+          },
+          "graphicsApi": "Software"
+        }
+      },
+      {
+        "observedFirstFrameMs": 192.776,
+        "warmMode": "minimized",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30527.879856502,
+          "stages": {
+            "runtimeImported": 0.097235,
+            "qtReady": 0.102334,
+            "controllerReady": 0.111094,
+            "qmlReady": 0.171275,
+            "libraryReady": 0.185352,
+            "firstFrame": 0.19632
+          },
+          "activation": {},
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 1,
+          "pssKiB": 106793,
+          "swapPssKiB": 0,
+          "cpuTicks": 18,
+          "majorFaults": 1,
+          "readBytes": 0,
+          "writeBytes": 135473,
+          "pssReadableProcesses": 1
+        },
+        "idleSample": {
+          "seconds": 2.0199799000001804,
+          "cpuPercentOfOneCore": 0.0,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.0576036866359447,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 112.503,
+          "p95Ms": 126.096,
+          "minMs": 109.678,
+          "maxMs": 136.239
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.638,
+          "p95Ms": 0.813,
+          "minMs": 0.496,
+          "maxMs": 1.533
+        },
+        "independentClientOpen": {
+          "count": 20,
+          "medianMs": 3.075,
+          "p95Ms": 7.642,
+          "minMs": 2.649,
+          "maxMs": 7.782
+        },
+        "warmLauncherToFrame": {
+          "count": 20,
+          "medianMs": 99.03,
+          "p95Ms": 112.604,
+          "minMs": 96.429,
+          "maxMs": 123.042
+        },
+        "independentClientToFrame": {
+          "count": 20,
+          "medianMs": 2.729,
+          "p95Ms": 3.062,
+          "minMs": 2.277,
+          "maxMs": 3.113
+        },
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 99.137,
+          "p95Ms": 112.745,
+          "minMs": 96.54,
+          "maxMs": 123.185
+        },
+        "independentClientToActive": {
+          "count": 20,
+          "medianMs": 2.281,
+          "p95Ms": 2.6,
+          "minMs": 1.994,
+          "maxMs": 2.802
+        },
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30527.879856502,
+          "stages": {
+            "runtimeImported": 0.097235,
+            "qtReady": 0.102334,
+            "controllerReady": 0.111094,
+            "qmlReady": 0.171275,
+            "libraryReady": 0.185352,
+            "firstFrame": 0.19632
+          },
+          "activation": {
+            "generation": 40,
+            "requestedAt": 6.6858657949997,
+            "toActiveMs": 0.077,
+            "toFrameMs": 0.486
+          },
+          "graphicsApi": "Software"
+        }
+      }
+    ],
+    "terminal": [
+      {
+        "observedFirstFrameMs": 254.644,
+        "warmMode": "visible",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30534.579848252,
+          "stages": {
+            "runtimeImported": 0.12484,
+            "qtReady": 0.129323,
+            "qmlReady": 0.161285,
+            "controllerReady": 0.16172,
+            "firstFrame": 0.254708
+          },
+          "activation": {
+            "generation": 1,
+            "requestedAt": 0.16134306900130468,
+            "toActiveMs": 97.785,
+            "toFrameMs": 93.372
+          },
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 2,
+          "pssKiB": 126178,
+          "swapPssKiB": 0,
+          "cpuTicks": 24,
+          "majorFaults": 36,
+          "readBytes": 12382208,
+          "writeBytes": 173096,
+          "pssReadableProcesses": 2
+        },
+        "idleSample": {
+          "seconds": 2.0201498140013427,
+          "cpuPercentOfOneCore": 0.0,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.05757052389176742,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 123.908,
+          "p95Ms": 138.444,
+          "minMs": 119.611,
+          "maxMs": 150.706
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.126,
+          "p95Ms": 0.177,
+          "minMs": 0.076,
+          "maxMs": 0.178
+        },
+        "independentClientOpen": null,
+        "warmLauncherToFrame": null,
+        "independentClientToFrame": null,
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 108.63,
+          "p95Ms": 122.276,
+          "minMs": 105.411,
+          "maxMs": 136.266
+        },
+        "independentClientToActive": null,
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30534.579848252,
+          "stages": {
+            "runtimeImported": 0.12484,
+            "qtReady": 0.129323,
+            "qmlReady": 0.161285,
+            "controllerReady": 0.16172,
+            "firstFrame": 0.254708
+          },
+          "activation": {
+            "generation": 21,
+            "requestedAt": 6.352585552998789,
+            "toActiveMs": 0.157,
+            "toFrameMs": null
+          },
+          "graphicsApi": "Software"
+        }
+      },
+      {
+        "observedFirstFrameMs": 226.63,
+        "warmMode": "visible",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30541.019860752,
+          "stages": {
+            "runtimeImported": 0.109388,
+            "qtReady": 0.112705,
+            "qmlReady": 0.14352,
+            "controllerReady": 0.143906,
+            "firstFrame": 0.222985
+          },
+          "activation": {
+            "generation": 1,
+            "requestedAt": 0.14358366600208683,
+            "toActiveMs": 84.045,
+            "toFrameMs": 79.404
+          },
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 2,
+          "pssKiB": 126182,
+          "swapPssKiB": 0,
+          "cpuTicks": 22,
+          "majorFaults": 1,
+          "readBytes": 0,
+          "writeBytes": 96907,
+          "pssReadableProcesses": 2
+        },
+        "idleSample": {
+          "seconds": 2.0147138459979033,
+          "cpuPercentOfOneCore": 0.49634840301834143,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.17452006980802792,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 122.428,
+          "p95Ms": 133.708,
+          "minMs": 119.936,
+          "maxMs": 137.498
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.122,
+          "p95Ms": 0.166,
+          "minMs": 0.072,
+          "maxMs": 0.184
+        },
+        "independentClientOpen": null,
+        "warmLauncherToFrame": null,
+        "independentClientToFrame": null,
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 107.59,
+          "p95Ms": 119.055,
+          "minMs": 105.669,
+          "maxMs": 120.654
+        },
+        "independentClientToActive": null,
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30541.019860752,
+          "stages": {
+            "runtimeImported": 0.109388,
+            "qtReady": 0.112705,
+            "qmlReady": 0.14352,
+            "controllerReady": 0.143906,
+            "firstFrame": 0.222985
+          },
+          "activation": {
+            "generation": 21,
+            "requestedAt": 6.3208824200009985,
+            "toActiveMs": 0.119,
+            "toFrameMs": null
+          },
+          "graphicsApi": "Software"
+        }
+      },
+      {
+        "observedFirstFrameMs": 225.151,
+        "warmMode": "visible",
+        "performance": {
+          "clock": "process start",
+          "startedAtMonotonic": 30547.429860419,
+          "stages": {
+            "runtimeImported": 0.105098,
+            "qtReady": 0.108532,
+            "qmlReady": 0.140558,
+            "controllerReady": 0.140954,
+            "firstFrame": 0.220581
+          },
+          "activation": {
+            "generation": 1,
+            "requestedAt": 0.1406267169986677,
+            "toActiveMs": 84.295,
+            "toFrameMs": 79.958
+          },
+          "graphicsApi": "Software"
+        },
+        "resources": {
+          "processCount": 2,
+          "pssKiB": 126138,
+          "swapPssKiB": 0,
+          "cpuTicks": 22,
+          "majorFaults": 1,
+          "readBytes": 0,
+          "writeBytes": 96907,
+          "pssReadableProcesses": 2
+        },
+        "idleSample": {
+          "seconds": 2.006471871998656,
+          "cpuPercentOfOneCore": 0.0,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "majorFaults": 0,
+          "systemIoWaitPercent": 0.17391304347826086,
+          "systemSwapInPages": 0,
+          "systemSwapOutPages": 0
+        },
+        "warmLauncher": {
+          "count": 20,
+          "medianMs": 122.885,
+          "p95Ms": 126.099,
+          "minMs": 119.79,
+          "maxMs": 165.99
+        },
+        "handlerToActive": {
+          "count": 20,
+          "medianMs": 0.14,
+          "p95Ms": 0.182,
+          "minMs": 0.068,
+          "maxMs": 0.183
+        },
+        "independentClientOpen": null,
+        "warmLauncherToFrame": null,
+        "independentClientToFrame": null,
+        "warmLauncherToActive": {
+          "count": 20,
+          "medianMs": 107.893,
+          "p95Ms": 109.94,
+          "minMs": 104.598,
+          "maxMs": 151.197
+        },
+        "independentClientToActive": null,
+        "finalDiagnostics": {
+          "clock": "process start",
+          "startedAtMonotonic": 30547.429860419,
+          "stages": {
+            "runtimeImported": 0.105098,
+            "qtReady": 0.108532,
+            "qmlReady": 0.140558,
+            "controllerReady": 0.140954,
+            "firstFrame": 0.220581
+          },
+          "activation": {
+            "generation": 21,
+            "requestedAt": 6.332412651998311,
+            "toActiveMs": 0.117,
+            "toFrameMs": null
+          },
+          "graphicsApi": "Software"
+        }
+      }
+    ]
+  },
+  "systemAfter": {
+    "loadAverage": [
+      1.3935546875,
+      1.55615234375,
+      1.85693359375
+    ],
+    "cpuTicks": 25902293,
+    "ioWaitTicks": 33510,
+    "swapInPages": 0,
+    "swapOutPages": 0,
+    "memoryKiB": {
+      "MemTotal": 16424796,
+      "MemAvailable": 14042844,
+      "SwapTotal": 17473364,
+      "SwapFree": 17473364
+    },
+    "pressure": {}
+  }
+}

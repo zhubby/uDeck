@@ -1,0 +1,81 @@
+{
+  "date": "2026-11-10",
+  "host": "clockworkpi",
+  "architecture": "aarch64",
+  "python": "3.13.5",
+  "installedUdeck": "0.2.3",
+  "scope": "Read-only initial snapshot before the SSH connection became unavailable; no before/after timing recorded",
+  "memoryKiB": {
+    "total": 3881852,
+    "available": 1445300,
+    "swapTotal": 2097148,
+    "swapFree": 275964
+  },
+  "loadAverage1": 1.22,
+  "temperatureC": 33.589,
+  "libraryItems": {
+    "music": 0,
+    "video": 0,
+    "reader": 1,
+    "emulator": 3
+  },
+  "observedProcesses": [
+    {
+      "name": "labwc",
+      "pid": 984,
+      "rssKiB": 39024,
+      "pssKiB": 15603,
+      "swapKiB": 24992
+    },
+    {
+      "name": "terminal",
+      "pid": 381833,
+      "rssKiB": 115584,
+      "pssKiB": 49526,
+      "swapKiB": 52688
+    },
+    {
+      "name": "video",
+      "pid": 1560725,
+      "rssKiB": 201708,
+      "pssKiB": 87535
+    },
+    {
+      "name": "emulator",
+      "pid": 1560727,
+      "rssKiB": 203740,
+      "pssKiB": 89713
+    },
+    {
+      "name": "shell",
+      "pid": 1736699,
+      "rssKiB": 245804,
+      "pssKiB": 132063
+    },
+    {
+      "name": "reader",
+      "pid": 1782505,
+      "rssKiB": 307568,
+      "pssKiB": 164396,
+      "webEngineChildrenPssKiB": [
+        19366,
+        12955,
+        4153,
+        76639
+      ]
+    }
+  ],
+  "graphicsEnvironment": {
+    "WAYLAND_DISPLAY": "wayland-0",
+    "DISPLAY": ":0",
+    "QT_QUICK_BACKEND": null,
+    "QSG_RHI_BACKEND": null,
+    "LIBGL_ALWAYS_SOFTWARE": null,
+    "UDECK_SESSION": null
+  },
+  "limits": [
+    "Swap usage alone does not establish active swapping.",
+    "The actual libraries are small; the 10000-item benchmark does not establish the cause of current symptoms.",
+    "GPU backend, frame timings, physical input and IME acceptance remain unmeasured on CM4."
+  ]
+}

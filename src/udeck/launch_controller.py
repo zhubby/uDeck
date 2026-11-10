@@ -1,8 +1,11 @@
+import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from PySide6.QtCore import QTimer
+from PySide6.QtDBus import QDBusConnection, QDBusMessage, QDBusPendingCallWatcher
 
+from .app_routing import NATIVE_APPS, object_path, service_name
 from .i18n import error_text, tr
 from .launch import LaunchTracker
 from .mock import mock_apps
@@ -15,6 +18,7 @@ class LaunchControls:
         self.app_launch = self.launches.snapshot()
         self.launch_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="udeck-launch")
         self._launch_closing = False
+        self._launch_calls = set()
         self.launchFinished.connect(self._launch_finished)
         self.startupLoaded.connect(self._startup_loaded)
         self.launch_timer = QTimer(self)
@@ -88,6 +92,55 @@ class LaunchControls:
             QTimer.singleShot(650, self, preview_finished)
             return
 
+        if self._forward_application(item, token):
+            return
+        self._submit_application(item, token)
+
+    def _forward_application(self, item, token):
+        app_id = item['id'].removesuffix('.desktop')
+        if app_id not in NATIVE_APPS:
+            return False
+        bus = QDBusConnection.sessionBus()
+        if not bus.isConnected():
+            return False
+        payload = json.dumps({'files': [], 'command': ''})
+        if app_id.endswith('.Terminal'):
+            from .terminal.core import parse_launch
+
+            payload = parse_launch([])[0].to_json()
+        message = QDBusMessage.createMethodCall(service_name(app_id), object_path(app_id),
+                                                app_id + '.Control', 'Open')
+        message.setArguments([payload])
+        watcher = QDBusPendingCallWatcher(bus.asyncCall(message, 2000), self)
+        self._launch_calls.add(watcher)
+
+        def finished(*_args):
+            if watcher not in self._launch_calls:
+                return
+            self._launch_calls.remove(watcher)
+            reply = watcher.reply()
+            watcher.deleteLater()
+            if self._launch_closing:
+                return
+            if reply.type() == QDBusMessage.MessageType.ErrorMessage:
+                if reply.errorName() in ('org.freedesktop.DBus.Error.ServiceUnknown',
+                                         'org.freedesktop.DBus.Error.NameHasNoOwner'):
+                    self._submit_application(item, token)
+                    return
+                error = RuntimeError(reply.errorMessage())
+            elif len(reply.arguments()) != 1 or not isinstance(reply.arguments()[0], str):
+                error = RuntimeError('Invalid application response')
+            else:
+                error = RuntimeError(reply.arguments()[0]) if reply.arguments()[0] else None
+            self.launchFinished.emit((token, item['id'], error))
+
+        watcher.finished.connect(finished)
+        if watcher.isFinished():
+            QTimer.singleShot(0, finished)
+        return True
+
+    def _submit_application(self, item, token):
+
         def complete(future):
             try:
                 future.result()
@@ -138,4 +191,7 @@ class LaunchControls:
         self.launch_timer.stop()
         self.launches.requests.clear()
         self.launches.dismiss()
+        for watcher in self._launch_calls:
+            watcher.deleteLater()
+        self._launch_calls.clear()
         self.launch_executor.shutdown(wait=False, cancel_futures=True)

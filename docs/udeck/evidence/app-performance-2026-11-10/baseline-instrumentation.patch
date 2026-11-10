@@ -1,0 +1,145 @@
+--- a/src/udeck/apps/main.py
++++ b/src/udeck/apps/main.py
+@@ -46,6 +46,10 @@
+         return EmulatorController(directory, language_path)
+     raise ValueError(f"Unknown uDeck application: {app}")
+ 
++
++from udeck.performance import StartupTrace
++_performance = StartupTrace()
++_performance.mark('runtimeImported')
+ 
+ class AppControl(QObject):
+     def __init__(self, controller, show, errors, started):
+@@ -67,6 +71,7 @@
+                 self.controller.command(request["command"])
+             if request.get("files"):
+                 self.open_files(request["files"])
++            _performance.request_activation()
+             self.show()
+             return ""
+         except (ValueError, OSError, RuntimeError) as error:
+@@ -115,7 +120,7 @@
+     def Diagnose(self):
+         return json.dumps({"app": self.controller.app, "version": __version__,
+                            "uptime": round(time.monotonic() - self.started, 2),
+-                           "qmlErrors": self.errors,
++                           "performance": _performance.snapshot(), "qmlErrors": self.errors,
+                            "state": json.loads(self.controller.snapshotJson)}, ensure_ascii=False)
+ 
+     @Slot(int, bool)
+@@ -187,6 +192,7 @@
+ 
+         QtWebEngineQuick.initialize()
+     application = QApplication(["udeck-" + options.app])
++    _performance.mark("qtReady")
+     application.setApplicationName(APP_IDS[options.app])
+     application.setDesktopFileName(APP_IDS[options.app])
+     application.setOrganizationName("uDeck")
+@@ -223,6 +229,7 @@
+         config.data["preferences"]["language"] = options.language
+         config.save()
+     controller = make_controller(options.app, directory, language_path)
++    _performance.mark("controllerReady")
+     controller.isolated = options.isolated
+     if options.language:
+         controller.language = options.language
+@@ -244,6 +251,10 @@
+         controller.close()
+         return 2
+     window = engine.rootObjects()[0]
++    _performance.mark("qmlReady")
++    window.frameSwapped.connect(_performance.frame_swapped)
++    window.activeChanged.connect(lambda: _performance.active_changed(window.isActive()))
++    _performance.graphics_api = window.rendererInterface().graphicsApi().name
+     window.setWidth(max(800, options.width))
+     window.setHeight(max(500, options.height))
+     controller.window = window
+@@ -253,6 +264,8 @@
+         window.showNormal() if options.windowed or options.isolated else window.showFullScreen()
+         window.raise_()
+         window.requestActivate()
++        window.requestUpdate()
++        _performance.active_changed(window.isActive())
+         message = QDBusMessage.createMethodCall("io.github.zhubby.uDeck", "/io/github/zhubby/uDeck",
+                                                 "io.github.zhubby.uDeck.Control", "ActivateNativeApp")
+         message.setArguments([app_id])
+@@ -271,6 +284,8 @@
+         bus.registerObject(path, interface, control, QDBusConnection.RegisterOption.ExportAllSlots)
+     for source in options.source:
+         controller.attempt(lambda source=source: controller.library.add(source))
++    if controller.library:
++        controller.library.changed.connect(lambda: _performance.mark('libraryReady') if not controller.library.pending else None)
+     controller.start()
+     if options.files:
+         controller.attempt(lambda: control.open_files(options.files))
+--- a/src/udeck/terminal/main.py
++++ b/src/udeck/terminal/main.py
+@@ -24,6 +24,10 @@
+ from .core import TerminalPreferences, parse_launch
+ from .ipc import TerminalControl, forward, interface, service_name
+ 
++
++from udeck.performance import StartupTrace
++_performance = StartupTrace()
++_performance.mark('runtimeImported')
+ 
+ def plugin_paths():
+     candidates = [Path(__file__).parent / "native", Path("/usr/lib/udeck-terminal/qml")]
+@@ -59,6 +63,7 @@
+         self.errors = []
+         self.engine.warnings.connect(lambda warnings: self.errors.extend(w.toString() for w in warnings))
+         self.component = QQmlComponent(self.engine, QUrl.fromLocalFile(str(Path(__file__).parent / "qml/Main.qml")))
++        _performance.mark("qmlReady")
+         if self.component.isError():
+             raise RuntimeError("\n".join(error.toString() for error in self.component.errors()))
+         self.windows = []
+@@ -72,10 +77,12 @@
+         application.installEventFilter(self)
+ 
+     def open(self, request):
++        _performance.request_activation()
+         if not request.new_window and self.recent:
+             self.activate(self.recent["window"])
+             return
+         controller = TerminalController(request, self.preferences, mock=self.options.mock, language=self.language, theme=self.theme)
++        _performance.mark("controllerReady")
+         context = QQmlContext(self.engine.rootContext())
+         context.setContextProperty("controller", controller)
+         context.setContextProperty("windowed", self.options.windowed or self.options.mock)
+@@ -94,6 +101,9 @@
+         controller.clipboardRequested.connect(lambda: controller.preparePaste(self.application.clipboard().text()))
+         window.activeChanged.connect(self.focus_changed)
+         window.frameSwapped.connect(self.record_frame)
++        window.frameSwapped.connect(_performance.frame_swapped)
++        window.activeChanged.connect(lambda: _performance.active_changed(window.isActive()))
++        _performance.graphics_api = window.rendererInterface().graphicsApi().name
+         self.activate(window)
+ 
+     def refresh_language(self):
+@@ -112,6 +122,8 @@
+         window.showNormal() if self.options.windowed or self.options.mock else window.showFullScreen()
+         window.raise_()
+         window.requestActivate()
++        window.requestUpdate()
++        _performance.active_changed(window.isActive())
+ 
+     def record_frame(self):
+         if self.first_frame is None:
+@@ -175,7 +187,7 @@
+                 "firstFrameSeconds": self.first_frame,
+                 "uptimeSeconds": round(time.monotonic() - self.started, 3),
+                 "input": self.inputs.diagnostics() if self.inputs else {"enabled": False},
+-                "qmlErrors": self.errors}
++                "performance": _performance.snapshot(), "qmlErrors": self.errors}
+ 
+     def close(self):
+         self.language_timer.stop()
+@@ -197,6 +209,7 @@
+     if os.environ.get("QT_QPA_PLATFORM") == "offscreen":
+         os.environ.setdefault("QT_QUICK_BACKEND", "software")
+     application = QApplication(["udeck-terminal"])
++    _performance.mark("qtReady")
+     application.setQuitOnLastWindowClosed(False)
+     application.setApplicationName(APP_ID)
+     application.setDesktopFileName(APP_ID)

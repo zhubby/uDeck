@@ -1,0 +1,758 @@
+[
+  {
+    "module": "tests/test_app_default_sources.py",
+    "exitCode": 0,
+    "seconds": 3.7414647939986025,
+    "tests": 12,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_apps_saves.py",
+    "exitCode": 0,
+    "seconds": 0.2760520160009037,
+    "tests": 9,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_audio.py",
+    "exitCode": 0,
+    "seconds": 0.33894149600018864,
+    "tests": 23,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_audio_qml.py",
+    "exitCode": 0,
+    "seconds": 9.302329905000079,
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_backend.py",
+    "exitCode": 0,
+    "seconds": 0.1792913969984511,
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_battery.py",
+    "exitCode": 0,
+    "seconds": 0.3036765249999007,
+    "tests": 24,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_battery_qml.py",
+    "exitCode": 0,
+    "seconds": 10.430384098999639,
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_cli.py",
+    "exitCode": 0,
+    "seconds": 0.11915637600031914,
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_compatibility.py",
+    "exitCode": 0,
+    "seconds": 0.2879376870005217,
+    "tests": 19,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_console.py",
+    "exitCode": 0,
+    "seconds": 0.2569315920009103,
+    "tests": 11,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_console_qml.py",
+    "exitCode": 0,
+    "seconds": 5.657720581999456,
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_core.py",
+    "exitCode": 0,
+    "seconds": 0.1367159619985614,
+    "tests": 32,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_cursor.py",
+    "exitCode": 0,
+    "seconds": 10.931088250003086,
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_directions.py",
+    "exitCode": 0,
+    "seconds": 0.14432779799972195,
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_file_icons.py",
+    "exitCode": 0,
+    "seconds": 0.37424028999885195,
+    "tests": 98,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_files_controller.py",
+    "exitCode": 0,
+    "seconds": 1.5952984870018554,
+    "tests": 38,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_files_features.py",
+    "exitCode": 0,
+    "seconds": 0.11851162300081342,
+    "tests": 14,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_files_jobs.py",
+    "exitCode": 0,
+    "seconds": 0.11940753899762058,
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_files_locations_trash.py",
+    "exitCode": 0,
+    "seconds": 0.11771666400090908,
+    "tests": 11,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_files_model_preview.py",
+    "exitCode": 0,
+    "seconds": 0.21679686299830792,
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_files_qml.py",
+    "exitCode": 0,
+    "seconds": 16.10881930100004,
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_fonts.py",
+    "exitCode": 0,
+    "seconds": 0.1449708809996082,
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_games_catalog.py",
+    "exitCode": 0,
+    "seconds": 0.406857926001976,
+    "tests": 16,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_games_management.py",
+    "exitCode": 0,
+    "seconds": 0.3346872779984551,
+    "tests": 15,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_games_qml.py",
+    "exitCode": 0,
+    "seconds": 5.830772392000654,
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_games_regressions.py",
+    "exitCode": 0,
+    "seconds": 1.7831781749991933,
+    "tests": 19,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_home_qml.py",
+    "exitCode": 0,
+    "seconds": 13.376091518999601,
+    "tests": 6,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_hotspot.py",
+    "exitCode": 0,
+    "seconds": 1.2557545410018065,
+    "tests": 37,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_hotspot_qml.py",
+    "exitCode": 0,
+    "seconds": 18.392146891001175,
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_hotspot_ui.py",
+    "exitCode": 0,
+    "seconds": 0.2823247180022008,
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_i18n.py",
+    "exitCode": 0,
+    "seconds": 0.47637919900080306,
+    "tests": 19,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_input.py",
+    "exitCode": 0,
+    "seconds": 0.15128271699722973,
+    "tests": 15,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_input_prompts.py",
+    "exitCode": 0,
+    "seconds": 2.7472818280002684,
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_interface_sounds.py",
+    "exitCode": 0,
+    "seconds": 0.20759356900089188,
+    "tests": 13,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_interface_sounds_qml.py",
+    "exitCode": 0,
+    "seconds": 7.052349379999214,
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_key_test.py",
+    "exitCode": 0,
+    "seconds": 5.561377968999295,
+    "tests": 9,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_key_test_device.py",
+    "exitCode": 0,
+    "seconds": 0.23106795100102318,
+    "tests": 9,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_key_test_full.py",
+    "exitCode": 0,
+    "seconds": 2.165573759997642,
+    "tests": 97,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_launch.py",
+    "exitCode": 0,
+    "seconds": 0.11888658099996974,
+    "tests": 13,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_launch_qml.py",
+    "exitCode": 0,
+    "seconds": 23.78610176300208,
+    "tests": 17,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_login.py",
+    "exitCode": 0,
+    "seconds": 0.10804636899774778,
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_pointer.py",
+    "exitCode": 0,
+    "seconds": 0.23074982700200053,
+    "tests": 14,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_preflight.py",
+    "exitCode": 0,
+    "seconds": 0.14234442200177,
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_qml.py",
+    "exitCode": 0,
+    "seconds": 9.815539348997845,
+    "tests": 18,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_reader_layout.py",
+    "exitCode": 0,
+    "seconds": 0.23030679099974805,
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_release.py",
+    "exitCode": 0,
+    "seconds": 0.1106191229991964,
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_safety.py",
+    "exitCode": 0,
+    "seconds": 0.18564740100191557,
+    "tests": 14,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_session_config.py",
+    "exitCode": 0,
+    "seconds": 0.16294235000168555,
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_session_shortcuts.py",
+    "exitCode": 0,
+    "seconds": 0.11613800099803484,
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_settings_qml.py",
+    "exitCode": 0,
+    "seconds": 32.60888737299683,
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_sound_interactions.py",
+    "exitCode": 0,
+    "seconds": 0.3101387780006917,
+    "tests": 18,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_terminal_appearance.py",
+    "exitCode": 0,
+    "seconds": 3.2333490399978473,
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_terminal_controller.py",
+    "exitCode": 0,
+    "seconds": 0.20029553000131273,
+    "tests": 24,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_terminal_defaults.py",
+    "exitCode": 0,
+    "seconds": 0.18274106600074447,
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_terminal_fonts.py",
+    "exitCode": 0,
+    "seconds": 2.0110523080002167,
+    "tests": 27,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_terminal_launchers.py",
+    "exitCode": 0,
+    "seconds": 0.09994111899868585,
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_terminal_routing.py",
+    "exitCode": 0,
+    "seconds": 0.15305655499832937,
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_terminal_system_defaults.py",
+    "exitCode": 0,
+    "seconds": 0.18052460699982475,
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_theme.py",
+    "exitCode": 0,
+    "seconds": 0.28110764299708535,
+    "tests": 17,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_theme_qml.py",
+    "exitCode": 0,
+    "seconds": 34.8594007669999,
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_timezone.py",
+    "exitCode": 0,
+    "seconds": 0.269059014000959,
+    "tests": 13,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_trackball.py",
+    "exitCode": 0,
+    "seconds": 0.26964417999988655,
+    "tests": 18,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_ui.py",
+    "exitCode": 0,
+    "seconds": 0.22447070600173902,
+    "tests": 15,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_virtual_input.py",
+    "exitCode": 0,
+    "seconds": 0.1342547159983951,
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_wifi.py",
+    "exitCode": 0,
+    "seconds": 1.755548840999836,
+    "tests": 30,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_wifi_management.py",
+    "exitCode": 0,
+    "seconds": 0.3288344929969753,
+    "tests": 34,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_wifi_management_qml.py",
+    "exitCode": 0,
+    "seconds": 13.755220372000622,
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_wifi_management_ui.py",
+    "exitCode": 0,
+    "seconds": 0.2926492300030077,
+    "tests": 14,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_wifi_qml.py",
+    "exitCode": 0,
+    "seconds": 17.61093496900139,
+    "tests": 36,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_wifi_ui.py",
+    "exitCode": 0,
+    "seconds": 0.25719917599781184,
+    "tests": 14,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_windows.py",
+    "exitCode": 0,
+    "seconds": 0.1323276729999634,
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_wireless_status.py",
+    "exitCode": 0,
+    "seconds": 0.2835248940027668,
+    "tests": 21,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_wireless_status_qml.py",
+    "exitCode": 0,
+    "seconds": 33.58213898300164,
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_apps_core.py",
+    "exitCode": 0,
+    "seconds": 0.19421194400274544,
+    "tests": 14,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_apps_native.py",
+    "exitCode": 0,
+    "seconds": 51.666852386002574,
+    "tests": 14,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_home.py",
+    "exitCode": 0,
+    "seconds": 0.3320384569997259,
+    "tests": 26,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_i18n_qml.py",
+    "exitCode": 0,
+    "seconds": 6.470825959997455,
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_launch_controller.py",
+    "exitCode": 0,
+    "seconds": 0.23887729800117086,
+    "tests": 9,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_terminal_native.py",
+    "exitCode": 0,
+    "seconds": 7.206349277003028,
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_terminal_core.py",
+    "exitCode": 0,
+    "seconds": 0.11490237600082764,
+    "tests": 16,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_app_performance.py",
+    "exitCode": 0,
+    "seconds": 8.726547635997122,
+    "tests": 15,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_apps_routing.py",
+    "exitCode": 0,
+    "seconds": 0.21736491399860824,
+    "tests": 6,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_apps_review.py",
+    "exitCode": 0,
+    "seconds": 0.31276519800303504,
+    "tests": 18,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "module": "tests/test_performance_tools.py",
+    "exitCode": 0,
+    "seconds": 0.1832756670009985,
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+]

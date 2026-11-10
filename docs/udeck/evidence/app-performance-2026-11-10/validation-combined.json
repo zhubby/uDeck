@@ -1,0 +1,12 @@
+{
+  "tests": 1231,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "seconds": 362.603,
+  "mode": "Single pytest process under dbus-run-session, matching the release test command",
+  "architecture": "aarch64",
+  "qt": "6.8.2",
+  "nativeTerminalRequired": true,
+  "warnings": "13 dbus-next no_type_check_decorator deprecations under Python 3.13"
+}

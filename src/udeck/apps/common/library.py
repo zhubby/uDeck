@@ -207,7 +207,7 @@ class Library(QObject):
         self.errors[source_id] = error
         if not error:
             self.items = [i for i in self.items if i["sourceId"] != source_id] + items
-        self.state.data["index"] = self.items
+        self.state.set_index(self.items)
         try:
             self.state.save()
         except OSError as exception:

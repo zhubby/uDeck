@@ -1,0 +1,18 @@
+{
+  "file": "udeck-0.2.3-py3-none-any.whl",
+  "sha256": "42dc2189e83c2e32952c424c9560e0ed7c25b93dc7a44e420bb91648ab42c5b4",
+  "sourceMatches": [
+    "apps/main.py",
+    "apps/runtime.py",
+    "apps/common/controller.py",
+    "apps/common/model.py",
+    "apps/common/state.py",
+    "apps/common/qml/Main.qml",
+    "apps/reader/qml/ReaderSurface.qml",
+    "terminal/main.py",
+    "terminal/runtime.py",
+    "launch_controller.py",
+    "ipc_client.py",
+    "performance.py"
+  ]
+}

@@ -14,6 +14,15 @@ from ..core import ConfigStore
 from ..i18n import render, tr
 
 
+def plugin_paths():
+    candidates = [Path(__file__).parent / "native", Path("/usr/lib/udeck-terminal/qml")]
+    candidates.append(Path(__file__).resolve().parents[3] / "build/terminal-plugin")
+    override = os.environ.get("UDECK_TERMINAL_PLUGIN_PATH")
+    if override:
+        candidates.insert(0, Path(override))
+    return [path for path in candidates if (path / "QMLTermWidget/qmldir").is_file()]
+
+
 def _string(value):
     return isinstance(value, str) and "\x00" not in value
 

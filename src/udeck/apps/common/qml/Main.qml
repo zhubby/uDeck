@@ -13,15 +13,13 @@ Window {
     visibility: windowed ? Window.Windowed : Window.FullScreen
     color: window.colors.background
     title: "uDeck " + window.tr(state.app.charAt(0).toUpperCase() + state.app.slice(1))
-    property var state: JSON.parse(controller.snapshotJson)
+    property var state: JSON.parse(controller.viewSnapshotJson)
     property alias colors: themeColors
     Shared.ThemePalette { id: themeColors; theme: window.state.theme; profile: "apps" }
     property alias fontFamily: interfaceFonts.family
     Shared.InterfaceFonts { id: interfaceFonts; language: window.state.language }
-    property var cardModel: []
     property var tabModel: []
     property var menuModel: []
-    property string cardsStamp: ""
     property string tabsStamp: ""
     property string menuStamp: ""
     property bool allowClose: false
@@ -32,13 +30,16 @@ Window {
     function tr(source) { return controller.translate(source, state.language) }
     function time(value) { const s=Math.max(0,Math.floor(value||0));return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0") }
     function syncModels() {
-        const cards = JSON.stringify(state.cards)
         const tabs = JSON.stringify(state.tabs)
         const options = state.menu.options || []
         const menu = JSON.stringify(options)
-        if (cards !== cardsStamp) { cardsStamp=cards; cardModel=state.cards }
         if (tabs !== tabsStamp) { tabsStamp=tabs; tabModel=state.tabs }
         if (menu !== menuStamp) { menuStamp=menu; menuModel=options }
+        ensureSurface()
+    }
+    function ensureSurface() {
+        if (surface.source.toString() === "" && (state.app === "browser" || ["library", "album"].indexOf(state.page) < 0))
+            surface.setSource("../../" + state.app + "/qml/" + ({music:"Music", video:"Video", browser:"Browser", reader:"Reader", emulator:"Emulator"})[state.app] + "Surface.qml", {host: window, colors: window.colors})
     }
     function focusInput() {
         if (state.menu.input) {
@@ -51,7 +52,7 @@ Window {
         target: controller
         function onChanged() {
             const previous=window.state.menu
-            window.state=JSON.parse(controller.snapshotJson)
+            window.state=JSON.parse(controller.viewSnapshotJson)
             window.syncModels()
             if (!window.state.menu.input || !previous.input || previous.title!==window.state.menu.title) Qt.callLater(window.focusInput)
         }
@@ -117,14 +118,15 @@ Window {
                         property int columns: listMode ? 1 : width<600 ? 2 : 3
                         cellWidth: Math.floor(width/columns)
                         cellHeight: listMode ? 78 : window.state.app==="reader" ? 190 : 238
-                        model: window.cardModel
-                        currentIndex: window.cardModel.findIndex(x=>x.id===window.state.selected)
+                        model: controller.cardModel
+                        currentIndex: controller.selectedIndex
                         onColumnsChanged: controller.setColumns(columns)
                         onCurrentIndexChanged: if(currentIndex>=0) Qt.callLater(function(){cards.positionViewAtIndex(cards.currentIndex,GridView.Contain)})
                         ScrollBar.vertical: ScrollBar { palette: window.colors.controls; }
                         delegate: Rectangle {
                             id: card
-                            required property var modelData
+                            required property var entry
+                            readonly property var modelData: entry
                             required property int index
                             width: cards.cellWidth-12; height: cards.cellHeight-12
                             radius: 10
@@ -141,7 +143,7 @@ Window {
                             MouseArea { anchors.fill: parent; onClicked: {controller.select(card.modelData.id);controller.dispatch("accept")} }
                         }
                         Item {
-                            anchors.fill: parent; visible: window.cardModel.length===0
+                            anchors.fill: parent; visible: window.state.count===0
                             Column {
                                 anchors.centerIn: parent; width: Math.min(parent.width-36,540); spacing: 18
                                 Text { font.family: window.fontFamily; width: parent.width; text: window.state.scanning?window.tr("Scanning…"):window.tr("Nothing here yet"); color: window.ink; font.pixelSize: 30; horizontalAlignment: Text.AlignHCenter }
@@ -156,8 +158,8 @@ Window {
                     Layout.preferredWidth: window.width<1100?230:290; Layout.maximumWidth: window.width<1100?230:290; Layout.fillWidth: false; Layout.fillHeight: true; spacing: 16
                     Rectangle { Layout.fillWidth: true; height: 1; color: window.colors.divider }
                     Text { font.family: window.fontFamily; text: window.state.app==="music"?window.tr("Now playing"):window.tr("Selected game"); color: window.muted; font.pixelSize: 18 }
-                    Artwork { fontFamily: window.fontFamily; colors: window.colors; Layout.fillWidth: true; Layout.preferredHeight: 170; cover: window.state.app==="music"?(window.state.current.cover||""):((window.cardModel.find(x=>x.id===window.state.selected)||{}).cover||""); kind: window.state.app }
-                    Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.app==="music"?(window.state.current.title||window.tr("Choose a track")):((window.cardModel.find(x=>x.id===window.state.selected)||{}).title||""); wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight; color: window.ink; font.pixelSize: 25 }
+                    Artwork { fontFamily: window.fontFamily; colors: window.colors; Layout.fillWidth: true; Layout.preferredHeight: 170; cover: window.state.app==="music"?(window.state.current.cover||""):(controller.selectedItem.cover||""); kind: window.state.app }
+                    Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.app==="music"?(window.state.current.title||window.tr("Choose a track")):(controller.selectedItem.title||""); wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight; color: window.ink; font.pixelSize: 25 }
                     Text { font.family: window.fontFamily; visible: window.state.app==="music"; text: window.time((window.state.media||{}).position)+" / "+window.time((window.state.media||{}).duration); color: window.muted; font.pixelSize: 19 }
                     SuiteButton { fontFamily: window.fontFamily; colors: window.colors; visible: window.state.app==="music" && !!window.state.current.id; text: window.tr("Now playing"); onActivated: controller.command("now-playing") }
                     Item { Layout.fillHeight: true }
@@ -167,7 +169,8 @@ Window {
             Loader {
                 id: surface; anchors.fill: parent
                 objectName: "appSurface"
-                Component.onCompleted: setSource("../../" + window.state.app + "/qml/" + ({music:"Music", video:"Video", browser:"Browser", reader:"Reader", emulator:"Emulator"})[window.state.app] + "Surface.qml", {host: window, colors: window.colors})
+                asynchronous: window.state.app !== "browser"
+                onLoaded: Qt.callLater(window.focusInput)
                 visible: ["library","album"].indexOf(window.state.page)<0
             }
         }
