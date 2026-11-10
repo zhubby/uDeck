@@ -1,0 +1,2422 @@
+Source: raspberry-pi/cm4io-datasheet.pdf
+Pages: 15
+Text extraction only; consult the original PDF for diagrams and tables.
+
+
+--- Page 1 ---
+
+
+
+--- Page 2 ---
+
+Colophon
+© 2020-2022 Raspberry Pi Ltd (formerly Raspberry Pi (Trading) Ltd.)
+The documentation around the Raspberry Pi Compute Module 4 is licensed under a Creative Commons Attribution-
+NoDerivatives 4.0 International (CC BY-ND).
+build-date: 2022-06-07
+build-version: githash: 66d4b42-clean
+Legal disclaimer notice
+TECHNICAL AND RELIABILITY DATA FOR RASPBERRY PI PRODUCTS (INCLUDING DATASHEETS) AS MODIFIED FROM
+TIME TO TIME (“RESOURCES”) ARE PROVIDED BY RASPBERRY PI LTD (“RPL”) "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW IN NO
+EVENT SHALL RPL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+THE USE OF THE RESOURCES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+RPL reserves the right to make any enhancements, improvements, corrections or any other modifications to the
+RESOURCES or any products described in them at any time and without further notice.
+The RESOURCES are intended for skilled users with suitable levels of design knowledge. Users are solely responsible for
+their selection and use of the RESOURCES and any application of the products described in them. User agrees to
+indemnify and hold RPL harmless against all liabilities, costs, damages or other losses arising out of their use of the
+RESOURCES.
+RPL grants users permission to use the RESOURCES solely in conjunction with the Raspberry Pi products. All other use
+of the RESOURCES is prohibited. No licence is granted to any other RPL or other third party intellectual property right.
+HIGH RISK ACTIVITIES. Raspberry Pi products are not designed, manufactured or intended for use in hazardous
+environments requiring fail safe performance, such as in the operation of nuclear facilities, aircraft navigation or
+communication systems, air traffic control, weapons systems or safety-critical applications (including life support
+systems and other medical devices), in which the failure of the products could lead directly to death, personal injury or
+severe physical or environmental damage (“High Risk Activities”). RPL specifically disclaims any express or implied
+warranty of fitness for High Risk Activities and accepts no liability for use or inclusions of Raspberry Pi products in High
+Risk Activities.
+Raspberry Pi products are provided subject to RPL’s Standard Terms. RPL’s provision of the RESOURCES does not
+expand or otherwise modify RPL’s Standard Terms including but not limited to the disclaimers and warranties
+expressed in them.
+Raspberry Pi Compute Module 4 IO Board
+Legal disclaimer notice
+1
+
+
+--- Page 3 ---
+
+Table of contents
+Colophon . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  1
+Legal disclaimer notice . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  1
+1. Introduction. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  3
+2. Features. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  4
+2.1. CM4 module connectors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  4
+2.2. PSU input . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  4
+2.3. Dual full-size HDMI 2.0 connectors. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  4
+2.4. Gigabit Ethernet RJ45. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  5
+2.5. USB 2.0 hub . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  5
+2.6. Micro USB connector . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  5
+2.7. microSD card socket. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  5
+2.8. PCIe Gen 2 x1 socket . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  5
+2.9. Fan connector . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  6
+2.10. Dual DSI display connectors (22-pin 0.5mm pitch cable) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  6
+2.11. Dual CSI-2 camera connectors (22-pin 0.5mm pitch cable) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  6
+2.12. Raspberry Pi HAT connector . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  6
+2.13. Real time clock (RTC). . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  6
+2.14. Jumpers . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  7
+2.15. LEDs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  8
+3. Mechanical diagram . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  9
+4. Circuit diagram. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  10
+Raspberry Pi Compute Module 4 IO Board
+Table of contents
+2
+
+
+--- Page 4 ---
+
+Chapter 1. Introduction
+Figure 1. Render of the
+Raspberry Pi Compute
+Module 4 IO Board.
+The Raspberry Pi Compute Module 4 IO Board (CM4IO) is designed to assist in the development of products that make
+use of Raspberry Pi Compute Module 4. The Raspberry Pi Compute Module 4 IO Board contains many of the interfaces
+that Raspberry Pi 4 Model B has, and for general usage you should refer to the Raspberry Pi 4 Model B documentation.
+The significant difference between CM4IO and Raspberry Pi 4 Model B is the addition of a single PCIe socket. The
+CM4IO has been designed as both a reference design for CM4 or to be used directly as a product with the possible
+addition of PCIe Cards and Raspberry Pi HATs.
+Raspberry Pi Compute Module 4 IO Board
+Chapter 1. Introduction
+3
+
+
+--- Page 5 ---
+
+Chapter 2. Features
+• Accepts the complete range of CM4 modules
+• External +12V PSU
+• 2 × full-size HDMI 2.0 connectors
+• Gigabit Ethernet RJ45 with PoE support
+• 2 × USB 2 sockets, with header for two more sockets
+• Micro USB socket for updating CM4
+• microSD card socket for CM4Lite modules
+• PCIe Gen 2 socket
+• Standard fan connector
+• External power connector (+5V, +12V)
+• 2 × MIPI DSI display FPC connectors (22-pin 0.5mm pitch cable)
+• 2 × MIPI CSI-2 camera FPC connectors (22-pin 0.5mm pitch cable)
+• Raspberry Pi HAT connector
+• RTC with battery socket and ability to wake up CM4
+• Jumpers to disable features, e.g. wireless, EEPROM writing
+2.1. CM4 module connectors
+The two CM4 module connectors are positioned so the on-board wireless antenna is at the edge of the board for best
+wireless performance.
+2.2. PSU input
+The main PSU input (J19) is a 2.1mm DC tip positive +12V input. There is an on-board +12V to +5V DC-DC converter to
+power the CM4. There is also an on-board +12V to +3.3V DC-DC converter PSU which is only used for the PCIe slot. The
++12V input feeds the +12V PCIe slot, the external PSU connector and the fan connector directly. If these aren’t being
+used then a wider input supply is possible (+7.5V to +28V).
+With a +12V supply via the DC barrel jack, the external PSU connector (J20 with +5V and +12V) is ideal to connect to
+PCIe cards that require an external PSU. You should ensure that the PSUs aren’t overloaded. The J20 mating connector
+is known as "Berg" connector, part number AMP/TE Connectivity 171822-4 or similar.
+The exact current required from the +12V PSU is dependent on the application and on what is connected to the
+Raspberry Pi Compute Module 4 IO Board. We recommend budgeting 9W for CM4.
+If you want to supply an external +5V supply to the board, e.g. via J20 or via PoE J9, then we recommend that L5 be
+removed. Removing L5 will prevent the on-board +5V and +3.3V supplies from starting up and +5V coming out of the DC
+jack socket (J19).
+2.3. Dual full-size HDMI 2.0 connectors
+CM4 does most of the interfacing required for the HDMI interface so that most signals are directly connected to the
+Raspberry Pi Compute Module 4 IO Board
+2.1. CM4 module connectors
+4
+
+
+--- Page 6 ---
+
+CM4 board. HDMI connectors require a +5V supply, which is provided on the Raspberry Pi Compute Module 4 IO Board
+via a current-limited switch.
+2.4. Gigabit Ethernet RJ45
+The Raspberry Pi Compute Module 4 IO Board uses a standard 1:1 Ethernet magjack, which supports PoE as well.
+Additional ESD protection is provided on the Raspberry Pi Compute Module 4 IO Board as it is typically needed in PoE
+applications. The PoE signals from the RJ45 connector are connected to J5. Typically a PoE HAT will supply +5V to the
+Raspberry Pi Compute Module 4 IO Board. As a typical PoE HAT doesn’t generate a +12V power rail, PCIe expansion
+cards and the fan will not function.
+2.5. USB 2.0 hub
+The Raspberry Pi Compute Module 4 IO Board has an on-board USB 2.0 hub. This connects to the CM4 USB 2.0 port.
+Two ports from the hub are connected to a connector. The other two ports are connected to a header; this header can
+be used to provide two extra internal ports.
+There is an internal current limit switch to provide VBUS to the USB connectors. The current limit is set to approximately
+1.2A.
+The USB interface is disabled to save power by default on the CM4. To enable it you need to add the following to the
+config.txt file:
+dtoverlay=dwc2,dr_mode=host
+2.6. Micro USB connector
+The micro USB connector is designed to enable CM4 to be updated via rpiboot. When a micro USB cable is plugged in
+the USB hub is automatically disabled, so the CM4 USB 2.0 port becomes a USB device.
+2.7. microSD card socket
+WARNING
+For use only with CM4Lite modules
+The microSD card socket is a push-push socket. To release the microSD card, a gentle push on the card will enable it to
+be removed.
+2.8. PCIe Gen 2 x1 socket
+The PCIe socket is designed to take standard PC PCIe cards. You should ensure that there is a suitable OS driver for
+your card.
+The PCIe link on the Raspberry Pi 4 Model B is used for the USB 3.0 interface via the VLI805 XHCI controller. If the
+application requires USB 3.0 interface then an external XHCI controller is required like the VLI805.
+The PCIe link has been successfully used with an NVMe drive via a passive PCIe adaptor.
+Raspberry Pi Compute Module 4 IO Board
+2.4. Gigabit Ethernet RJ45
+5
+
+
+--- Page 7 ---
+
+NOTE
+Booting isn’t supported via a PCIe switch.
+If the application uses a standard PCIe card then it might be useful to have a small PCIe adapter to rotate the PCIe card
+90degress to enable a more compact case.
+NOTE
+The PCIe interface doesn’t support MSI-X. Typically PCIe devices will fall back to MSI.
+2.9. Fan connector
+This connector supports standard +12V fans with PWM drive and tacho output. An EMC2301 controls the fan via I2C.
+The mating connector part number is Molex 47054-1000 or similar. The +12V power for the fan comes from the +12V
+input and isn’t regulated.
+
+TIP
+To enable the I2C bus to the fan controller, you will need dtparam=i2c_vc=on set in config.txt. The fan controller will
+then be on i2c-10 address 0x2f (7-bit address).
+2.10. Dual DSI display connectors (22-pin 0.5mm pitch
+cable)
+Both DSI interfaces (2-channel and 4-channel) are brought out to separate 22-way 0.5mm pitch connectors. These
+connectors are the same as on the existing CMIO board; note that they are different from Raspberry Pi 4 Model B. If the
+DSI0 interface (2-channel) is used, then the two jumpers on J6 must be fitted to route the I2C bus to the connector.
+2.11. Dual CSI-2 camera connectors (22-pin 0.5mm pitch
+cable)
+Both CSI-2 interfaces (2-channel and 4-channel) are brought out to separate 22-way 0.5mm pitch connectors. These
+connectors are the same as on the existing CMIO board; note that they are different from Raspberry Pi 4 Model B. If the
+CSI0 interface (2-channel) is used, then the two jumpers on J6 must be fitted to route the I2C bus to the connector.
+2.12. Raspberry Pi HAT connector
+The Raspberry Pi Compute Module 4 IO Board has a standard Raspberry Pi 40-way HAT connector. Mounting holes are
+also provided so that standard HATs may be used.
+2.13. Real time clock (RTC)
+A PCF85063AT RTC is provided on the Raspberry Pi Compute Module 4 IO Board. A battery socket is provided for a
+CR2032 battery. On initial setup, the CLKOUT of the RTC should be disabled to save power.
+The alarm output of the RTC is used to wake CM4 from a previous shutdown. If an alarm goes off during normal
+Raspberry Pi Compute Module 4 IO Board
+2.9. Fan connector
+6
+
+
+--- Page 8 ---
+
+operation, the CM4 will be reset; this can be used as a watchdog timer if required.
+
+TIP
+To enable the I2C bus to the RTC you will need dtparam=i2c_vc=on set in config.txt. The RTC then will be on i2c-10
+address 0x51 (7-bit address).
+2.14. Jumpers
+R4/R5 Vref voltage selection
+By default the Raspberry Pi Compute Module 4 IO Board sets the CM4 IO voltage to +3.3V via R5. Moving R5 to R4 sets
+the IO voltage on CM4 to +1.8V. Moving the resistor requires the use of a soldering iron.
+NOTE
+Only one of R4 or R5 may be fitted at any one time.
+NOTE
+J6 CSI0 DSI0 I2C enable
+For the J6 jumpers, if either CSI0 or DSI0 is used then both jumpers must be fitted to route the I2C bus to the
+connectors.
+Table 1. J2 jumpers
+Pin
+Function
+1-2
+nRPIBOOT - if fitted, forces USB booting; it is useful if the eMMC becomes corrupted
+3-4
+EEPROM_nWP - if fitted, write-protects the EEPROM on CM4
+5
+AIN0 MXL7704 - analog input; consult MXL7704 datasheet for details
+6
+AIN1 MXL7704 - analog input; consult MXL7704 datasheet for details
+7
+GND for AIN signals
+8
+SYNC_IN
+9
+SYNC_OUT
+10
+GND
+11
+TV_OUT
+12
+GND
+13-14
+Connect a push button to wake CM4 from low-power mode. It can’t be used to shut down CM4.
+Table 2. J3 (not fitted
+by default)
+Pin
+Function
+1
+WL_nDIS - when connected to ground the wireless interface will be disabled
+2
+GND - ground
+3
+BT_nDIS - when connected to ground the Bluetooth interface will be disabled
+Table 3. J1 (not fitted
+by default)
+Pin
+Function
+1
+GLOBAL_EN
+2
+GND
+Raspberry Pi Compute Module 4 IO Board
+2.14. Jumpers
+7
+
+
+--- Page 9 ---
+
+3
+RUN_PG
+2.15. LEDs
+Red LED
+This LED duplicates the function of the red LED on Raspberry Pi 4 Model B
+Green LED
+This LED duplicates the function of the green LED on Raspberry Pi 4 Model B
+Raspberry Pi Compute Module 4 IO Board
+2.15. LEDs
+8
+
+
+--- Page 10 ---
+
+Chapter 3. Mechanical diagram
+Figure 2. Mechanical
+diagram of the
+Raspberry Pi Compute
+Module 4 IO Board.
+Raspberry Pi Compute Module 4 IO Board
+Chapter 3. Mechanical diagram
+9
+
+
+--- Page 11 ---
+
+Chapter 4. Circuit diagram
+1
+2
+3
+4
+5
+6
+1
+2
+3
+4
+5
+6
+A
+B
+C
+D
+A
+B
+C
+D
+Date:
+KiCad E.D.A. kicad (5.99.0-6751-g76ac8b5acf)
+Rev: 1
+Size: A4
+Id: 1/7
+Title: Compute Module 4 IO Board - Top Level
+File: CM4IOv5.kicad_sch
+Sheet: /
+(c) Raspberry Pi Trading 2020
+www.raspberrypi.org
+PCIe-connector
+File: PCIe.kicad_sch
+PCIE_CLK_P
+PCIE_CLK_N
+PCIE_TX_P
+PCIE_TX_N
+PCIE_CLK_nREQ
+PCIE_nRST
+PCIE_RX_P
+PCIE_RX_N
++12v
+PSUs
+File: PSUs.kicad_sch
++5v
++12v
+CM4_GPIO ( Ethernet, GPIO, SDCARD)
+File: CM4_GPIO.kicad_sch
+ID_SC
+ID_SD
+CAM_GPIO
+SCL0
+SDA0
++5v
++3.3v
+nEXTRST
+GLOBAL_EN
+GPIO_VREF
+TV_OUT
+CM4_HighSpeed
+File: CM4_HighSpeed.kicad_sch
+USB2_N
+USB2_P
+ID_SC
+ID_SD
+CAM_GPIO
+SCL0
+SDA0
++5v
+PCIE_CLK_P
+PCIE_CLK_N
+PCIE_TX_P
+PCIE_TX_N
+PCIE_nRST
+PCIE_RX_P
+PCIE_RX_N
+PCIE_CLK_nREQ
++3.3v
+USBOTG_ID
+GPIO_VREF
+TV_OUT
+RTC , Wakeup, FAN
+File: RTC.kicad_sch
+SCL
+SDA
++5v
++3.3v
+GLOBAL_EN
++12v
+USB2-HUB
+File: USB2-HUB.kicad_sch
+USB2_N
+USB2_P
++5v
++3.3v
+nEXTRST
+USBOTG
+H4
+MountingHole
+H8
+MountingHole
+H6
+MountingHole
+H3
+MountingHole
+H2
+MountingHole
+H1
+MountingHole
+H5
+MountingHole
+H7
+MountingHole
++12v
+nEXTRST
++3.3v
++5v
++3.3v
++5v
++3.3v
++5v
++5v
++3.3v
++5v
++12v
++12v
+nEXTRST
+Connectors
+-------
+HDMI 0
+HDMI 1
+CSI 0
+CSI 1
+DSI 0
+DSI 1
+Connectors
+-------
+Ethernet
+SDCARD
+40way RPI
+Jumpers
+Connectors
+-------
+Dual USB
+microUSB
+Connectors
+-------
+FAN
+Battery
+Connectors
+-------
+DC Barrel Jack
+4 pin power
+Connector
+------
+PCIe x1
+Figure 3. Top level
+1
+2
+3
+4
+5
+6
+1
+2
+3
+4
+5
+6
+A
+B
+C
+D
+A
+B
+C
+D
+Date:
+KiCad E.D.A. kicad (5.99.0-6751-g76ac8b5acf)
+Rev: 1
+Size: A4
+Id: 4/7
+Title: Compute Module 4 IO Board - CM4 - Highspeed
+File: CM4_HighSpeed.kicad_sch
+Sheet: /CM4_HighSpeed/
+(c) Raspberry Pi Trading 2020
+www.raspberrypi.org
+High Speed Serial
+USB_OTG_ID 101
+PCIe_CLK_nREQ
+102
+USB2_N 103
+Reserved
+104
+USB2_P 105
+Reserved
+106
+GND 107
+GND
+108
+PCIe_nRST 109
+PCIe_CLK_P
+110
+VDAC_COMP 111
+PCIe_CLK_N
+112
+GND 113
+GND
+114
+CAM1_D0_N 115
+PCIe_RX_P
+116
+CAM1_D0_P 117
+PCIe_RX_N
+118
+GND 119
+GND
+120
+CAM1_D1_N 121
+PCIe_TX_P
+122
+CAM1_D1_P 123
+PCIe_TX_N
+124
+GND 125
+GND
+126
+CAM1_C_N 127
+CAM0_D0_N
+128
+CAM1_C_P 129
+CAM0_D0_P
+130
+GND 131
+GND
+132
+CAM1_D2_N 133
+CAM0_D1_N
+134
+CAM1_D2_P 135
+CAM0_D1_P
+136
+GND 137
+GND
+138
+CAM1_D3_N 139
+CAM0_C_N
+140
+CAM1_D3_P 141
+CAM0_C_P
+142
+HDMI1_HOTPLUG 143
+GND
+144
+HDMI1_SDA 145
+HDMI1_TX2_P
+146
+HDMI1_SCL 147
+HDMI1_TX2_N
+148
+HDMI1_CEC 149
+GND
+150
+HDMI0_CEC 151
+HDMI1_TX1_P
+152
+HDMI0_HOTPLUG 153
+HDMI1_TX1_N
+154
+GND 155
+GND
+156
+DSI0_D0_N 157
+HDMI1_TX0_P
+158
+DSI0_D0_P 159
+HDMI1_TX0_N
+160
+GND 161
+GND
+162
+DSI0_D1_N 163
+HDMI1_CLK_P
+164
+DSI0_D1_P 165
+HDMI1_CLK_N
+166
+GND 167
+GND
+168
+DSI0_C_N 169
+HDMI0_TX2_P
+170
+DSI0_C_P 171
+HDMI0_TX2_N
+172
+GND 173
+GND
+174
+DSI1_D0_N 175
+HDMI0_TX1_P
+176
+DSI1_D0_P 177
+HDMI0_TX1_N
+178
+GND 179
+GND
+180
+DSI1_D1_N 181
+HDMI0_TX0_P
+182
+DSI1_D1_P 183
+HDMI0_TX0_N
+184
+GND 185
+GND
+186
+DSI1_C_N 187
+HDMI0_CLK_P
+188
+DSI1_C_P 189
+HDMI0_CLK_N
+190
+GND 191
+GND
+192
+DSI1_D2_N 193
+DSI1_D3_N
+194
+DSI1_D2_P 195
+DSI1_D3_P
+196
+GND 197
+GND
+198
+HDMI0_SDA 199
+HDMI0_SCL
+200
+Module1B
+ComputeModule4
+Hirose
+2off DF40C-100DS-0.4V
+GND
+IN
+1
+OUT 2
+GND
+3
+U12
+RT9742SNGV
+C13
+100n
+GND
+GND
+1
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+2
+20
+21
+22
+3
+4
+5
+6
+7
+8
+9
+J5
+Conn_01x22_Female
+GND
+GND
+SH
+SH2SH
+SH3SH
+SH4
+D2+
+1
+CK+
+10
+CKS
+11
+CK-
+12
+CEC
+13
+UTILITY/HEAC+
+14
+SCL
+15
+SDA
+16
+GND
+17
++5V 18
+HPD/HEAC-
+19
+D2S
+2
+D2-
+3
+D1+
+4
+D1S
+5
+D1-
+6
+D0+
+7
+D0S
+8
+D0-
+9
+SH
+SH1
+J22
+690-019-298-412
+1
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+2
+20
+21
+22
+3
+4
+5
+6
+7
+8
+9
+J4
+Conn_01x22_Female
+1
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+2
+20
+21
+22
+3
+4
+5
+6
+7
+8
+9
+J16
+Conn_01x22_Female
+GND
+1
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+2
+20
+21
+22
+3
+4
+5
+6
+7
+8
+9
+J15
+Conn_01x22_Female
+GND
+GND
+GND
+C12
+100n
+GND
+R7
+2.2K 1%
+GND
+1
+2
+3
+4
+J6
+THD-02-R
+SH
+SH2SH
+SH3SH
+SH4
+D2+
+1
+CK+
+10
+CKS
+11
+CK-
+12
+CEC
+13
+UTILITY/HEAC+
+14
+SCL
+15
+SDA
+16
+GND
+17
++5V 18
+HPD/HEAC-
+19
+D2S
+2
+D2-
+3
+D1+
+4
+D1S
+5
+D1-
+6
+D0+
+7
+D0S
+8
+D0-
+9
+SH
+SH1
+J10
+690-019-298-412
+R6
+2.2K 1%
+USBOTG_ID
++3.3v
+SDA0
+USB2_N
+GPIO_VREF
+SCL0
+PCIE_RX_N
+ID_SC
+PCIE_nRST
+USB2_P
+ID_SD
+CAM_GPIO
+PCIE_RX_P
+PCIE_CLK_N
+TV_OUT
+PCIE_CLK_P
+PCIE_CLK_nREQ
+PCIE_TX_N
+PCIE_TX_P
++5v
+CAM1_D3_P
+DSI0_C_N
+DSI0_D0_P
+DSI0_D0_N
+DSI0_D1_P
+DSI0_D1_N
+HDMI0_HOTPLUG
+HDMI1_HOTPLUG
+HDMI0_CEC
+HDMI1_CEC
+HDMI1_SCL
+HDMI1_SDA
+HDMI1_HOTPLUG
+CAM1_D3_N
+CAM1_D2_P
+HDMI1_D0_P
+HDMI1_D0_N
+CAM1_D2_N
+CAM1_D2_N
+CAM1_C_P
+CAM1_C_N
+CAM1_D1_P
+CAM1_D1_N
+CAM1_D1_N
+DSI1_D3_N
+SCL0
+SDA0
+CAM1_D0_P
+DSI0_C_P
+CAM1_D0_N
++3.3v
+DSI1_D0_P
+CAM1_D0_P
+CAM1_D0_N
+CAM1_D2_P
+DSI1_D3_P
+DSI1_D0_N
+CAM0_D0_N
+CAM1_D3_P
+CAM1_D3_N
+DSI1_D1_P
+DSI1_D1_N
+DSI1_D2_N
+DSI1_C_P
+CAM0_C_N
+CAM0_D1_N
+CAM0_D1_P
+DSI1_C_N
+CAM_GPIO
+CAM0_D0_P
+HDMI_5v
+GPIO_VREF
+DSI1_D2_P
+HDMI0_SDA
+HDMI0_SCL
+SCL1
+ID_SC
+ID_SD
+SDA1
+HDMI1_CK_N
+CAM1_C_N
+HDMI1_CK_P
+HDMI0_CK_N
+DSI1_D3_P
+DSI1_D3_N
+HDMI1_D1_P
+HDMI1_D1_N
+HDMI0_D1_N
+HDMI0_D2_P
+HDMI0_D2_N
+CAM1_C_P
+HDMI0_D1_P
+HDMI0_D0_N
+HDMI0_D0_P
+CAM0_C_P
+HDMI1_D2_P
+HDMI1_D2_N
+HDMI0_CK_P
++3.3v
+SDA0
+SCL0
+DSI1_D2_P
+DSI0_C_P
+DSI0_C_N
+HDMI1_D1_P
+DSI0_D1_P
+DSI0_D1_N
+DSI1_D1_N
+DSI1_D1_P
+HDMI1_D2_P
+SDA1
+SCL1
+DSI1_D0_P
+DSI1_D0_N
++3.3v
+DSI1_C_N
+DSI1_C_P
+HDMI1_D2_N
+DSI1_D2_N
+HDMI0_CK_P
+HDMI0_CK_N
+DSI0_D0_P
+DSI0_D0_N
+HDMI_5v
+HDMI0_D0_N
+HDMI0_D0_P
+HDMI0_D1_N
+HDMI0_HOTPLUG
+HDMI_5v
+HDMI0_SDA
+HDMI0_D2_P
+HDMI0_SCL
+HDMI1_CK_N
+CAM1_D1_P
+CAM0_D1_P
+CAM0_C_N
+HDMI1_SDA
+HDMI1_SCL
+HDMI1_CEC
+CAM0_D1_N
+HDMI1_CK_P
+HDMI1_D0_N
+HDMI0_D2_N
+HDMI0_CEC
+HDMI0_D1_P
+CAM0_D0_P
+SDA1
+CAM0_D0_N
+SCL1
++3.3v
+CAM_GPIO
+CAM0_C_P
+HDMI1_D1_N
+HDMI1_D0_P
+Jumpers to be fitted if Camera0 or Display0 are used.
+Display Connectors
+Camera Connectors
+Figure 4. CM4 high
+speed
+Raspberry Pi Compute Module 4 IO Board
+Chapter 4. Circuit diagram
+10
+
+
+--- Page 12 ---
+
+1
+2
+3
+4
+5
+6
+1
+2
+3
+4
+5
+6
+A
+B
+C
+D
+A
+B
+C
+D
+Date:
+KiCad E.D.A. kicad (5.99.0-6751-g76ac8b5acf)
+Rev: 1
+Size: A4
+Id: 5/7
+Title: Compute Module 4 IO Board - GPIO - Ethernet
+File: CM4_GPIO.kicad_sch
+Sheet: /CM4_GPIO ( Ethernet, GPIO, SDCARD)/
+(c) Raspberry Pi Trading 2020
+www.raspberrypi.org
+D1+
+1
+D1-
+2
+GND
+3
+D2+
+4
+D2-
+5
+U2
+TPD4EUSB30
+D2
+LED Green
+C1
+100n
+GND
+2
+GND3
+4
+VCC
+5
+U9
+74LVC1G07SE-7
+GND
+GPIO
+600mA Max
+600mA Max
+NB SD signals are only available
+on modules without eMMC
+GND 1
+Ethernet_Pair0_N
+10
+nEXTRST
+100
+Ethernet_Pair2_P 11
+Ethernet_Pair0_P
+12
+GND 13
+GND
+14
+Ethernet_nLED3(3.3v) 15
+Ethernet_SYNC_IN(1.8v)
+16
+Ethernet_nLED2(3.3v) 17
+Ethernet_SYNC_OUT(1.8v)
+18
+Ethernet_nLED1(3.3v) 19
+GND
+2
+EEPROM_nWP
+20
+PI_nLED_Activity 21
+GND
+22
+GND 23
+GPIO26
+24
+GPIO21 25
+GPIO19
+26
+GPIO20 27
+GPIO13
+28
+GPIO16 29
+Ethernet_Pair3_P 3
+GPIO6
+30
+GPIO12 31
+GND
+32
+GND 33
+GPIO5
+34
+ID_SC 35
+ID_SD
+36
+GPIO7 37
+GPIO11
+38
+GPIO8 39
+Ethernet_Pair1_P
+4
+GPIO9
+40
+GPIO25 41
+GND
+42
+GND 43
+GPIO10
+44
+GPIO24 45
+GPIO22
+46
+GPIO23 47
+GPIO27
+48
+GPIO18 49
+Ethernet_Pair3_N 5
+GPIO17
+50
+GPIO15 51
+GND
+52
+GND 53
+GPIO4
+54
+GPIO14 55
+GPIO3
+56
+SD_CLK 57
+GPIO2
+58
+GND 59
+Ethernet_Pair1_N
+6
+GND
+60
+SD_DAT3 61
+SD_CMD
+62
+SD_DAT0 63
+SD_DAT5
+64
+GND 65
+GND
+66
+SD_DAT1 67
+SD_DAT4
+68
+SD_DAT2 69
+GND 7
+SD_DAT7
+70
+GND 71
+SD_DAT6
+72
+SD_VDD_Override 73
+GND
+74
+SD_PWR_ON 75
+Reserved
+76
++5v_(Input) 77
+GPIO_VREF(1.8v/3.3v_Input)
+78
++5v_(Input) 79
+GND
+8
+SCL0
+80
++5v_(Input) 81
+SDA0
+82
++5v_(Input) 83
++3.3v_(Output)
+84
++5v_(Input) 85
++3.3v_(Output)
+86
++5v_(Input) 87
++1.8v_(Output)
+88
+WL_nDisable 89
+Ethernet_Pair2_N 9
++1.8v_(Output)
+90
+BT_nDisable 91
+RUN_PG
+92
+nRPIBOOT 93
+AnalogIP1
+94
+nPI_LED_PWR 95
+AnalogIP0
+96
+Camera_GPIO 97
+GND
+98
+Global_EN 99
+Module1A
+ComputeModule4
+1000pF
+75
+C1
+C2
+C3
+C4
+C5
+C6
+C7
+C8
+GREEN
+YELLOW
+TRD0+
+1
+TRD3-
+10
+VC1
+11
+VC2
+12
+VC3
+13
+VC4
+14
+LEDG_A
+15
+LEDG_K
+16
+LEDY_A
+17
+LEDY_K
+18
+SHIELD
+19
+TRD0-
+2
+SHIELD
+20
+TRD1+
+3
+CT
+4
+CT
+5
+TRD1-
+6
+TRD2+
+7
+TRD2-
+8
+TRD3+
+9
+U3
+MagJack-A70-112-331N126
+R5
+0R
+R4
+nf
+TP5
+TestPoint
+GND
+DAT2
+1
+DET_A
+10
+SHIELD 11
+DAT3/CD
+2
+CMD
+3
+VDD
+4
+CLK
+5
+VSS
+6
+DAT0
+7
+DAT1
+8
+DET_B
+9
+J7
+Micro_SD_Card_Det
+D1+
+1
+D1-
+2
+GND
+3
+D2+
+4
+D2-
+5
+U1
+TPD4EUSB30
+1
+2
+3
+4
+J9
+THD-02-R
+C5
+10u
+2
+GND3
+4
+VCC
+5
+U5
+74LVC1G07SE-7
+R10
+1k
+GND
+1
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+2
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+3
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+4
+40
+5
+6
+7
+8
+9
+J8
+THD-20-R
+GND
+GND
+GND
+GND
+GND
+R29
+12K 1%
+OUT
+1
+GND
+2
+nFLG
+3
+EN 4
+IN 5
+U18
+RT9742GGJ5
+GND
+GND
+1
+10
+11
+12
+13
+14
+2
+3
+4
+5
+6
+7
+8
+9
+J2
+Conn_02x07_Odd_Even
+1
+2
+3
+J3
+Conn_01x03
+1
+2
+3
+J1
+Conn_01x03
+GND
+GND
+R18
+nf
+R17
+nf
+D1
+LED Red
+TP3
+TestPoint
+R1
+1k
+GND
+R3
+470R
+R2
+470R
+GLOBAL_EN
+CAM_GPIO
+GPIO_VREF
+SCL0
++5v
++3.3v
+nEXTRST
+ID_SC
+TV_OUT
+SDA0
+ID_SD
+GPIO8
+SD_DAT0
++3.3v
+SD_CLK
+SD_CMD
+SD_DAT3
+ETH_LEDY
+ETH_LEDG
+TRD3_N
+TRD3_P
+SD_PWR
+SD_PWR
+TRD2_N
+TRD2_P
+nRPIBOOT
+GPIO14
+GPIO12
+GPIO16
+Reserved
+TR1_TAP
+GPIO20
+GPIO21
+GPIO5
+GPIO6
+GPIO13
+GPIO19
+GPIO26
+GND
+GPIO14
+SD_CLK
+SD_DAT3
+SD_DAT0
+SD_DAT1
+SD_DAT2
+SD_PWR_ON
+GND
+nRPIBOOT
++3.3v
+EEPROM_nWP
+SD_DAT2
+GPIO11
+AIN0
+GND
+TV_OUT
+SD_DAT1
+SYNC_OUT
+GND
+GND
+AIN1
+SYNC_IN
+GLOBAL_EN
+nPWR_LED
+GLOBAL_EN
+TRD0_N
+GPIO7
+TR0_TAP
++3.3v
++3.3v
++1.8v
+GPIO15
+GPIO18
+GPIO23
+GPIO24
+GPIO25
+TRD3_P
+TRD3_N
+TRD1_P
+TRD1_N
+TRD2_N
+TRD2_P
+TRD1_P
+TRD0_P
+TR3_TAP
+TR2_TAP
+TRD2_P
+GPIO_VREF
++3.3v
+nPWR_LED
+GLOBAL_EN
+RUN_PG
++3.3v
++3.3v
+ID_SC
+TRD3_N
+TR2_TAP
+ETH_LEDY
+TRD1_N
+TR1_TAP
+TR0_TAP
+TR3_TAP
+TRD0_N
+TRD0_P
+ETH_LEDG
+ID_SD
++5v
++3.3v
+GPIO2
+GPIO3
+GPIO4
+TRD3_P
+GPIO9
+GPIO17
+TRD2_N
+GPIO27
+GPIO22
+GPIO10
+ID_SC
+RUN_PG
+GPIO_VREF
+AIN1
+AIN0
+GPIO16
+GPIO12
+GPIO23
+GPIO25
+GPIO21
+GPIO20
+Reserved
+GPIO7
+GPIO8
+GPIO24
+GPIO18
+TRD1_P
+TRD1_N
+TRD0_N
+TRD0_P
+SYNC_IN
+SYNC_OUT
+GPIO26
+GPIO4
+GPIO3
+GPIO2
+SD_CMD
+GPIO6
+GPIO13
+GPIO9
+GPIO11
+GPIO5
+ID_SD
++1.8v
+GPIO19
+GPIO10
+GPIO22
+GPIO27
+GPIO17
++5v
+RUN_PG
++3.3v
+GPIO15
+EEPROM_nWP
+WL_nDis
+BT_nDis
+SD_PWR_ON
++5v
+EEPROM write protect = Jumper Pins 3-4
+Force RPIBOOT = Jumper Pins 1-2
+PWR LED
+POE Header
+If compute modules is awake RUN_PG will be high so the button doesn't do anything
+If the compute module is asleep then RUN_PG will be at 0v and so pull global enable low
+Activity LED
+40Way GPIO Header
+A button bwteen pins 13-14 can be used to wake up compute module from power down
+Ethernet POE
+Protection
+Not Fitted headers
+GPIO Voltage select
+Ethernet
+CM4Lite SDCARD I/F
+Figure 5. CM4 GPIO
+1
+2
+3
+4
+5
+6
+1
+2
+3
+4
+5
+6
+A
+B
+C
+D
+A
+B
+C
+D
+Date:
+KiCad E.D.A. kicad (5.99.0-6751-g76ac8b5acf)
+Rev: 1
+Size: A4
+Id: 6/7
+Title: Compute Module 4 IO Board - PCIe
+File: PCIe.kicad_sch
+Sheet: /PCIe-connector/
+(c) Raspberry Pi Trading 2020
+www.raspberrypi.org
+C65
+nf
+C63
+nf
+C64
+1.2nF
+C32
+10u
+R30
+15K 1%
+C28
+10u 35v
+C25
+10u 35v
+R24
+47K 1%
+GND
+1
+2
+L3
+SRN6045TA-3R3Y
+BST
+1
+VIN
+2
+EN
+3
+SS
+4
+FB 5
+COMP 6
+GND 7
+SW 8
+EP
+9
+U15
+AP64501SP-13
+R23
+12K 1%
+GND
+TP1
+TestPoint
+C31
+10u
+C30
+10u
+C62
+100n
+C26
+10u 35v
+C27
+10u 35v
+GND
+C33
+10u
+C45
+100uF
+C43
+10u 35v
+GND
+R22
+10R
+C29
+100n
+GND
+GND
+C44
+10u 35v
+nPRSNT1
+A1
++3.3V A10
+nPERST A11
+GND A12
+REFCLK+ A13
+REFCLK- A14
+GND A15
+PERP0 A16
+PERN0 A17
+GND A18
++12V
+A2
++12V
+A3
+GND
+A4
+TCK
+A5
+TDI
+A6
+TD0
+A7
+TMS
+A8
++3.3V
+A9
++12v
+B1
++3.3vAUX
+B10
+nWAKE
+B11
+nCLKREQ
+B12
+GND
+B13
+PETP0
+B14
+PETN0
+B15
+GND
+B16
+nPRSNT2
+B17
+GND
+B18
++12v
+B2
++12v
+B3
+GND
+B4
+SMCLK
+B5
+SMDAT
+B6
+GND
+B7
++3.3v
+B8
+nTRST
+B9
+J12
+10018783-11200TLF
+PCIE_RX_P
+PCIE_RX_N
+PCIE_TX_P
++12v
+PCIE_TX_N
+PCIE_nRST
+PCIE_CLK_P
+PCIE_CLK_N
+PCIE_CLK_nREQ
++12v
++12v
++3.3v
++3.3v
++12v
++3.3v
+PCIe x1 connector
+NB PCIe x1 takes a maximum of +12v @0.6A or +3.3v@3A , 10Watts combined
+TX and RX have PN swaps to improve routing
+3.3v @ 3.3A PSU for PCIe Only ( 12v Input )
+Figure 6. PCIe
+connector
+Raspberry Pi Compute Module 4 IO Board
+Chapter 4. Circuit diagram
+11
+
+
+--- Page 13 ---
+
+1
+2
+3
+4
+5
+6
+1
+2
+3
+4
+5
+6
+A
+B
+C
+D
+A
+B
+C
+D
+Date:
+KiCad E.D.A. kicad (5.99.0-6751-g76ac8b5acf)
+Rev: 1
+Size: A4
+Id: 2/7
+Title: Compute Module 4 IO Board - USB
+File: USB2-HUB.kicad_sch
+Sheet: /USB2-HUB/
+(c) Raspberry Pi Trading 2020
+www.raspberrypi.org
+GND
+Y1
+24MHz
+C9
+27pF
+C8
+27pF
+GND
+GND
+VBUS
+1
+D-
+2
+D+
+3
+ID
+4
+GND
+5
+Shield
+6
+J11
+USB_OTG
+R12
+36K 1%
+R13
+36K 1%
+C6
+10u
+R14
+36K 1%
+C10
+10u
+GND
+C2
+10u
+C3
+100n
+R16
+36K 1%
+C7
+100n
+R15
+12K 1%
+C15
+100n
+C14
+100n
+C11
+100n
+C4
+100n
+USBDM_DN1/PRT_DIS_M1 1
+VDDA33 10
+TEST
+11
+PRTPWR1/BC_EN1 12
+OCS_N1 13
+CRFILT
+14
+VDD33 15
+PRTPWR2/BC_EN2 16
+OCS_N2 17
+PRTPWR3/BC_EN3 18
+OCS_N3 19
+USBDP_DN1/PRT_DIS_P1 2
+PRTPWR4/BC_EN4 20
+OCS_N4 21
+SDA/SMBDATA/NON_REM1
+22
+VDD33 23
+SCL/SMBCLK/CFG_SEL0
+24
+HS_IND/CFG_SEL1
+25
+RESET_N
+26
+VBUS_DET
+27
+SUSP_IND/LOCAL_PWR/NON_REM0
+28
+VDDA33 29
+USBDM_DN2/PRT_DIS_M2 3
+USBDM_UP
+30
+USBDP_UP
+31
+XTALOUT
+32
+XTALIN/CLKIN
+33
+PLLFILT
+34
+RBIAS
+35
+VDDA33 36
+VSS
+37
+USBDP_DN2/PRT_DIS_P2 4
+VDDA33 5
+USBDM_DN3/PRT_DIS_M3 6
+USBDP_DN3/PRT_DIS_P3 7
+USBDM_DN4/PRT_DIS_M4 8
+USBDP_DN4/PRT_DIS_P4 9
+U6
+USB2514B-I/M2
+GND
+VCC
+1
+nOE
+10
+SEL
+2
+D_P
+3
+D_N
+4
+GND
+5
+HSD0_M 6
+HSD0_P 7
+HSD1_M 8
+HSD1_P 9
+U13
+FSUSB42MUX
+GND
+GND
+GND
+GND
+GND
+C16
+100uF
+C17
+10u
+C20
+10u
+GND
+C19
+10u
+C21
+10u
+GND
+VBUS`
+D-`
+D+`
+GND`
+VBUS
+D-
+D+
+GND
+MT1
+MT2
+MT3
+MT4
+J13
+690-008-221-904
+GND
+GND
+GND
+1
+10
+2
+3
+4
+5
+6
+7
+8
+9
+J14
+Conn_02x05_Odd_Even
+GND
+GND
+GND
+D1+
+1
+D1-
+2
+GND
+3
+D2+
+4
+D2-
+5
+U4
+TPD4EUSB30
+IN
+1
+GND
+2
+EN
+3
+nFault 4
+ILIM 5
+OUT 6
+U7
+AP22653W6
+GND
+GND
+R36
+15K 1%
+R8
+2.2K 1%
+GND
+GND
+GND
+GND
+GND
+R11
+2.2K 1%
+USBOTG
+USB2_N
+nEXTRST
++5v
++3.3v
+USB2_P
+HD1_P
+USBD_P
+HD1_N
+HD3_P
+HD3_N
+HD2_P
++5v
+nOCS1
+HD4_P
+HD4_N
+nOCS1
+PWR1
+HD2_N
+nOCS1
++3.3v
+nEXTRST
+USBD_N
+nOCS1
+HD3_P
+VBUS
+HD1_P
+HD1_N
+VBUS
+HD4_P
+HD4_N
+VBUS
+VBUS
+PWR1
+HD3_N
+USBD_P
+USBD_N
+nOCS1
+HD2_P
+HD2_N
+VBUS
++3.3v
++3.3v
+USBH_P
+USBH_N
+If a cable in plugged into the uUSB socket the CM4 becomes a usb device
+Expansion USB connector
+Micro USB ESD protection
+Current Limit switch
+Stacked USB connectors
+USB 2.0 Hub
+Figure 7. USB2 hub
+1
+2
+3
+4
+5
+6
+1
+2
+3
+4
+5
+6
+A
+B
+C
+D
+A
+B
+C
+D
+Date:
+KiCad E.D.A. kicad (5.99.0-6751-g76ac8b5acf)
+Rev: 1
+Size: A4
+Id: 3/7
+Title: Compute Module 4 IO Board - RTC - FAN
+File: RTC.kicad_sch
+Sheet: /RTC , Wakeup, FAN/
+(c) Raspberry Pi Trading 2020
+www.raspberrypi.org
+R20
+510K 1%
+GND
+SDA
+1
+SCL
+2
+VDD
+3
+GND
+4
+PWM 5
+TACH 6
+CLK 7
+nALERT 8
+U11
+EMC2301-1-ACZL-TR
+R21
+36K 1%
+Y2
+X32K768S301
+C23
+100n
+GND
+GND
+GND
+OSCI
+1
+OSCO
+2
+~INT~ 3
+VSS
+4
+SDA 5
+SCL 6
+CLKO 7
+VDD 8
+U8
+PCF85063AT/AAZ
+R19
+510K 1%
+2
+GND3
+4
+VCC
+5
+U14
+74LVC1G07SE-7
+1
+2
+3
+4
+J17
+Molex 470531000
+C22
+100n
+C24
+100n
+GND
+C46
+100n
+BT1
+Battery_Cell
+GND
+GND
+1
+2
+3
+D3
+BAT54C-7-F
+GND
++3.3v
+GLOBAL_EN
++5v
+SDA
+SCL
++12v
+GLOBAL_EN
+nRTC_INT
++5v
+nRTC_INT
++3.3v
++3.3v
++3.3v
+SDA
+SCL
+SCL
+SDA
+IIC address : 0101_111x
+IIC address : 1010_001x
+FAN connector
+FAN controller
+RTC alarms can be used to wake up the Compute module
+NB an Alarm triggering while already awake will cause a reset
+This can be used as a watchdog reset
+GLOBAL_EN needs to be pulse low for >1mS
+Also SMBUS alert IIC address : 0001_100x
+The above circuit generates a pulse for
+GLOBAL_EN when nRTC_INT goes low
+RTC and RTC wakeup
+Figure 8. RTC wakeup
+and fan
+Raspberry Pi Compute Module 4 IO Board
+Chapter 4. Circuit diagram
+12
+
+
+--- Page 14 ---
+
+1
+2
+3
+4
+5
+6
+1
+2
+3
+4
+5
+6
+A
+B
+C
+D
+A
+B
+C
+D
+Date:
+KiCad E.D.A. kicad (5.99.0-6751-g76ac8b5acf)
+Rev:
+Size: A4
+Id: 7/7
+Title: Compute Module 4 IO Board - PSUs
+File: PSUs.kicad_sch
+Sheet: /PSUs/
+(c) Raspberry Pi Trading 2020
+www.raspberrypi.org
+C47
+10u
+C35
+10u 35v
+C37
+10u 35v
+C34
+10u 35v
+TP2
+TestPoint
+GND
+GND
+1
+2
+L5
+SRN6045TA-3R3Y
+TP4
+TestPoint
+C49
+10u
+TP6
+TestPoint
+GND
+R25
+20K 1%
+GND
+GND
+GND
+GND
+D4
+MMBZ5242BLT3G
+1
+2
+3
+4
+J20
+AMP171826-4
+1
+4
+5
+Q1
+DMP3013SFV-7
+GND
+1
+2
+3
+J19
+Barrel_Jack
+C36
+100n 100v
+C39
+10u 35v
+R9
+10R
+C58
+100n
+BST
+1
+VIN
+2
+EN
+3
+SS
+4
+FB 5
+COMP 6
+GND 7
+SW 8
+EP
+9
+U16
+AP64501SP-13
+GND
+C18
+100uF
+C52
+10u
+C61
+nf
+C51
+10u
+C38
+10u 35v
+C41
+10u 35v
+C59
+nf
+C57
+100n
+C42
+10u 35v
+C40
+100n
+R26
+12K 1%
+C60
+1.2nF
+R28
+2.2K 1%
+R27
+12K 1%
++12v
++5v
++5v
++12v
++12v
++5v
++12v
+Ideal diode to prevent reverse
+polarity at the input
++5v @ 3A PSU ( 7.5v-28v Input )
+5v @ 3A PSU
+4 pin Power connector
+as found on Floppy drives
++12v is only needed for PCIe and the FAN. If these aren't used then +12v isn't needed
+Can be used to power the CM4IO board. NB +12v will also be available at the DC Jack
+Can be used to power other devices if total loading on PSUs aren't exceeded
+2.1mm Tip +ve
++12v Input
+Figure 9. PSU
+Raspberry Pi Compute Module 4 IO Board
+Chapter 4. Circuit diagram
+13
+
+
+--- Page 15 ---
+

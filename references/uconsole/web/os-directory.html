@@ -1,0 +1,424 @@
+<!doctype html><html><head><meta charset="utf-8"><title>uConsole OS directory</title></head><body><article><h1>uConsole OS directory</h1><p>Community post; retrieved 2026-11-05T22:50:11.833805+08:00. Author: trinity. Last edited: 2026-07-11T16:36:06.106Z.</p><p>This post catalogs all the available operating systems available for the uConsole. The uConsole is compatible with a very wide variety of cores, also known as compute modules, which differ in capability, hardware design, and occasionally even architecture, and so these operating systems are grouped by system module, as none support them all. For a guide to hardware, see the <a href="https://forum.clockworkpi.com/t/22222">companion hardware directory</a></p>
+<p>There are a lot of operating system images floating around the forum. You can help by contributing more if you find they aren’t in these lists. <strong>ClockworkPi uConsoles currently only work with Linux</strong> as their peripherals need <a href="https://github.com/clockworkpi/uConsole/tree/master/Code/patch">custom kernel patches</a>, so although these are all separate OSes, they do all share the kernel Linux, with the lone exception being EwokOS for the CM4 uConsole.</p>
+<p>A given uConsole Linux distribution needs core support and a Linux kernel patch to support the screen, an LVDS panel connected through DSI. <a href="https://forum.clockworkpi.com/t/21666">Newer consoles have a slightly different panel and need an OS updated to support it</a>. It also needs a patch to support the battery controller.</p>
+<h2><a name="p-93138-clockworkpi-cores-1" class="anchor" href="#p-93138-clockworkpi-cores-1" aria-label="Heading link"></a>ClockworkPi cores</h2>
+<p>ClockworkPi’s first-party cores include the <a href="https://www.clockworkpi.com/product-page/clockworkpi-core-a-0402">A-04</a> and <a href="https://www.clockworkpi.com/product-page/clockworkpi-core-a-06">A-06</a>, each 64-bit ARM, and the <a href="https://www.clockworkpi.com/product-page/copy-of-clockworkpi-core-r-01">R-01</a>, which is 64-bit RISC-V. They all use the Raspberry Pi Compute Module form factor, which is the DDR2 SO-DIMM form factor.</p>
+<p>The uConsole was originally offered with one of three cores; the A-04 (cancelled prior to shipping), the A-06, or the Raspberry Pi CM4. There are no operating systems compatible with the A-04 on the uConsole.</p>
+<div class="md-table">
+<table>
+<thead>
+<tr>
+<th>core</th>
+<th>operating system</th>
+<th>kernel version</th>
+<th>format</th>
+<th>URLs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R-01</td>
+<td>Ubuntu 22.04</td>
+<td>unknown</td>
+<td>unknown</td>
+<td><a href="https://forum.clockworkpi.com/t/13375/">thread</a></td>
+</tr>
+<tr>
+<td>R-01</td>
+<td>ClockworkOS</td>
+<td>5.4.61</td>
+<td>.img</td>
+<td><a href="https://github.com/clockworkpi/uConsole#uconsole-os-images">GitHub</a>, <a href="http://dl.clockworkpi.com/uConsole_R01_v1.3b.img.7z">direct download</a>, <a href="https://drive.google.com/file/d/1lDdO3-aj8zeO6JDJVBaCgNkehhffdNm1/view">Google Drive</a></td>
+</tr>
+<tr>
+<td>A-06</td>
+<td>Armbian 22.02</td>
+<td>5.15.25</td>
+<td>source</td>
+<td><a href="https://forum.clockworkpi.com/t/uconsole-os-images/10432/15">thread reply</a>, <a href="https://github.com/LibreRetroToy/armbian-clockworkpi-a06/">GitHub</a></td>
+</tr>
+<tr>
+<td>A-06</td>
+<td>ClockworkOS</td>
+<td>5.15.119</td>
+<td>.img</td>
+<td><a href="https://github.com/clockworkpi/uConsole#uconsole-os-images">GitHub</a>, <a href="http://dl.clockworkpi.com/uConsole_A06_v1.1e.img.7z">direct download</a>, <a href="https://drive.google.com/file/d/1H5wdB_cCSW-qbf6Ijgcn-Uw4EQQkWrP1/view">Google Drive</a></td>
+</tr>
+<tr>
+<td>A-06</td>
+<td>Arch</td>
+<td>5.16.2</td>
+<td>source, .img</td>
+<td><a href="https://github.com/css459/arch-linux-arm-clockworkpi-a06">GitHub</a></td>
+</tr>
+<tr>
+<td>A-06</td>
+<td>Arch</td>
+<td>6.2</td>
+<td>source, .img</td>
+<td><a href="https://forum.clockworkpi.com/t/12804">thread</a>, <a href="https://github.com/yatli/arch-linux-arm-clockworkpi">GitHub</a></td>
+</tr>
+<tr>
+<td>A-06</td>
+<td>Arch</td>
+<td>6.2</td>
+<td>source, .img</td>
+<td><a href="https://forum.clockworkpi.com/t/21964/16">thread reply</a>, <a href="https://github.com/cuu/arch-linux-arm-clockworkpi/tree/uc">GitHub</a>, <a href="https://drive.google.com/file/d/1czWml44COSSELKfZOSgNJB9s0pPAK4oN/view">Google Drive</a></td>
+</tr>
+<tr>
+<td>A-06</td>
+<td>Manjaro</td>
+<td>6.2.7</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/12322/2">thread reply</a>, <a href="https://www.dropbox.com/scl/fi/q079jvt6icb0eeiy548v5/dt_a06_manjaro_2024_a.img.xz">Dropbox</a></td>
+</tr>
+<tr>
+<td>A-06</td>
+<td>Arch</td>
+<td>6.5.9-0</td>
+<td>source, .img, .pkg.xz</td>
+<td><a href="https://github.com/Autianic/clockworkpi-linux">GitHub</a></td>
+</tr>
+<tr>
+<td>A-06</td>
+<td>NixOS</td>
+<td>6.6</td>
+<td>guide</td>
+<td><a href="https://wiki.nixos.org/wiki/NixOS_on_ARM/Clockworkpi_A06_uConsole">NixOS wiki</a></td>
+</tr>
+</tbody>
+</table>
+</div><h2><a name="p-93138-raspberry-pi-compute-modules-2" class="anchor" href="#p-93138-raspberry-pi-compute-modules-2" aria-label="Heading link"></a>Raspberry Pi Compute Modules</h2>
+<p>Raspberry Pi invented the Compute Module (title cased, as it’s the name of the brand) form factor to be able to embed Raspberry Pi SoCs in places where a full SBC would be inappropriate. Theoretically <a href="https://www.raspberrypi.com/products/compute-module-1/">the Raspberry Pi Compute Module 1</a> (32-bit ARM) may work in the uConsole but the earliest supported Compute Module in the uConsole is the Compute Module 3, as the CM3+ was sold with the earlier DevTerm (which uses the same ClockworkPi mainboard), and the only <a href="https://www.clockworkpi.com/product-page/uconsole-kit-rpi-cm4-lite">Raspberry Pi Compute Module sold <em>with</em> the uConsole</a> is the Compute Module 4.</p>
+<p>After the release of the uConsole, Raspberry Pi <a href="https://www.theregister.com/2024/11/27/raspberry_pi_compute_module_5/">came out</a> with the Compute Module 5, which remains the latest and most performant Raspberry Pi module.</p>
+<p><a class="mention" href="/u/rex">@Rex</a>’s assembled uConsole operating systems are widely recommended here as he has spent a lot of time making them work well with all the available uConsole hardware and mods. For his files, see <a href="https://images.ak-rex.com/">his website</a>, <a href="https://mega.nz/folder/LSInGD6J#0YezWX8xC4PkbyForgl1Hw">MEGA</a>, <a href="https://drive.google.com/drive/folders/1tw2uPVPsFDhQ5Onx4mlllYexUDmDp0eK">Google Drive</a>, or, updated less frequently, <a href="https://app.drime.cloud/drive/s/O3faUnk9ihg2vlrgek0LiaHRiU3fGb">Drime</a>. <strong>Rex builds and provides these operating systems for free, but if they’re useful to you, consider <a href="https://buymeacoffee.com/ak.rex">buying him a coffee</a></strong>.</p>
+<div class="md-table">
+<table>
+<thead>
+<tr>
+<th>Compute Module(s)</th>
+<th>operating system</th>
+<th>kernel version</th>
+<th>format</th>
+<th>URLs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CM4</td>
+<td>Kali</td>
+<td>unknown</td>
+<td>.img, guide</td>
+<td><a href="https://forum.clockworkpi.com/t/12947/4">thread reply</a>, <a href="https://github.com/clockworkpi/uConsole/wiki/Kali-linux-image-for-uConsole-cm4">wiki page</a></td>
+</tr>
+<tr>
+<td>CM4, CM5</td>
+<td>NixOS</td>
+<td>unknown</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/12925/136">thread reply</a>, <a href="https://github.com/nixos-uconsole/nixos-uconsole">GitHub</a></td>
+</tr>
+<tr>
+<td>CM4</td>
+<td>Raspberry Pi OS</td>
+<td>unknown</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/14699/">thread</a>, <a href="https://drive.google.com/file/d/1zpYSingDclzp-Np4gC9tCTfzt3gX8RRS/view">Google Drive</a></td>
+</tr>
+<tr>
+<td>CM4</td>
+<td>ClockworkOS</td>
+<td>5.10.17</td>
+<td>.img</td>
+<td><a href="https://github.com/clockworkpi/uConsole#uconsole-os-images">GitHub</a>, <a href="http://dl.clockworkpi.com/uConsole_CM4_v0.1b_xfce_64bit.img.7z">direct download</a>, <a href="https://drive.google.com/file/d/1gBpVK1rMM5zmq5z4-DlKlDmTFJQvwMFz/view">Google Drive</a></td>
+</tr>
+<tr>
+<td>CM4</td>
+<td>Debian 12</td>
+<td>5.10.17</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/12738/">thread</a>, <a href="https://github.com/Snoozer-94/uConsole-CM4-OS">GitHub</a></td>
+</tr>
+<tr>
+<td>CM4</td>
+<td>Raspberry Pi OS</td>
+<td>5.10.110</td>
+<td>guide</td>
+<td><a href="https://jhewitt.net/uconsole">Joseph’s Projects</a></td>
+</tr>
+<tr>
+<td>CM3, CM4, CM4S</td>
+<td>Debian 12</td>
+<td>6.1.21</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/13041">thread</a></td>
+</tr>
+<tr>
+<td>CM4</td>
+<td>Pop_OS</td>
+<td>6.6.35</td>
+<td>proof of concept</td>
+<td><a href="https://forum.clockworkpi.com/t/uconsole-os-images/10432/48">thread reply</a></td>
+</tr>
+<tr>
+<td>CM4</td>
+<td>Void</td>
+<td>6.6.51</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/14970">thread</a>, <a href="https://github.com/Ravenhammer-Research/void-uconsole">GitHub</a></td>
+</tr>
+<tr>
+<td>CM3, CM4, CM5</td>
+<td>Debian 12</td>
+<td>6.6.78</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/13235">thread</a>, formerly provided by Rex</td>
+</tr>
+<tr>
+<td>CM3, CM4, CM5</td>
+<td>Manjaro</td>
+<td>6.12.27</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/14496/">thread</a>, provided by Rex, but only on Drime</td>
+</tr>
+<tr>
+<td>CM4</td>
+<td>postmarketOS</td>
+<td>6.12.30</td>
+<td>installer</td>
+<td><a href="https://forum.clockworkpi.com/t/12458/">thread</a>, <a href="https://wiki.postmarketos.org/wiki/ClockworkPi_uConsole_(clockworkpi-uconsole-rpi)">wiki page</a></td>
+</tr>
+<tr>
+<td>CM3, CM4, CM5</td>
+<td>ParrotOS</td>
+<td>6.12.45</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/21674">thread</a>, <a href="https://drive.google.com/drive/folders/14rL-_rJfsHyxE3__7YV63bc6FGgdd4DK">Google Drive</a></td>
+</tr>
+<tr>
+<td>CM4, CM5</td>
+<td>Arch</td>
+<td>6.12.51</td>
+<td>source, guide</td>
+<td><a href="https://forum.clockworkpi.com/t/16382">thread</a>, <a href="https://gitea.angry.im/PeterCxy/alarm-clockworkpi-uconsole">forgejo</a></td>
+</tr>
+<tr>
+<td>CM4</td>
+<td>ClockworkOS</td>
+<td>6.12.62-v8+</td>
+<td>.img</td>
+<td><a href="https://github.com/clockworkpi/uConsole#uconsole-os-images">GitHub</a>, <a href="http://dl.clockworkpi.com/uConsole_CM4_v2.1_64bit.img.bz2">direct download</a>, <a href="https://drive.google.com/file/d/19opOCg8v4fdNUhuCaZWnBykgqyoU4-Bx/view">Google Drive</a></td>
+</tr>
+<tr>
+<td>CM4</td>
+<td>Fedora Kinoite 44</td>
+<td>6.12.62-v8+</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/22812">thread</a>, <a href="https://pub-728b0a04c49649fc9d4dd17c95a7bf21.r2.dev/kinoite-uconsole-cm4.img.gz">direct download</a></td>
+</tr>
+<tr>
+<td>CM4</td>
+<td>Fedora 44</td>
+<td>6.12.62-v8+</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/22812">thread</a>, <a href="https://pub-728b0a04c49649fc9d4dd17c95a7bf21.r2.dev/fedora-kde-uconsole-cm4.img.gz">direct download</a></td>
+</tr>
+<tr>
+<td>CM3, CM4, CM5</td>
+<td>Debian 12</td>
+<td>6.12.64</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/14240">thread</a>, <a href="https://github.com/crossplatformdev/uConsole-Image-Builder">GitHub</a></td>
+</tr>
+<tr>
+<td>CM3, CM4, CM5</td>
+<td>Debian 13</td>
+<td>6.12.64</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/14240">thread</a>, <a href="https://github.com/crossplatformdev/uConsole-Image-Builder">GitHub</a></td>
+</tr>
+<tr>
+<td>CM3, CM4, CM5</td>
+<td>Ubuntu 24.04</td>
+<td>6.12.64</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/14240">thread</a>, <a href="https://github.com/crossplatformdev/uConsole-Image-Builder">GitHub</a></td>
+</tr>
+<tr>
+<td>CM3, CM4, CM5</td>
+<td>Debian 12</td>
+<td>6.12.67</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/15847">thread</a>, provided by Rex</td>
+</tr>
+<tr>
+<td>CM3, CM4, CM5</td>
+<td>Debian 13</td>
+<td>6.12.67</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/19457">thread</a>, provided by Rex</td>
+</tr>
+<tr>
+<td>CM4, CM5</td>
+<td>DragonOS</td>
+<td>6.12.67</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/17289">thread</a>, <a href="https://mega.nz/folder/19BlTQ7b#x1UsRMcb4UtIDwU-CPGsPA">MEGA</a>, provided by Rex</td>
+</tr>
+<tr>
+<td>CM4, CM5</td>
+<td>Kali</td>
+<td>6.12.67</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/14463">thread</a>, provided by Rex</td>
+</tr>
+<tr>
+<td>CM3, CM4, CM5</td>
+<td>ParrotOS</td>
+<td>6.12.67</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/14076">thread</a>, provided by Rex</td>
+</tr>
+<tr>
+<td>CM3, CM4, CM5</td>
+<td>RetroPie</td>
+<td>6.12.67</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/13572">thread</a>, provided by Rex</td>
+</tr>
+<tr>
+<td>CM3, CM4, CM5</td>
+<td>TwisterOS</td>
+<td>6.12.67</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/16617">thread</a>, provided by Rex</td>
+</tr>
+<tr>
+<td>CM3, CM4, CM5</td>
+<td>Ubuntu 24.04</td>
+<td>6.12.67</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/17397">thread</a>, <a href="https://mega.nz/folder/19BlTQ7b#x1UsRMcb4UtIDwU-CPGsPA">MEGA</a>, provided by Rex</td>
+</tr>
+<tr>
+<td>CM3, CM4, CM5</td>
+<td>Debian 13</td>
+<td>6.12.78</td>
+<td>APT repository</td>
+<td><a href="https://github.com/ak-rex/ClockworkPi-apt">GitHub</a></td>
+</tr>
+<tr>
+<td>CM3, CM4, CM4S</td>
+<td>Arch</td>
+<td>6.16</td>
+<td>source</td>
+<td><a href="https://forum.clockworkpi.com/t/11351">thread</a>, <a href="https://forum.clockworkpi.com/t/13190">thread</a>, <a href="https://github.com/PotatoMania/uconsole-cm3">GitHub</a></td>
+</tr>
+<tr>
+<td>CM4, CM5</td>
+<td>Arch kernel</td>
+<td>6.18.6</td>
+<td>.pkg.tar.xz</td>
+<td><a href="https://forum.clockworkpi.com/t/19340">thread</a>, <a href="https://github.com/OuinOuin74/linux-clockwork-arch/">GitHub</a></td>
+</tr>
+<tr>
+<td>CM4</td>
+<td>Debian 13 kernel</td>
+<td>6.18.20</td>
+<td>.deb</td>
+<td><a href="https://forum.clockworkpi.com/t/22027">thread</a>, <a href="https://drive.google.com/drive/folders/1h64yB-PaO2qsouifAQpFVQjq01LWbDbM">Google Drive</a></td>
+</tr>
+<tr>
+<td>CM4, CM5</td>
+<td>Arch kernel</td>
+<td>7.0.9</td>
+<td>.pkg.tar.xz</td>
+<td><a href="https://forum.clockworkpi.com/t/22738">thread</a>, <a href="https://github.com/KondratokGK/linux-clockwork-arch/">GitHub</a></td>
+</tr>
+<tr>
+<td>CM4</td>
+<td>NixOS</td>
+<td>unspecified</td>
+<td>source</td>
+<td><a href="https://forum.clockworkpi.com/t/12925">thread</a>, <a href="https://git.vdx.hu/voidcontext/nixos-uconsole">forgejo</a>, <a href="https://github.com/voidcontext/nixos-uconsole">GitHub</a></td>
+</tr>
+</tbody>
+</table>
+</div><p>There are some CM4 ClockworkPi OS releases <a href="https://drive.google.com/drive/folders/1LYiT_G9b08VG5oqKIpOHd9msAtL_X99u">in this Google Drive folder</a>, including one newer (v3.0) than the latest known release (v2.1).</p>
+<p>There is one single non-Linux OS for the uConsole, EwokOS, for which there is <a href="https://forum.clockworkpi.com/t/11783">a thread</a> and <a href="https://github.com/MisaZhu/ewokos">a GitHub repository</a>. It’s implied that EwokOS targets the CM4.</p>
+<h2><a name="p-93138-orange-pi-compute-modules-3" class="anchor" href="#p-93138-orange-pi-compute-modules-3" aria-label="Heading link"></a>Orange Pi compute modules</h2>
+<p>Orange Pi offers compute modules in the same form factor with up to 32GB RAM. Recently some folks have managed to get this working in the ClockworkPi adapter, though it requires some hard modification to the mainboard.</p>
+<div class="md-table">
+<table>
+<thead>
+<tr>
+<th>compute module(s)</th>
+<th>operating system</th>
+<th>kernel version</th>
+<th>format</th>
+<th>URLs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Orange Pi CM5</td>
+<td>Gentoo</td>
+<td>unspecified</td>
+<td>patchset</td>
+<td><a href="https://forum.clockworkpi.com/t/19952">thread</a>, <a href="https://gitflic.ru/project/consensus/uconsole-opi-cm5">gitflic</a>, <a href="https://github.com/si6Och4j/uconsole-opi-cm5">GitHub</a></td>
+</tr>
+</tbody>
+</table>
+</div><h2><a name="p-93138-radxa-compute-modules-4" class="anchor" href="#p-93138-radxa-compute-modules-4" aria-label="Heading link"></a>Radxa compute modules</h2>
+<p>Radxa is another company that releases Raspberry Pi form factor compute modules, and their CM5 is somewhat popular despite barely unsupported and unstable because it comes with up to 32GB RAM, twice what the Raspberry Pi CM5 supports, and has a faster processor, NPU, and optional GPU. Full use of a Radxa CM5 requires <a href="https://hackergadgets.com/products/pre-order-adapter-board-for-uconsole-ugrade-kit?variant=47122570444974">HackerGadgets’ adapter board</a> in place of ClockworkPi’s.</p>
+<div class="md-table">
+<table>
+<thead>
+<tr>
+<th>compute module(s)</th>
+<th>operating system</th>
+<th>kernel version</th>
+<th>format</th>
+<th>URLs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Radxa CM5</td>
+<td>Debian 11</td>
+<td>unknown</td>
+<td>guide</td>
+<td><a href="https://forum.clockworkpi.com/t/15375">thread</a>, <a href="https://github.com/dev-null2019/radxa-cm5-uconsole">GitHub</a></td>
+</tr>
+<tr>
+<td>Radxa CM5</td>
+<td>Arch</td>
+<td>6.1.84</td>
+<td>guide</td>
+<td><a href="https://forum.clockworkpi.com/t/21569/">thread</a>, <a href="https://github.com/0xrushi/ClockworkRadxa-linux/">GitHub</a></td>
+</tr>
+<tr>
+<td>Radxa CM5</td>
+<td>Debian 12</td>
+<td>6.1.84</td>
+<td>.img</td>
+<td><a href="https://forum.clockworkpi.com/t/16315">thread</a>, <a href="https://mega.nz/folder/p150laIY#XBTyo_qOVEjPFiz4iQ4jjA">MEGA</a>, <a href="https://drive.google.com/drive/folders/1V2AMxJ5XYQStWnaYVlBT3kxEvQaaTd8j">Google Drive</a></td>
+</tr>
+<tr>
+<td>Radxa CM5</td>
+<td>Debian 12</td>
+<td>6.1.115</td>
+<td>proof of concept</td>
+<td><a href="https://forum.clockworkpi.com/t/21829">thread</a></td>
+</tr>
+<tr>
+<td>Radxa CM5</td>
+<td>Debian kernel</td>
+<td>7.1</td>
+<td>proof of concept</td>
+<td><a href="https://forum.clockworkpi.com/t/22747">thread</a></td>
+</tr>
+</tbody>
+</table>
+</div><h2><a name="p-93138-tldr-5" class="anchor" href="#p-93138-tldr-5" aria-label="Heading link"></a>tl;dr</h2>
+<p>Raspberry Pi modules tend to have the best software support. Using a module from neither Raspberry Pi or ClockworkPi is veering off the beaten path. Using a non-Debian OS requires much configuration and futzing. Rex’s operating system images are the best supported.</p></article></body></html>

@@ -1,0 +1,487 @@
+<!doctype html><html><head><meta charset="utf-8"><title>uConsole hardware directory</title></head><body><article><h1>uConsole hardware directory</h1><p>Community post; retrieved 2026-11-05T22:50:11.833805+08:00. Author: trinity. Last edited: 2026-06-28T04:04:12.861Z.</p><p>This is a summary of the various hardware peripherals/modifications purpose-built for the uConsole. Prices are in United States dollars unless noted. I’ll be slowly working on this as there is a large uConsole hardware ecosystem to document. For a guide to software, see the <a href="https://forum.clockworkpi.com/t/22029">companion OS directory</a>.</p>
+<h2><a name="p-94185-base-unit-1" class="anchor" href="#p-94185-base-unit-1" aria-label="Heading link"></a>Base unit</h2>
+<aside class="quote no-group" data-username="Liu_Yu" data-post="1" data-topic="10309">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/liu_yu/48/2277_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/first-look-of-uconsole/10309/1">First look of uconsole</a></div>
+<blockquote>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/2X/1/114c856c7df28ef7b953d23c138cc0c882a907d7.jpeg" data-download-href="/uploads/short-url/2t23TJ1Jhs55xMCtFAnGgbxpuPt.jpeg?dl=1" title="IMG_1082"><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/1/114c856c7df28ef7b953d23c138cc0c882a907d7_2_187x250.jpeg" alt="IMG_1082" data-base62-sha1="2t23TJ1Jhs55xMCtFAnGgbxpuPt" width="187" height="250" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/1/114c856c7df28ef7b953d23c138cc0c882a907d7_2_187x250.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/1/114c856c7df28ef7b953d23c138cc0c882a907d7_2_280x375.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/1/114c856c7df28ef7b953d23c138cc0c882a907d7_2_374x500.jpeg 2x" data-dominant-color="8B8880"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename">IMG_1082</span><span class="informations">3024×4032 2.11 MB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<p>There are a couple ways to acquire a uConsole, but the best way really is the official shop.</p>
+<ul>
+<li><a href="https://www.clockworkpi.com/shop">The official ClockworkPi shop</a> is the only first-party supplier. The A-06 and R-01 SKUs are sold out but the CM4 is still in stock at <strong>$250 excluding shipping</strong>. This includes the uConsole, a ClockworkPi CM4 adapter board, and a CM4104000, which is a 4GB RAM, eMMC-less Raspberry Pi Compute Module 4 with on-board WiFi/Bluetooth. Shipping from ClockworkPi takes a very long time; one of the oldest posts in the uConsole topic on this forum is <a href="https://forum.clockworkpi.com/t/10478/">an ad-hoc shipping batch tracker</a>.</li>
+</ul>
+<p>The extreme wait times lead people to pay very high prices to third-party resellers to get a uConsole early. Please note that <strong>you are totally being played</strong> if you pay more than, say, <strong>$350 including shipping</strong> for a base unit. Even the “super hacker” “pimped-out” uConsoles on-line where someone actually added a modicum of value are rarely worth it.</p>
+<ul>
+<li>
+<p>AliExpress, at, for example, <a href="https://www.aliexpress.us/w/wholesale-uconsole.html">aliexpress.us</a>, is a popular uConsole source, though it’s of poor reputation.</p>
+</li>
+<li>
+<p><a href="https://www.ebay.com/sch/i.html?_nkw=uconsole">eBay</a> sometimes has some uConsoles being sold.</p>
+</li>
+<li>
+<p>OpenSourceSDRLab has <a href="https://opensourcesdrlab.com/products/opensourcesdrlab-uconsole-kit-rpi-cm4-lite-with-clockworkpi-v314-mainboard">a uConsole listing</a> at a reasonable price.</p>
+</li>
+</ul>
+<p>Instead of turning to these resale websites, see if you can find someone selling their uConsole here on the forum, where you can scroll people’s profiles and see what they actually did with their console and why they’re moving on. It’s harder to lie about the accessories you have installed (for example, calling an AIOv1 a modded AIOv2) on the forums frequented by the makers of those accessories.</p>
+<p>It is advised <em>not</em> to purchase from either “ETech Devices” or “PiMod Labs” as they have been spammed here by bots.</p>
+<h3><a name="p-94185-chassis-2" class="anchor" href="#p-94185-chassis-2" aria-label="Heading link"></a>Chassis</h3>
+<p>It’s possible to build a “ship of Theseus” uConsole without having ever purchased the base unit; the device is open hardware and is composed of three PCBs excluding adapter boards, cores, or the keyboard. ClockworkPi offers <a href="https://www.clockworkpi.com/product-page/uconsole-3d-models-in-obj-format-free">3D models of the uConsole in OBJ and STEP formats</a> (<strong>$5</strong> or free with coupon code <code>UC</code>) for reproduction. There are also <a href="https://github.com/57Bravo/uConsole_3D_Models">coarse models</a> that were deduced prior to the official release.</p>
+<p>There are also plenty of unofficial chassis 3D models for printing.</p>
+<aside class="quote no-group" data-username="DRC" data-post="1" data-topic="21146">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/drc/48/10892_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/my-uconsole-3d-printed-back/21146/1">My uConsole 3D printed back</a></div>
+<blockquote>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/2X/8/8516bd2c482e6a29f24660b2913a0297f97140fc.jpeg" data-download-href="/uploads/short-url/iZmdJG19H9cULksnRRJd3jkjipu.jpeg?dl=1" title="1000007381"><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/8/8516bd2c482e6a29f24660b2913a0297f97140fc_2_288x375.jpeg" alt="1000007381" data-base62-sha1="iZmdJG19H9cULksnRRJd3jkjipu" width="288" height="375" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/8/8516bd2c482e6a29f24660b2913a0297f97140fc_2_288x375.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/8/8516bd2c482e6a29f24660b2913a0297f97140fc_2_432x562.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/8/8516bd2c482e6a29f24660b2913a0297f97140fc_2_576x750.jpeg 2x" data-dominant-color="4F4C64"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename">1000007381</span><span class="informations">1920×2491 955 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<p>Above is the <a href="https://makerworld.com/en/models/2115543-uconsole-back-cover-for-passive-cooler">uConsole back cover for passive cooler</a> on Maker World.</p>
+<aside class="quote no-group" data-username="beams" data-post="1" data-topic="22584">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/beams/48/15232_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/introducing-the-omega-chassis-for-the-uconsole/22584/1">Introducing the Omega Chassis for the uConsole <img width="20" height="20" src="https://emoji.discourse-cdn.com/google_classic/rocket.png?v=15" title="rocket" loading="lazy" alt="rocket" class="emoji"></a></div>
+<blockquote>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/3X/0/9/0914233d851ed721a5521547004360a1fe6d9b25.jpeg" data-download-href="/uploads/short-url/1ijroUUWlmOVOUiR0DChKPbaC6p.jpeg?dl=1" title="00-cover"><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/0/9/0914233d851ed721a5521547004360a1fe6d9b25_2_690x468.jpeg" alt="00-cover" data-base62-sha1="1ijroUUWlmOVOUiR0DChKPbaC6p" width="690" height="468" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/0/9/0914233d851ed721a5521547004360a1fe6d9b25_2_690x468.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/0/9/0914233d851ed721a5521547004360a1fe6d9b25_2_1035x702.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/3X/0/9/0914233d851ed721a5521547004360a1fe6d9b25.jpeg 2x" data-dominant-color="35393B"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename">00-cover</span><span class="informations">1280×870 194 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<p>The uConsole Omega Chassis is beams’ modular chassis design. Its <a href="https://jing.io/projects/the-omega-chassis-a-modular-backplate-for-the-uconsole/">announcement</a> (with <a href="https://forum.clockworkpi.com/t/22584">accompanying thread</a>) explains the rationale; much is changed to improve airflow, battery capacity, I/O capacity, and the speakers’ sound.</p>
+<p>For <strong>£26</strong> available <a href="https://s.jing.io/downloads/uconsole-omega-chassis/">on Jing’s website</a> one can license the design files for personal use, which include thorough documentation and an ordering guide for actually obtaining the components.</p>
+<blockquote>
+<h3>Production Cost Estimation</h3>
+<p>Following the purchase of the build guide, here is an estimated cost to produce the major parts. The CNC components are modular and require no major updates so these are likely a one-time cost.</p>
+<div class="md-table">
+<table>
+<thead>
+<tr>
+<th>Prouduction</th>
+<th>Cost Estimate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CNC Parts</td>
+<td>~85 USD + Shipping</td>
+</tr>
+<tr>
+<td>MJF Nylon Parts</td>
+<td>~32 USD + Shipping</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<aside class="quote no-group" data-username="beams" data-post="9" data-topic="22584">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/beams/48/15232_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/introducing-the-omega-chassis-for-the-uconsole/22584/9">Introducing the Omega Chassis for the uConsole <img width="20" height="20" src="https://emoji.discourse-cdn.com/google_classic/rocket.png?v=15" title="rocket" loading="lazy" alt="rocket" class="emoji"></a></div>
+<blockquote>
+<p>It does not mean you have to have all parts installed at start. There’s a steady upgrade path.</p>
+</blockquote>
+</aside>
+<h2><a name="p-94185-mainboard-3" class="anchor" href="#p-94185-mainboard-3" aria-label="Heading link"></a>Mainboard</h2>
+<p>The official uConsole motherboard is the ClockworkPi v3.14 mainboard. Two versions retailed; <a href="https://github.com/clockworkpi/uConsole/blob/master/clockwork_Mainboard_V3.14_Schematic.pdf">the original</a> and its <a href="https://github.com/clockworkpi/uConsole/blob/master/clockwork_Mainboard_V3.14_V5_Schematic.pdf">fifth revision</a>. There are no known cases of the uConsole shipping with an original v3.14 mainboard, only the R5 board. The board is <a href="https://www.clockworkpi.com/product-page/clockworkpi-v3-14">available for purchase separately</a> through the shop for <strong>$40 excluding shipping</strong>. Be careful not to choose <a href="https://www.clockworkpi.com/product-page/cpi-v3-1">the similarly-named v3.1 board</a> which is a different product for the GameShell.</p>
+<aside class="quote no-group" data-username="snipeytje" data-post="9" data-topic="19180" data-full="true">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://avatars.discourse-cdn.com/v4/letter/s/2bfe46/48.png" class="avatar"><a href="https://forum.clockworkpi.com/t/troubleshooting-a-formerly-working-uconsole-device/19180/9">Troubleshooting a formerly working UConsole device</a></div>
+<blockquote>
+<p>they no longer produce old versions, devterms produced after the uconsole launch also had the v5 mainboard</p>
+</blockquote>
+</aside>
+<h3><a name="p-94185-usb-power-brownout-4" class="anchor" href="#p-94185-usb-power-brownout-4" aria-label="Heading link"></a>USB power brownout</h3>
+<p>The mainboard can sometimes have issues supplying power to all the peripherals on the Universal Serial Bus if there’s a sudden increase in power draw, such as when a flash drive with status LED is attached. This problem affects the keyboard most of all:</p>
+<aside class="quote no-group" data-username="SilentByte" data-post="1" data-topic="19119">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/silentbyte/48/13492_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/fixing-uconsole-power-delivery-limitations-with-cm5/19119/1">Fixing uConsole power delivery limitations with CM5</a></div>
+<blockquote>
+<p>I’m encountering power related issue on my uConsole (CM5) that initially appeared to be isolated to the keyboard, but may point to a broader power delivery problem.</p>
+<p><strong>Primary symptom:</strong></p>
+<ul>
+<li>The built-in keyboard disconnects when plugging any device to the usb port and re-enumerates as <code>Leaflabs Maple DFU</code> (<code>1eaf:0003</code>), at which point it no longer functions until rebooted (reboot solves the problem only while running on the battery).</li>
+<li>Sometimes it also disconnects while trying to flash ESP32 based board using the USB.</li>
+<li><a href="https://forum.clockworkpi.com/t/qmk-firmware-for-uconsole-keyboard/14410/112">USB resets, unbind/bind, and toggling authorized do not recover it</a> - the device remains in bootloader mode until rebooted or power-cycled.</li>
+</ul>
+</blockquote>
+</aside>
+<aside class="quote no-group" data-username="beams" data-post="151" data-topic="14410">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/beams/48/15232_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/qmk-firmware-for-uconsole-keyboard/14410/151">QMK firmware for uConsole keyboard</a></div>
+<blockquote>
+<p>Regarding USB power issues, I saw these report - I am sure there is a power brownout issue that triggers QMK going into DFU mode - because the main board is designed for cm3</p>
+</blockquote>
+</aside>
+<p>There’s a hardmod one can make to the mainboard to prevent the brownouts entirely:</p>
+<aside class="quote no-group" data-username="QuantumKraken" data-post="18" data-topic="19119" data-full="true">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/quantumkraken/48/11986_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/fixing-uconsole-power-delivery-limitations-with-cm5/19119/18">Fixing uConsole power delivery limitations with CM5</a></div>
+<blockquote>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/2X/3/39d27767a6f99a05b5faee62f381482c319ef1fa.jpeg" data-download-href="/uploads/short-url/8fw8yFJ52GOT8OlUj0ftgjIpiQ2.jpeg?dl=1" title="1000019451"><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/3/39d27767a6f99a05b5faee62f381482c319ef1fa_2_282x375.jpeg" alt="1000019451" data-base62-sha1="8fw8yFJ52GOT8OlUj0ftgjIpiQ2" width="282" height="375" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/3/39d27767a6f99a05b5faee62f381482c319ef1fa_2_282x375.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/3/39d27767a6f99a05b5faee62f381482c319ef1fa_2_423x562.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/3/39d27767a6f99a05b5faee62f381482c319ef1fa_2_564x750.jpeg 2x" data-dominant-color="645D56"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename">1000019451</span><span class="informations">1920×2550 469 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+<p>I replaced C513 on the back of the main board.</p>
+</blockquote>
+</aside>
+<aside class="quote no-group" data-username="vxi" data-post="20" data-topic="19119" data-full="true">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://avatars.discourse-cdn.com/v4/letter/v/a698b9/48.png" class="avatar"><a href="https://forum.clockworkpi.com/t/fixing-uconsole-power-delivery-limitations-with-cm5/19119/20">Fixing uConsole power delivery limitations with CM5</a></div>
+<blockquote>
+<p>Just in case if someone is interested in such mod:<br>
+Type: type B / 3528 / 3.5x2.8 mm<br>
+Capacitance: 220uF<br>
+Voltage: 10v(but I could only find 6.3V for a reasonable price)</p>
+</blockquote>
+</aside>
+<p>This workaround is still useful if one needs a certain level of reliability from the US bus but another option is to install <a href="https://forum.clockworkpi.com/t/21521">beams’ QMK firmware</a>.</p>
+<aside class="quote no-group" data-username="beams" data-post="159" data-topic="14410">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/beams/48/15232_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/qmk-firmware-for-uconsole-keyboard/14410/159">QMK firmware for uConsole keyboard</a></div>
+<blockquote>
+<p>In case of power surge, the keyboard would move to bootloading mode, if no firmware uploading happens to it then it will verify, load the firmware as usual. I have tested with my ethernet cable with 100% backlight on, it restores the keyboard behaviour after power surge (see lights off &amp; back on shortly - and it looks kinda cool as well!), no need to reboot or flashing the firmware now. <img src="https://emoji.discourse-cdn.com/google_classic/slight_smile.png?v=15" title=":slight_smile:" class="emoji" alt=":slight_smile:" loading="lazy" width="20" height="20"></p>
+</blockquote>
+</aside>
+<h3><a name="p-94185-indicator-led-5" class="anchor" href="#p-94185-indicator-led-5" aria-label="Heading link"></a>Indicator LED</h3>
+<aside class="quote no-group quote-modified" data-username="trinity" data-post="2" data-topic="21811" data-full="true">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/trinity/48/16167_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/uconsole-charging-led/21811/2">Uconsole charging LED</a></div>
+<blockquote>
+<p>As others have said:</p>
+<aside class="quote no-group">
+<blockquote>
+<p>that indicator is pretty finicky. it doesn’t work when uconsole is powered off (probably because it works programmatically), and seems like OS updates can break it also: <a href="https://forum.clockworkpi.com/t/bookworm-6-12-y-for-the-uconsole-and-devterm/15847/474" class="inline-onebox">Bookworm 6.12.y for the uConsole and DevTerm - #474 by Rex</a> I suppose it works this way because ‘charging board’ is a separate module, but it should charge batteries even if indicator doesn’t show it.</p>
+</blockquote>
+</aside>
+<p>The charge LED is driven by the kernel and is used as a live system charging indicator. <a href="https://www.amazon.com/dp/B0D8PJ46WV">Two inline USB-C PD power meters on Amazon</a> are $10. I have them on most of my power supplies for ease of troubleshooting because they’re so useful, and particularly if you’re recharging your uConsole while powered off, as they’ll show 0A current pull when the charge controller believes the battery is full.</p>
+</blockquote>
+</aside>
+<p>The charge LED is wired to the AXP228 charge controller.</p>
+<h3><a name="p-94185-mainboard-wlan-6" class="anchor" href="#p-94185-mainboard-wlan-6" aria-label="Heading link"></a>Mainboard WLAN</h3>
+<p>The mainboard has a WLAN adapter for use over SDIO with compatible cores (listed in the <strong>Cores</strong> section).</p>
+<p>It’s inaccessible through any available adapter board.</p>
+<aside class="quote no-group" data-username="trinity" data-post="9" data-topic="19329">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/trinity/48/16167_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/radxa-cm5-will-it-work/19329/9">Radxa CM5 - Will it work?</a></div>
+<blockquote>
+<p>On the mainboard, the WLAN subsystem uses the GPIO pins 3-7 for basic configuration, 14-17 for UART, 18-21 for PCM, and 22-27 for SDIO. These are all wired to the SODIMM connector for the core modules. The adapter board wires the SODIMM pins to the CM4 pins like so:</p>
+<ul>
+<li>SODIMM GPIO3-5 → CM4 GPIO3-5</li>
+<li>SODIMM GPIO6-7 → floating</li>
+<li>SODIMM GPIO14-27 → floating</li>
+</ul>
+<p>So the best one can do with the CM4 adapter board is mess with the enabled state of some of the radio components on the mainboard, and one would need a new adapter board to use the mainboard’s radios.</p>
+</blockquote>
+</aside>
+<p>The antenna connector on the mainboard is for the mainboard WLAN and only has function if using that WLAN adapter.</p>
+<h3><a name="p-94185-new-revision-7" class="anchor" href="#p-94185-new-revision-7" aria-label="Heading link"></a>New revision</h3>
+<p>In March 2025 ClockworkPi was working on another mainboard revision:</p>
+<aside class="quote no-group" data-username="luqezr" data-post="6" data-topic="16062">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/luqezr/48/11255_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/ideas-for-a-new-clockworkpi-main-board-uconsole-2/16062/6">Ideas for a new ClockworkPi Main Board/uConsole 2</a></div>
+<blockquote>
+<p>I sent an email to Alex last week and he told me that <strong>a new mother is under development</strong>, but he didn’t give me any more information besides that.</p>
+</blockquote>
+</aside>
+<aside class="quote no-group" data-username="beams" data-post="5" data-topic="21521" data-full="true">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/beams/48/15232_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/new-qmk-firmware-trackball-guide-and-keyboard-diffuser/21521/5">New QMK Firmware, Trackball Guide and Keyboard Diffuser</a></div>
+<blockquote>
+<p>Unfortunately I do not know, there is no information being confirmed for what the upgrades are and when it might be released.</p>
+</blockquote>
+</aside>
+<p>Around the start of June 2026 another person, this time on Facebook, claimed to have heard about the new mainboard from official sources:</p>
+<aside class="quote no-group" data-username="JesseandGraceandCats" data-post="1" data-topic="22620">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/jesseandgraceandcats/48/9501_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/anyone-else-heard-this-picozero-and-new-mb-for-uconsole/22620/1">Anyone else heard this? (PicoZero and new mb for uConsole)</a></div>
+<blockquote>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/3X/4/6/46c75a0da7e85f224781fc700aa714b75e50345f.jpeg" data-download-href="/uploads/short-url/a68wZvEkBiVwV92JpROaoYpM23d.jpeg?dl=1" title="1000011420"><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/4/6/46c75a0da7e85f224781fc700aa714b75e50345f_2_128x500.jpeg" alt="1000011420" data-base62-sha1="a68wZvEkBiVwV92JpROaoYpM23d" width="128" height="500" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/4/6/46c75a0da7e85f224781fc700aa714b75e50345f_2_128x500.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/4/6/46c75a0da7e85f224781fc700aa714b75e50345f_2_192x750.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/4/6/46c75a0da7e85f224781fc700aa714b75e50345f_2_256x1000.jpeg 2x" data-dominant-color="E8E9E9"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename">1000011420</span><span class="informations">1079×4190 543 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<h2><a name="p-94185-screens-8" class="anchor" href="#p-94185-screens-8" aria-label="Heading link"></a>Screens</h2>
+<h3><a name="p-94185-txw50017b0-first-panel-9" class="anchor" href="#p-94185-txw50017b0-first-panel-9" aria-label="Heading link"></a>TXW50017B0 (first panel)</h3>
+<aside class="quote no-group" data-username="fordiman" data-post="9" data-topic="11094">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/fordiman/48/10542_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/replacement-screen-for-the-uconsole/11094/9">Replacement Screen for the uConsole</a></div>
+<blockquote>
+<p>The exact model number is on the back there, and it is a TxWEI screen, part number TXW50017B0.</p>
+<p>Dimensionally, the module is 119mm x 65mm, with a 111.25mm x 63mm active area starting 1mm x 1mm from the top-left, the primary ribbon connected to the right hand side, and exiting the footprint 75mm from the left.</p>
+<p>Electrically, it’s a standard 40-pin LVDS (like a laptop screen). It is <em>not</em> MIPI (like the official Raspberry Pi display).</p>
+<p>Logically, it’s 1280x720 resolution.</p>
+<p>Practically, your best option is to email clockwork to see if you can source a replacement directly. I just worked out this stuff because I wanted to see what my options might be for upgrades. The fact that it’s standard LVDS implies I might be able to re-case it in a variety of ways with size-matched screens with just a few tweaks to config.txt.</p>
+</blockquote>
+</aside>
+<h3><a name="p-94185-txw500170b0-fpc-01-second-panel-10" class="anchor" href="#p-94185-txw500170b0-fpc-01-second-panel-10" aria-label="Heading link"></a>TXW500170B0-FPC-01 (second panel)</h3>
+<aside class="quote no-group" data-username="DigitalDreams" data-post="6" data-topic="21666" data-full="true">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/digitaldreams/48/16007_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/updated-images-for-new-uconsole-screens/21666/6">Updated Images for new uConsole screens</a></div>
+<blockquote>
+<p>What are the differences between the old and new panels ?</p>
+</blockquote>
+</aside>
+<aside class="quote no-group" data-username="snipeytje" data-post="7" data-topic="21666" data-full="true">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://avatars.discourse-cdn.com/v4/letter/s/2bfe46/48.png" class="avatar"><a href="https://forum.clockworkpi.com/t/updated-images-for-new-uconsole-screens/21666/7">Updated Images for new uConsole screens</a></div>
+<blockquote>
+<p>practically nothing, just minor differences in the driver initialization</p>
+</blockquote>
+</aside>
+<aside class="quote no-group quote-modified" data-username="1O1Dima" data-post="1" data-topic="22638">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/1o1dima/48/16827_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/uconsole-new-vs-old-display/22638/1">uConsole new vs old display</a></div>
+<blockquote>
+<p>After comparing the [second and third panels], it turns out the only real hardware difference is a single [resistor], shown below.</p>
+</blockquote>
+</aside>
+<aside class="quote no-group quote-modified" data-username="1O1Dima" data-post="2" data-topic="22638" data-full="true">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/1o1dima/48/16827_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/uconsole-new-vs-old-display/22638/2">uConsole new vs old display</a></div>
+<blockquote>
+<p>this is the [second] display module.</p>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/3X/f/2/f2bfc91a4f6efa823ffbc5e660894ecd7a95062e.jpeg" data-download-href="/uploads/short-url/yDsrGo4XyBUhD6moavmNCxT7zv8.jpeg?dl=1" title="cable-photo2"><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/f/2/f2bfc91a4f6efa823ffbc5e660894ecd7a95062e_2_281x375.jpeg" alt="cable-photo2" data-base62-sha1="yDsrGo4XyBUhD6moavmNCxT7zv8" width="281" height="375" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/f/2/f2bfc91a4f6efa823ffbc5e660894ecd7a95062e_2_281x375.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/f/2/f2bfc91a4f6efa823ffbc5e660894ecd7a95062e_2_421x562.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/f/2/f2bfc91a4f6efa823ffbc5e660894ecd7a95062e_2_562x750.jpeg 2x" data-dominant-color="776F67"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename">cable-photo2</span><span class="informations">1920×2560 667 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<h3><a name="p-94185-txw500242b0-fpc-00-third-panel-11" class="anchor" href="#p-94185-txw500242b0-fpc-00-third-panel-11" aria-label="Heading link"></a>TXW500242B0-FPC-00 (third panel)</h3>
+<aside class="quote no-group" data-username="1O1Dima" data-post="1" data-topic="22638">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/1o1dima/48/16827_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/uconsole-new-vs-old-display/22638/1">uConsole new vs old display</a></div>
+<blockquote>
+<p>This is the new display module.</p>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/3X/f/6/f6ba6ed2c0b716d0c52b917aa40e059c508b3916.jpeg" data-download-href="/uploads/short-url/zcET4WI56EPEXaXJznr9EdSKAvQ.jpeg?dl=1" title="cable-photo1"><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/f/6/f6ba6ed2c0b716d0c52b917aa40e059c508b3916_2_281x375.jpeg" alt="cable-photo1" data-base62-sha1="zcET4WI56EPEXaXJznr9EdSKAvQ" width="281" height="375" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/f/6/f6ba6ed2c0b716d0c52b917aa40e059c508b3916_2_281x375.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/f/6/f6ba6ed2c0b716d0c52b917aa40e059c508b3916_2_421x562.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/f/6/f6ba6ed2c0b716d0c52b917aa40e059c508b3916_2_562x750.jpeg 2x" data-dominant-color="635444"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename">cable-photo1</span><span class="informations">1920×2560 886 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<p>uConsoles have been shipping with newer panels since 2025. Not all released operating systems have compatible kernels. If using a newer panel, see the notes for the distribution. Rex’s distributions have updated kernels, and there is one distribution for the A-06 with a compatible kernel:</p>
+<aside class="quote no-group" data-username="guu" data-post="16" data-topic="21964">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://avatars.discourse-cdn.com/v4/letter/g/7ab992/48.png" class="avatar"><a href="https://forum.clockworkpi.com/t/lcd-garbled-on-new-uconsole-with-a-06/21964/16">LCD garbled on new uConsole with A-06</a></div>
+<blockquote>
+<p>Just made a minimal archlinux for A06 with new screen driver,hopefully can resolve the garbled problem.</p>
+</blockquote>
+</aside>
+<h3><a name="p-94185-touchscreen-12" class="anchor" href="#p-94185-touchscreen-12" aria-label="Heading link"></a>Touchscreen</h3>
+<aside class="quote no-group" data-username="dorkydev" data-post="1" data-topic="12987">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/dorkydev/48/7732_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/will-there-ever-be/12987/1">Will There Ever Be</a></div>
+<blockquote>
+<p>A Touchscreen uConsole?</p>
+</blockquote>
+</aside>
+<p><img src="https://raw.githubusercontent.com/Timmotools/uConsole-Touchscreen-Mod/refs/heads/main/Images/ribbon_fold_entry.jpg" alt="A resistive digitizer laid on top of the internal uConsole screen, its four wires disappearing into the chassis." width="376" height="500"></p>
+<p><a class="mention" href="/u/timmotools">@timmotools</a> managed to mod a touch screen into their uConsole using a digitizer and a USB controller for it. They have <a href="https://forum.clockworkpi.com/t/22441">a thread</a> and a <a href="https://github.com/Timmotools/uConsole-Touchscreen-Mod">writeup on GitHub</a>.</p>
+<h3><a name="p-94185-external-displays-13" class="anchor" href="#p-94185-external-displays-13" aria-label="Heading link"></a>External displays</h3>
+<p>As the cable is a passive electrical component any micro HDMI to HDMI plug-plug adapter should work without complaint.</p>
+<aside class="quote no-group quote-modified" data-username="pwborders" data-post="11" data-topic="10537">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://avatars.discourse-cdn.com/v4/letter/p/c2a13f/48.png" class="avatar"><a href="https://forum.clockworkpi.com/t/uconsole-alternate-display/10537/11">uConsole - Alternate Display</a></div>
+<blockquote>
+<p>Just got these and they work perfectly:</p>
+<p><a href="https://www.amazon.com/Cable-Matters-Adapter-Support-Raspberry/dp/B095L6C8SM" class="inline-onebox">Amazon.com: Cable Matters 2-Pack 8K@60Hz / 4K@240Hz Micro HDMI to HDMI Adapter - 6 Inches, with HDMI2.1 &amp; HDR Support for Raspberry Pi 4 (RPI4), Raspberry Pi 5 (RPI5) : Electronics</a></p>
+<p>Pete B.</p>
+</blockquote>
+</aside>
+<h2><a name="p-94185-adapter-boards-14" class="anchor" href="#p-94185-adapter-boards-14" aria-label="Heading link"></a>Adapter boards</h2>
+<h2><a name="p-94185-cores-15" class="anchor" href="#p-94185-cores-15" aria-label="Heading link"></a>Cores</h2>
+<p>See the separate <a href="https://forum.clockworkpi.com/t/22664">core and adapter board directory</a>.</p>
+<h2><a name="p-94185-extension-boards-16" class="anchor" href="#p-94185-extension-boards-16" aria-label="Heading link"></a>Extension boards</h2>
+<p>See the separate <a href="https://forum.clockworkpi.com/t/22474">extension board directory</a>.</p>
+<h2><a name="p-94185-battery-boards-17" class="anchor" href="#p-94185-battery-boards-17" aria-label="Heading link"></a>Battery boards</h2>
+<aside class="quote no-group" data-username="Godzil" data-post="10" data-topic="10260">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/godzil/48/60_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/understanding-battery-module-pinout-upgrading-battery-module/10260/10">Understanding battery module pinout; upgrading battery module</a></div>
+<blockquote>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/2X/2/2b002a8832772b8e0164c48ad02a7e91f5ff429f.png" data-download-href="/uploads/short-url/68oT0kOIpURat57FI99NiF2wQQT.png?dl=1" title="image"><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/2/2b002a8832772b8e0164c48ad02a7e91f5ff429f_2_201x249.png" alt="image" data-base62-sha1="68oT0kOIpURat57FI99NiF2wQQT" width="201" height="249" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/2/2b002a8832772b8e0164c48ad02a7e91f5ff429f_2_201x249.png, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/2/2b002a8832772b8e0164c48ad02a7e91f5ff429f_2_301x373.png 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/2/2b002a8832772b8e0164c48ad02a7e91f5ff429f_2_402x498.png 2x" data-dominant-color="F9F7FA"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename">image</span><span class="informations">592×734 17.1 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<p>The battery board routes the power from the batteries to the mainboard, where the mainboard’s AXP228 controls charging. Other than some fail-safe circuitry the stock battery board is fairly sparse. Aftermarket battery boards tend to add functionality by routing additional data lines off the mainboard or core.</p>
+<h2><a name="p-94185-batteries-18" class="anchor" href="#p-94185-batteries-18" aria-label="Heading link"></a>Batteries</h2>
+<aside class="quote no-group quote-modified" data-username="CyberGlo" data-post="9" data-topic="14526" data-full="true">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://avatars.discourse-cdn.com/v4/letter/c/51bf81/48.png" class="avatar"><a href="https://forum.clockworkpi.com/t/batteries-for-uconsole/14526/9">Batteries for uConsole</a></div>
+<blockquote>
+<p>…They all output 3.7 volts. It’s the amps that we are discussing here [in the context of capacity]. More accurately the Amp-Hours. Amp-Hours determine how long the batteries can keep a device powered on. What we have found is that many battery manufacturers are out right lying and claiming huge capacities. Then when they are tested their capacity is far far lower. Example: the 9900 mAh battery that is only 500 mAh. The manufacturers are just outright lying… <img src="https://emoji.discourse-cdn.com/google_classic/slight_smile.png?v=15" title=":slight_smile:" class="emoji" alt=":slight_smile:" loading="lazy" width="20" height="20"></p>
+</blockquote>
+</aside>
+<p>It’s not just capacity that matters, it’s current output. The battery needs to deliver enough current to power all of the attached devices, or the device will lack power and shut down. Capacity is how much power, total, the battery can output, while the current output refers to how quickly the battery can output that power. A liter bucket of water can fill your cup, but if you can only draw water from it a single drop at a time, you’ll still be thirsty.</p>
+<p>Here’s a reasonable recommendation:</p>
+<aside class="quote no-group quote-modified" data-username="Rex" data-post="7" data-topic="16048">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/rex/48/16852_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/battery-life-how-to-get-most-out-of-battery/16048/7">Battery life - how to get most out of battery?</a></div>
+<blockquote>
+<p>These are the ones I use and recommend. Get them from a reputable source and not amazon or aliexpress.</p>
+<p><a href="https://www.18650batterystore.com/products/samsung-35e">https://www.18650batterystore.com/products/samsung-35e</a></p>
+</blockquote>
+</aside>
+<p>And here are two expensive options:</p>
+<aside class="quote no-group" data-username="Mykhailo_Chetverikov" data-post="12" data-topic="14526">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/mykhailo_chetverikov/48/8590_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/batteries-for-uconsole/14526/12">Batteries for uConsole</a></div>
+<blockquote>
+<p>I am currently using those from nitecore, and they provide 5-6 hours of work.<br>
+<a href="https://flashlight.nitecore.com/product/nl1840">NL1840</a> Their length is over 69mm (69.8) but they actually are fitted well.</p>
+</blockquote>
+</aside>
+<aside class="quote no-group" data-username="DigitalDreams" data-post="5" data-topic="22540">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/digitaldreams/48/16007_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/compatible-batteries-for-uconsole/22540/5">Compatible Batteries for uConsole</a></div>
+<blockquote>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/3X/6/4/641b56bb79aef90efe029179164a52b11d13ed14.jpeg" data-download-href="/uploads/short-url/ehAjQEEYVAKtzyOAGL1r7c6vOh6.jpeg?dl=1" title="20260603123937"><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/6/4/641b56bb79aef90efe029179164a52b11d13ed14_2_345x206.jpeg" alt="20260603123937" data-base62-sha1="ehAjQEEYVAKtzyOAGL1r7c6vOh6" width="345" height="206" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/6/4/641b56bb79aef90efe029179164a52b11d13ed14_2_345x206.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/6/4/641b56bb79aef90efe029179164a52b11d13ed14_2_517x309.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/6/4/641b56bb79aef90efe029179164a52b11d13ed14_2_690x412.jpeg 2x" data-dominant-color="7E8791"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename">20260603123937</span><span class="informations">1458×872 354 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<p>18650 cells are only available in capacities up to 4000mAh (at which they are very expensive).</p>
+<p>“Protected” cells are cells which include circuitry to momentarily cut the connection when hazardous conditions are observed such as overheating (too much heat), overcurrent (draining too much energy at once), overvoltage (charged too full), or undervoltage (dangerously low charge). They help prevent some types of error which are more likely to cause a fire. The mainboard charge controller won’t over- or undervolt the 18650s, so protected cells will, in addition to the functionality present in unprotected cells, <em>only</em> cut power if they’re being overdrawn or running too hot.</p>
+<h3><a name="p-94185-warning-19" class="anchor" href="#p-94185-warning-19" aria-label="Heading link"></a>Warning</h3>
+<p>Here is the obligatory warning before this directory covers battery-related uConsole modifications. In normal use, one doesn’t need to worry about one’s uConsole suddenly bursting into flame. There aren’t any known cases of this happening to a uConsole with the stock or an aftermarket battery board, at least on this forum. The danger comes with messing around with parallelizing many batteries or other custom solutions to electricity storage. Although members on the forum discuss these modifications and configurations as if they’re simple, because they are, without understanding electrical basics it’s easy to unknowingly introduce problems which can snowball into thermal runaway after a number of charge cycles.</p>
+<aside class="quote no-group quote-modified" data-username="Codiator" data-post="77" data-topic="21374" data-full="true">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/codiator/48/15080_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/lipo-battery-issue/21374/77">LiPo Battery Issue</a></div>
+<blockquote>
+<p>…anyone who doesn’t know what parallel connection means or how it works should not be tinkering with lithium batteries. It’s not fun, it’s very dangerous.</p>
+</blockquote>
+</aside>
+<p>An electrical battery is a cell containing a chemical mixture designed to store as much energy as possible. Energy-dense chemical pouches have some inherent danger and especially when it’s possible to release that energy another way, such as through ignition. Sometimes chemical processes inside the cell inflate it, puncture the casing, and ignite, or in layman’s terms, <strong>SOMETIMES THEY JUST RANDOMLY EXPLODE</strong>. In a laboratory environment this isn’t a big deal, but <a href="https://wccftech.com/egypt-plane-crash-exploding-iphone-culprit/">if you’re a co-pilot on a plane you can kill yourself and 65 others</a>. Big and small companies struggle to keep their batteries from halting and catching fire. <a href="https://wccftech.com/galaxy-note-7-battery-root-fires-samsungs-investigation-allegedly-finds/">Samsung’s Galaxy Note 7 was infamous</a> for <a href="https://www.johnsonbecker.com/product-liability/samsung-galaxy-note-7-lawsuit/">maiming its users</a>.</p>
+<blockquote>
+<p>Last September, Joni Barwick woke up in the middle of the night to her Galaxy Note 7 phone spewing flames 16 inches from her face.<br>
+“There’s orange and red and smoke and fire, and it took me just a split second to process that my phone was on fire,” <a href="https://www.cbsnews.com/news/samsung-galaxy-note-7-fine-print-class-action-waiver-lawsuits/">she recalled</a>.</p>
+</blockquote>
+<p>Ten years later there has been no revolution in manufacturing these batteries, we just better understand which designs work and which ones shoot meter long flames into the skulls of people pressing them against their heads for telephone calls. There’s always a chance that a manufacturer’s battery even when used as directed will burn down your car, home, airplane, or fireworks production factory. That’s the risk we take in exchange for easy portable electricity storage.</p>
+<p>If a company worth $1,000,000,000,000 can’t stop their batteries from spontaneously combusting when used <em>properly</em>, maybe you shouldn’t use your own batteries like you’re a side character in an 80s apocalypse movie.</p>
+<aside class="quote no-group" data-username="pelrun" data-post="11" data-topic="19975" data-full="true">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/pelrun/48/12323_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/my-18650-batteries-vented-when-i-put-them-in-the-picocalc/19975/11">My 18650 batteries vented when I put them in the PicoCalc</a></div>
+<blockquote>
+<p>18650s aren’t simply “better AAs”. You need to treat them with respect, and don’t just assume that everything will be ok if you do something dumb. <em>Any</em> time you have a loose cell you have to think through everything you’re doing before you do it, then stop and check again.</p>
+<p>And “protected” cells aren’t magically safe either - they can potentially prevent certain classes of failure, but they’re not idiot proof, and they can make you complacent.</p>
+</blockquote>
+</aside>
+<p>The United States’ of America <a href="https://www.nfpa.org/education-and-research/energy-transition/lithium-Ion-batteries">National Fire Protection Agency has a section of their webpage dedicated to lithium ion battery safety</a>. Here’s a <a href="https://fireblanket.com/blog/how-to-put-out-lithium-battery-fire">simple guide from fireblanket.com</a> advising the user place a fire blanket (among other steps) on a burning battery. <strong>KNOW HOW TO FIGHT THE FIRE BEFORE IT HAPPENS</strong>.</p>
+<h3><a name="p-94185-charge-controller-axp228-20" class="anchor" href="#p-94185-charge-controller-axp228-20" aria-label="Heading link"></a>Charge controller: AXP228</h3>
+<p>The datasheet is available <a href="https://www.alldatasheet.com/datasheet-pdf/pdf/1134500/XPOWER/AXP228.html">here from alldatasheet.com</a>. The charge controller controls the charging LED and provides to the kernel the statistics regarding the power subsystem.</p>
+<h3><a name="p-94185-voltage-21" class="anchor" href="#p-94185-voltage-21" aria-label="Heading link"></a>Voltage</h3>
+<aside class="quote no-group" data-username="Rex" data-post="2" data-topic="21246" data-full="true">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/rex/48/16852_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/changing-charging-voltage-4-4v/21246/2">Changing charging voltage (4.4v)?</a></div>
+<blockquote>
+<p>The AXP228 can only charge to a maximum of 4.2v.</p>
+</blockquote>
+</aside>
+<h3><a name="p-94185-current-22" class="anchor" href="#p-94185-current-22" aria-label="Heading link"></a>Current</h3>
+<aside class="quote no-group" data-username="Codiator" data-post="29" data-topic="21374">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/codiator/48/15080_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/lipo-battery-issue/21374/29">LiPo Battery Issue</a></div>
+<blockquote>
+<p>add up the maximum current draw of all hardware components of your setup and choose a battery that can provide this total current as a continuous load</p>
+</blockquote>
+</aside>
+<p><strong>TODO</strong></p>
+<h2><a name="p-94185-keyboards-and-pointing-devices-23" class="anchor" href="#p-94185-keyboards-and-pointing-devices-23" aria-label="Heading link"></a>Keyboards and pointing devices</h2>
+<h3><a name="p-94185-usb-brownout-24" class="anchor" href="#p-94185-usb-brownout-24" aria-label="Heading link"></a>USB brownout</h3>
+<p>There is a mainboard power issue that can make the stock keyboard disconnect when USB devices are attached. See <a href="#p-94185-mainboard-2">mainboard</a>.</p>
+<h3><a name="p-94185-kapton-replacement-25" class="anchor" href="#p-94185-kapton-replacement-25" aria-label="Heading link"></a>Kapton replacement</h3>
+<aside class="quote no-group" data-username="trinity" data-post="1" data-topic="21971">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/trinity/48/16167_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/kapton-tape-keyboard-fix/21971/1">Kapton tape keyboard fix</a></div>
+<blockquote>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/3X/e/0/e061572e065399a4eb46863ef93fed7628860e66.jpeg" data-download-href="/uploads/short-url/w0XvhrGmdJEbC5YvEevoBdZRMEK.jpeg?dl=1" title="A close-up shot of the Backspace key, described in the following paragraph."><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/e/0/e061572e065399a4eb46863ef93fed7628860e66_2_187x250.jpeg" alt="A close-up shot of the Backspace key, described in the following paragraph." data-base62-sha1="w0XvhrGmdJEbC5YvEevoBdZRMEK" width="187" height="250" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/e/0/e061572e065399a4eb46863ef93fed7628860e66_2_187x250.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/e/0/e061572e065399a4eb46863ef93fed7628860e66_2_280x375.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/e/0/e061572e065399a4eb46863ef93fed7628860e66_2_374x500.jpeg 2x" data-dominant-color="986D4F"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename">A close-up shot of the Backspace key, described in the following paragraph.</span><span class="informations">1920×2560 686 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<p>The stock keyboards use kapton to adhere conductive, flexible domes. This kapton can use its adherence, and when it does, the domes fall off, as shown above. <a href="https://forum.clockworkpi.com/t/21971">It’s easily repairable</a>.</p>
+<h3><a name="p-94185-diffuser-26" class="anchor" href="#p-94185-diffuser-26" aria-label="Heading link"></a>Diffuser</h3>
+<p>Shown in my kapton replacement forum post is beams’ improved keyboard diffuser.</p>
+<aside class="quote no-group" data-username="beams" data-post="1" data-topic="21521">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/beams/48/15232_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/new-qmk-firmware-trackball-guide-and-keyboard-diffuser/21521/1">New QMK Firmware, Trackball Guide and Keyboard Diffuser</a></div>
+<blockquote>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/2X/0/0a43668a198cfb90bb1a53723ec723b585778e03.jpeg" data-download-href="/uploads/short-url/1sNb8MSiIVNtKAacJHVersHAAzF.jpeg?dl=1" title=""><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/0/0a43668a198cfb90bb1a53723ec723b585778e03_2_345x204.jpeg" alt="" data-base62-sha1="1sNb8MSiIVNtKAacJHVersHAAzF" width="345" height="204" role="presentation" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/0/0a43668a198cfb90bb1a53723ec723b585778e03_2_345x204.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/0/0a43668a198cfb90bb1a53723ec723b585778e03_2_517x306.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/0/0a43668a198cfb90bb1a53723ec723b585778e03_2_690x408.jpeg 2x" data-dominant-color="040403"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename"></span><span class="informations">1280×759 47.9 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<aside class="quote no-group" data-username="beams" data-post="1" data-topic="21521">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/beams/48/15232_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/new-qmk-firmware-trackball-guide-and-keyboard-diffuser/21521/1">New QMK Firmware, Trackball Guide and Keyboard Diffuser</a></div>
+<blockquote>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/2X/0/01f8d6f4896c2bc6819627c52286ac967c9f5108.jpeg" data-download-href="/uploads/short-url/hrC4dTM91eVxIr0mzUwHD93TEA.jpeg?dl=1" title=""><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/0/01f8d6f4896c2bc6819627c52286ac967c9f5108_2_345x210.jpeg" alt="" data-base62-sha1="hrC4dTM91eVxIr0mzUwHD93TEA" width="345" height="210" role="presentation" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/0/01f8d6f4896c2bc6819627c52286ac967c9f5108_2_345x210.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/0/01f8d6f4896c2bc6819627c52286ac967c9f5108_2_517x315.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/0/01f8d6f4896c2bc6819627c52286ac967c9f5108_2_690x420.jpeg 2x" data-dominant-color="080808"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename"></span><span class="informations">1197×729 90.7 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<aside class="quote no-group" data-username="beams" data-post="1" data-topic="21521">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/beams/48/15232_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/new-qmk-firmware-trackball-guide-and-keyboard-diffuser/21521/1">New QMK Firmware, Trackball Guide and Keyboard Diffuser</a></div>
+<blockquote>
+<p>The primary goal here wasn’t just aesthetics, it was to greatly improve the touch-typing experience. It means it should be clicky but just enough force required to type on each key.</p>
+</blockquote>
+</aside>
+<p>They have a write-up on <a href="https://jing.io/projects/uconsole-keyboard-diffuser/">their blog</a>. The 3D model <a href="https://s.jing.io/downloads/uconsole-keyboard-diffuser/">is available for download</a> for <strong>£4.50</strong> and pre-printed diffusers <a href="https://buy.stripe.com/3cI7sM1601aJfZn2tfeZ201">are available</a> for <strong>£9.50 excluding shipping</strong>.</p>
+<h3><a name="p-94185-trackball-27" class="anchor" href="#p-94185-trackball-27" aria-label="Heading link"></a>Trackball</h3>
+<aside class="quote no-group" data-username="beams" data-post="1" data-topic="21521">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/beams/48/15232_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/new-qmk-firmware-trackball-guide-and-keyboard-diffuser/21521/1">New QMK Firmware, Trackball Guide and Keyboard Diffuser</a></div>
+<blockquote>
+<p>If you are experiencing trackball issues, it is mainly because the EVQWJN007 Trackball production is not exactly the same as the original blackberry trackball (not a surprise). Or the trackball unit has left in warehouse build up moisture and it may need to be ‘cleaned’ or ‘roughed-up surface’. The main difference is the ball variation does not provide enough friction against the 4 magnetic rollers to create the hall effect.</p>
+<p>You can experiment with other balls, the ball diameter is 5.5mm-5.6mm.</p>
+<p>You will be able to fix or maintain it when it is facing issues by using this <a href="https://jing.io/garden/EVQWJN007-Trackball/">maintenance &amp; modding guide.</a></p>
+</blockquote>
+</aside>
+<h3><a name="p-94185-touchpads-28" class="anchor" href="#p-94185-touchpads-28" aria-label="Heading link"></a>Touchpads</h3>
+<p>There are stick-on touchpads for any device:</p>
+<aside class="quote no-group" data-username="DawgOdd" data-post="19" data-topic="12987">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/dawgodd/48/12648_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/will-there-ever-be/12987/19">Will There Ever Be</a></div>
+<blockquote>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/2X/6/6267364b2f783e233cb6327c5edf054f1cdd1987.jpeg" data-download-href="/uploads/short-url/e2vVdUXhDkwFjKEjgO0iNJ1Hm7B.jpeg?dl=1" title="1000005594"><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/6/6267364b2f783e233cb6327c5edf054f1cdd1987_2_331x250.jpeg" alt="1000005594" data-base62-sha1="e2vVdUXhDkwFjKEjgO0iNJ1Hm7B" width="331" height="250" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/6/6267364b2f783e233cb6327c5edf054f1cdd1987_2_331x250.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/6/6267364b2f783e233cb6327c5edf054f1cdd1987_2_496x375.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/6/6267364b2f783e233cb6327c5edf054f1cdd1987_2_662x500.jpeg 2x" data-dominant-color="B1ADA9"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename">1000005594</span><span class="informations">768×579 74.2 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<aside class="quote no-group" data-username="trinity" data-post="4" data-topic="22407" data-full="true">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/trinity/48/16167_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/i-wish-they-would-make-a-stick-on-optical-trackpad/22407/4">I wish they would make a stick-on optical trackpad</a></div>
+<blockquote>
+<p>They make stick-on touchpads. Here’s one: <a href="https://www.amazon.com/dp/B087QTBXFN">Amazon.com: ETPA Mini USB Computer Touchpad, Trackpad, Mouse, Wired, 1.1 x 1.3 inches Ergo Touchpad ETP001MTPUSB : Electronics</a> - 0.348cm x 0.2825cm (<strong>for $60</strong> - yowch!), so it might fit in the center spot, but I’m doubtful. If you took out the trackball mechanism you could stick it on top.</p>
+</blockquote>
+</aside>
+<h3><a name="p-94185-trackpad-keyboard-29" class="anchor" href="#p-94185-trackpad-keyboard-29" aria-label="Heading link"></a>Trackpad keyboard</h3>
+<p>An integrated solution is Lulu’s keyboard replacement for the uConsole. It doesn’t suffer from kapton adhesion wear either.</p>
+<aside class="quote no-group" data-username="jutleys" data-post="27" data-topic="20848">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://avatars.discourse-cdn.com/v4/letter/j/779978/48.png" class="avatar"><a href="https://forum.clockworkpi.com/t/trackpad-on-uconsole-will-on-sale-formally-tell-you-all/20848/27">Trackpad on uconsole！！！Will on sale formally!Tell you all!</a></div>
+<blockquote>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/2X/7/746e8700c9fcf2a88c9d3ab72dbf072c18bb0b6e.jpeg" data-download-href="/uploads/short-url/gC0bNFhYCWQdCkJU9R27bBRE5f8.jpeg?dl=1" title="404"><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/7/746e8700c9fcf2a88c9d3ab72dbf072c18bb0b6e_2_375x375.jpeg" alt="404" data-base62-sha1="gC0bNFhYCWQdCkJU9R27bBRE5f8" width="375" height="375" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/7/746e8700c9fcf2a88c9d3ab72dbf072c18bb0b6e_2_375x375.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/7/746e8700c9fcf2a88c9d3ab72dbf072c18bb0b6e_2_562x562.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/2X/7/746e8700c9fcf2a88c9d3ab72dbf072c18bb0b6e_2_750x750.jpeg 2x" data-dominant-color="5D6062"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename">404</span><span class="informations">1920×1920 853 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<aside class="quote no-group" data-username="proteus" data-post="72" data-topic="20848">
+<div class="title">
+<div class="quote-controls"></div>
+<img alt="" width="24" height="24" src="https://yyz1.discourse-cdn.com/flex029/user_avatar/forum.clockworkpi.com/proteus/48/12007_2.png" class="avatar"><a href="https://forum.clockworkpi.com/t/trackpad-on-uconsole-will-on-sale-formally-tell-you-all/20848/72">Trackpad on uconsole！！！Will on sale formally!Tell you all!</a></div>
+<blockquote>
+<p><div class="lightbox-wrapper"><a class="lightbox" href="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/original/3X/a/0/a050bbba957b5a0c165bfeeb6c351861c87bdcc6.jpeg" data-download-href="/uploads/short-url/mSdmFntQ5w6wCR3ylH5C2gdJfYq.jpeg?dl=1" title="P6097154_1"><img src="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/a/0/a050bbba957b5a0c165bfeeb6c351861c87bdcc6_2_249x187.jpeg" alt="P6097154_1" data-base62-sha1="mSdmFntQ5w6wCR3ylH5C2gdJfYq" width="249" height="187" srcset="https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/a/0/a050bbba957b5a0c165bfeeb6c351861c87bdcc6_2_249x187.jpeg, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/a/0/a050bbba957b5a0c165bfeeb6c351861c87bdcc6_2_373x280.jpeg 1.5x, https://canada1.discourse-cdn.com/flex029/uploads/clockworkpi/optimized/3X/a/0/a050bbba957b5a0c165bfeeb6c351861c87bdcc6_2_498x374.jpeg 2x" data-dominant-color="B2B1B1"><div class="meta"><svg class="fa d-icon d-icon-far-image svg-icon" aria-hidden="true"><use href="#far-image"></use></svg><span class="filename">P6097154_1</span><span class="informations">1280×960 175 KB</span><svg class="fa d-icon d-icon-discourse-expand svg-icon" aria-hidden="true"><use href="#discourse-expand"></use></svg></div></a></div></p>
+</blockquote>
+</aside>
+<p>Lulu’s <a href="https://hack2you.tech/products/uconsole-trackpad-keyboard?variant=48810242867450">trackpad keyboard</a> has <a href="https://github.com/Bill-lulu/uc9900/">open firmware</a> - v1.1 can be had for <strong>$35 excluding shipping</strong> and v2.0 can be had for <strong>$40 excluding shipping</strong>.</p></article></body></html>

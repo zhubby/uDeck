@@ -1,0 +1,711 @@
+{
+  "collected_at": "2026-11-05T22:50:11.833805+08:00",
+  "downloads": [
+    {
+      "local_path": "references/uconsole/community-3d-models/README.md",
+      "source_url": "https://raw.githubusercontent.com/57Bravo/uConsole_3D_Models/2805e4a165814c9dbefaf93b5fd534947860cf6b/README.md",
+      "bytes": 950,
+      "sha256": "34650fa5e0f98aab265124ef83d3b6b9de48005315600c23e2f89afa49e3d644",
+      "retrieved_at": "2026-11-05T23:10:01.534569+08:00",
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "5d5954e00a533fb94792d6136aa18f13bdb070f7",
+      "upstream_path": "README.md",
+      "acquisition": "Verified complete entry recovered from interrupted commit-pinned codeload archive"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/.gitignore",
+      "source_url": "https://raw.githubusercontent.com/57Bravo/uConsole_3D_Models/2805e4a165814c9dbefaf93b5fd534947860cf6b/cad/.gitignore",
+      "bytes": 3,
+      "sha256": "f60e5de9b7a97c9777836df0243015e079643c724869b5e49769a732f297b30d",
+      "retrieved_at": "2026-11-05T23:10:01.534827+08:00",
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "49513e3e9ea9c1f4023c797a4ab84e91930ddb8d",
+      "upstream_path": "cad/.gitignore",
+      "acquisition": "Verified complete entry recovered from interrupted commit-pinned codeload archive"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/assembly.FCStd",
+      "source_url": "https://raw.githubusercontent.com/57Bravo/uConsole_3D_Models/2805e4a165814c9dbefaf93b5fd534947860cf6b/cad/assembly.FCStd",
+      "bytes": 1276200,
+      "sha256": "e73a5b541b4a8f91b69c08ba4e7b351829485110db390f190f3f09f731d954dc",
+      "retrieved_at": "2026-11-05T23:10:01.537208+08:00",
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "fe0247c3c7c6ee86bd6b51ffd02718fe0817a88f",
+      "upstream_path": "cad/assembly.FCStd",
+      "acquisition": "Verified complete entry recovered from interrupted commit-pinned codeload archive"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/button.FCStd",
+      "source_url": "https://raw.githubusercontent.com/57Bravo/uConsole_3D_Models/2805e4a165814c9dbefaf93b5fd534947860cf6b/cad/button.FCStd",
+      "bytes": 15233,
+      "sha256": "e16aa2a1fa6d80bb876c26416d86206ad82a898cd8d01543d2b2becee1845f5d",
+      "retrieved_at": "2026-11-05T23:10:01.537532+08:00",
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "e3ff776878e2850b96f46c2f0674f928be13495a",
+      "upstream_path": "cad/button.FCStd",
+      "acquisition": "Verified complete entry recovered from interrupted commit-pinned codeload archive"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/enclosure_body.FCStd",
+      "source_url": "https://raw.githubusercontent.com/57Bravo/uConsole_3D_Models/2805e4a165814c9dbefaf93b5fd534947860cf6b/cad/enclosure_body.FCStd",
+      "bytes": 33180572,
+      "sha256": "04093db0a7d63102ae0777d3051fdd439cff99fcdda8e09f6eed0b997407a953",
+      "retrieved_at": "2026-11-05T23:10:01.585477+08:00",
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "45cc43dffd3f69e5bf04ffd8272a7a2c9618b40e",
+      "upstream_path": "cad/enclosure_body.FCStd",
+      "acquisition": "Verified complete entry recovered from interrupted commit-pinned codeload archive"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/enclosure_bottom.FCStd",
+      "source_url": "https://raw.githubusercontent.com/57Bravo/uConsole_3D_Models/2805e4a165814c9dbefaf93b5fd534947860cf6b/cad/enclosure_bottom.FCStd",
+      "bytes": 48763,
+      "sha256": "ca3fdfd330b8f27e030c1ce01462cfc531fd099b1bbc72ae28d460abdff87ef3",
+      "retrieved_at": "2026-11-05T23:10:01.586051+08:00",
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "2b05eaadb231116303fb755ae562a34cb61c4e93",
+      "upstream_path": "cad/enclosure_bottom.FCStd",
+      "acquisition": "Verified complete entry recovered from interrupted commit-pinned codeload archive"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/enclosure_top.FCStd",
+      "source_url": "https://raw.githubusercontent.com/57Bravo/uConsole_3D_Models/2805e4a165814c9dbefaf93b5fd534947860cf6b/cad/enclosure_top.FCStd",
+      "bytes": 218182,
+      "sha256": "d6098953770d229ec60ada298b5a7ab7250691ba8de54011579b260fc95d273f",
+      "retrieved_at": "2026-11-05T23:10:01.586561+08:00",
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "d32c15c31a4231ee00101a9250121c1c60ecc74f",
+      "upstream_path": "cad/enclosure_top.FCStd",
+      "acquisition": "Verified complete entry recovered from interrupted commit-pinned codeload archive"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/expansion_plate.FCStd",
+      "source_url": "https://raw.githubusercontent.com/57Bravo/uConsole_3D_Models/2805e4a165814c9dbefaf93b5fd534947860cf6b/cad/expansion_plate.FCStd",
+      "bytes": 4431,
+      "sha256": "ad67aa0b3ccb8aacb48ff6354e96585c1af0bc0dbdbc89d2d52e9f8cccdaa997",
+      "retrieved_at": "2026-11-05T23:10:01.586827+08:00",
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "45ad5089b542a390d9bf1455137c1e05ba665f61",
+      "upstream_path": "cad/expansion_plate.FCStd",
+      "acquisition": "Verified complete entry recovered from interrupted commit-pinned codeload archive"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/keypad.FCStd",
+      "source_url": "https://raw.githubusercontent.com/57Bravo/uConsole_3D_Models/2805e4a165814c9dbefaf93b5fd534947860cf6b/cad/keypad.FCStd",
+      "bytes": 11063130,
+      "sha256": "8c265775b6d53746a3ea18e9badda6897acc31e0d10a52002f85dc6a104cc3dd",
+      "retrieved_at": "2026-11-05T23:10:01.600484+08:00",
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "642ceafe7aa7bff6872d336539159b076400d5d0",
+      "upstream_path": "cad/keypad.FCStd",
+      "acquisition": "Verified complete entry recovered from interrupted commit-pinned codeload archive"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/kickstand.FCStd",
+      "source_url": "https://raw.githubusercontent.com/57Bravo/uConsole_3D_Models/2805e4a165814c9dbefaf93b5fd534947860cf6b/cad/kickstand.FCStd",
+      "bytes": 53894,
+      "sha256": "f70bedbdfe22334617d8f42572420a9013575c70396b8cfeee217acdb2234c3c",
+      "retrieved_at": "2026-11-05T23:10:01.600992+08:00",
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "a0c36ad325c7ff54f7df348d021a02b671fb6df8",
+      "upstream_path": "cad/kickstand.FCStd",
+      "acquisition": "Verified complete entry recovered from interrupted commit-pinned codeload archive"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/trackball.FCStd",
+      "source_url": "https://raw.githubusercontent.com/57Bravo/uConsole_3D_Models/2805e4a165814c9dbefaf93b5fd534947860cf6b/cad/trackball.FCStd",
+      "bytes": 6692,
+      "sha256": "99a6625e8db15e464db9a57819d80c920a4d94d039c319df9f5bf89ea9e769f0",
+      "retrieved_at": "2026-11-05T23:10:01.601273+08:00",
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "6906e993cdb23d3de4f4db4521f9be40ec57704d",
+      "upstream_path": "cad/trackball.FCStd",
+      "acquisition": "Verified complete entry recovered from interrupted commit-pinned codeload archive"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/media/models/assembly.gif",
+      "source_url": "https://api.github.com/repos/57Bravo/uConsole_3D_Models/contents/media/models/assembly.gif?ref=2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "bytes": 1830614,
+      "sha256": "f2556eda7775887cda51b2935a034b5b09e4a331384271fc60f79465a13112ac",
+      "retrieved_at": "2026-11-05T23:10:24.249581+08:00",
+      "final_url": "https://api.github.com/repos/57Bravo/uConsole_3D_Models/contents/media/models/assembly.gif",
+      "content_type": "application/vnd.github.raw+json; charset=utf-8",
+      "http_status": 200,
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "2e4e96adfd891e9f7a4714177101b7ac32d2ff24"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/media/models/enc_body.gif",
+      "source_url": "https://api.github.com/repos/57Bravo/uConsole_3D_Models/contents/media/models/enc_body.gif?ref=2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "bytes": 4757334,
+      "sha256": "4f90da8acf4c85bfcb84e3d56f0d27a398d2a45e5c30394ef8ff802c54e89282",
+      "retrieved_at": "2026-11-05T23:10:22.764882+08:00",
+      "final_url": "https://api.github.com/repos/57Bravo/uConsole_3D_Models/contents/media/models/enc_body.gif",
+      "content_type": "application/vnd.github.raw+json; charset=utf-8",
+      "http_status": 200,
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "9153d655001784837767ca5c667312aef4abfaa6"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/media/models/enc_bottom.gif",
+      "source_url": "https://api.github.com/repos/57Bravo/uConsole_3D_Models/contents/media/models/enc_bottom.gif?ref=2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "bytes": 915383,
+      "sha256": "3e3f730ae179260594632540fc0e58ccb79e66ad82710e2c1cd50aae201c7851",
+      "retrieved_at": "2026-11-05T23:10:24.055176+08:00",
+      "final_url": "https://api.github.com/repos/57Bravo/uConsole_3D_Models/contents/media/models/enc_bottom.gif",
+      "content_type": "application/vnd.github.raw+json; charset=utf-8",
+      "http_status": 200,
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "0b13012994a53099264640e8245e69e9f4aec454"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/media/models/enc_top.gif",
+      "source_url": "https://api.github.com/repos/57Bravo/uConsole_3D_Models/contents/media/models/enc_top.gif?ref=2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "bytes": 911696,
+      "sha256": "18359d6f0697b764ccedb4cda8475f8d9c93d04e1a79466530a56e62739dc296",
+      "retrieved_at": "2026-11-05T23:10:24.567378+08:00",
+      "final_url": "https://api.github.com/repos/57Bravo/uConsole_3D_Models/contents/media/models/enc_top.gif",
+      "content_type": "application/vnd.github.raw+json; charset=utf-8",
+      "http_status": 200,
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "3e4c4e28d191f60d311de76d5bdeda1fa33f7c54"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/media/models/keypad.gif",
+      "source_url": "https://api.github.com/repos/57Bravo/uConsole_3D_Models/contents/media/models/keypad.gif?ref=2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "bytes": 3916114,
+      "sha256": "bf676db0d6af0b9401cefd7bf302de2161854eb1fe8b49bd22d9b32207ecdcb3",
+      "retrieved_at": "2026-11-05T23:10:27.585881+08:00",
+      "final_url": "https://api.github.com/repos/57Bravo/uConsole_3D_Models/contents/media/models/keypad.gif",
+      "content_type": "application/vnd.github.raw+json; charset=utf-8",
+      "http_status": 200,
+      "git_commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "git_blob_sha1": "75eaade7ae23bb627d4462698a9266cef40a8820"
+    },
+    {
+      "local_path": "references/uconsole/components/GD32F103xx-Datasheet-Rev2.2.pdf",
+      "source_url": "https://www.gd32mcu.com/data/documents/datasheet/GD32F103xx_Datasheet_Rev2.2.pdf",
+      "bytes": 833555,
+      "sha256": "22f90a1c9fa652747c95d74973b8cd46e1a8231c9bbeab3c2627e1cc1c509049",
+      "retrieved_at": "2026-11-05T23:10:27.588206+08:00",
+      "note": "Historical revision 2.2; rev 3.3 search-result endpoints returned 404"
+    },
+    {
+      "local_path": "references/uconsole/components/GD32F10x-User-Manual-Rev2.6.pdf",
+      "title": "GD32F10x reference manual; archived revision",
+      "source_url": "https://www.gd32mcu.com/data/documents/userManual/GD32F10x_User_Manual_Rev2.6.pdf",
+      "final_url": "https://www.gd32mcu.com/data/documents/userManual/GD32F10x_User_Manual_Rev2.6.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "retrieved_at": "2026-11-05T22:59:53.677030+08:00",
+      "bytes": 12044128,
+      "sha256": "d2207f3e08006e86ae1d30476fd690e667fd70fc86b4e72290edac6661081788"
+    },
+    {
+      "local_path": "references/uconsole/kernel/COPYING",
+      "source_url": "https://raw.githubusercontent.com/cuu/ClockworkPi-linux/03436f4117533693d608b10eb4b3965987230b68/COPYING",
+      "bytes": 496,
+      "sha256": "fb5a425bd3b3cd6071a3a9aff9909a859e7c1158d54d32e07658398cd67eb6a0",
+      "retrieved_at": "2026-11-05T23:10:01.533494+08:00",
+      "transport_url": "https://api.github.com/repos/cuu/ClockworkPi-linux/contents/COPYING?ref=03436f4117533693d608b10eb4b3965987230b68",
+      "git_commit": "03436f4117533693d608b10eb4b3965987230b68",
+      "git_blob_sha1": "a635a38ef9405fdfcfe97f3a435393c1e9cae971",
+      "upstream_path": "COPYING"
+    },
+    {
+      "local_path": "references/uconsole/kernel/GPL-2.0",
+      "source_url": "https://raw.githubusercontent.com/cuu/ClockworkPi-linux/03436f4117533693d608b10eb4b3965987230b68/LICENSES/preferred/GPL-2.0",
+      "bytes": 18729,
+      "sha256": "f6b78c087c3ebdf0f3c13415070dd480a3f35d8fc76f3d02180a407c1c812f79",
+      "retrieved_at": "2026-11-05T23:09:52.589460+08:00",
+      "transport_url": "https://api.github.com/repos/cuu/ClockworkPi-linux/contents/LICENSES/preferred/GPL-2.0?ref=03436f4117533693d608b10eb4b3965987230b68",
+      "git_commit": "03436f4117533693d608b10eb4b3965987230b68",
+      "git_blob_sha1": "ff0812fd89cc41fc1b1ed6732a621057d30ed2ad",
+      "upstream_path": "LICENSES/preferred/GPL-2.0"
+    },
+    {
+      "local_path": "references/uconsole/kernel/clockworkpi-uconsole-cm5-overlay.dts",
+      "source_url": "https://raw.githubusercontent.com/cuu/ClockworkPi-linux/03436f4117533693d608b10eb4b3965987230b68/arch/arm/boot/dts/overlays/clockworkpi-uconsole-cm5-overlay.dts",
+      "bytes": 4697,
+      "sha256": "a2ec4512f7459939e874f68a32ae459d0ce2a6f7e85fd2f7ed8a5e512cea2246",
+      "retrieved_at": "2026-11-05T23:09:51.758217+08:00",
+      "transport_url": "https://api.github.com/repos/cuu/ClockworkPi-linux/contents/arch/arm/boot/dts/overlays/clockworkpi-uconsole-cm5-overlay.dts?ref=03436f4117533693d608b10eb4b3965987230b68",
+      "git_commit": "03436f4117533693d608b10eb4b3965987230b68",
+      "git_blob_sha1": "60badef9ef8fe5259ac19de5c3f5c401d0242c03",
+      "upstream_path": "arch/arm/boot/dts/overlays/clockworkpi-uconsole-cm5-overlay.dts"
+    },
+    {
+      "local_path": "references/uconsole/kernel/clockworkpi-uconsole-overlay.dts",
+      "source_url": "https://raw.githubusercontent.com/cuu/ClockworkPi-linux/03436f4117533693d608b10eb4b3965987230b68/arch/arm/boot/dts/overlays/clockworkpi-uconsole-overlay.dts",
+      "bytes": 4535,
+      "sha256": "5c0a9403895096327c45690f05c103bd99a4f7ed4977fb4eefef41dae7bc54a6",
+      "retrieved_at": "2026-11-05T23:09:51.733762+08:00",
+      "transport_url": "https://api.github.com/repos/cuu/ClockworkPi-linux/contents/arch/arm/boot/dts/overlays/clockworkpi-uconsole-overlay.dts?ref=03436f4117533693d608b10eb4b3965987230b68",
+      "git_commit": "03436f4117533693d608b10eb4b3965987230b68",
+      "git_blob_sha1": "4a1e9789abdda25ee0cc7baf8d200ff53918e8a4",
+      "upstream_path": "arch/arm/boot/dts/overlays/clockworkpi-uconsole-overlay.dts"
+    },
+    {
+      "local_path": "references/uconsole/kernel/ocp8178_bl.c",
+      "source_url": "https://raw.githubusercontent.com/cuu/ClockworkPi-linux/03436f4117533693d608b10eb4b3965987230b68/drivers/video/backlight/ocp8178_bl.c",
+      "bytes": 6394,
+      "sha256": "ecc0c0127df481b19b3b00c52aa85f5216dfeb251f2a31614eddb92c0484dab3",
+      "retrieved_at": "2026-11-05T23:09:52.369999+08:00",
+      "transport_url": "https://api.github.com/repos/cuu/ClockworkPi-linux/contents/drivers/video/backlight/ocp8178_bl.c?ref=03436f4117533693d608b10eb4b3965987230b68",
+      "git_commit": "03436f4117533693d608b10eb4b3965987230b68",
+      "git_blob_sha1": "a9fb9682adbfb09ba2f4ee6f7356b5abbc1d9919",
+      "upstream_path": "drivers/video/backlight/ocp8178_bl.c"
+    },
+    {
+      "local_path": "references/uconsole/kernel/panel-cwu50.c",
+      "source_url": "https://raw.githubusercontent.com/cuu/ClockworkPi-linux/03436f4117533693d608b10eb4b3965987230b68/drivers/gpu/drm/panel/panel-cwu50.c",
+      "bytes": 22622,
+      "sha256": "db451e742bb60a005c126688fb8c4b0cb239ead465264d35ac88902f6a953ba3",
+      "retrieved_at": "2026-11-05T23:09:51.809327+08:00",
+      "transport_url": "https://api.github.com/repos/cuu/ClockworkPi-linux/contents/drivers/gpu/drm/panel/panel-cwu50.c?ref=03436f4117533693d608b10eb4b3965987230b68",
+      "git_commit": "03436f4117533693d608b10eb4b3965987230b68",
+      "git_blob_sha1": "2d3cb79b1daf4e8623dbdfa6e9f52456493f868a",
+      "upstream_path": "drivers/gpu/drm/panel/panel-cwu50.c"
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/CM4IO-KiCAD.zip",
+      "title": "CM4 IO reference carrier design files",
+      "source_url": "https://datasheets.raspberrypi.com/cm4io/CM4IO-KiCAD.zip",
+      "final_url": "https://pip-assets.raspberrypi.com/categories/1210-design-files/documents/RP-008173-DS-1-CM4IO-KiCAD.zip",
+      "http_status": 200,
+      "content_type": "application/zip",
+      "retrieved_at": "2026-11-05T22:50:24.775725+08:00",
+      "bytes": 6819369,
+      "sha256": "5ea867e17968cb9c117fbce7a982ea395d66a6ee605253a9a0879483bbfcb0aa"
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/bcm2711-peripherals.pdf",
+      "title": "CM4 BCM2711 ARM peripherals",
+      "source_url": "https://datasheets.raspberrypi.com/bcm2711/bcm2711-peripherals.pdf",
+      "final_url": "https://pip-assets.raspberrypi.com/categories/545-raspberry-pi-4-model-b/documents/RP-008248-DS-1-bcm2711-peripherals.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "retrieved_at": "2026-11-05T22:50:34.363702+08:00",
+      "bytes": 1329416,
+      "sha256": "d6e16ea089a1716e80621f99a26e130a2379f0a81d945dc22e4f80dc49dcdc78"
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/cm4-datasheet.pdf",
+      "title": "CM4 datasheet",
+      "source_url": "https://datasheets.raspberrypi.com/cm4/cm4-datasheet.pdf",
+      "final_url": "https://pip-assets.raspberrypi.com/categories/634-raspberry-pi-compute-module-4/documents/RP-008168-DS-4-cm4-datasheet.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "retrieved_at": "2026-11-05T22:50:29.915489+08:00",
+      "bytes": 11057926,
+      "sha256": "d6946f8bb3e0276defa95b99b9d402a01a4805d3de02d53f835e93044ea7af97"
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/cm4-product-brief.pdf",
+      "title": "CM4 product brief",
+      "source_url": "https://datasheets.raspberrypi.com/cm4/cm4-product-brief.pdf",
+      "final_url": "https://pip-assets.raspberrypi.com/categories/634-raspberry-pi-compute-module-4/documents/RP-008169-DS-8-cm4-product-brief.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "retrieved_at": "2026-11-05T22:50:17.261555+08:00",
+      "bytes": 774036,
+      "sha256": "0e9ffaf11c3bd67dc3f63d84b4dfccaa3557a9a71327f179f0c3e0b1be778db7"
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/cm4io-datasheet.pdf",
+      "title": "CM4 IO reference carrier datasheet",
+      "source_url": "https://datasheets.raspberrypi.com/cm4io/cm4io-datasheet.pdf",
+      "final_url": "https://pip-assets.raspberrypi.com/categories/756-raspberry-pi-compute-module-4-io-board/documents/RP-008172-DS-1-cm4io-datasheet.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "retrieved_at": "2026-11-05T22:51:13.537868+08:00",
+      "bytes": 10591801,
+      "sha256": "5e89840aba4011f416513ba59f6ca671dae3b342b9e07641bcfe215177f03969"
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/cm5-datasheet.pdf",
+      "title": "CM5 migration reference only",
+      "source_url": "https://datasheets.raspberrypi.com/cm5/cm5-datasheet.pdf",
+      "final_url": "https://pip-assets.raspberrypi.com/categories/944-raspberry-pi-compute-module-5/documents/RP-008180-DS-7-cm5-datasheet.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "retrieved_at": "2026-11-05T22:52:06.279229+08:00",
+      "bytes": 7705648,
+      "sha256": "80070fefd8db6e8abc6e146c8b7b5fb318ba129cc1e28826936d547fde79c863"
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/cm5-product-brief.pdf",
+      "title": "CM5 product brief",
+      "source_url": "https://datasheets.raspberrypi.com/cm5/cm5-product-brief.pdf",
+      "final_url": "https://pip-assets.raspberrypi.com/categories/944-raspberry-pi-compute-module-5/documents/RP-008181-DS-13-cm5-product-brief.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "retrieved_at": "2026-11-05T22:50:30.185375+08:00",
+      "bytes": 436540,
+      "sha256": "374739799ed484b0483f5bd37ef6002e69d9e2779f225c941a5e66691ff10f75"
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/cm5io-datasheet.pdf",
+      "title": "CM5 IO reference carrier datasheet",
+      "source_url": "https://datasheets.raspberrypi.com/cm5/cm5io-datasheet.pdf",
+      "final_url": "https://pip-assets.raspberrypi.com/categories/1097-raspberry-pi-compute-module-5-io-board/documents/RP-008182-DS-3-cm5io-datasheet.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "retrieved_at": "2026-11-05T22:50:40.469992+08:00",
+      "bytes": 5749036,
+      "sha256": "4fd7f9edea384ccec4710943a886c5cd922dcdcd3b17f519325d3c70933f8f8e"
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/rp1-peripherals.pdf",
+      "title": "CM5 RP1 peripherals; migration reference only",
+      "source_url": "https://datasheets.raspberrypi.com/rp1/rp1-peripherals.pdf",
+      "final_url": "https://pip-assets.raspberrypi.com/categories/892-raspberry-pi-5/documents/RP-008370-DS-1-rp1-peripherals.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "retrieved_at": "2026-11-05T22:50:42.913924+08:00",
+      "bytes": 3513008,
+      "sha256": "87fb7b24e8d9add075b849d095a107827610c0409ea194785af624c1ea986c3d"
+    },
+    {
+      "local_path": "references/uconsole/web/clockworkpi-uconsole-3d-models.html",
+      "title": "Official 3D model distribution page",
+      "source_url": "https://www.clockworkpi.com/product-page/uconsole-3d-models-in-obj-format-free",
+      "final_url": "https://www.clockworkpi.com/product-page/uconsole-3d-models-in-obj-format-free",
+      "http_status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "retrieved_at": "2026-11-05T22:50:48.046252+08:00",
+      "bytes": 1343328,
+      "sha256": "5980104be606bc1002efcfdcdc223a0e14396439ec94fea442409404fd8320d5"
+    },
+    {
+      "local_path": "references/uconsole/web/clockworkpi-uconsole.html",
+      "title": "Official uConsole product and hardware specifications",
+      "source_url": "https://www.clockworkpi.com/uconsole",
+      "final_url": "https://www.clockworkpi.com/uconsole",
+      "http_status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "retrieved_at": "2026-11-05T22:50:43.600240+08:00",
+      "bytes": 1001023,
+      "sha256": "c697ade1edff8b884491404c2f4f6aa710c1e38850ce17423a8c76dcb2781b0c"
+    },
+    {
+      "local_path": "references/uconsole/web/hardware-directory.json",
+      "title": "Community hardware directory; not manufacturer specifications",
+      "source_url": "https://forum.clockworkpi.com/t/uconsole-hardware-directory/22222.json",
+      "final_url": "https://forum.clockworkpi.com/t/uconsole-hardware-directory/22222.json",
+      "http_status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "retrieved_at": "2026-11-05T22:50:45.754104+08:00",
+      "bytes": 142130,
+      "sha256": "c23aebf0ea0881530b05bc11f60b8e2a0ca70f5fa5d3fbc32fc611959c8154ad"
+    },
+    {
+      "local_path": "references/uconsole/web/os-directory.json",
+      "title": "Community OS directory; compatibility claims require verification",
+      "source_url": "https://forum.clockworkpi.com/t/22029.json",
+      "final_url": "https://forum.clockworkpi.com/t/22029.json",
+      "http_status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "retrieved_at": "2026-11-05T22:50:49.904682+08:00",
+      "bytes": 109283,
+      "sha256": "5115896e1b5168ad94887657ddfd95a5a36c993446758c2ed3a8bce24d91468d"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/0db29eedf2d1293b.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_b7c90ac6fe4e455c808e59a7fdde398f~mv2.png/v1/crop/x_0,y_176,w_2408,h_1149/fill/w_700,h_334,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig08fixed.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_b7c90ac6fe4e455c808e59a7fdde398f~mv2.png/v1/crop/x_0,y_176,w_2408,h_1149/fill/w_700,h_334,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig08fixed.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:27.115046+08:00",
+      "bytes": 215892,
+      "sha256": "cb060445d24493b61dd7ccb750e9f53b83251f616fe218ae0eec1ea1702e81c2"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/1bf80af61f12c9fa.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_b75d35f7f9134805a4ab58a8ea39cbe6~mv2.png/v1/fill/w_680,h_489,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig06.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_b75d35f7f9134805a4ab58a8ea39cbe6~mv2.png/v1/fill/w_680,h_489,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig06.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:23.429367+08:00",
+      "bytes": 428905,
+      "sha256": "cb530aadd7453dcac3d721f43799103250eb0caca3ddc509334bbb353eca0187"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/22ac361f9033eb0a.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_494c70e5efc44aa8853b544514f75829~mv2.png/v1/fill/w_850,h_395,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig04.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_494c70e5efc44aa8853b544514f75829~mv2.png/v1/fill/w_850,h_395,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig04.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:10.176109+08:00",
+      "bytes": 731186,
+      "sha256": "d496bc838fdc87189cf0962be99927f2dae1c74a6bd425e3dde003e6e7ec4b33"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/2eec306b00c16533.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_c3e2e57201a542409a4352928a88f8a8~mv2.png/v1/crop/x_0,y_0,w_1200,h_293/fill/w_800,h_195,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/DevTerm_icons_c.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_c3e2e57201a542409a4352928a88f8a8~mv2.png/v1/crop/x_0,y_0,w_1200,h_293/fill/w_800,h_195,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/DevTerm_icons_c.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:38.394898+08:00",
+      "bytes": 95865,
+      "sha256": "2f15085d7563942ee19af08b6cdab0ed9fcc0406a593385c14a1a169c7f5429b"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/65340af3421241b8.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_1984bf8b6cef4d85b0af02308dda7e46~mv2.png/v1/fill/w_800,h_415,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig15.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_1984bf8b6cef4d85b0af02308dda7e46~mv2.png/v1/fill/w_800,h_415,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig15.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:32.606108+08:00",
+      "bytes": 515581,
+      "sha256": "7bc1caa5b31098d4bae82d085136c667a7d5dc426d250ea838e25c8661e6746f"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/6a45289384f9bee6.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_cc96dca10f1b4b64829f1e9d4e366d5b~mv2.png/v1/fill/w_500,h_778,al_c,q_90,enc_avif,quality_auto/main_fig01.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_cc96dca10f1b4b64829f1e9d4e366d5b~mv2.png/v1/fill/w_500,h_778,al_c,q_90,enc_avif,quality_auto/main_fig01.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:12.232827+08:00",
+      "bytes": 515478,
+      "sha256": "643be328718099e30380f7ba52f1278596f5330493bb9c9f610f70c0b5e1d3d8"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/6ed59d381d8b23b0.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_f1a1f37e22fb400c81ec8a06843820e1~mv2.png/v1/fill/w_400,h_328,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig09.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_f1a1f37e22fb400c81ec8a06843820e1~mv2.png/v1/fill/w_400,h_328,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig09.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:29.862104+08:00",
+      "bytes": 216456,
+      "sha256": "dbee7524db56bc5c9f6bf00f4f3b2dccb5fe349ca08d9b9d43dac14e482c73ff"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/80ea06060a1673c2.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_bbb002b5409e4d24a0cd337e943d1667~mv2.png/v1/fill/w_800,h_469,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig11.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_bbb002b5409e4d24a0cd337e943d1667~mv2.png/v1/fill/w_800,h_469,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig11.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:40.845600+08:00",
+      "bytes": 538977,
+      "sha256": "20eed158b040bf661b3fbfb3efd239d26b2b522fed23c5832e8522878438df6a"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/87e43582c94c768f.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_8b5356b38fbe4855b03d60449acb3a8f~mv2.png/v1/crop/x_0,y_143,w_1200,h_397/fill/w_800,h_265,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/DevTerm_icons_b.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_8b5356b38fbe4855b03d60449acb3a8f~mv2.png/v1/crop/x_0,y_143,w_1200,h_397/fill/w_800,h_265,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/DevTerm_icons_b.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:36.790152+08:00",
+      "bytes": 123004,
+      "sha256": "6254b8fba490d330156105d4e29e04a1a44cdb88599a1094393e4332caa1b630"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/8812b7f4c08fd3c8.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_df1d45d717da4487ba0edc4b0ae36144~mv2.png/v1/fill/w_1000,h_394,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig07.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_df1d45d717da4487ba0edc4b0ae36144~mv2.png/v1/fill/w_1000,h_394,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig07.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:25.152476+08:00",
+      "bytes": 543954,
+      "sha256": "c37b6c5c1137731aa4e6d7be9e876518cca225b2049e278224d3f0fa6d7f628c"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/8f16039074ee10ef.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_d4468c91d9954dab95b4160b84112413~mv2.png/v1/fill/w_315,h_410,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/fig06.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_d4468c91d9954dab95b4160b84112413~mv2.png/v1/fill/w_315,h_410,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/fig06.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:18.140729+08:00",
+      "bytes": 132977,
+      "sha256": "43476215465c653da9c1b45c8734ee880967e3fee0792cd43c6649e1baf5a75d"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/a07eeee6b99b5b86.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_fc7c9764eb2e4b2ab04e6947901bc8a7~mv2.png/v1/fill/w_900,h_540,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig05.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_fc7c9764eb2e4b2ab04e6947901bc8a7~mv2.png/v1/fill/w_900,h_540,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig05.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:21.831718+08:00",
+      "bytes": 601335,
+      "sha256": "1511f7b4df695dbfd7dcd3e54cae97d5c76952ad14e4dc7783a2518ef2e3e8c8"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/b6c9fa0c286df5f2.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_4100b3cf2bf24a1980cd261a5f589942~mv2.png/v1/fill/w_110,h_253,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig14.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_4100b3cf2bf24a1980cd261a5f589942~mv2.png/v1/fill/w_110,h_253,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig14.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:30.715993+08:00",
+      "bytes": 11312,
+      "sha256": "92e2b61df689e591f131b63162df9db674efb682c767ccd4aecfaaa8ab8745a4"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/e1a53e79e94efe9f.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_a41d33ecf66a4190ab4f2627bc9b7b69~mv2.png/v1/fill/w_1100,h_662,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig10.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_a41d33ecf66a4190ab4f2627bc9b7b69~mv2.png/v1/fill/w_1100,h_662,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/uconsole_fig10.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:34.549788+08:00",
+      "bytes": 799114,
+      "sha256": "46f90f570bc189ead28dd89dd2c0a531100fd33ac58670e201011f269b21cf8b"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/e80388b1a6140000.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_8b5356b38fbe4855b03d60449acb3a8f~mv2.png/v1/crop/x_0,y_0,w_1200,h_147/fill/w_800,h_98,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/DevTerm_icons_b.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_8b5356b38fbe4855b03d60449acb3a8f~mv2.png/v1/crop/x_0,y_0,w_1200,h_147/fill/w_800,h_98,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/DevTerm_icons_b.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:35.583970+08:00",
+      "bytes": 21678,
+      "sha256": "d2e86c150276710d4b0c96196ba3121985de98844e578b8bc149ca4dddf31ce0"
+    },
+    {
+      "local_path": "references/uconsole/wiki-offline/assets/f9edbbb69e4accf4.png",
+      "title": "Offline illustration from clockworkpi-uconsole.md",
+      "source_url": "https://static.wixstatic.com/media/3833f7_15af15e600194898944b824b14cc78ba~mv2.png/v1/crop/x_3,y_0,w_496,h_368/fill/w_299,h_222,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/CM4.png",
+      "final_url": "https://static.wixstatic.com/media/3833f7_15af15e600194898944b824b14cc78ba~mv2.png/v1/crop/x_3,y_0,w_496,h_368/fill/w_299,h_222,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/CM4.png",
+      "http_status": 200,
+      "content_type": "image/png",
+      "retrieved_at": "2026-11-05T22:52:15.411492+08:00",
+      "bytes": 124301,
+      "sha256": "f1e53ee137f17e685ba78fc14fdda84738118c8cfed150a61c91df4afba9188a"
+    }
+  ],
+  "failures": [
+    {
+      "local_path": "wiki-offline/assets/49366a8f5f8a7614.png",
+      "url": "https://github.com/user-attachments/assets/66a0028a-b6c1-4af2-92e7-91c6179fe272",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 8007 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 8001 ms: Timeout was reached\n"
+    },
+    {
+      "local_path": "wiki-offline/assets/fa88beff8abde7a8.png",
+      "url": "https://github.com/user-attachments/assets/06d88726-af96-4573-ba60-74b870bb07cf",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 8007 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 8005 ms: Timeout was reached\n"
+    },
+    {
+      "local_path": "wiki-offline/assets/370670aa502460d4.png",
+      "url": "https://github.com/user-attachments/assets/eeed0c0a-ea86-4496-b931-dcc074835eca",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 8006 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 8007 ms: Timeout was reached\n"
+    },
+    {
+      "url": "https://dl.friendlyelec.com/nanopim1plus/AXP228%20Datasheet%20v1.2%2020121130.pdf",
+      "local_path": "components/AXP228-Datasheet-v1.2-20121130.pdf",
+      "error": "curl: (56) The requested URL returned error: 403"
+    },
+    {
+      "url": "https://opensource.rock-chips.com/images/e/ee/Rockchip_RK3399_Datasheet_V2.1-20200323.pdf",
+      "local_path": "components/Rockchip-RK3399-Datasheet-V2.1.pdf",
+      "error": "curl: (22) The requested URL returned error: 404"
+    }
+  ],
+  "attempt_history": [
+    {
+      "url": "https://www.gd32mcu.com/data/documents/datasheet/GD32F103xx_Datasheet_Rev3.3.pdf",
+      "local_path": "components/GD32F103xx-Datasheet-Rev3.3.pdf",
+      "error": "curl: (56) The requested URL returned error: 404"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cuu/ClockworkPi-linux/03436f4117533693d608b10eb4b3965987230b68/arch/arm/boot/dts/overlays/clockworkpi-uconsole-overlay.dts",
+      "local_path": "kernel/clockworkpi-uconsole-overlay.dts",
+      "error": "curl: (28) Failed to connect to raw.githubusercontent.com port 443 after 15007 ms: Timeout was reached\ncurl: (28) Failed to connect to raw.githubusercontent.com port 443 after 15011 ms: Timeout was reached\ncurl: (28) Failed to connect to raw.githubusercontent.com port 443 after 15003 ms: Timeout was reached"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cuu/ClockworkPi-linux/03436f4117533693d608b10eb4b3965987230b68/arch/arm/boot/dts/overlays/clockworkpi-uconsole-cm5-overlay.dts",
+      "local_path": "kernel/clockworkpi-uconsole-cm5-overlay.dts",
+      "error": "curl: (28) Failed to connect to raw.githubusercontent.com port 443 after 15009 ms: Timeout was reached\ncurl: (28) Failed to connect to raw.githubusercontent.com port 443 after 15011 ms: Timeout was reached\ncurl: (28) Failed to connect to raw.githubusercontent.com port 443 after 15011 ms: Timeout was reached"
+    },
+    {
+      "url": "https://github.com/user-attachments/assets/66a0028a-b6c1-4af2-92e7-91c6179fe272",
+      "local_path": "wiki-offline/assets/49366a8f5f8a7614.image",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 15010 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 15004 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 15031 ms: Timeout was reached"
+    },
+    {
+      "url": "https://github.com/user-attachments/assets/06d88726-af96-4573-ba60-74b870bb07cf",
+      "local_path": "wiki-offline/assets/fa88beff8abde7a8.image",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 15005 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 15005 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 15021 ms: Timeout was reached"
+    },
+    {
+      "url": "https://github.com/user-attachments/assets/eeed0c0a-ea86-4496-b931-dcc074835eca",
+      "local_path": "wiki-offline/assets/370670aa502460d4.image",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 15009 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 15005 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 15033 ms: Timeout was reached"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cuu/ClockworkPi-linux/03436f4117533693d608b10eb4b3965987230b68/arch/arm/boot/dts/overlays/clockworkpi-uconsole-overlay.dts",
+      "local_path": "kernel/clockworkpi-uconsole-overlay.dts",
+      "error": "curl: (28) Failed to connect to raw.githubusercontent.com port 443 after 15006 ms: Timeout was reached\ncurl: (28) Failed to connect to raw.githubusercontent.com port 443 after 15012 ms: Timeout was reached\ncurl: (28) Failed to connect to raw.githubusercontent.com port 443 after 15009 ms: Timeout was reached"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cuu/ClockworkPi-linux/03436f4117533693d608b10eb4b3965987230b68/arch/arm/boot/dts/overlays/clockworkpi-uconsole-cm5-overlay.dts",
+      "local_path": "kernel/clockworkpi-uconsole-cm5-overlay.dts",
+      "error": "curl: (28) Failed to connect to raw.githubusercontent.com port 443 after 15006 ms: Timeout was reached\ncurl: (28) Failed to connect to raw.githubusercontent.com port 443 after 15008 ms: Timeout was reached\ncurl: (28) Failed to connect to raw.githubusercontent.com port 443 after 15012 ms: Timeout was reached"
+    },
+    {
+      "url": "https://github.com/user-attachments/assets/66a0028a-b6c1-4af2-92e7-91c6179fe272",
+      "local_path": "wiki-offline/assets/49366a8f5f8a7614.image",
+      "error": "curl: (16) Error in the HTTP2 framing layer"
+    },
+    {
+      "url": "https://github.com/user-attachments/assets/06d88726-af96-4573-ba60-74b870bb07cf",
+      "local_path": "wiki-offline/assets/fa88beff8abde7a8.image",
+      "error": "curl: (16) Error in the HTTP2 framing layer"
+    },
+    {
+      "url": "https://github.com/user-attachments/assets/eeed0c0a-ea86-4496-b931-dcc074835eca",
+      "local_path": "wiki-offline/assets/370670aa502460d4.image",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 15008 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 15003 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 15005 ms: Timeout was reached"
+    },
+    {
+      "url": "https://www.gd32mcu.com/data/documents/datasheet/GD32F103xx%20Datasheet%20Rev3.3.pdf",
+      "local_path": "components/GD32F103xx-Datasheet-Rev3.3.pdf",
+      "error": "curl: (56) The requested URL returned error: 404"
+    },
+    {
+      "url": "https://dl.friendlyelec.com/nanopim1plus/AXP228%20Datasheet%20v1.2%2020121130.pdf",
+      "local_path": "components/AXP228-Datasheet-v1.2-20121130.pdf",
+      "error": "curl: (56) The requested URL returned error: 403"
+    },
+    {
+      "url": "https://opensource.rock-chips.com/images/e/ee/Rockchip_RK3399_Datasheet_V2.1-20200323.pdf",
+      "local_path": "components/Rockchip-RK3399-Datasheet-V2.1.pdf",
+      "error": "curl: (22) The requested URL returned error: 404"
+    },
+    {
+      "local_path": "wiki-offline/assets/49366a8f5f8a7614.png",
+      "url": "https://github.com/user-attachments/assets/66a0028a-b6c1-4af2-92e7-91c6179fe272",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 8007 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 8001 ms: Timeout was reached\n"
+    },
+    {
+      "local_path": "wiki-offline/assets/fa88beff8abde7a8.png",
+      "url": "https://github.com/user-attachments/assets/06d88726-af96-4573-ba60-74b870bb07cf",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 8007 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 8005 ms: Timeout was reached\n"
+    },
+    {
+      "local_path": "wiki-offline/assets/370670aa502460d4.png",
+      "url": "https://github.com/user-attachments/assets/eeed0c0a-ea86-4496-b931-dcc074835eca",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 8006 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 8007 ms: Timeout was reached\n"
+    }
+  ],
+  "unavailable_revisions": [
+    {
+      "component": "GD32F103xx",
+      "requested_revision": "3.3",
+      "reason": "Manufacturer search-result URLs returned 404; historical rev 2.2 and GD32F10x user manual rev 2.6 were archived instead"
+    }
+  ]
+}

@@ -1,0 +1,348 @@
+Source: raspberry-pi/cm4-product-brief.pdf
+Pages: 8
+Text extraction only; consult the original PDF for diagrams and tables.
+
+
+--- Page 1 ---
+
+Multimedia Interface, and the HDMI Logo
+are trademarks or registered trademarks
+of HDMI Licensing Administrator, Inc.
+Raspberry Pi | Raspberry Pi Compute Module 4
+Product Brief
+Raspberry Pi Compute Module 4
+Published July 2026
+Raspberry Pi Ltd
+
+
+--- Page 2 ---
+
+Raspberry Pi Compute Module 4
+Overview
+Raspberry Pi Compute Module 4 harnesses the compute power of Raspberry Pi 4 Model B, bringing it to 
+a smaller form factor suitable for integration into products.
+Key features include a high-performance 64-bit quad-core processor, dual-display support at resolutions 
+up to 4K, hardware video decode at up to 4Kp60, up to 8GB of RAM, Gigabit Ethernet, USB 2.0, dual 
+camera interfaces, and PCIe Gen 2 x1 interface.
+The optional dual-band 2.4/5.0GHz wireless LAN and Bluetooth 5.0 have modular compliance certification. 
+This allows the board to be designed into end products with significantly reduced compliance testing, 
+improving both cost and time to market. Either the onboard antenna or an external antenna kit can 
+be used.
+Compute Module 4 has optional onboard eMMC of 8GB, 16GB, 32GB or 64GB.
+A number of Compute Module 4 variants now come with an extended temperature range of −40°C to 
++85°C, ideal for handling applications in more extreme indoor and outdoor environments.
+Overview
+1
+
+
+--- Page 3 ---
+
+Raspberry Pi Compute Module 4
+Specification
+Form factor
+55 mm × 40 mm
+Processor
+Broadcom BCM2711 quad-core Cortex-A72 (ARM v8) 64-bit SoC @ 
+1.5GHz
+Memory
+Options for 1GB, 2GB, 4GB or 8GB LPDDR4
+Options for 0GB (Lite), 16GB, 32GB or 64GB eMMC flash memory
+Connectivity
+Optional wireless LAN, 2.4GHz and 5.0GHz IEEE 802.11b/g/n/ac 
+wireless, Bluetooth 5.0, BLE with onboard and external antenna options
+Onboard Gigabit Ethernet PHY supporting IEEE1588
+1 × USB 2.0 interface
+PCIe Gen 2 x1 interface
+28 GPIO signals
+SD card interface for SD card or external eMMC (for use only with 
+Compute Module 4 variants without eMMC)
+Video
+Dual HDMI®︎ interface (up to 4Kp60 supported)
+2-lane MIPI DSI display interface
+2-lane MIPI CSI camera interface
+4-lane MIPI DSI display interface
+4-lane MIPI CSI camera interface
+Multimedia
+H.265 (4Kp60 decode); H.264 (1080p60 decode, 1080p30 encode); 
+OpenGL ES 3.0 graphics
+Input power
+5V DC
+Operating temperature
+−20°C to +85°C
+−40°C to +85°C (extended temperature range variants only)
+MTBF1 Ground Benign
+377 000 hours (382 000 hours CM4 Lite)
+Production lifetime
+Raspberry Pi Compute Module 4 will remain in production until at least 
+January 2034
+Compliance
+For a full list of local and regional product approvals, please visit 
+pip.raspberrypi.com
+List price
+See table below
+1 Mean Time Between Failure
+Specification
+2
+
+
+--- Page 4 ---
+
+Raspberry Pi Compute Module 4
+Pricing
+Part Number
+Wireless
+RAM
+eMMC
+Price*
+CM4001000
+0GB (Lite)
+$41.25
+CM4001008
+8GB
+$66.25
+CM4001016
+16GB
+$66.25
+CM4001032
+32GB
+$76.25
+1GB
+CM4001064
+64GB
+$76.25
+CM4002000
+0GB (Lite)
+$57.50
+CM4002008
+8GB
+$82.50
+CM4002016
+16GB
+$82.50
+CM4002032
+32GB
+$92.50
+2GB
+CM4002064
+64GB
+$92.50
+CM4004000
+0GB (Lite)
+$90
+CM4004008
+8GB
+$115
+CM4004016
+16GB
+$115
+CM4004032
+32GB
+$125
+4GB
+CM4004064
+64GB
+$125
+CM4008000
+0GB (Lite)
+$155
+CM4008008
+8GB
+$180
+CM4008016
+16GB
+$180
+CM4008032
+32GB
+$190
+No
+8GB
+CM4008064
+64GB
+$190
+CM4101000
+0GB (Lite)
+$46.25
+CM4101008
+8GB
+$71.25
+CM4101016
+16GB
+$71.25
+CM4101032
+32GB
+$81.25
+1GB
+CM4101064
+64GB
+$81.25
+CM4102000
+0GB (Lite)
+$62.50
+CM4102008
+8GB
+$87.50
+CM4102016
+16GB
+$87.50
+CM4102032
+32GB
+$97.50
+2GB
+CM4102064
+64GB
+$97.50
+CM4104000
+0GB (Lite)
+$95
+CM4104008
+8GB
+$120
+CM4104016
+16GB
+$120
+CM4104032
+32GB
+$130
+4GB
+CM4104064
+64GB
+$130
+CM4108000
+0GB (Lite)
+$160
+CM4108008
+8GB
+$185
+CM4108016
+16GB
+$185
+Yes
+8GB
+Pricing
+3
+
+
+--- Page 5 ---
+
+Raspberry Pi Compute Module 4
+CM4108032
+32GB
+$195
+CM4108064
+64GB
+$195
+* pricing excludes sales tax and any applicable import duties
+Extended temperature range variants
+Part Number
+Wireless
+RAM
+eMMC
+Availability
+Price
+CM4001000ET
+0GB (Lite)
+Available to order/
+MOQ1
+1GB
+CM4001016ET
+16GB
+Available to order/
+MOQ1
+CM4002000ET
+0GB (Lite)
+Available to order/
+MOQ1
+2GB
+CM4002016ET
+16GB
+Available to order/
+MOQ1
+CM4004000ET
+0GB (Lite)
+Typically held in 
+stock in our net­
+work
+No
+4GB
+CM4004016ET
+16GB
+Available to order/
+MOQ1
+CM4101000ET
+0GB (Lite)
+Typically held in 
+stock in our net­
+work
+1GB
+CM4101016ET
+16GB
+Available to order/
+MOQ1
+CM4102000ET
+0GB (Lite)
+Available to order/
+MOQ1
+2GB
+CM4102016ET
+16GB
+Typically held in 
+stock in our net­
+work
+CM4104000ET
+0GB (Lite)
+Typically held in 
+stock in our net­
+work
+Price on
+application
+Yes
+4GB
+CM4104016ET
+16GB
+Available to order/
+MOQ1
+1 available to order 1Ku MOQ with typical lead time of 10-12 weeks
+Pricing
+4
+
+
+--- Page 6 ---
+
+Raspberry Pi Compute Module 4
+Mechanical specification
+WARNINGS
+• Any external power supply used with Raspberry Pi Compute Module 4 shall comply with relevant 
+regulations and standards applicable in the country of intended use.
+• This product should be operated in a well-ventilated environment, and if used inside a case, the case 
+should not be covered.
+• Whilst in use, this product should be placed on a stable, flat, non-conductive surface, and should not 
+be contacted by conductive items.
+• The connection of incompatible devices to Compute Module 4 may affect compliance, result in damage 
+to the unit, and invalidate the warranty.
+• All peripherals used with this product should comply with relevant standards for the country of use and 
+be marked accordingly to ensure that safety and performance requirements are met. These articles 
+include but are not limited to keyboards, monitors, and mice when used in conjunction with the Compute 
+Module.
+• The cables and connectors of all peripherals used with this product must have adequate insulation so 
+that relevant safety requirements are met.
+To avoid malfunction or damage to this product, please observe the following:
+• Do not expose to water or moisture, or place on a conductive surface whilst in operation.
+• Do not expose to heat from any source; Raspberry Pi Compute Module 4 is designed for reliable 
+operation at normal ambient temperatures.
+• Take care whilst handling to avoid mechanical or electrical damage to the printed circuit board and 
+connectors.
+• Whilst it is powered, avoid handling the printed circuit board, or only handle it by the edges to minimise 
+the risk of electrostatic discharge damage.
+Mechanical specification
+5
+
+
+--- Page 7 ---
+
+
+
+--- Page 8 ---
+
+Raspberry Pi
+Raspberry Pi is a trademark of Raspberry Pi Ltd
+Raspberry Pi Ltd

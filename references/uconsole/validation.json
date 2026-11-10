@@ -1,0 +1,181 @@
+{
+  "validated_at": "2026-11-05T23:21:01.700916+08:00",
+  "status": "passed_with_source_gaps",
+  "official_repository_files_verified": 100,
+  "official_wiki_pages_verified": 11,
+  "community_model_files_verified": 16,
+  "individual_downloads_verified": 53,
+  "pdf_count": 23,
+  "pdf_pages": 2339,
+  "archive_checks": [
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/Bin/4G/LE20B04SIM7600G22_cpi_arm64.tar.gz",
+      "check": "gzip CRC and tar directory parsing",
+      "members": 34,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/Bin/4G/LE20B06SIM7600G22_cpi_arm64.tar.gz",
+      "check": "gzip CRC and tar directory parsing",
+      "members": 34,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash.tar.gz",
+      "check": "gzip CRC and tar directory parsing",
+      "members": 21,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/PCB/CPI_3.14_Mainboard_V5_Gerber.7z",
+      "check": "libarchive directory parsing only; not full payload CRC",
+      "members": 23,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/PCB/RPI CM4 to CPI v3.14 Adapter.zip",
+      "check": "ZIP member CRC",
+      "members": 12,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/assembly.FCStd",
+      "check": "ZIP member CRC",
+      "members": 87,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/button.FCStd",
+      "check": "ZIP member CRC",
+      "members": 6,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/enclosure_body.FCStd",
+      "check": "ZIP member CRC",
+      "members": 8,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/enclosure_bottom.FCStd",
+      "check": "ZIP member CRC",
+      "members": 6,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/enclosure_top.FCStd",
+      "check": "ZIP member CRC",
+      "members": 6,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/expansion_plate.FCStd",
+      "check": "ZIP member CRC",
+      "members": 6,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/keypad.FCStd",
+      "check": "ZIP member CRC",
+      "members": 20,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/kickstand.FCStd",
+      "check": "ZIP member CRC",
+      "members": 6,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/community-3d-models/cad/trackball.FCStd",
+      "check": "ZIP member CRC",
+      "members": 6,
+      "status": "passed"
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/CM4IO-KiCAD.zip",
+      "check": "ZIP member CRC",
+      "members": 45,
+      "status": "passed"
+    }
+  ],
+  "upstream_binary_md5": [
+    {
+      "filename": "uconsole.kbd.0.1_48mhz.bin",
+      "md5": "3e863883ca13b6a8cc47d444346a8321",
+      "status": "passed"
+    },
+    {
+      "filename": "uconsole.kbd.0.2_48mhz.bin",
+      "md5": "ab4572270f70b817c39c1c07a7402fea",
+      "status": "passed"
+    },
+    {
+      "filename": "uconsole.kbd.0.1_48mhz.hex",
+      "md5": "0278d32308ab89a074c2dc95c725fe9b",
+      "status": "passed"
+    },
+    {
+      "filename": "uconsole.kbd.0.2_48mhz.hex",
+      "md5": "712c114998e5d3f6bd5604515829003a",
+      "status": "passed"
+    }
+  ],
+  "curated_markdown_files_checked": 18,
+  "working_local_links": 127,
+  "broken_local_links": [],
+  "external_images_not_archived": [
+    {
+      "page": "references/uconsole/wiki-offline/How-to-use-keyboard-UART-port-to-flash-firmware.md",
+      "url": "https://github.com/user-attachments/assets/66a0028a-b6c1-4af2-92e7-91c6179fe272"
+    },
+    {
+      "page": "references/uconsole/wiki-offline/How-to-use-keyboard-UART-port-to-flash-firmware.md",
+      "url": "https://github.com/user-attachments/assets/06d88726-af96-4573-ba60-74b870bb07cf"
+    },
+    {
+      "page": "references/uconsole/wiki-offline/How-to-use-keyboard-UART-port-to-flash-firmware.md",
+      "url": "https://github.com/user-attachments/assets/eeed0c0a-ea86-4496-b931-dcc074835eca"
+    }
+  ],
+  "source_gaps": [
+    {
+      "local_path": "wiki-offline/assets/49366a8f5f8a7614.png",
+      "url": "https://github.com/user-attachments/assets/66a0028a-b6c1-4af2-92e7-91c6179fe272",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 8007 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 8001 ms: Timeout was reached\n"
+    },
+    {
+      "local_path": "wiki-offline/assets/fa88beff8abde7a8.png",
+      "url": "https://github.com/user-attachments/assets/06d88726-af96-4573-ba60-74b870bb07cf",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 8007 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 8005 ms: Timeout was reached\n"
+    },
+    {
+      "local_path": "wiki-offline/assets/370670aa502460d4.png",
+      "url": "https://github.com/user-attachments/assets/eeed0c0a-ea86-4496-b931-dcc074835eca",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 8006 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 8007 ms: Timeout was reached\n"
+    },
+    {
+      "url": "https://dl.friendlyelec.com/nanopim1plus/AXP228%20Datasheet%20v1.2%2020121130.pdf",
+      "local_path": "components/AXP228-Datasheet-v1.2-20121130.pdf",
+      "error": "curl: (56) The requested URL returned error: 403"
+    },
+    {
+      "url": "https://opensource.rock-chips.com/images/e/ee/Rockchip_RK3399_Datasheet_V2.1-20200323.pdf",
+      "local_path": "components/Rockchip-RK3399-Datasheet-V2.1.pdf",
+      "error": "curl: (22) The requested URL returned error: 404"
+    }
+  ],
+  "visual_spot_checks": [
+    "Mainboard revision 5 schematic, page 1",
+    "Keyboard schematic, page 2",
+    "Assembly guide, page 7"
+  ],
+  "not_tested": [
+    "Firmware execution or flashing",
+    "Kernel/keyboard compilation",
+    "Real uConsole peripherals",
+    "CAD dimensional accuracy",
+    "Firmware/package security",
+    "All external links recursively"
+  ]
+}

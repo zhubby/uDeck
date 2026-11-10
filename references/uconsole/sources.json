@@ -1,0 +1,1244 @@
+{
+  "schema_version": 1,
+  "collected_at": "2026-11-05T22:50:11.833805+08:00",
+  "generated_at": "2026-11-05T23:21:01.700916+08:00",
+  "repositories": [
+    {
+      "repository_url": "https://github.com/clockworkpi/uConsole",
+      "commit": "53a05efca806ca024aab4fbfd28a680688c2541c",
+      "committed_at": "2026-08-02T00:11:30+08:00",
+      "scope": "all tracked files; Git history excluded",
+      "file_count": 100,
+      "artifacts": [
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/.github/workflows/publish-wiki.yml",
+          "upstream_path": ".github/workflows/publish-wiki.yml",
+          "git_blob_sha1": "79b62134f98faeb976f176beb30cfd304dbea8a6",
+          "sha256": "b3c89637667a1992f32df9ddaeed898a31491ea64312182ae850260c6f2b2f4f",
+          "bytes": 364,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/.github/workflows/publish-wiki.yml"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/.gitmodules",
+          "upstream_path": ".gitmodules",
+          "git_blob_sha1": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/.gitmodules"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/.gitkeep",
+          "upstream_path": "Bin/.gitkeep",
+          "git_blob_sha1": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/.gitkeep"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/4G/LE20B04SIM7600G22_cpi_arm64.tar.gz",
+          "upstream_path": "Bin/4G/LE20B04SIM7600G22_cpi_arm64.tar.gz",
+          "git_blob_sha1": "8ddb602aa9bc3733976f6259dc01c942e21e58c3",
+          "sha256": "83f152a590c23aabc3a3e63981fcf9f2c395db007cd77ab0cec21c873ac66a55",
+          "bytes": 87469617,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/4G/LE20B04SIM7600G22_cpi_arm64.tar.gz"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/4G/LE20B06SIM7600G22_cpi_arm64.tar.gz",
+          "upstream_path": "Bin/4G/LE20B06SIM7600G22_cpi_arm64.tar.gz",
+          "git_blob_sha1": "c6baf4053c19b1073b92c70ec581075416c94718",
+          "sha256": "1dd7529eda13af516c4bdfb26df057e7d1ffd5f4dc96676874f516df6ca9057d",
+          "bytes": 89459293,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/4G/LE20B06SIM7600G22_cpi_arm64.tar.gz"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/md5sum",
+          "upstream_path": "Bin/md5sum",
+          "git_blob_sha1": "5a5bed646a154b3a310425dc0a3fb1be92df03cf",
+          "sha256": "5eefacddcfba83325b48bf5a971a730ce41a4ad509d50d2d6ad6d2e6bbd02bfa",
+          "bytes": 244,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/md5sum"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole.kbd.0.1_48mhz.bin",
+          "upstream_path": "Bin/uconsole.kbd.0.1_48mhz.bin",
+          "git_blob_sha1": "cd5a709b2f481af1460b22a117cc4de63ad2d38d",
+          "sha256": "f27c7e1311777cb4955e5f78b762a9e37838bd006e2088da2c65b1060fa61523",
+          "bytes": 65536,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole.kbd.0.1_48mhz.bin"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole.kbd.0.1_48mhz.hex",
+          "upstream_path": "Bin/uconsole.kbd.0.1_48mhz.hex",
+          "git_blob_sha1": "23ca0cb3e00f201636146408d26a4bb295fff2fc",
+          "sha256": "c9ef7d47f283dc1b318626d23a8e0d0f1576d6b84d2d6b7b599e49005bce13e7",
+          "bytes": 155676,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole.kbd.0.1_48mhz.hex"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole.kbd.0.2_48mhz.bin",
+          "upstream_path": "Bin/uconsole.kbd.0.2_48mhz.bin",
+          "git_blob_sha1": "b80610b081cd1042aad8bb85a2d5d8bb84f2fb75",
+          "sha256": "7b092a331ad063e127de288a14b6f8ba9c8897b2384327ff129023aa79aa06a8",
+          "bytes": 65536,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole.kbd.0.2_48mhz.bin"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole.kbd.0.2_48mhz.hex",
+          "upstream_path": "Bin/uconsole.kbd.0.2_48mhz.hex",
+          "git_blob_sha1": "d5e1c777dc26ab1e370b6e71af54bfc3c45d02c8",
+          "sha256": "654af34a801dbe970d80d2fa5d934cb8355a3e9e75254bfc96def43d6d689bb5",
+          "bytes": 155676,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole.kbd.0.2_48mhz.hex"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole.kbd.0.3_48mhz.bin",
+          "upstream_path": "Bin/uconsole.kbd.0.3_48mhz.bin",
+          "git_blob_sha1": "9432cf4f0b29ae884128f830ab4491632b83566f",
+          "sha256": "b5e53af0d8c72736a53521c2d2c90c3380a9bc9622e3658749baccbe348c9a4b",
+          "bytes": 65536,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole.kbd.0.3_48mhz.bin"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole.kbd.0.3_48mhz.hex",
+          "upstream_path": "Bin/uconsole.kbd.0.3_48mhz.hex",
+          "git_blob_sha1": "228979c261005fd3194c0b6fc538276374b32f33",
+          "sha256": "4c3753c4a58b0a7d50441c1bdaada509d3ce5785aea321b3d9cb1a1207c7af22",
+          "bytes": 155676,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole.kbd.0.3_48mhz.hex"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole.kbd.0.4_48mhz.bin",
+          "upstream_path": "Bin/uconsole.kbd.0.4_48mhz.bin",
+          "git_blob_sha1": "008c6fc30d12c949f84c46ad554de469cd152659",
+          "sha256": "5bc98b68c6c8337167ff5a1bbdd54fa47ac8983e5166674a33c2fda1789a43ad",
+          "bytes": 65536,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole.kbd.0.4_48mhz.bin"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole.kbd.0.4_48mhz.hex",
+          "upstream_path": "Bin/uconsole.kbd.0.4_48mhz.hex",
+          "git_blob_sha1": "8aef8ac0e3d1c70dae4c43586b25cbd094859a67",
+          "sha256": "8c4a104ae1f2413231a4e23397348b727c4eed040d2d208a1702f58d63ede8f6",
+          "bytes": 155676,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole.kbd.0.4_48mhz.hex"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash.tar.gz",
+          "upstream_path": "Bin/uconsole_keyboard_flash.tar.gz",
+          "git_blob_sha1": "257126d2a3290c68c7327e92acf7155fc5dd40bf",
+          "sha256": "5c72bbcc7471da5a0797c197c6562f4250b9dca85e823cc3c2550f4bd003517a",
+          "bytes": 40734,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash.tar.gz"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash.tar.gz.readme_first.md",
+          "upstream_path": "Bin/uconsole_keyboard_flash.tar.gz.readme_first.md",
+          "git_blob_sha1": "14c62fc1e4aeeed4b539684ea7c6223a1e3c9af6",
+          "sha256": "f8cdbc17168b8882349ad0769c6a1b1061591bb14041c306252ef7d698211cd9",
+          "bytes": 1129,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash.tar.gz.readme_first.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/Makefile",
+          "upstream_path": "Bin/uconsole_keyboard_flash/Makefile",
+          "git_blob_sha1": "77f51c697f6e72fdcb9e135ed34f56717cfc4d2a",
+          "sha256": "3ebeda6f3f8f202f71cb54dad63fb14db8118e1e4b75f6709fa8189bede3b604",
+          "bytes": 206,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/Makefile"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/Makefile.aarch64",
+          "upstream_path": "Bin/uconsole_keyboard_flash/Makefile.aarch64",
+          "git_blob_sha1": "b09d92fd079a53c0f026b9ccf75e7f311eab2ed2",
+          "sha256": "37b44473b560af62b8df3a215ca120fb027c3ecf901f7e27882287272e2fd933",
+          "bytes": 224,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/Makefile.aarch64"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/Makefile.amd64",
+          "upstream_path": "Bin/uconsole_keyboard_flash/Makefile.amd64",
+          "git_blob_sha1": "77f51c697f6e72fdcb9e135ed34f56717cfc4d2a",
+          "sha256": "3ebeda6f3f8f202f71cb54dad63fb14db8118e1e4b75f6709fa8189bede3b604",
+          "bytes": 206,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/Makefile.amd64"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/Makefile.armhf",
+          "upstream_path": "Bin/uconsole_keyboard_flash/Makefile.armhf",
+          "git_blob_sha1": "4a0aed1a8c027197c61a8827ab412ec2f7794c3a",
+          "sha256": "5f411534acf01d3e72c5d04088e98269b61bc5fe0f1cbf52e5800fc6bbfb4a36",
+          "bytes": 226,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/Makefile.armhf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/README.md",
+          "upstream_path": "Bin/uconsole_keyboard_flash/README.md",
+          "git_blob_sha1": "12883913378a346b73e040581f95210f6f3c9825",
+          "sha256": "08e2919edbbfb98f72ebbe02a4e1f7ebbc4ce75482e9deb072d7e14f28bdf197",
+          "bytes": 231,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/README.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/deb_packages/aarch64/.gitkeep",
+          "upstream_path": "Bin/uconsole_keyboard_flash/deb_packages/aarch64/.gitkeep",
+          "git_blob_sha1": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/deb_packages/aarch64/.gitkeep"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/deb_packages/aarch64/upload-reset.elf",
+          "upstream_path": "Bin/uconsole_keyboard_flash/deb_packages/aarch64/upload-reset.elf",
+          "git_blob_sha1": "d4792c89ecbfb785746017f1806ca5834bd8e018",
+          "sha256": "9cb1b9566659c9000cbed06628463c31e573fdbdbdc835d5513b368c61064878",
+          "bytes": 14320,
+          "git_mode": "100755",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/deb_packages/aarch64/upload-reset.elf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/deb_packages/armhf/upload-reset.elf",
+          "upstream_path": "Bin/uconsole_keyboard_flash/deb_packages/armhf/upload-reset.elf",
+          "git_blob_sha1": "a6499dce631c6332a8962a3e3f120c81b025ec25",
+          "sha256": "b9f391aefcac2b3d7afc016c8bc20debbab850a8b6316390c80f90dd15a80ebf",
+          "bytes": 8788,
+          "git_mode": "100755",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/deb_packages/armhf/upload-reset.elf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/deb_packages/riscv64/upload-reset.elf",
+          "upstream_path": "Bin/uconsole_keyboard_flash/deb_packages/riscv64/upload-reset.elf",
+          "git_blob_sha1": "157119f7ce9b04f0448f3a877633d371def6cd18",
+          "sha256": "5bbdead8b918f8e39b3cfed984a4c5328f1d5b21df20718f101298c022ca0ea0",
+          "bytes": 13536,
+          "git_mode": "100755",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/deb_packages/riscv64/upload-reset.elf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/flash.sh",
+          "upstream_path": "Bin/uconsole_keyboard_flash/flash.sh",
+          "git_blob_sha1": "f9334ede48a3a581f555bd4932bc5aeabe80e8b2",
+          "sha256": "548356b1429ed0a98b235571d90c94a7512e719271bd2790bb515441e72de027",
+          "bytes": 81,
+          "git_mode": "100755",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/flash.sh"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/maple_upload",
+          "upstream_path": "Bin/uconsole_keyboard_flash/maple_upload",
+          "git_blob_sha1": "e77f45d086b5f5d62a19fdc0c052e3c713c78e23",
+          "sha256": "9e1d0ac1f2adf83861bd031782f5c76d5e558f9a4e08eeb717033f813c5f372c",
+          "bytes": 2508,
+          "git_mode": "100755",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/maple_upload"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/uconsole_keyboard.ino.bin",
+          "upstream_path": "Bin/uconsole_keyboard_flash/uconsole_keyboard.ino.bin",
+          "git_blob_sha1": "008c6fc30d12c949f84c46ad554de469cd152659",
+          "sha256": "5bc98b68c6c8337167ff5a1bbdd54fa47ac8983e5166674a33c2fda1789a43ad",
+          "bytes": 65536,
+          "git_mode": "100755",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/uconsole_keyboard.ino.bin"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/upload-reset.elf",
+          "upstream_path": "Bin/uconsole_keyboard_flash/upload-reset.elf",
+          "git_blob_sha1": "c4c7c0559e070d4f20344fed1e414c41017bf27f",
+          "sha256": "81d552ed96aa3b1fa434323ff3d120c9f01c279ca8efa89ecefdf10206a20015",
+          "bytes": 17472,
+          "git_mode": "100755",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/upload-reset.elf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/upload-reset/upload-reset.c",
+          "upstream_path": "Bin/uconsole_keyboard_flash/upload-reset/upload-reset.c",
+          "git_blob_sha1": "1d03bff511308016a63a0fdb837aee61f89b581d",
+          "sha256": "c41b11b4aa5b4e00142d9d3cf2047e8e379b5f92cf683836e29be2acd8cb888c",
+          "bytes": 3565,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/upload-reset/upload-reset.c"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Bin/uconsole_keyboard_flash/upload-reset/upload-reset.o",
+          "upstream_path": "Bin/uconsole_keyboard_flash/upload-reset/upload-reset.o",
+          "git_blob_sha1": "ac145072044a7ca11e4f3d95afce58c9e70f7224",
+          "sha256": "c2dc8552ff38450619bcd281818e1a8e0fa0d387bd299ad56b6674e316f711b9",
+          "bytes": 5296,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Bin/uconsole_keyboard_flash/upload-reset/upload-reset.o"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Clockwork_uConsole_Assembly_Guidelines.pdf",
+          "upstream_path": "Clockwork_uConsole_Assembly_Guidelines.pdf",
+          "git_blob_sha1": "5b1a3cdec2f028987553c95f717d93a88dc362ee",
+          "sha256": "85a521e012d113d342e20a6986c6efb1f9800c114970673a5ddaf8a093939dea",
+          "bytes": 12454557,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Clockwork_uConsole_Assembly_Guidelines.pdf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/.gitkeep",
+          "upstream_path": "Code/.gitkeep",
+          "git_blob_sha1": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/.gitkeep"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/patch/a06/20230630/README.md",
+          "upstream_path": "Code/patch/a06/20230630/README.md",
+          "git_blob_sha1": "2e7c10aba9500575c96ac1993a7b31820e1100d5",
+          "sha256": "47bb44cdf3a380f2259bf17d8b2cd471591ce3c4dc5156fe25b697e5940bf3a5",
+          "bytes": 1451,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/patch/a06/20230630/README.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/patch/a06/20230630/drivers_network.sh.patch",
+          "upstream_path": "Code/patch/a06/20230630/drivers_network.sh.patch",
+          "git_blob_sha1": "97b3aa4d83ee8470aa20ce56b0412e9c930e087f",
+          "sha256": "a43f2d166a312283f4d343f43830b93867762aa9d61a1d961c4fa55003680717",
+          "bytes": 1029,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/patch/a06/20230630/drivers_network.sh.patch"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/patch/a06/20230630/z-10000_a06_sound_230701.patch",
+          "upstream_path": "Code/patch/a06/20230630/z-10000_a06_sound_230701.patch",
+          "git_blob_sha1": "9aa633e32b6719bfdce93920ffc50f01d6cae020",
+          "sha256": "8867b78d7cada1709c31e6b1ff913353edba6a311addd698636ec7e0458d5ae4",
+          "bytes": 1314,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/patch/a06/20230630/z-10000_a06_sound_230701.patch"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/patch/a06/20230630/z-10000_a06_uc_panel_230701.patch",
+          "upstream_path": "Code/patch/a06/20230630/z-10000_a06_uc_panel_230701.patch",
+          "git_blob_sha1": "bbbfd728898d3cdb7484634f54aa1b89720819a5",
+          "sha256": "9aabbacc529a3d0abca10d7d48ca4d97f640c0f7803f3a6a019a5b33ac4ee186",
+          "bytes": 13906,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/patch/a06/20230630/z-10000_a06_uc_panel_230701.patch"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/patch/cm4/20230630/0001-patch-cm4.patch",
+          "upstream_path": "Code/patch/cm4/20230630/0001-patch-cm4.patch",
+          "git_blob_sha1": "b7d5f2b5f667deca3b6a65182c84921e512d3a5d",
+          "sha256": "78835d70ce913d30ced05c2204de953f83b88d5d027d6b77650e8c84988d5452",
+          "bytes": 254103,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/patch/cm4/20230630/0001-patch-cm4.patch"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/patch/cm4/20230630/README.md",
+          "upstream_path": "Code/patch/cm4/20230630/README.md",
+          "git_blob_sha1": "53ff0020e0e9cf2e2a6eee67b403246e72b755ec",
+          "sha256": "d273805f79a5200caa714991c5cb2bb0da6b4d76756d8c4a3e58cbbcf21e9b71",
+          "bytes": 1380,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/patch/cm4/20230630/README.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/patch/cm4/20230630/build-kernel.sh",
+          "upstream_path": "Code/patch/cm4/20230630/build-kernel.sh",
+          "git_blob_sha1": "2ab0e1097aee415531e076d91377234ec663eb3e",
+          "sha256": "7a8bc653f24a4adfb6aa265e8e36f26d7d3479a26bebfe5d48d3c1bb71867c8c",
+          "bytes": 2738,
+          "git_mode": "100755",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/patch/cm4/20230630/build-kernel.sh"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/patch/cm4/20230630/config.txt",
+          "upstream_path": "Code/patch/cm4/20230630/config.txt",
+          "git_blob_sha1": "508bbfa5f0f49b83af59c24c91e9990e9878f130",
+          "sha256": "7c0b82422fb6fe41ebdf7a44e72f1d18c6a58ae1e6e7d866e5033a74aec8bf17",
+          "bytes": 287,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/patch/cm4/20230630/config.txt"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/patch/cm4/20230630/run.sh",
+          "upstream_path": "Code/patch/cm4/20230630/run.sh",
+          "git_blob_sha1": "3f4eb47aea25bf8d58b006a01d7f9770d3531408",
+          "sha256": "443fc8f935c6ba2af969ff7a43b1f03ad3a0278ca6d8a0903e7999b02ce5c112",
+          "bytes": 417,
+          "git_mode": "100755",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/patch/cm4/20230630/run.sh"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/patch/cm4/20260414/README.md",
+          "upstream_path": "Code/patch/cm4/20260414/README.md",
+          "git_blob_sha1": "27bf12235d015c7a33f2522718e3d38504a8d057",
+          "sha256": "9bba8c3fec24f731d3b18616f42d857a8d14372aa09c35ba5a106444ed030487",
+          "bytes": 2705,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/patch/cm4/20260414/README.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/patch/r01/20230614/README.md",
+          "upstream_path": "Code/patch/r01/20230614/README.md",
+          "git_blob_sha1": "e819a87524c068c4e44c305472e2c8fe58095e5e",
+          "sha256": "4bb0b7cd93f3bf479544b872ba9257020775e0916bc628122f2e66ce77bc52cc",
+          "bytes": 1173,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/patch/r01/20230614/README.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/patch/r01/20230614/r01_v1.01_230614.patch",
+          "upstream_path": "Code/patch/r01/20230614/r01_v1.01_230614.patch",
+          "git_blob_sha1": "814f8b3c5205fa2e650e18aa7514e62d01859cf0",
+          "sha256": "168bd05735de261c57dbba0232d2bd2917243a8c794e5d904277cac0e938d682",
+          "bytes": 249707,
+          "git_mode": "100755",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/patch/r01/20230614/r01_v1.01_230614.patch"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/scripts/README.md",
+          "upstream_path": "Code/scripts/README.md",
+          "git_blob_sha1": "dbec378eec13fa212101c73ecca7863c67eec599",
+          "sha256": "dd198c5452658603625ba5d2f9753c4600de8ef5f9a2dc3b5afe5419b7f41e2e",
+          "bytes": 255,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/scripts/README.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/scripts/audio_3.5_patch.py",
+          "upstream_path": "Code/scripts/audio_3.5_patch.py",
+          "git_blob_sha1": "6b6cb82b799fd28febc965b3efd8b023b27a4d6e",
+          "sha256": "dba3cc0972626fda68a989ed6eb3b6ff11f709094da4da7bcc8e19cf9c563323",
+          "bytes": 577,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/scripts/audio_3.5_patch.py"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/scripts/uconsole-4g-cm4",
+          "upstream_path": "Code/scripts/uconsole-4g-cm4",
+          "git_blob_sha1": "eade142b87a5984ec416b054d88874be9c5ca676",
+          "sha256": "dcfa2ae21e0ab3621f40ea7e353b15349500a2c4ce038137eacedc33041c3113",
+          "bytes": 653,
+          "git_mode": "100755",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/scripts/uconsole-4g-cm4"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/scripts/uconsole-4g-cm5",
+          "upstream_path": "Code/scripts/uconsole-4g-cm5",
+          "git_blob_sha1": "68cd659f3d68bd6d55578d37cd08097fa62cda5f",
+          "sha256": "8e80263d6dc4ef0fdab5bf46735bed76bf07be964cb99cf5af4cdf6a8b8a36d0",
+          "bytes": 52888,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/scripts/uconsole-4g-cm5"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/README.md",
+          "upstream_path": "Code/uconsole_keyboard/README.md",
+          "git_blob_sha1": "c50e62b6e82bec0ddf3e64d8d025afdea730881a",
+          "sha256": "4124ca8541c948d5a5c4431a10023b89f780adc992fde48e005d2e30d47eec50",
+          "bytes": 2401,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/README.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/debouncer.h",
+          "upstream_path": "Code/uconsole_keyboard/debouncer.h",
+          "git_blob_sha1": "dc36f177aa43108da4a571851fdf8361c79fe57b",
+          "sha256": "1b8a2f43d25b6052a3b4170ea169667925aa068683e7c67c3f39b23cc1027724",
+          "bytes": 747,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/debouncer.h"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/debouncer.ino",
+          "upstream_path": "Code/uconsole_keyboard/debouncer.ino",
+          "git_blob_sha1": "93cd13d54649fd0d2159fe5f8a13bd91677f97de",
+          "sha256": "fb391ec67d341c5b63207fb6c90f3d46dc0c0d97eb9a6e00631f3720baab7519",
+          "bytes": 329,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/debouncer.ino"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/devterm.h",
+          "upstream_path": "Code/uconsole_keyboard/devterm.h",
+          "git_blob_sha1": "74cccaffeb78e427f6071599a2048e3f2bafc9dc",
+          "sha256": "f4f427dcec79b3b07674d61f5f3b2b3202e0631776a6fb5b436f718c94e940b3",
+          "bytes": 1275,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/devterm.h"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/glider.h",
+          "upstream_path": "Code/uconsole_keyboard/glider.h",
+          "git_blob_sha1": "f4f9785db35e06174d61cc34c43d793199286595",
+          "sha256": "0018b09b06e847f662463e9cef7857de455fc11d8ad0992719506eed8f4e89d8",
+          "bytes": 431,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/glider.h"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/glider.ino",
+          "upstream_path": "Code/uconsole_keyboard/glider.ino",
+          "git_blob_sha1": "8ecb2218d90d75196d81fbce19957dd2f8500940",
+          "sha256": "c8c5fdfc285a970d0b1e8fa09a19d0839b02839bd992026e64db74ce141df641",
+          "bytes": 1214,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/glider.ino"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/helper.h",
+          "upstream_path": "Code/uconsole_keyboard/helper.h",
+          "git_blob_sha1": "6079d10de053eb96f6abc0b6031db3a72c4be71f",
+          "sha256": "fe85558a329584606d6c1a6b1732376ea005d5fd61fc79d2edf0ea7278806edb",
+          "bytes": 151,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/helper.h"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/helper.ino",
+          "upstream_path": "Code/uconsole_keyboard/helper.ino",
+          "git_blob_sha1": "24645e20787da5a9f1ed86ff2d85a6037efff457",
+          "sha256": "0d3c38842acc74152a6b28777716a358633839276b56df328507d0e35097444d",
+          "bytes": 127,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/helper.ino"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/keyboard.h",
+          "upstream_path": "Code/uconsole_keyboard/keyboard.h",
+          "git_blob_sha1": "d59181c5392d4a4220fc4d70a5859d08bab3a959",
+          "sha256": "403920ae6dabeefd0ed3bd3b8992f8467e68e4dd34fa02a80ace7bb786eb3efb",
+          "bytes": 2067,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/keyboard.h"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/keyboard.ino",
+          "upstream_path": "Code/uconsole_keyboard/keyboard.ino",
+          "git_blob_sha1": "c735d622ad66a95e6df8aa3e582387b18c7f3826",
+          "sha256": "2c8b0410652c816432656d6d49ac6f220bc62006054243c78018c5ffd84266cc",
+          "bytes": 4529,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/keyboard.ino"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/keymaps.ino",
+          "upstream_path": "Code/uconsole_keyboard/keymaps.ino",
+          "git_blob_sha1": "269c239a802ff20fbd248ecc2e27fea0eb92e0f4",
+          "sha256": "1e49a9c5998b0e4893b4ef7890a17a75b4b3338201501a3fc25438513adf5fe1",
+          "bytes": 17775,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/keymaps.ino"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/keys.h",
+          "upstream_path": "Code/uconsole_keyboard/keys.h",
+          "git_blob_sha1": "93b537bd184d69ad30da7802525a9a4cad096c55",
+          "sha256": "62d1b53f52c317032e9069d10258bd793183cca957be2a43e0faa128e5254aa2",
+          "bytes": 346,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/keys.h"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/keys.ino",
+          "upstream_path": "Code/uconsole_keyboard/keys.ino",
+          "git_blob_sha1": "a1a80f92a44bb711d9b83afef0834c691d9ec774",
+          "sha256": "e6e441ced74d69fb9b22f595b854780ea8e8deeebdd455d120b29e31b360e195",
+          "bytes": 1846,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/keys.ino"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/keys_io_map.h",
+          "upstream_path": "Code/uconsole_keyboard/keys_io_map.h",
+          "git_blob_sha1": "a579326c7cd1f9e02cf23365f9afc8ba245b13fd",
+          "sha256": "1d7b61d9566ccb34aa33cc98be8143f3c974966f39a1b94c9f57ffb6afdc4ea1",
+          "bytes": 713,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/keys_io_map.h"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/math.h",
+          "upstream_path": "Code/uconsole_keyboard/math.h",
+          "git_blob_sha1": "8e6ccdf726a683304ddb52c269062dcb9bccb496",
+          "sha256": "2f4c3c764a6e185c77469861d0f02f7865e0c91027a3bc44cabf9245756283c2",
+          "bytes": 855,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/math.h"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/math.ino",
+          "upstream_path": "Code/uconsole_keyboard/math.ino",
+          "git_blob_sha1": "fe6f0589684b20a78cd1a9a6d315ed6e99de06fd",
+          "sha256": "a3926cd839412831e1f9f4644be39297852e9bd2fb0024bcc802328992faec05",
+          "bytes": 418,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/math.ino"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/ratemeter.h",
+          "upstream_path": "Code/uconsole_keyboard/ratemeter.h",
+          "git_blob_sha1": "451b189c25f72b0742e81dcdf591d5820e5c7668",
+          "sha256": "5a68cf2d0844b5b4b75ec70580eed98539bff938469f5274f763067a24e229d2",
+          "bytes": 727,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/ratemeter.h"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/ratemeter.ino",
+          "upstream_path": "Code/uconsole_keyboard/ratemeter.ino",
+          "git_blob_sha1": "bcc35282fa377350af09e1f1bff1ea865fa1be78",
+          "sha256": "449f0816a770a0fb462bd6d37e1289515ed034f9fe2b41befa9687c565a3c900",
+          "bytes": 850,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/ratemeter.ino"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/state.h",
+          "upstream_path": "Code/uconsole_keyboard/state.h",
+          "git_blob_sha1": "8d651738f7f9b81c54940e73b0b20d288efa770c",
+          "sha256": "cef8a5e7b279e955061d2bcadb62ab29bf639f394e44ac8d56f4a185c4a893c5",
+          "bytes": 590,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/state.h"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/state.ino",
+          "upstream_path": "Code/uconsole_keyboard/state.ino",
+          "git_blob_sha1": "b0fc33068bb6c8a15112ce6f653fd64292a6e9dd",
+          "sha256": "77caf4629cdaf48c6c9a94005325ed771915777fd9c69c5a7576bbf6f2f950f4",
+          "bytes": 777,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/state.ino"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/tickwaiter.h",
+          "upstream_path": "Code/uconsole_keyboard/tickwaiter.h",
+          "git_blob_sha1": "96980240601c7a16ec2dd040f022433aa96b8ab0",
+          "sha256": "329d94d01142c57dae34ba6e2c36a529cc70f141ee3ebbe47adb22238884240f",
+          "bytes": 553,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/tickwaiter.h"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/trackball.h",
+          "upstream_path": "Code/uconsole_keyboard/trackball.h",
+          "git_blob_sha1": "277f85b8ecfb7695939e677cb99c75e35c50d53a",
+          "sha256": "9a53f31076925a93d65c8f5944607b263d213b2d4d86a8a2fa9ab9f39d45d13a",
+          "bytes": 440,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/trackball.h"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/trackball.ino",
+          "upstream_path": "Code/uconsole_keyboard/trackball.ino",
+          "git_blob_sha1": "21fe0fc03971e5c7749fbe0c63da0acc43e96fe5",
+          "sha256": "530af024b78d1d57279a6653da60699b320e36239228cb7b5692117773652ffd",
+          "bytes": 3254,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/trackball.ino"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Code/uconsole_keyboard/uconsole_keyboard.ino",
+          "upstream_path": "Code/uconsole_keyboard/uconsole_keyboard.ino",
+          "git_blob_sha1": "f72c96b47baca7f6e4d7bf1f88fc51cb116326b8",
+          "sha256": "40008a10d5eb1f7ac029a17260118cde017bfa46c2b2d4ecffada9ce2e72f9ab",
+          "bytes": 3376,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Code/uconsole_keyboard/uconsole_keyboard.ino"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/JD9365DA-H3_DS_V0.01_20200819.pdf",
+          "upstream_path": "JD9365DA-H3_DS_V0.01_20200819.pdf",
+          "git_blob_sha1": "fbc9a74262f1e1f54b49cd5132c17ad6bbe76d21",
+          "sha256": "31fb4729dc65525cd761174a6939d9763d33870862f8195c14a3532fa95d1d8f",
+          "bytes": 4962394,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/JD9365DA-H3_DS_V0.01_20200819.pdf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/JD9365DA-H3_User_Guide_Preliminary_V0.00_20200827.pdf",
+          "upstream_path": "JD9365DA-H3_User_Guide_Preliminary_V0.00_20200827.pdf",
+          "git_blob_sha1": "2f422b26889166624e9abb8ea888deeed954dc07",
+          "sha256": "68f65a69aee15c4bff99f3bf387a362a8e7d779237f20a7f429a7c17cff66f28",
+          "bytes": 6050169,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/JD9365DA-H3_User_Guide_Preliminary_V0.00_20200827.pdf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/PCB/.gitkeep",
+          "upstream_path": "PCB/.gitkeep",
+          "git_blob_sha1": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/PCB/.gitkeep"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/PCB/CPI_3.14_Mainboard_V5_Gerber.7z",
+          "upstream_path": "PCB/CPI_3.14_Mainboard_V5_Gerber.7z",
+          "git_blob_sha1": "ae38703d3dfcde8206e0ddf4dc3c39598bdd049f",
+          "sha256": "031d72c3fc979a562890080d92315b0df3a048649a984de57ce4c0d09b97a921",
+          "bytes": 374023,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/PCB/CPI_3.14_Mainboard_V5_Gerber.7z"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/PCB/RPI CM4 to CPI v3.14 Adapter.zip",
+          "upstream_path": "PCB/RPI CM4 to CPI v3.14 Adapter.zip",
+          "git_blob_sha1": "7decea2a66365f7c1aba9e0ddbea7c5a558ec09b",
+          "sha256": "a7417021c6bc6c6212f0a2d28a30a8fa7a486da308e6fed13018bfe7347fbffb",
+          "bytes": 194493,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/PCB/RPI%20CM4%20to%20CPI%20v3.14%20Adapter.zip"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/Pictures/.gitkeep",
+          "upstream_path": "Pictures/.gitkeep",
+          "git_blob_sha1": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/Pictures/.gitkeep"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/README.md",
+          "upstream_path": "README.md",
+          "git_blob_sha1": "e8b8330d1ed980ab67f82926661db6e67e6e1322",
+          "sha256": "435e79dcfafbae4d23401bfd6f8cd7a707819e531bd05ce896be6bb4bbe334ad",
+          "bytes": 6143,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/README.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/SIM7500_SIM7600 Series_AT Command Manual_V3.00.pdf",
+          "upstream_path": "SIM7500_SIM7600 Series_AT Command Manual_V3.00.pdf",
+          "git_blob_sha1": "8c4275ac20aef269bf8ed3f94f5138f0dddf9e34",
+          "sha256": "f2e34848e95b2c0ba786ec09c06a44db0331faec20e878b34bbf96aca9ae2d7d",
+          "bytes": 20023732,
+          "git_mode": "100755",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/SIM7500_SIM7600%20Series_AT%20Command%20Manual_V3.00.pdf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_Adapter_CM4_Schematic.pdf",
+          "upstream_path": "clockwork_Adapter_CM4_Schematic.pdf",
+          "git_blob_sha1": "1914f5c8429ea405c3777f9ba67baae66add550c",
+          "sha256": "02e56a25d38eed61c69c0b843c8e2c0a9741e3246d0f7cefb15600abe1081d05",
+          "bytes": 1150192,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/clockwork_Adapter_CM4_Schematic.pdf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_DevTerm_A06_Core_for_Mainboard_V3.14_Schematic.pdf",
+          "upstream_path": "clockwork_DevTerm_A06_Core_for_Mainboard_V3.14_Schematic.pdf",
+          "git_blob_sha1": "31f019c81f70b177b969c6f1041cf9750a261b09",
+          "sha256": "d1eea940b5f000285f442f20b7bcb3cc4ce02871209fadcd3465e4d5e14c0989",
+          "bytes": 1872182,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/clockwork_DevTerm_A06_Core_for_Mainboard_V3.14_Schematic.pdf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_DevTerm_R01_Core_for_Mainboard_V3.14_Schematic.pdf",
+          "upstream_path": "clockwork_DevTerm_R01_Core_for_Mainboard_V3.14_Schematic.pdf",
+          "git_blob_sha1": "9ec703eb2c01999c9f3f0313f685106c20160260",
+          "sha256": "5bca688cbca18adea58ba29aff9945f5ac63e3e1f11177cf8279b00098e2d31c",
+          "bytes": 3993994,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/clockwork_DevTerm_R01_Core_for_Mainboard_V3.14_Schematic.pdf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_Mainboard_V3.14_Schematic.pdf",
+          "upstream_path": "clockwork_Mainboard_V3.14_Schematic.pdf",
+          "git_blob_sha1": "9953db979707c81bc46a1d7264dc2ba4f3355dd3",
+          "sha256": "3222ecaa95607e958f6e14f9bb808e7f47caa44b11204f2f9ff74d343823b256",
+          "bytes": 2055801,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/clockwork_Mainboard_V3.14_Schematic.pdf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_Mainboard_V3.14_V5_Schematic.pdf",
+          "upstream_path": "clockwork_Mainboard_V3.14_V5_Schematic.pdf",
+          "git_blob_sha1": "c1b957da774769c98f3d450bff88137a2d85ecbc",
+          "sha256": "c94f4054ac76e51502efe01486584f7426ebce57acbf786fe1f904be26880d20",
+          "bytes": 2050109,
+          "git_mode": "100755",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/clockwork_Mainboard_V3.14_V5_Schematic.pdf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_UC_4G_Schematic.pdf",
+          "upstream_path": "clockwork_UC_4G_Schematic.pdf",
+          "git_blob_sha1": "77ef7beea488eccad8de0261c4a5a4a6cd655444",
+          "sha256": "457492fbf0e884dbd5f9d948b96b1476ee6e76b8644d10c7675a8041483dcf70",
+          "bytes": 917676,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/clockwork_UC_4G_Schematic.pdf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_UC_4G_drawing.pdf",
+          "upstream_path": "clockwork_UC_4G_drawing.pdf",
+          "git_blob_sha1": "49d8c63d7fc371583896415ae9d6196dd7c1022d",
+          "sha256": "1e8d0a03285c29132b892e9dfc3025046b4413e694045e6cedf657ccffe236f5",
+          "bytes": 302285,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/clockwork_UC_4G_drawing.pdf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/keyboard_220816.pdf",
+          "upstream_path": "keyboard_220816.pdf",
+          "git_blob_sha1": "45933426174fc9d8fa7a2de6c8d3f6ed328264c2",
+          "sha256": "6869deed40a635360ecf37aa1ac4359168b19c7e578f4d1b21be2bcc6919c205",
+          "bytes": 208917,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/keyboard_220816.pdf"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/wiki/Compile-retroarch-for-cm4.md",
+          "upstream_path": "wiki/Compile-retroarch-for-cm4.md",
+          "git_blob_sha1": "a2519e451887fcc33ef45205f077bfce58272a34",
+          "sha256": "b1062680ee6b2cc37729ed23eea9d7b011c11170efaf9b2e929255c74dd9ad09",
+          "bytes": 2449,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/wiki/Compile-retroarch-for-cm4.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/wiki/Home.md",
+          "upstream_path": "wiki/Home.md",
+          "git_blob_sha1": "3dda530e025d5dcb8be781a0b05ec022ec5cfaff",
+          "sha256": "34daa9bcf4416590cc13d8d6418ccd3b434c33576cd59fcb661b7b8484e6cb77",
+          "bytes": 3269,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/wiki/Home.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/wiki/How-to-downgrade-4G-extension-firmware.md",
+          "upstream_path": "wiki/How-to-downgrade-4G-extension-firmware.md",
+          "git_blob_sha1": "99cf716363bfa74e3440179ef26d2db67f7ad272",
+          "sha256": "6b0ad77e25a587f26748fa370f16866525e428f5d2a4f6028d492350c999df03",
+          "bytes": 5070,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/wiki/How-to-downgrade-4G-extension-firmware.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/wiki/How-to-make-phone-call---send-sms-with-4G-extension.md",
+          "upstream_path": "wiki/How-to-make-phone-call---send-sms-with-4G-extension.md",
+          "git_blob_sha1": "063e8d3fc94743b5a8f05a7dd6e7320d0d6f529e",
+          "sha256": "50a02821835ca995326e6ab50886473859a50893e1f0e4a82e88078ab3ac3cc6",
+          "bytes": 1841,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/wiki/How-to-make-phone-call---send-sms-with-4G-extension.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/wiki/How-to-upgrade-4G-extension-firmware.md",
+          "upstream_path": "wiki/How-to-upgrade-4G-extension-firmware.md",
+          "git_blob_sha1": "f88581874a23617921d92eab0822e65ba0967749",
+          "sha256": "ebbeabc74da7bc13957dda3b5d7e59da02e3f9da31d0beb7db5f5f626fdc371f",
+          "bytes": 7664,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/wiki/How-to-upgrade-4G-extension-firmware.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/wiki/How-to-use-keyboard-UART-port-to-flash-firmware.md",
+          "upstream_path": "wiki/How-to-use-keyboard-UART-port-to-flash-firmware.md",
+          "git_blob_sha1": "5a30fe7b28d0e21d32a2167321b225eba0323084",
+          "sha256": "814373e5b31d9e045a9ea3efc8c0746331ec12b96cb74f4d1856b8fa9e46e73b",
+          "bytes": 1596,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/wiki/How-to-use-keyboard-UART-port-to-flash-firmware.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/wiki/How-to-use-the-4G-extension.md",
+          "upstream_path": "wiki/How-to-use-the-4G-extension.md",
+          "git_blob_sha1": "bb0babc005cdcc262aff9d6bf8b89ce64ffe08b6",
+          "sha256": "15496c00b54b3319fa121253b33083f9c951bde226a574cf4cd7f0d0db79e59d",
+          "bytes": 8413,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/wiki/How-to-use-the-4G-extension.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/wiki/How-uConsole-A06-OS-image-made.md",
+          "upstream_path": "wiki/How-uConsole-A06-OS-image-made.md",
+          "git_blob_sha1": "4a660cc80729dda5814ceece8512049753da5cf6",
+          "sha256": "2186374da5ae41c447b7800d17ecbf8483ae5fd3d4592cbf068c838c16233e60",
+          "bytes": 3086,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/wiki/How-uConsole-A06-OS-image-made.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/wiki/How-uConsole-CM4-OS-image-made.md",
+          "upstream_path": "wiki/How-uConsole-CM4-OS-image-made.md",
+          "git_blob_sha1": "fd145c7c3a0f9bbaddb62ed9852cad10e82e001e",
+          "sha256": "ecf44192b07b05a403af2cb3b445d728385cc54be91400b0a806524ceac89e31",
+          "bytes": 1755,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/wiki/How-uConsole-CM4-OS-image-made.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/wiki/Kali-linux-image-for-uConsole-cm4.md",
+          "upstream_path": "wiki/Kali-linux-image-for-uConsole-cm4.md",
+          "git_blob_sha1": "810942c7d5727adfb699c03ea661a0bc3712ddfc",
+          "sha256": "6655fb4e4f82944eaf342ee7b83bd5acfbc4e5bca27f9bb5137141f4be85e007",
+          "bytes": 2573,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/wiki/Kali-linux-image-for-uConsole-cm4.md"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole/wiki/Simple-uConsole-keyboard-flashing-tool.md",
+          "upstream_path": "wiki/Simple-uConsole-keyboard-flashing-tool.md",
+          "git_blob_sha1": "50bafdd0fa9ffd18791e20bda37a47eac8850b54",
+          "sha256": "4f1be47f6c36ccf3f271451df62ef04734740fcea9bbe26b90b82816d0dbff17",
+          "bytes": 1455,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/blob/53a05efca806ca024aab4fbfd28a680688c2541c/wiki/Simple-uConsole-keyboard-flashing-tool.md"
+        }
+      ]
+    },
+    {
+      "repository_url": "https://github.com/clockworkpi/uConsole.wiki.git",
+      "commit": "0d37b8f938023d09b29ac6f3495361b8e36e09ab",
+      "committed_at": "2026-05-21T07:17:20Z",
+      "scope": "all tracked files; Git history excluded",
+      "file_count": 11,
+      "artifacts": [
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole-wiki/Compile-retroarch-for-cm4.md",
+          "upstream_path": "Compile-retroarch-for-cm4.md",
+          "git_blob_sha1": "a2519e451887fcc33ef45205f077bfce58272a34",
+          "sha256": "b1062680ee6b2cc37729ed23eea9d7b011c11170efaf9b2e929255c74dd9ad09",
+          "bytes": 2449,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/wiki/Compile-retroarch-for-cm4"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole-wiki/Home.md",
+          "upstream_path": "Home.md",
+          "git_blob_sha1": "3dda530e025d5dcb8be781a0b05ec022ec5cfaff",
+          "sha256": "34daa9bcf4416590cc13d8d6418ccd3b434c33576cd59fcb661b7b8484e6cb77",
+          "bytes": 3269,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/wiki/Home"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole-wiki/How-to-downgrade-4G-extension-firmware.md",
+          "upstream_path": "How-to-downgrade-4G-extension-firmware.md",
+          "git_blob_sha1": "99cf716363bfa74e3440179ef26d2db67f7ad272",
+          "sha256": "6b0ad77e25a587f26748fa370f16866525e428f5d2a4f6028d492350c999df03",
+          "bytes": 5070,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/wiki/How-to-downgrade-4G-extension-firmware"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole-wiki/How-to-make-phone-call---send-sms-with-4G-extension.md",
+          "upstream_path": "How-to-make-phone-call---send-sms-with-4G-extension.md",
+          "git_blob_sha1": "063e8d3fc94743b5a8f05a7dd6e7320d0d6f529e",
+          "sha256": "50a02821835ca995326e6ab50886473859a50893e1f0e4a82e88078ab3ac3cc6",
+          "bytes": 1841,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/wiki/How-to-make-phone-call---send-sms-with-4G-extension"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole-wiki/How-to-upgrade-4G-extension-firmware.md",
+          "upstream_path": "How-to-upgrade-4G-extension-firmware.md",
+          "git_blob_sha1": "f88581874a23617921d92eab0822e65ba0967749",
+          "sha256": "ebbeabc74da7bc13957dda3b5d7e59da02e3f9da31d0beb7db5f5f626fdc371f",
+          "bytes": 7664,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/wiki/How-to-upgrade-4G-extension-firmware"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole-wiki/How-to-use-keyboard-UART-port-to-flash-firmware.md",
+          "upstream_path": "How-to-use-keyboard-UART-port-to-flash-firmware.md",
+          "git_blob_sha1": "5a30fe7b28d0e21d32a2167321b225eba0323084",
+          "sha256": "814373e5b31d9e045a9ea3efc8c0746331ec12b96cb74f4d1856b8fa9e46e73b",
+          "bytes": 1596,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/wiki/How-to-use-keyboard-UART-port-to-flash-firmware"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole-wiki/How-to-use-the-4G-extension.md",
+          "upstream_path": "How-to-use-the-4G-extension.md",
+          "git_blob_sha1": "bb0babc005cdcc262aff9d6bf8b89ce64ffe08b6",
+          "sha256": "15496c00b54b3319fa121253b33083f9c951bde226a574cf4cd7f0d0db79e59d",
+          "bytes": 8413,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/wiki/How-to-use-the-4G-extension"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole-wiki/How-uConsole-A06-OS-image-made.md",
+          "upstream_path": "How-uConsole-A06-OS-image-made.md",
+          "git_blob_sha1": "4a660cc80729dda5814ceece8512049753da5cf6",
+          "sha256": "2186374da5ae41c447b7800d17ecbf8483ae5fd3d4592cbf068c838c16233e60",
+          "bytes": 3086,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/wiki/How-uConsole-A06-OS-image-made"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole-wiki/How-uConsole-CM4-OS-image-made.md",
+          "upstream_path": "How-uConsole-CM4-OS-image-made.md",
+          "git_blob_sha1": "fd145c7c3a0f9bbaddb62ed9852cad10e82e001e",
+          "sha256": "ecf44192b07b05a403af2cb3b445d728385cc54be91400b0a806524ceac89e31",
+          "bytes": 1755,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/wiki/How-uConsole-CM4-OS-image-made"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole-wiki/Kali-linux-image-for-uConsole-cm4.md",
+          "upstream_path": "Kali-linux-image-for-uConsole-cm4.md",
+          "git_blob_sha1": "810942c7d5727adfb699c03ea661a0bc3712ddfc",
+          "sha256": "6655fb4e4f82944eaf342ee7b83bd5acfbc4e5bca27f9bb5137141f4be85e007",
+          "bytes": 2573,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/wiki/Kali-linux-image-for-uConsole-cm4"
+        },
+        {
+          "local_path": "references/uconsole/clockworkpi-uConsole-wiki/Simple-uConsole-keyboard-flashing-tool.md",
+          "upstream_path": "Simple-uConsole-keyboard-flashing-tool.md",
+          "git_blob_sha1": "50bafdd0fa9ffd18791e20bda37a47eac8850b54",
+          "sha256": "4f1be47f6c36ccf3f271451df62ef04734740fcea9bbe26b90b82816d0dbff17",
+          "bytes": 1455,
+          "git_mode": "100644",
+          "source_url": "https://github.com/clockworkpi/uConsole/wiki/Simple-uConsole-keyboard-flashing-tool"
+        }
+      ]
+    },
+    {
+      "repository_url": "https://github.com/57Bravo/uConsole_3D_Models",
+      "commit": "2805e4a165814c9dbefaf93b5fd534947860cf6b",
+      "scope": "CAD files, README and model previews only; coarse models, not tight-tolerance production CAD",
+      "artifacts": [
+        {
+          "local_path": "references/uconsole/community-3d-models/README.md",
+          "upstream_path": "README.md",
+          "bytes": 950,
+          "sha256": "34650fa5e0f98aab265124ef83d3b6b9de48005315600c23e2f89afa49e3d644",
+          "git_blob_sha1": "5d5954e00a533fb94792d6136aa18f13bdb070f7"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/cad/.gitignore",
+          "upstream_path": "cad/.gitignore",
+          "bytes": 3,
+          "sha256": "f60e5de9b7a97c9777836df0243015e079643c724869b5e49769a732f297b30d",
+          "git_blob_sha1": "49513e3e9ea9c1f4023c797a4ab84e91930ddb8d"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/cad/assembly.FCStd",
+          "upstream_path": "cad/assembly.FCStd",
+          "bytes": 1276200,
+          "sha256": "e73a5b541b4a8f91b69c08ba4e7b351829485110db390f190f3f09f731d954dc",
+          "git_blob_sha1": "fe0247c3c7c6ee86bd6b51ffd02718fe0817a88f"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/cad/button.FCStd",
+          "upstream_path": "cad/button.FCStd",
+          "bytes": 15233,
+          "sha256": "e16aa2a1fa6d80bb876c26416d86206ad82a898cd8d01543d2b2becee1845f5d",
+          "git_blob_sha1": "e3ff776878e2850b96f46c2f0674f928be13495a"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/cad/enclosure_body.FCStd",
+          "upstream_path": "cad/enclosure_body.FCStd",
+          "bytes": 33180572,
+          "sha256": "04093db0a7d63102ae0777d3051fdd439cff99fcdda8e09f6eed0b997407a953",
+          "git_blob_sha1": "45cc43dffd3f69e5bf04ffd8272a7a2c9618b40e"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/cad/enclosure_bottom.FCStd",
+          "upstream_path": "cad/enclosure_bottom.FCStd",
+          "bytes": 48763,
+          "sha256": "ca3fdfd330b8f27e030c1ce01462cfc531fd099b1bbc72ae28d460abdff87ef3",
+          "git_blob_sha1": "2b05eaadb231116303fb755ae562a34cb61c4e93"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/cad/enclosure_top.FCStd",
+          "upstream_path": "cad/enclosure_top.FCStd",
+          "bytes": 218182,
+          "sha256": "d6098953770d229ec60ada298b5a7ab7250691ba8de54011579b260fc95d273f",
+          "git_blob_sha1": "d32c15c31a4231ee00101a9250121c1c60ecc74f"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/cad/expansion_plate.FCStd",
+          "upstream_path": "cad/expansion_plate.FCStd",
+          "bytes": 4431,
+          "sha256": "ad67aa0b3ccb8aacb48ff6354e96585c1af0bc0dbdbc89d2d52e9f8cccdaa997",
+          "git_blob_sha1": "45ad5089b542a390d9bf1455137c1e05ba665f61"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/cad/keypad.FCStd",
+          "upstream_path": "cad/keypad.FCStd",
+          "bytes": 11063130,
+          "sha256": "8c265775b6d53746a3ea18e9badda6897acc31e0d10a52002f85dc6a104cc3dd",
+          "git_blob_sha1": "642ceafe7aa7bff6872d336539159b076400d5d0"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/cad/kickstand.FCStd",
+          "upstream_path": "cad/kickstand.FCStd",
+          "bytes": 53894,
+          "sha256": "f70bedbdfe22334617d8f42572420a9013575c70396b8cfeee217acdb2234c3c",
+          "git_blob_sha1": "a0c36ad325c7ff54f7df348d021a02b671fb6df8"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/cad/trackball.FCStd",
+          "upstream_path": "cad/trackball.FCStd",
+          "bytes": 6692,
+          "sha256": "99a6625e8db15e464db9a57819d80c920a4d94d039c319df9f5bf89ea9e769f0",
+          "git_blob_sha1": "6906e993cdb23d3de4f4db4521f9be40ec57704d"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/media/models/assembly.gif",
+          "upstream_path": "media/models/assembly.gif",
+          "bytes": 1830614,
+          "sha256": "f2556eda7775887cda51b2935a034b5b09e4a331384271fc60f79465a13112ac",
+          "git_blob_sha1": "2e4e96adfd891e9f7a4714177101b7ac32d2ff24"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/media/models/enc_body.gif",
+          "upstream_path": "media/models/enc_body.gif",
+          "bytes": 4757334,
+          "sha256": "4f90da8acf4c85bfcb84e3d56f0d27a398d2a45e5c30394ef8ff802c54e89282",
+          "git_blob_sha1": "9153d655001784837767ca5c667312aef4abfaa6"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/media/models/enc_bottom.gif",
+          "upstream_path": "media/models/enc_bottom.gif",
+          "bytes": 915383,
+          "sha256": "3e3f730ae179260594632540fc0e58ccb79e66ad82710e2c1cd50aae201c7851",
+          "git_blob_sha1": "0b13012994a53099264640e8245e69e9f4aec454"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/media/models/enc_top.gif",
+          "upstream_path": "media/models/enc_top.gif",
+          "bytes": 911696,
+          "sha256": "18359d6f0697b764ccedb4cda8475f8d9c93d04e1a79466530a56e62739dc296",
+          "git_blob_sha1": "3e4c4e28d191f60d311de76d5bdeda1fa33f7c54"
+        },
+        {
+          "local_path": "references/uconsole/community-3d-models/media/models/keypad.gif",
+          "upstream_path": "media/models/keypad.gif",
+          "bytes": 3916114,
+          "sha256": "bf676db0d6af0b9401cefd7bf302de2161854eb1fe8b49bd22d9b32207ecdcb3",
+          "git_blob_sha1": "75eaade7ae23bb627d4462698a9266cef40a8820"
+        }
+      ],
+      "excluded_paths": [
+        "media/device/backlight_diff_front.png",
+        "media/device/backlight_diff_rear.png",
+        "media/device/battery_holder_front.png",
+        "media/device/battery_holder_rear.png",
+        "media/device/diff_kybd_stack.png",
+        "media/device/display_front.png",
+        "media/device/display_rear.png",
+        "media/device/enc_body_a.png",
+        "media/device/enc_body_b.png",
+        "media/device/enc_bottom_a.png",
+        "media/device/enc_bottom_b.png",
+        "media/device/enc_top_a.png",
+        "media/device/enc_top_b.png",
+        "media/device/expansion_blank_front.png",
+        "media/device/expansion_blank_rear.png",
+        "media/device/keyboard_front.png",
+        "media/device/keyboard_rear.png",
+        "media/device/keypad_front.png",
+        "media/device/keypad_rear.png",
+        "media/device/kick_stand_a.png",
+        "media/device/kick_stand_b.png",
+        "media/device/proc_carrier_front.png",
+        "media/device/proc_carrier_rear.png"
+      ]
+    },
+    {
+      "repository_url": "https://github.com/clockworkpi/DevTerm",
+      "commit": "32558daddd09fd019c2d4f69159991f9c4f7e549",
+      "scope": "Shared R01 SoC datasheet only",
+      "artifacts": [
+        {
+          "local_path": "references/uconsole/components/Allwinner-D1-Datasheet-V0.1.pdf",
+          "upstream_path": "D1_Datasheet_V0.1_Draft_Version.pdf",
+          "git_blob_sha1": "769a5e345cbc6402c54dae269c8923c028270ca0",
+          "sha256": "d4c2bd99a906d01eb370b0f99a3740c3803ce6c54e3225dc4207ae57fc4178fb",
+          "bytes": 6609317
+        }
+      ]
+    }
+  ],
+  "individual_download_manifest": "references/uconsole/downloads.json",
+  "individual_downloads_verified": 53,
+  "pdf_index": "references/uconsole/pdf-index.json",
+  "offline_reading_pages": [
+    "references/uconsole/wiki-offline/Compile-retroarch-for-cm4.md",
+    "references/uconsole/wiki-offline/Home.md",
+    "references/uconsole/wiki-offline/How-to-downgrade-4G-extension-firmware.md",
+    "references/uconsole/wiki-offline/How-to-make-phone-call---send-sms-with-4G-extension.md",
+    "references/uconsole/wiki-offline/How-to-upgrade-4G-extension-firmware.md",
+    "references/uconsole/wiki-offline/How-to-use-keyboard-UART-port-to-flash-firmware.md",
+    "references/uconsole/wiki-offline/How-to-use-the-4G-extension.md",
+    "references/uconsole/wiki-offline/How-uConsole-A06-OS-image-made.md",
+    "references/uconsole/wiki-offline/How-uConsole-CM4-OS-image-made.md",
+    "references/uconsole/wiki-offline/Kali-linux-image-for-uConsole-cm4.md",
+    "references/uconsole/wiki-offline/Simple-uConsole-keyboard-flashing-tool.md",
+    "references/uconsole/wiki-offline/clockworkpi-uconsole.md"
+  ],
+  "source_gaps": [
+    {
+      "local_path": "wiki-offline/assets/49366a8f5f8a7614.png",
+      "url": "https://github.com/user-attachments/assets/66a0028a-b6c1-4af2-92e7-91c6179fe272",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 8007 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 8001 ms: Timeout was reached\n"
+    },
+    {
+      "local_path": "wiki-offline/assets/fa88beff8abde7a8.png",
+      "url": "https://github.com/user-attachments/assets/06d88726-af96-4573-ba60-74b870bb07cf",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 8007 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 8005 ms: Timeout was reached\n"
+    },
+    {
+      "local_path": "wiki-offline/assets/370670aa502460d4.png",
+      "url": "https://github.com/user-attachments/assets/eeed0c0a-ea86-4496-b931-dcc074835eca",
+      "error": "curl: (28) Failed to connect to github.com port 443 after 8006 ms: Timeout was reached\ncurl: (28) Failed to connect to github.com port 443 after 8007 ms: Timeout was reached\n"
+    },
+    {
+      "url": "https://dl.friendlyelec.com/nanopim1plus/AXP228%20Datasheet%20v1.2%2020121130.pdf",
+      "local_path": "components/AXP228-Datasheet-v1.2-20121130.pdf",
+      "error": "curl: (56) The requested URL returned error: 403"
+    },
+    {
+      "url": "https://opensource.rock-chips.com/images/e/ee/Rockchip_RK3399_Datasheet_V2.1-20200323.pdf",
+      "local_path": "components/Rockchip-RK3399-Datasheet-V2.1.pdf",
+      "error": "curl: (22) The requested URL returned error: 404"
+    }
+  ],
+  "unavailable_revisions": [
+    {
+      "component": "GD32F103xx",
+      "requested_revision": "3.3",
+      "reason": "Manufacturer search-result URLs returned 404; historical rev 2.2 and GD32F10x user manual rev 2.6 were archived instead"
+    }
+  ],
+  "excluded_scope": [
+    "Multi-gigabyte OS image bodies",
+    "Official store OBJ/STEP files requiring checkout",
+    "Complete Linux kernel history and source",
+    "Community high-resolution device-photo directory"
+  ],
+  "notes": [
+    "No downloaded scripts, tools or firmware were executed.",
+    "Original upstream licenses and file names retained.",
+    "Author authenticity, manufacturing tolerances and real-device compatibility are untested."
+  ]
+}

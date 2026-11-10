@@ -1,0 +1,214 @@
+{
+  "generated_at": "2026-11-05T23:21:01.700916+08:00",
+  "pdf_count": 23,
+  "total_pages": 2339,
+  "documents": [
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/Clockwork_uConsole_Assembly_Guidelines.pdf",
+      "pages": 34,
+      "bytes": 12454557,
+      "sha256": "85a521e012d113d342e20a6986c6efb1f9800c114970673a5ddaf8a093939dea",
+      "title": "UC说明书",
+      "text_path": "references/uconsole/pdf-text/clockworkpi-uConsole/Clockwork_uConsole_Assembly_Guidelines.txt",
+      "text_characters": 5890
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/JD9365DA-H3_DS_V0.01_20200819.pdf",
+      "pages": 204,
+      "bytes": 4962394,
+      "sha256": "31fb4729dc65525cd761174a6939d9763d33870862f8195c14a3532fa95d1d8f",
+      "title": "JD9365DA-H3",
+      "text_path": "references/uconsole/pdf-text/clockworkpi-uConsole/JD9365DA-H3_DS_V0.01_20200819.txt",
+      "text_characters": 305625
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/JD9365DA-H3_User_Guide_Preliminary_V0.00_20200827.pdf",
+      "pages": 177,
+      "bytes": 6050169,
+      "sha256": "68f65a69aee15c4bff99f3bf387a362a8e7d779237f20a7f429a7c17cff66f28",
+      "title": "JD9365DA-H3",
+      "text_path": "references/uconsole/pdf-text/clockworkpi-uConsole/JD9365DA-H3_User_Guide_Preliminary_V0.00_20200827.txt",
+      "text_characters": 191371
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/SIM7500_SIM7600 Series_AT Command Manual_V3.00.pdf",
+      "pages": 511,
+      "bytes": 20023732,
+      "sha256": "f2e34848e95b2c0ba786ec09c06a44db0331faec20e878b34bbf96aca9ae2d7d",
+      "title": "",
+      "text_path": "references/uconsole/pdf-text/clockworkpi-uConsole/SIM7500_SIM7600 Series_AT Command Manual_V3.00.txt",
+      "text_characters": 667311
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_Adapter_CM4_Schematic.pdf",
+      "pages": 1,
+      "bytes": 1150192,
+      "sha256": "02e56a25d38eed61c69c0b843c8e2c0a9741e3246d0f7cefb15600abe1081d05",
+      "title": "cm423.opj",
+      "text_path": "references/uconsole/pdf-text/clockworkpi-uConsole/clockwork_Adapter_CM4_Schematic.txt",
+      "text_characters": 6057
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_DevTerm_A06_Core_for_Mainboard_V3.14_Schematic.pdf",
+      "pages": 16,
+      "bytes": 1872182,
+      "sha256": "d1eea940b5f000285f442f20b7bcb3cc4ce02871209fadcd3465e4d5e14c0989",
+      "title": "cpi314_rk3399 core_v20（release",
+      "text_path": "references/uconsole/pdf-text/clockworkpi-uConsole/clockwork_DevTerm_A06_Core_for_Mainboard_V3.14_Schematic.txt",
+      "text_characters": 67030
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_DevTerm_R01_Core_for_Mainboard_V3.14_Schematic.pdf",
+      "pages": 7,
+      "bytes": 3993994,
+      "sha256": "5bca688cbca18adea58ba29aff9945f5ac63e3e1f11177cf8279b00098e2d31c",
+      "title": "R01 core for CPI_3.14_V2",
+      "text_path": "references/uconsole/pdf-text/clockworkpi-uConsole/clockwork_DevTerm_R01_Core_for_Mainboard_V3.14_Schematic.txt",
+      "text_characters": 25902
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_Mainboard_V3.14_Schematic.pdf",
+      "pages": 1,
+      "bytes": 2055801,
+      "sha256": "3222ecaa95607e958f6e14f9bb808e7f47caa44b11204f2f9ff74d343823b256",
+      "title": "cmio.opj",
+      "text_path": "references/uconsole/pdf-text/clockworkpi-uConsole/clockwork_Mainboard_V3.14_Schematic.txt",
+      "text_characters": 11142
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_Mainboard_V3.14_V5_Schematic.pdf",
+      "pages": 1,
+      "bytes": 2050109,
+      "sha256": "c94f4054ac76e51502efe01486584f7426ebce57acbf786fe1f904be26880d20",
+      "title": "cmio.opj",
+      "text_path": "references/uconsole/pdf-text/clockworkpi-uConsole/clockwork_Mainboard_V3.14_V5_Schematic.txt",
+      "text_characters": 11209
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_UC_4G_Schematic.pdf",
+      "pages": 1,
+      "bytes": 917676,
+      "sha256": "457492fbf0e884dbd5f9d948b96b1476ee6e76b8644d10c7675a8041483dcf70",
+      "title": "expansion",
+      "text_path": "references/uconsole/pdf-text/clockworkpi-uConsole/clockwork_UC_4G_Schematic.txt",
+      "text_characters": 4451
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/clockwork_UC_4G_drawing.pdf",
+      "pages": 2,
+      "bytes": 302285,
+      "sha256": "1e8d0a03285c29132b892e9dfc3025046b4413e694045e6cedf657ccffe236f5",
+      "title": "Print",
+      "text_path": "references/uconsole/pdf-text/clockworkpi-uConsole/clockwork_UC_4G_drawing.txt",
+      "text_characters": 0
+    },
+    {
+      "local_path": "references/uconsole/clockworkpi-uConsole/keyboard_220816.pdf",
+      "pages": 2,
+      "bytes": 208917,
+      "sha256": "6869deed40a635360ecf37aa1ac4359168b19c7e578f4d1b21be2bcc6919c205",
+      "title": "keyboard.opj",
+      "text_path": "references/uconsole/pdf-text/clockworkpi-uConsole/keyboard_220816.txt",
+      "text_characters": 3912
+    },
+    {
+      "local_path": "references/uconsole/components/Allwinner-D1-Datasheet-V0.1.pdf",
+      "pages": 106,
+      "bytes": 6609317,
+      "sha256": "d4c2bd99a906d01eb370b0f99a3740c3803ce6c54e3225dc4207ae57fc4178fb",
+      "title": " ",
+      "text_path": "references/uconsole/pdf-text/components/Allwinner-D1-Datasheet-V0.1.txt",
+      "text_characters": 182600
+    },
+    {
+      "local_path": "references/uconsole/components/GD32F103xx-Datasheet-Rev2.2.pdf",
+      "pages": 48,
+      "bytes": 833555,
+      "sha256": "22f90a1c9fa652747c95d74973b8cd46e1a8231c9bbeab3c2627e1cc1c509049",
+      "title": "",
+      "text_path": "references/uconsole/pdf-text/components/GD32F103xx-Datasheet-Rev2.2.txt",
+      "text_characters": 74662
+    },
+    {
+      "local_path": "references/uconsole/components/GD32F10x-User-Manual-Rev2.6.pdf",
+      "pages": 853,
+      "bytes": 12044128,
+      "sha256": "d2207f3e08006e86ae1d30476fd690e667fd70fc86b4e72290edac6661081788",
+      "title": "",
+      "text_path": "references/uconsole/pdf-text/components/GD32F10x-User-Manual-Rev2.6.txt",
+      "text_characters": 1520732
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/bcm2711-peripherals.pdf",
+      "pages": 166,
+      "bytes": 1329416,
+      "sha256": "d6e16ea089a1716e80621f99a26e130a2379f0a81d945dc22e4f80dc49dcdc78",
+      "title": "BCM2711 ARM Peripherals",
+      "text_path": "references/uconsole/pdf-text/raspberry-pi/bcm2711-peripherals.txt",
+      "text_characters": 342152
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/cm4-datasheet.pdf",
+      "pages": 30,
+      "bytes": 11057926,
+      "sha256": "d6946f8bb3e0276defa95b99b9d402a01a4805d3de02d53f835e93044ea7af97",
+      "title": "Raspberry Pi Compute Module 4",
+      "text_path": "references/uconsole/pdf-text/raspberry-pi/cm4-datasheet.txt",
+      "text_characters": 63268
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/cm4-product-brief.pdf",
+      "pages": 8,
+      "bytes": 774036,
+      "sha256": "0e9ffaf11c3bd67dc3f63d84b4dfccaa3557a9a71327f179f0c3e0b1be778db7",
+      "title": "Raspberry Pi Compute Module 4",
+      "text_path": "references/uconsole/pdf-text/raspberry-pi/cm4-product-brief.txt",
+      "text_characters": 6336
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/cm4io-datasheet.pdf",
+      "pages": 15,
+      "bytes": 10591801,
+      "sha256": "5e89840aba4011f416513ba59f6ca671dae3b342b9e07641bcfe215177f03969",
+      "title": "Raspberry Pi Compute Module 4 IO Board",
+      "text_path": "references/uconsole/pdf-text/raspberry-pi/cm4io-datasheet.txt",
+      "text_characters": 31680
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/cm5-datasheet.pdf",
+      "pages": 38,
+      "bytes": 7705648,
+      "sha256": "80070fefd8db6e8abc6e146c8b7b5fb318ba129cc1e28826936d547fde79c863",
+      "title": "Raspberry Pi Compute Module 5",
+      "text_path": "references/uconsole/pdf-text/raspberry-pi/cm5-datasheet.txt",
+      "text_characters": 94517
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/cm5-product-brief.pdf",
+      "pages": 8,
+      "bytes": 436540,
+      "sha256": "374739799ed484b0483f5bd37ef6002e69d9e2779f225c941a5e66691ff10f75",
+      "title": "Raspberry Pi Compute Module 5",
+      "text_path": "references/uconsole/pdf-text/raspberry-pi/cm5-product-brief.txt",
+      "text_characters": 5648
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/cm5io-datasheet.pdf",
+      "pages": 17,
+      "bytes": 5749036,
+      "sha256": "4fd7f9edea384ccec4710943a886c5cd922dcdcd3b17f519325d3c70933f8f8e",
+      "title": "Raspberry Pi Compute Module 5 IO Board",
+      "text_path": "references/uconsole/pdf-text/raspberry-pi/cm5io-datasheet.txt",
+      "text_characters": 28902
+    },
+    {
+      "local_path": "references/uconsole/raspberry-pi/rp1-peripherals.pdf",
+      "pages": 93,
+      "bytes": 3513008,
+      "sha256": "87fb7b24e8d9add075b849d095a107827610c0409ea194785af624c1ea986c3d",
+      "title": "Raspberry Pi RP1 Peripherals",
+      "text_path": "references/uconsole/pdf-text/raspberry-pi/rp1-peripherals.txt",
+      "text_characters": 135919
+    }
+  ]
+}

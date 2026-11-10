@@ -1,0 +1,457 @@
+Source: raspberry-pi/cm5io-datasheet.pdf
+Pages: 17
+Text extraction only; consult the original PDF for diagrams and tables.
+
+
+--- Page 1 ---
+
+Raspberry Pi | Raspberry Pi Compute Module 5 IO Board
+Datasheet
+Raspberry Pi 
+Compute Module 5 IO 
+Board
+An application board for Raspberry Pi 
+Compute Module 5.
+Raspberry Pi Ltd
+
+
+--- Page 2 ---
+
+Raspberry Pi Compute Module 5 IO Board
+Colophon
+©︎ 2022-2026 Raspberry Pi Ltd
+This documentation is licensed under a Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND).
+Release
+3
+Build date
+11/09/2026
+Build version
+db156e65241e
+Legal disclaimer notice
+TECHNICAL AND RELIABILITY DATA FOR RASPBERRY PI PRODUCTS (INCLUDING DATASHEETS) AS MODIFIED FROM TIME TO 
+TIME (“RESOURCES”) ARE PROVIDED BY RASPBERRY PI LTD (“RPL”) “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+PURPOSE ARE DISCLAIMED. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW IN NO EVENT SHALL RPL BE LIABLE 
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED 
+TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE RESOURCES, EVEN IF ADVISED OF THE POSSIBILITY 
+OF SUCH DAMAGE.
+RPL reserves the right to make any enhancements, improvements, corrections or any other modifications to the RESOURCES or 
+any products described in them at any time and without further notice.
+The RESOURCES are intended for skilled users with suitable levels of design knowledge. Users are solely responsible for their 
+selection and use of the RESOURCES and any application of the products described in them. User agrees to indemnify and hold 
+RPL harmless against all liabilities, costs, damages or other losses arising out of their use of the RESOURCES.
+RPL grants users permission to use the RESOURCES solely in conjunction with the Raspberry Pi products. All other use of the 
+RESOURCES is prohibited. No licence is granted to any other RPL or other third party intellectual property right.
+HIGH RISK ACTIVITIES. Raspberry Pi products are not designed, manufactured or intended for use in hazardous environments 
+requiring fail safe performance, such as in the operation of nuclear facilities, aircraft navigation or communication systems, air 
+traffic control, weapons systems or safety-critical applications (including life support systems and other medical devices), in which 
+the failure of the products could lead directly to death, personal injury or severe physical or environmental damage (“High Risk 
+Activities”). RPL specifically disclaims any express or implied warranty of fitness for High Risk Activities and accepts no liability 
+for use or inclusions of Raspberry Pi products in High Risk Activities.
+Raspberry Pi products are provided subject to RPL’s Standard Terms. RPL’s provision of the RESOURCES does not expand or 
+otherwise modify RPL’s Standard Terms including but not limited to the disclaimers and warranties expressed in them.
+Colophon
+1
+
+
+--- Page 3 ---
+
+Raspberry Pi Compute Module 5 IO Board
+Table of Contents
+1. Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠3
+1.1. Applications . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠3
+1.2. Connection to CM5 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠3
+1.3. Features . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠4
+2. Power management and status indicators . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠5
+2.1. Power supply unit (PSU) input . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠5
+2.2. Power button behaviour . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠5
+2.3. Power distribution and current limits . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠5
+2.4. Real time clock (RTC) battery . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠5
+2.5. LEDs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠5
+3. Connectors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠6
+3.1. HDMI 2.0 connectors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠6
+3.2. MIPI connectors (DSI/CSI-2) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠6
+3.3. Ethernet (RJ45) connector . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠6
+3.4. USB 3.0 (Type-A) and USB 2.0 (Type-C) connectors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠6
+3.5. Fan connector . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠6
+4. Expansion and storage . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠7
+4.1. M.2 M key connector . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠7
+4.2. Raspberry Pi HAT connector . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠7
+4.3. microSD card connector (CM5Lite only) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠7
+5. Configuration options . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠8
+5.1. J2 jumpers (boot and EEPROM overrides) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠8
+5.2. J3 jumpers (Wi‍-‍Fi and Bluetooth disable) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠8
+5.3. J6 jumpers (CSI/DSI) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠8
+5.4. R4/R5 Vref voltage selection . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠9
+6. Specifications . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠10
+6.1. Mechanical layout . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠10
+6.2. Mean time between failure (MTBF) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠10
+Appendix A. Circuit diagrams . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠11
+Appendix B. Documentation history . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠15
+Table of Contents
+2
+
+
+--- Page 4 ---
+
+Raspberry Pi Compute Module 5 IO Board
+1. Introduction
+The Raspberry Pi Compute Module 5 IO Board (CM5IO) is the companion carrier board for Raspberry Pi Compute Module 5 (CM5), 
+designed to assist in the development of products that make use of CM5. It connects the signals exposed by CM5 to familiar 
+ports, including USB, Ethernet, HDMI, MIPI and so on. For a full list of features, see Section 1.3. Features.
+Figure 1.
+The Raspberry Pi Compute Module 5 IO Board.
+The Raspberry Pi Compute Module 5 IO Board contains many of the interfaces that Raspberry Pi 5 has. For general usage guidance, 
+see the Raspberry Pi 5 documentation.
+1.1. Applications
+CM5 is like a Raspberry Pi but without any physical connectors on the board. Its companion board, the CM5IO, provides the physical 
+connectors for CM5.
+The CM5IO can be used as either a reference design for interfacing with CM5, or as a standalone product for direct deployment. 
+The compact form factor, standard connectors, integrated cooling options, and power management of the CM5IO allow for rapid 
+prototyping and embedded systems development around CM5.
+Designers can selectively include only the connectors that their application requires. This helps to keep designs simpler, smaller, 
+and more cost-effective. Its functionality can also be extended through M.2 M key cards and Raspberry Pi HATS. For more 
+information, see Section 4. Expansion and storage.
+Design files for the CM5IO are freely available from the Compute Module 5 IO board documentation.
+1.2. Connection to CM5
+The CM5 attaches directly to two high-density connectors on CM5IO. These connectors give access to nearly all of CM5′s interfaces, 
+including GPIOs, PCIe, USB, HDMI, camera, display, power, and other signals.
+Connector placement is designed to optimise routing and performance. The connectors are positioned so that the on-board 
+wireless antenna is placed at the edge of the board for optimal wireless signal.
+Introduction
+3
+
+
+--- Page 5 ---
+
+Raspberry Pi Compute Module 5 IO Board
+1.3. Features
+The CM5IO is a compact (160 mm × 90 mm) carrier board that accepts both CM5 and Raspberry Pi Compute Module 5 Lite 
+(CM5Lite). Key features of the CM5IO include:
+• Power and control connectors.
+◦External 5 V input through Type-C PSU.
+◦Power button to wake up and shut down CM5.
+◦Real time clock (RTC) battery socket.
+• Video and display connectors.
+◦Two full-size HDMI 2.0 connectors, supporting 4K displays.
+◦Two MIPI DSI/CSI-2 (dual-purpose) FPC connectors (22-pin 0.5 mm pitch cable) supporting Raspberry Pi-compatible 
+touch displays and cameras.
+• Networking and connectivity connectors.
+◦Gigabit Ethernet (RJ-45) for network connectivity, with PoE+ support through an optional HAT.
+◦Two USB 3.0 (Type-A) ports for keyboards, storage, or peripherals.
+◦One USB 2.0 (Type-C) port for flashing CM5 or additional peripherals.
+• Expansion and storage options.
+◦M.2 M key PCIe socket for NVMe SSDs.
+◦microSD card slot (for CM5Lite without eMMC).
+◦HAT footprint with 40-pin GPIO connector.
+• Configuration options.
+◦Jumpers to control features such as boot behaviour, EEPROM writing, and wireless connectivity.
+◦Selectable R4/R5 Vref voltage to support different voltage requirements.
+• Fan connector. Four-pin JST-SH PWM fan connector for active cooling.
+Introduction
+4
+
+
+--- Page 6 ---
+
+Raspberry Pi Compute Module 5 IO Board
+2. Power management and status 
+indicators
+CM5IO requires an external 5 V power source for normal operation. The following sections describe the power inputs, control 
+mechanisms, distribution to peripherals, RTC support, and status indicators of the CM5IO, providing guidance for safe operation 
+and system monitoring.
+2.1. Power supply unit (PSU) input
+The main power input (J11) is a standard Type-C connector. By default, when a compatible Type-C power supply (PSU) is connected, 
+the CM5IO negotiates 5 V at 5 A using USB Power Delivery (PD). If the connected PSU for CM5IO doesn’t provide 5 A, CM5 displays 
+a warning; you can disable this warning by adding PSU_MAX_CURRENT=5000 to the EEPROM configuration, which sets the maximum 
+allowed current in milliamps.
+You can power CM5IO with a standard Raspberry Pi 5 power supply. Alternatively, you can supply an external 5 V supply to the 
+board through J8. The exact power consumption depends on the processor load and peripherals plugged into the CM5IO.
+2.2. Power button behaviour
+The power button replicates the function of the power button on the Raspberry Pi 5:
+• Short press. A short press brings up the shutdown menu; another press powers the system down.
+• Long press. A long press forces the system to power down.
+• Short press from shutdown. A short press from a previously shutdown system boots the system.
+2.3. Power distribution and current limits
+The CM5IO distributes power to on-board peripherals with appropriate current limits to protect the board and devices.
+• HDMI 2.0 connectors. The HDMI 2.0 connectors receive 5 V through a current-limited switch. For more information about 
+the HDMI 2.0 connectors in the CM5IO, see Section 3.1. HDMI 2.0 connectors.
+• USB 3.0 (Type A) connectors. The two USB 3.0 ports are limited to approximately 1.2 A combined through an internal current 
+switch. For more information about the USB 3.0 ports, see Section 3.4. USB 3.0 (Type-A) and USB 2.0 (Type-C) connectors.
+• Power over Ethernet (PoE). PoE supplies 5 V to the CM5IO through the RJ45 magjack connector. For more information 
+about PoE, see Section 3.3. Ethernet (RJ45) connector.
+• Fan connector. The fan connector is powered from the 5 V rail. For more information, see Section 3.5. Fan connector.
+2.4. Real time clock (RTC) battery
+The CM5IO provides a battery socket for a CR2032 battery to maintain the board’s real-time clock (RTC) when the main power is 
+off. This ensures that date and time settings are preserved across shutdowns or power loss. Typical battery life is up to 5 years.
+2.5. LEDs
+The CM5IO includes two on-board LEDs that replicate the standard behaviour of Raspberry Pi 5 for quick visual feedback about 
+the board’s status.
+• Red LED: Power status. When the LED is red, the CM5IO is on and receiving sufficient power.
+• Green LED: System activity. When the green LED is flashing, there is activity, such as boot progress or storage access.
+Power management and status indicators
+5
+
+
+--- Page 7 ---
+
+Raspberry Pi Compute Module 5 IO Board
+3. Connectors
+CM5 provides multiple interface options for video, networking, USB connectivity, and fan connectivity. For video, the CM5IO 
+includes dual HDMI 2.0 connectors and MIPI DSI/CSI-2 connectors that support displays and cameras. For networking, it offers 
+a Gigabit Ethernet connector with PoE support, and USB connectivity provided through two USB 3.0 (Type-A) connectors and a 
+USB 2.0 (Type-C) data connector.
+3.1. HDMI 2.0 connectors
+The CM5IO includes two full-size HDMI 2.0 connectors that support 4K displays. These HDMI connectors require a 5 V supply, 
+which is provided through a current-limited switch on the CM5IO.
+CM5 is primarily responsible for handling the communication between HDMI devices and does most of the interfacing required 
+for the HDMI interface. The HDMI interface signals are routed directly to CM5.
+3.2. MIPI connectors (DSI/CSI-2)
+The CM5IO includes two 22-pin MIPI DSI/CSI-2 FPC connectors with a 0.5 mm pitch cable, which serve dual purposes for displays 
+and cameras. These connectors are compatible with Raspberry Pi 5 accessories, such as touch displays and cameras.
+• The CAM/DISP 0 connector can connect either a display or a camera, and includes a signal to power down the camera for 
+energy savings.
+• The CAM/DISP 1 connector can also connect either a display or camera, but requires two jumpers at J6 to route I2C signals 
+from the GPIO connector. When used with a camera, it isn’t possible to power down the camera.
+3.3. Ethernet (RJ45) connector
+For wired networking, the CM5IO includes a standard 1:1 Gigabit Ethernet RJ45 magjack connector. This connector also supports 
+Power over Ethernet (PoE), allowing the board to receive both data and power through a single cable when connected to a 
+compatible PoE source.
+Additional ESD protection is provided on the CM5IO, which is important for PoE applications. PoE signals from the RJ45 magjack 
+connector are routed to J9. A PoE HAT supplies 5 V to the CM5IO to power connected peripherals and the CM5.
+3.4. USB 3.0 (Type-A) and USB 2.0 (Type-C) connectors
+The CM5IO provides the following USB connectors:
+• USB 3.0 (Type-A). For general-purpose devices. These data ports support high-speed data transfer between devices, like 
+storage drives, peripherals, or cameras. They also provide power (VBUS) through an internal current-limiting switch set to 
+approximately 1.2 A.
+• USB 2.0 (Type-C). Primarily intended for data transfer and enabling board updates through rpiboot. The USB port on the 
+host computer must provide sufficient power to the CM5IO. If the host computer isn’t capable, use a powered USB hub.
+3.5. Fan connector
+The CM5IO uses the same fan connector as Raspberry Pi 5. This means that you can use any fans that work with Raspberry Pi 5 
+on the CM5IO.
+Fan speed is controlled with a PWM pin from CM5. When the board is powered down, the PWM pin stops sending this signal and, 
+as a result, some fans might run continuously. If you’re designing your own carrier board and you don’t want the fan to run when 
+the board is off, you can instead power the fan from the USB VBUS enable (U6). When CM5 is shutdown, the VBUS_EN is pulled low 
+and so VBUS is shutdown.
+Connectors
+6
+
+
+--- Page 8 ---
+
+Raspberry Pi Compute Module 5 IO Board
+4. Expansion and storage
+The CM5IO provides options for expanding storage and connecting additional peripherals. These interfaces allow you to add high-
+speed NVMe SSDs and take advantage of the extensive ecosystem of Raspberry Pi HATs and accessories. For CM5Lite you can 
+also add microSD storage.
+4.1. M.2 M key connector
+The CM5IO includes an M.2 M key connector, designed for standard M.2 M key cards. This connector is typically used for NVMe 
+SSDs, which are fast storage drives that use the PCIe interface to communicate.
+Ensure that the operating system (OS) has a compatible driver for your card. Without the driver, the card might not work properly.
+By default, the M.2 M key connector runs at PCIe Gen 2 ×1, which provides 5 Gb/s. PCIe Gen 3 ×1 (which provides 8 Gb/s) is 
+possible, but experimental and therefore unsupported.
+4.2. Raspberry Pi HAT connector
+The CM5IO provides a standard 40-pin Raspberry Pi HAT connector, enabling use of existing Raspberry Pi HATs and accessories. 
+The connector exposes GPIO, I2C, SPI, UART, PWM, and power rails as defined in the Raspberry Pi HAT specification.
+To ensure mechanical compatibility with standard HAT boards, the CM5IO includes mounting holes and a board outline for 
+alignment. While the CM5IO includes 4 mounting holes, some HATs have two mounting holes instead of four. In either case, the 
+HAT should be oriented such that it covers the battery on the CM5IO.
+For electrical pinout details, refer to the Raspberry Pi HAT specification.
+4.3. microSD card connector (CM5Lite only)
+CM5Lite doesn’t include on-board eMMC and so relies on the microSD card connector for external storage. The microSD card 
+connector isn’t available for the standard CM5, which already has built-in eMMC storage.
+The microSD card connector for CM5Lite is a push-push slot:
+• To insert a microSD card, gently push it in to the slot until it clicks.
+• To release a microSD card, gently push on the card to unlock it, then pull it out.
+Expansion and storage
+7
+
+
+--- Page 9 ---
+
+Raspberry Pi Compute Module 5 IO Board
+5. Configuration options
+You can tailor the behaviour of the CM5IO for different use cases without requiring firmware changes. Use jumpers to quickly 
+change settings like boot mode, wireless connectivity, or I2C routing; use resistor options for selecting I/O reference voltage (Vref).
+5.1. J2 jumpers (boot and EEPROM overrides)
+The J2 jumpers control boot behaviour, EEPROM write protection, timing signal, power management, and external wake/shutdown. 
+These settings are useful for recovery and protecting the EEPROM. Table 1 lists the J2 jumper pins on CM5IO and what each 
+jumper does.
+Table 1.
+J2 jumper pins on the Raspberry Pi Compute Module 5 IO Board (CM5IO)
+Pin
+Function
+Description
+1-2
+nRPIBOOT
+If a jumper is placed here, it forces CM5 to boot from USB instead of the BOOT_MODE setting 
+in EEPROM (such as eMMC, SD, NVMe, or network boot). This is useful if the eMMC is 
+corrupted or unavailable.
+3-4
+EEPROM_nWP
+If a jumper is placed here, the jumper write-protects the EEPROM on CM5, preventing 
+accidental or unauthorised modifications.
+6
+SYNC_OUT
+This pin provides an IEEE1588 timing signal; it can also be configured as an input for 
+external timing.
+12
+PMIC_ENABLE
+This pin controls the Power Management IC (PMIC), enabling or disabling certain power 
+functions.
+13-14
+Wake/shutdown button
+These pins connect a push button to allow manual wakeup or shutdown of CM5.
+5.2. J3 jumpers (Wi‍-‍Fi and Bluetooth disable)
+J3 is an optional jumper block (not fitted by default) that allows you to selectively turn off Wi‍-‍Fi or Bluetooth. Installing jumpers 
+between pins 1 and 2 disables Wi‍-‍Fi; installing jumpers between pins 3 and 2 disables Bluetooth. Table 2 describes the J3 jumper 
+pins on the CM5IO and what each jumper does.
+Table 2.
+J3 jumper pins on the Raspberry Pi Compute Module 5 IO Board (CM5IO) (not fitted by default)
+Pin
+Function
+Description
+1
+WL_nDIS
+When this pin is connected to ground, Wi‍-‍Fi is disabled.
+2
+GND
+Ground reference for the other pins.
+3
+BT_nDIS
+When this pin is connected to ground, Bluetooth is disabled.
+5.3. J6 jumpers (CSI/DSI)
+The J6 jumpers route I2C signals to the MIPI CSI/DSI connectors. When using CAM/DISP 1, both jumpers must be fitted to ensure 
+proper communication between the board and attached cameras or displays.
+Configuration options
+8
+
+
+--- Page 10 ---
+
+Raspberry Pi Compute Module 5 IO Board
+5.4. R4/R5 Vref voltage selection
+You can use the R4 and R5 resistor positions to select the GPIO reference voltage (Vref), which determines the logic voltage level 
+for the GPIO pins on CM5, ensuring compatibility with the peripherals you’re connecting. Moving a surface-mount component is 
+a hardware change, so it requires soldering.
+By default, the CM5IO sets the CM5 GPIO voltage to 3.3 V through the R5 surface-mount resistor. To change the GPIO voltage to 
+1.8 V, remove R5 and install it at R4 instead. Only one resistor (R4 or R5) must be fitted at a time; installing both could damage the 
+board or connected devices.
+• Use 3.3 V Vref for most Raspberry Pi HATs, accessories, and general-purpose peripherals.
+• Use 1.8 V Vref only if you need to interface with devices that require lower GPIO voltage levels, such as certain sensors or 
+memory devices.
+Configuration options
+9
+
+
+--- Page 11 ---
+
+Raspberry Pi Compute Module 5 IO Board
+6. Specifications
+This section outlines the CM5IO’s mechanical layout (including key dimensions and component placement), and its reliability, 
+measured by mean time between failure (MTBF).
+6.1. Mechanical layout
+The mechanical diagram in Figure 2 illustrates the outline (160 mm × 90 mm), component placement, and dimensions of the 
+CM5IO as seen from the top. For more detailed visual references, see Appendix A. Circuit diagrams and the CM5 design files.
+Figure 2.
+Mechanical diagram of the Raspberry Pi Compute Module 5 IO Board (CM5IO) as seen from the top
+6.2. Mean time between failure (MTBF)
+Mean time between failure (MTBF) measures how long, on average, a device is expected to operate before failure. Table 3 shows 
+the expected lifetime of the CM5IO, which can vary depending on the environment it operates in:
+Table 3.
+Mean time between failure (MTBF) for Raspberry Pi Compute Module 5 IO Board (CM5IO)
+Environment
+Description
+MTBF
+Ground, benign
+A stable, non-mobile environment where temperature and humidity are controlled, such as 
+laboratories, business and scientific computer complexes, and medical equipment rooms. 
+In these environments, devices generally last longer.
+131 000 hours
+Ground, mobile
+A high-stress environment with vibration, temperature swings, humidity variations, 
+and frequent movement, such as equipment in vehicles and handheld communication 
+devices. In these environments, life expectancy drops.
+15 000 hours
+Specifications
+10
+
+
+--- Page 12 ---
+
+Raspberry Pi Compute Module 5 IO Board
+Appendix A. Circuit diagrams
+This section includes schematic circuit diagrams that show the functional relationships between components on the CM5IO. For 
+full reference material, see the CM5 design files, which include IO board designs in KiCad format. These can be used in your own 
+reference designs.
+The following figures illustrate different parts of the CM5IO circuitry:
+• Figure 3 is a top-level diagram that shows the main functional blocks of the CM5IO and how these are connected. The main 
+functional blocks are then shown in more detail in the subsequent three figures.
+• Figure 4 details the high-speed connectors on the CM5IO, including DSI/CSI, USB 3.0, and HDMI 2.0. It also shows the 
+receiving connector on the left side of the CM5IO, and the current-limit switch.
+• Figure 5 details the GPIO-related connectors on the CM5IO, including the GPIO header, Ethernet, and CM5Lite SD card. It 
+also shows the receiving connector on the right side of the CM5IO .
+• Figure 6 details the M.2 connector and the associated PCIe power supply on the CM5IO.
+Figure 3.
+The main functional blocks of the Raspberry Pi Compute Module 5 IO Board (CM5IO), connected to the USB 2.0 (Type-C) power 
+connector
+Circuit diagrams
+11
+
+
+--- Page 13 ---
+
+Raspberry Pi Compute Module 5 IO Board
+Figure 4.
+High-speed connectors on the Raspberry Pi Compute Module 5 IO Board (CM5IO)
+Circuit diagrams
+12
+
+
+--- Page 14 ---
+
+Raspberry Pi Compute Module 5 IO Board
+Figure 5.
+GPIO-related connectors on the Raspberry Pi Compute Module 5 IO Board (CM5IO)
+Circuit diagrams
+13
+
+
+--- Page 15 ---
+
+Raspberry Pi Compute Module 5 IO Board
+Figure 6.
+M.2 connector and PCIe power supply on the Raspberry Pi Compute Module 5 IO Board (CM5IO)
+Circuit diagrams
+14
+
+
+--- Page 16 ---
+
+Raspberry Pi Compute Module 5 IO Board
+Appendix B. Documentation history
+Date
+Changes
+11 September, 2026
+Minor update to table wording.
+28 August, 2025
+Updated structure, grammar, and wording for clarity and style. Made minor corrections. Added 
+information about applications, connectors, and diagrams.
+1 August, 2025
+Revision 2 IO board update: added information about pull-up on FAN output for broader fan support; 
+simplified LED drive circuit by removing buffer; corrected USB_OTG_ID and Sync_Out silkscreen.
+21 July, 2025
+Update to new company format.
+27 November, 2024
+Initial release of Raspberry Pi Compute Module 5 IO Board (CM5IO).
+Documentation history
+15
+
+
+--- Page 17 ---
+
+Raspberry Pi
+Raspberry Pi is a trademark of Raspberry Pi Ltd
+Raspberry Pi Ltd

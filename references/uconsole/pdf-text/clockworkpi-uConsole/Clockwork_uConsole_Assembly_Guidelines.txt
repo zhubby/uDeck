@@ -1,0 +1,308 @@
+Source: clockworkpi-uConsole/Clockwork_uConsole_Assembly_Guidelines.pdf
+Pages: 34
+Text extraction only; consult the original PDF for diagrams and tables.
+
+
+--- Page 1 ---
+
+uConsole
+Assembly Guidelines
+
+
+--- Page 2 ---
+
+
+
+--- Page 3 ---
+
+
+
+--- Page 4 ---
+
+A. Mount the Screen
+B. Mount the Keyboard
+C. Mount the Front
+D. Mount the Mainboard
+E. Mount the Core
+F. Mount the Wi-Fi Antenna
+G. Mount the Speakers
+H. Mount the Ext. Module
+I. Mount the 4G Antenna
+J. Mount the Battery Module
+K. Mount the 18650 Batteries
+L. Mount the Thermal Pad
+M. Mount the Back Shell
+O. Insert the MicroSD & Power On
+N. Mount the Stand
+The Interfaces
+FAQ
+Index & Check List
+
+
+--- Page 5 ---
+
+Warning
+Suffocation risk! The product contains small parts.
+Please keep the electronic parts and components away from static electricity, humidity, strong magnetic fields, and avoid outdoor 
+environments to prevent damage.
+Please observe local laws and regulations for the use of Wi-Fi and radio.
+Assembly Precautions
+Attention! The product is not a toy, and is unsuitable for users under the age of 11.
+Attention! Users aged between 11 and 16 may only assemble the product with adult supervision.
+Attention! Please read the user guide and follow the steps specified to assemble the product.
+Use of Tools and Precautions
+The assembly does not require professional skills nor tools (glue and soldering iron).
+Previous experience with assembling models may help you put the product together quickly.
+Precautions For Use
+uConsole can only be used or stored indoors at a temperature of 0-35 degrees Celsius.
+Do not use uConsole’s USB port to charge other electronic devices such as smartphones.
+Please ensure a Micro SD card with the correct operating system has been inserted into uConsole before booting.
+Please use a high-quality phone charger (5V 2A) and USB-C cable to power and charge the product.
+Important Reminders
+
+
+--- Page 6 ---
+
+Use Of 18650 Rechargeable Li-ion Battery
+Attention! Rechargeable li-ion batteries are NOT included in the package.
+You need to buy two 18650 batteries by yourself.
+Please buy 18650 batteries that are certified in accordance to local laws and regulations.
+In the uConsole battery container, "+" marks the positive electrode, and "-" the negative electrode. Please make sure that the 18650 
+batteries are inserted in the appropriate directions.
+Get Support
+If you encounter any problem related to the product and its assembly and use, please visit https://forum.clockworkpi.com or send 
+an email to help@clockworkpi.com with a detailed description of your problem or request. We will offer you technical support in a 
+timely manner.
+Join The Clockwork Online Community
+To discuss and share with uConsole players and developers, you can visit https://forum.clockworkpi.com. A community of innovative 
+players from across the world and the Clockwork team are waiting for you!
+Clockwork Tech LLC reserves the legal right to interpret these "important reminders".
+The Company cannot be held responsible for any component damage, property loss or personal injury caused by the use of 
+non-compliant batteries, improper use of batteries, and incorrect charging methods.
+Important Reminders
+
+
+--- Page 7 ---
+
+A. Mount the Screen
+1
+
+
+--- Page 8 ---
+
+B1. Mount the Keyboard
+2
+
+
+--- Page 9 ---
+
+B2. Mount the Keyboard
+3
+
+
+--- Page 10 ---
+
+C1. Mount the Front
+Remove the protective layer
+4
+
+
+--- Page 11 ---
+
+C2. Mount the Front Shell
+5
+
+
+--- Page 12 ---
+
+D1. Mount the Mainboard
+6
+
+
+--- Page 13 ---
+
+D2. Mount the Mainboard
+7
+
+
+--- Page 14 ---
+
+D3. Mount the Mainboard
+8
+
+
+--- Page 15 ---
+
+E. Mount the Core
+9
+
+
+--- Page 16 ---
+
+F1. Mount the Wi-Fi Antenna
+Remove the protective layer
+10
+
+
+--- Page 17 ---
+
+F2. Mount the Wi-Fi Antenna
+For CM4 core
+For non-CM4 core, please connect the Wi-Fi 
+antenna connector on the mainboard.
+11
+
+
+--- Page 18 ---
+
+G. Mount the Speakers
+Remove the protective layers
+12
+
+
+--- Page 19 ---
+
+H1. Mount the Ext. Module
+13
+
+
+--- Page 20 ---
+
+H2. Mount the Ext. Module
+14
+
+
+--- Page 21 ---
+
+I1. Mount the 4G Antenna
+Remove the
+protective layer
+Insert a SIM card
+15
+
+
+--- Page 22 ---
+
+I2. Mount the 4G Antenna
+16
+
+
+--- Page 23 ---
+
+J. Mount the Battery Module
+17
+
+
+--- Page 24 ---
+
+K. Mount the 18650 Batteries
+CHECK!
+18
+
+
+--- Page 25 ---
+
+L. Mount the Thermal Pad
+Remove the protective layers
+19
+
+
+--- Page 26 ---
+
+M. Mount the Back Shell
+20
+
+
+--- Page 27 ---
+
+N1. Mount the Stand
+21
+
+
+--- Page 28 ---
+
+N2. Mount the Stand
+22
+
+
+--- Page 29 ---
+
+O. Insert the MicroSD & Power On
+Power ON - Pressing and holding the "ON/OFF" button for 2 seconds.
+It may take about 60 seconds to boot up for the first time.
+CHECK!
+23
+
+
+--- Page 30 ---
+
+The Interfaces
+3.5mm Headphone
+Power Key
+MicroSD
+Micro-HDMI
+USB-C Charging
+USB-A
+24
+
+
+--- Page 31 ---
+
+FAQ
+Power On
+Make sure that the batteries are fully charged and installed 
+correctly.
+The uConsole can be powered by 5V-2A USB-C power supply.
+MicroSD must be inserted before power on.
+Pressing and holding the "ON/OFF" button for 2 seconds.
+For the first time of booting up, it will take about 60 sec.
+How to Charge
+Use ONLY 5V-2A USB-C charger.
+Please use a high-quality USB-C cable.
+18650 Battery
+The 18650 batteries are not included in this package due to 
+global logistics complexity for lithium batteries.
+Please remove the batteries if you do not use the device for a 
+long time.
+Please consult the batteries supplier for detailed 18650 safe 
+usage rules, and strictly follow them.
+Clockwork OS
+Clockwork OS download URL: https://www.clockworkpi.com
+Unzip the image file and use the flash tool to make the image 
+into MicroSD.
+Warranty
+The uConsole Kit has a 6-month warranty starting since delivery 
+is made.
+Please keep the receipt or screenshot with delivery date.
+For after-sales requests, please send an email with your order 
+number, the issue and some pictures, videos to 
+help@clockworkpi.com
+How to Purchase Parts
+Please go to https://clockworkpi.com/shop to purchase the parts.
+You can also download 3D-printing files (STL) in our online shop 
+to print the parts.
+Open Source & Open Design
+uConsole follows the "Hacker-friendly" concept and modular 
+design. The open-source development kit (including structure, 
+software, hardware, and documentation) combines high 
+performance, portability, and scalability features.
+Please visit our GitHub: https://github.com/clockworkpi
+Join ClockworkPi Community
+Please join our community on https://forum.clockworkpi.com
+Meet our friends from all over the world and share your unique 
+ideas!
+25
+
+
+--- Page 32 ---
+
+Notes
+
+
+--- Page 33 ---
+
+
+
+--- Page 34 ---
+
+Clockwork and the Clockwork logo are trademarks or registered trademarks of Clockwork Tech LLC in the U.S.
