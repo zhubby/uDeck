@@ -30,6 +30,7 @@ Window {
     property color accent: window.colors.accent
     property string lastDialog: ""
     property string clockText: controller.currentTime()
+    property QtObject pointerCursor: null
 
     onActiveChanged: controller.windowActive(active)
     onClosing: function(event) {
@@ -643,5 +644,13 @@ Window {
         returnLabel: window.tr("Return to desktop")
         reducedMotion: window.viewState.reducedMotion
         immediateHide: !window.active && !headlessPreview
+    }
+
+    PointerIndicator {
+        objectName: "pointerLayer"
+        anchors.fill: parent
+        z: 10000
+        cursor: window.pointerCursor
+        colors: window.colors
     }
 }

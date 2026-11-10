@@ -37,6 +37,7 @@ from . import __version__
 from .console import ConsolePanel, ConsoleShortcut
 from .controller import ShellController
 from .core import ConfigStore
+from .cursor import PointerCursor
 from .file_icons import FILE_ICON_PREFIX, FILE_ICON_ROOT, ICON_PALETTES, ICON_SPECS
 from .i18n import render, tr
 from .input import Gamepad
@@ -468,6 +469,8 @@ def main(argv=None):
 
     key_test_filter = KeyTestFilter(controller, window)
     console_shortcut = ConsoleShortcut(console_panel, window)
+    pointer_cursor = PointerCursor(window, pointer=pointer, gamepad=gamepad)
+    window.setProperty("pointerCursor", pointer_cursor)
     from .key_test_device import KeyTestReader
 
     key_test_reader = KeyTestReader()
@@ -535,6 +538,7 @@ def main(argv=None):
     if trackball:
         trackball.close()
     window.removeEventFilter(key_test_filter)
+    pointer_cursor.close()
     if application_router:
         application_router.close()
     if direction_reader:
