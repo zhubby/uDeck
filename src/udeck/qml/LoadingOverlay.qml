@@ -48,10 +48,13 @@ Item {
             width: 72
             height: 72
             radius: 18
-            color: overlay.brand ? overlay.colors.accent : overlay.homeKind ? overlay.colors.artwork(overlay.homeKind) : "transparent"
+            color: overlay.brand ? "transparent" : overlay.homeKind ? overlay.colors.artwork(overlay.homeKind) : "transparent"
 
-            Rectangle { visible: overlay.brand; anchors.centerIn: parent; width: 32; height: 8; radius: 3; color: overlay.colors.brandInk }
-            Rectangle { visible: overlay.brand; anchors.centerIn: parent; width: 8; height: 32; radius: 3; color: overlay.colors.brandInk }
+            BrandLogo {
+                colors: overlay.colors
+                visible: overlay.brand
+                anchors.fill: parent
+            }
 
             HomeIcon {
                 visible: !overlay.brand && !!overlay.homeKind

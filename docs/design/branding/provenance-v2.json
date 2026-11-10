@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "reference": {
+    "name": "codex-clipboard-9df3a6fc-f3eb-416e-9668-eac4f3194ffc.png",
+    "sha256": "c9c570e2e81430e20afa4d3c891d2125233d20a89421f31a3c26ef6204203606",
+    "source": "user image attachment",
+    "dimensions": [
+      280,
+      280
+    ]
+  },
+  "brief": "Redesign the duck portrait while preserving circular badge, goggles, warm gray and white, and no lettering.",
+  "method": "Direct SVG path drawing; Sharp rasterization; no image generation API",
+  "outputs": [
+    {
+      "name": "udeck-duck-v2.svg",
+      "bytes": 2294,
+      "sha256": "58da30be00c413d52322e99d883f0772adad12d45de1efd097342b67363ef594"
+    },
+    {
+      "name": "udeck-duck-v2.png",
+      "bytes": 76097,
+      "sha256": "6006dac36900723bcfa013a4821df9b55b4c47a7661fda1df2f49945577911ea"
+    },
+    {
+      "name": "udeck-duck-v2-preview.png",
+      "bytes": 41778,
+      "sha256": "4d257b90d030003c15e59a5a4771983384fa26e735a143cf9f2ea575b8dadc12"
+    }
+  ],
+  "checks": {
+    "svgParses": true,
+    "noRenderedText": true,
+    "noEmbeddedRaster": true,
+    "transparentBackground": true,
+    "pngDimensions": [
+      1024,
+      1024
+    ],
+    "artworkInsideCanvas": true
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "version": 3,
+  "reference": {
+    "name": "codex-clipboard-9df3a6fc-f3eb-416e-9668-eac4f3194ffc.png",
+    "sha256": "c9c570e2e81430e20afa4d3c891d2125233d20a89421f31a3c26ef6204203606",
+    "source": "user image attachment",
+    "dimensions": [
+      280,
+      280
+    ]
+  },
+  "brief": "Rebalance head, goggles, bill and neck; keep the circular badge, warm gray and white palette and no lettering.",
+  "method": "Direct SVG path drawing; Sharp rasterization; no image generation API",
+  "outputs": [
+    {
+      "name": "udeck-duck-v3.svg",
+      "bytes": 2298,
+      "sha256": "fc58fb4a805853936c6c3cb69778f6de7f43785806dc292808655e6a96069d38"
+    },
+    {
+      "name": "udeck-duck-v3.png",
+      "bytes": 72283,
+      "sha256": "f38ecd4c2e6ec0517f07d0b954486c38e9eec56936daa70c136f4df6d2555a1c"
+    },
+    {
+      "name": "udeck-duck-v3-preview.png",
+      "bytes": 39865,
+      "sha256": "845888316a5d3875bc0fb733efcb718df84c4523fdc7f79f88cce99497f62167"
+    }
+  ],
+  "checks": {
+    "svgParses": true,
+    "noRenderedText": true,
+    "noEmbeddedRaster": true,
+    "transparentBackground": true,
+    "pngDimensions": [
+      1024,
+      1024
+    ],
+    "artworkInsideCanvas": true
+  }
+}

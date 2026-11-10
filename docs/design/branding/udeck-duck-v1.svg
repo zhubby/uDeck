@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 280 280" role="img" aria-labelledby="title desc">
+  <title id="title">uDeck duck badge</title>
+  <desc id="desc">A duck wearing round goggles, inside a plain circular badge. Warm gray and white, with a transparent background and no lettering.</desc>
+  <defs>
+    <clipPath id="portrait">
+      <circle cx="140" cy="140" r="104.5"/>
+    </clipPath>
+  </defs>
+
+  <circle cx="140" cy="140" r="137" fill="#595757"/>
+  <circle cx="140" cy="140" r="104.5" fill="#fff"/>
+
+  <g clip-path="url(#portrait)">
+    <path fill="#595757" d="M60 219c15-17 20-37 19-58-8-20-7-39-3-60 5-31 25-53 57-54 33-2 58 14 69 43 10 27 7 55 10 84 2 20 8 38 18 57l-26 24H73Z"/>
+
+    <path fill="#fff" d="M94 191c11 7 18 18 35 22 16 3 30-8 46-23l15 50c-34 11-74 8-106-10Z"/>
+
+    <path d="M165 65c8 4 14 9 18 17" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="188" cy="93" r="4.3" fill="#fff"/>
+
+    <path d="M164 110c17 0 29 5 36 14l6-1c4 0 6 3 6 7v7c-14 7-29 9-47 8Z" fill="#fff" stroke="#595757" stroke-width="4.5" stroke-linejoin="round"/>
+    <path d="M166 127c15 2 27 2 40-1" fill="none" stroke="#595757" stroke-width="4" stroke-linecap="round"/>
+    <path d="M103 110c9 0 16 3 22 7v26l-21 7Z" fill="#fff" stroke="#595757" stroke-width="4.5" stroke-linejoin="round"/>
+
+    <ellipse cx="83" cy="131" rx="26" ry="27" fill="#fff" stroke="#595757" stroke-width="4.5"/>
+    <ellipse cx="83" cy="131" rx="19.4" ry="22" fill="#595757"/>
+    <path d="M78 117c-9 7-9 18 0 26" fill="none" stroke="#fff" stroke-width="4.2" stroke-linecap="round"/>
+
+    <ellipse cx="144" cy="133" rx="26" ry="27" fill="#fff" stroke="#595757" stroke-width="4.5"/>
+    <ellipse cx="144" cy="133" rx="19.4" ry="22" fill="#595757"/>
+    <path d="M139 119c-9 7-9 18 0 26" fill="none" stroke="#fff" stroke-width="4.2" stroke-linecap="round"/>
+
+    <g transform="translate(0 8)">
+      <path d="M104 166c12-3 16-11 29-11 13 0 18 8 33 9l21 1c13 0 20 5 20 13 0 10-11 15-28 16-13 10-27 16-42 13-13-3-23-9-29-16-10-1-15-6-15-12 0-6 4-10 11-13Z" fill="#fff" stroke="#595757" stroke-width="4.5" stroke-linejoin="round"/>
+      <path d="M104 179c23 14 58 15 90-1" fill="none" stroke="#595757" stroke-width="5.8" stroke-linecap="round"/>
+      <ellipse cx="150" cy="168" rx="3" ry="2.2" fill="#595757"/>
+    </g>
+  </g>
+</svg>

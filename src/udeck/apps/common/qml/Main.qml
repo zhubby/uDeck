@@ -74,7 +74,7 @@ Window {
             color: window.colors.header
             RowLayout {
                 anchors.fill: parent; anchors.leftMargin: 28; anchors.rightMargin: 28; spacing: 18
-                Text { font.family: window.fontFamily; text: "uD"; color: window.accent; font.pixelSize: 28; font.bold: true }
+                Shared.BrandLogo { colors: window.colors; Layout.preferredWidth: 34; Layout.preferredHeight: 34 }
                 Text { font.family: window.fontFamily; text: window.tr(window.state.app.charAt(0).toUpperCase()+window.state.app.slice(1)); color: window.ink; font.pixelSize: 28 }
                 Item { Layout.fillWidth: true }
                 Text { font.family: window.fontFamily; text: window.state.scanning ? window.tr("Scanning…") : window.state.app === "browser" ? window.tr(({navigation:"Link navigation",reading:"Reading",pointer:"Virtual pointer",text:"Text input"})[window.state.webMode]||"Link navigation") : window.state.count+" "+window.tr("items"); color: window.muted; font.pixelSize: 18 }

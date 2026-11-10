@@ -1,0 +1,51 @@
+{
+  "reference": {
+    "name": "codex-clipboard-9df3a6fc-f3eb-416e-9668-eac4f3194ffc.png",
+    "sha256": "c9c570e2e81430e20afa4d3c891d2125233d20a89421f31a3c26ef6204203606",
+    "source": "user image attachment",
+    "dimensions": [
+      280,
+      280
+    ]
+  },
+  "brief": "Keep circular badge, warm gray/white, goggles, strap and head highlights; replace penguin with duck; remove all lettering.",
+  "method": "Direct SVG path drawing; Sharp SVG-to-PNG rasterization; no generative image API",
+  "colors": [
+    "#595757",
+    "#ffffff"
+  ],
+  "outputs": [
+    {
+      "name": "udeck-duck-v1.svg",
+      "sha256": "b1a4966ab7239ab8957f88a13b2a2ee9dda943281431fa736d8b813043ad9121",
+      "bytes": 2376
+    },
+    {
+      "name": "udeck-duck-v1.png",
+      "sha256": "c61f7d5476ca9b5973c98e524c427052358e34f05f0338e27c841751cbeded1c",
+      "bytes": 79117
+    },
+    {
+      "name": "udeck-duck-v1-preview.png",
+      "sha256": "95be8ef2a627f8cfb464a0a97290d663733e3363a019839387f0b1c40cc36b95",
+      "bytes": 43267
+    }
+  ],
+  "checks": {
+    "svgParses": true,
+    "noRenderedText": true,
+    "noEmbeddedRaster": true,
+    "transparentPngCorners": true,
+    "artworkInsideCanvas": true,
+    "alphaBounds": [
+      10,
+      11,
+      1014,
+      1013
+    ],
+    "pngDimensions": [
+      1024,
+      1024
+    ]
+  }
+}

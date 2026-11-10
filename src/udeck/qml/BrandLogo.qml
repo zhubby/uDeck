@@ -1,0 +1,55 @@
+import QtQuick
+
+Image {
+    id: logo
+    required property var colors
+    readonly property color foreground: colors.dark ? colors.text : colors.accent
+    readonly property color background: colors.background
+    // Approved v6 geometry; SVG colors follow the shared palette live.
+    readonly property string artwork: `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 280 280" role="img" aria-labelledby="title desc">
+  <title id="title">uDeck duck badge, goggles turned right</title>
+  <desc id="desc">A duck with a low rounded crown, full cheeks and a broad neck, wearing goggles turned slightly to the right. Plain gray and white circular badge with no lettering.</desc>
+  <defs>
+    <clipPath id="portrait">
+      <circle cx="140" cy="140" r="104.5"/>
+    </clipPath>
+  </defs>
+
+  <circle cx="140" cy="140" r="137" fill="${logo.foreground}"/>
+  <circle cx="140" cy="140" r="104.5" fill="${logo.background}"/>
+
+  <g clip-path="url(#portrait)">
+    <path fill="${logo.foreground}" d="M56 246c4-28 26-41 32-60 4-11 3-19-3-32-9-15-11-32-5-49 7-22 28-33 52-32 24-1 44 9 56 25 7 10 9 23 6 34-1 9-4 16-9 20-6 5-9 10-9 17 0 17 9 33 22 49 10 12 18 20 20 28Z"/>
+    <path fill="${logo.background}" d="M101 174c20 11 43 14 64 5 2 17 13 33 26 51 7 8 12 13 16 16-40 11-86 8-131-3 6-14 15-28 23-42 6-12 7-20 2-27Z"/>
+
+    <path d="M113 87c9-5 21-4 28 1" fill="none" stroke="${logo.background}" stroke-width="6.5" stroke-linecap="round"/>
+    <circle cx="151" cy="94" r="3.3" fill="${logo.background}"/>
+
+    <path d="M80 111c10-1 20 1 31 4l-1 14c-10-3-20-5-30-5Z" fill="${logo.background}" stroke="${logo.foreground}" stroke-width="4.2" stroke-linejoin="round"/>
+    <path d="M143 116c5-1 9 1 14 3v14c-5-2-9-3-14-3Z" fill="${logo.background}" stroke="${logo.foreground}" stroke-width="4.2" stroke-linejoin="round"/>
+
+    <ellipse cx="125" cy="122" rx="21" ry="23" fill="${logo.background}" stroke="${logo.foreground}" stroke-width="4.2"/>
+    <ellipse cx="125" cy="122" rx="14.8" ry="17" fill="${logo.foreground}"/>
+    <path d="M121 112c-6 5-6 13 0 20" fill="none" stroke="${logo.background}" stroke-width="3.7" stroke-linecap="round"/>
+
+    <ellipse cx="174" cy="124" rx="20" ry="23.5" fill="${logo.background}" stroke="${logo.foreground}" stroke-width="4.2"/>
+    <ellipse cx="174" cy="124" rx="13.8" ry="17.5" fill="${logo.foreground}"/>
+    <path d="M171 114c-6 6-6 14 0 21" fill="none" stroke="${logo.background}" stroke-width="3.9" stroke-linecap="round"/>
+
+    <path d="M157 153c12-4 24-1 35 1l13 2c10 1 15 5 12 10-3 7-13 11-27 10l-19-2c-10-1-17-6-18-12-1-4 1-7 4-9Z" fill="${logo.background}" stroke="${logo.foreground}" stroke-width="4.2" stroke-linejoin="round"/>
+    <path d="M160 163c17 7 38 9 51 3" fill="none" stroke="${logo.foreground}" stroke-width="4.4" stroke-linecap="round"/>
+    <ellipse cx="182" cy="159" rx="2.6" ry="1.8" fill="${logo.foreground}"/>
+  </g>
+</svg>`
+    objectName: "brandLogo"
+    width: 34
+    height: 34
+    source: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(artwork)
+    sourceSize.width: Math.ceil(width * 2)
+    sourceSize.height: Math.ceil(height * 2)
+    fillMode: Image.PreserveAspectFit
+    smooth: true
+    mipmap: true
+    Accessible.role: Accessible.Graphic
+    Accessible.name: "uDeck"
+}

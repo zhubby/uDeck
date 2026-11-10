@@ -152,11 +152,10 @@ Window {
         Row {
             id: brandRow
             x: 28; y: 22; spacing: 13
-            Rectangle {
-                width: 34; height: 34; radius: 9; color: window.accent
+            BrandLogo {
+                colors: window.colors
+                width: 34; height: 34
                 anchors.verticalCenter: parent.verticalCenter
-                Rectangle { width: 15; height: 4; radius: 2; color: window.colors.brandInk; anchors.centerIn: parent }
-                Rectangle { width: 4; height: 15; radius: 2; color: window.colors.brandInk; anchors.centerIn: parent }
             }
             Text { textFormat: Text.PlainText; text: "uDeck"; font.family: window.fontFamily; font.pixelSize: 31; font.weight: Font.DemiBold; color: window.ink }
             Rectangle { width: 1; height: 24; color: window.colors.headerDivider; anchors.verticalCenter: parent.verticalCenter }

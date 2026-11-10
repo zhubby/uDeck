@@ -74,7 +74,7 @@ Window {
                 anchors.leftMargin: 18
                 anchors.rightMargin: 12
                 spacing: 12
-                Text { font.family: window.fontFamily; text: ">_"; color: window.accent; font.pixelSize: 22; font.bold: true }
+                Shared.BrandLogo { colors: window.colors; Layout.preferredWidth: 28; Layout.preferredHeight: 28 }
                 ListView {
                     id: tabbar
                     Layout.fillWidth: true

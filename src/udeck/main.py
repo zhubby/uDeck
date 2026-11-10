@@ -319,6 +319,7 @@ def main(argv=None):
     application.setApplicationName(APP_ID)
     application.setDesktopFileName(APP_ID)
     application.setOrganizationName("uDeck")
+    application.setWindowIcon(QIcon(str(Path(__file__).parent / "assets/branding/udeck.svg")))
     temporary = tempfile.TemporaryDirectory(prefix="udeck-preview-") if options.mock else None
     config = ConfigStore(Path(temporary.name) / "settings.json") if temporary else ConfigStore()
     if options.mock:

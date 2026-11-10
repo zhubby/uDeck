@@ -1,0 +1,46 @@
+{
+  "version": 5,
+  "reference": {
+    "name": "codex-clipboard-9df3a6fc-f3eb-416e-9668-eac4f3194ffc.png",
+    "sha256": "c9c570e2e81430e20afa4d3c891d2125233d20a89421f31a3c26ef6204203606",
+    "source": "user image attachment",
+    "dimensions": [
+      280,
+      280
+    ]
+  },
+  "brief": "Lower and round the crown, fill the cheeks, smooth the bill junction, and widen the neck and white throat again.",
+  "method": "Direct SVG path drawing; Sharp rasterization; no image generation API",
+  "outputs": [
+    {
+      "name": "udeck-duck-v5.svg",
+      "bytes": 2290,
+      "sha256": "563fa68f9d9af29ea6478ffe4dc81b2e972894bf928669a886c5c33f04b2a7c6"
+    },
+    {
+      "name": "udeck-duck-v5.png",
+      "bytes": 71633,
+      "sha256": "126394d2480add9036fb253d6031b37d7f48d32f614010d99ee590cd8d54e91a"
+    },
+    {
+      "name": "udeck-duck-v5-preview.png",
+      "bytes": 39292,
+      "sha256": "0d06eccbaae368fc418f23b61912f4e76eafadd5a28bb8f9e16f945d8c20410a"
+    }
+  ],
+  "checks": {
+    "svgParses": true,
+    "noRenderedText": true,
+    "transparentBackground": true,
+    "pngDimensions": [
+      1024,
+      1024
+    ],
+    "badgeAndGogglesPreserved": true,
+    "neckWidthAt190": {
+      "v4Pixels": 272,
+      "v5Pixels": 342
+    },
+    "neckWiderThanV4": true
+  }
+}

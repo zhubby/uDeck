@@ -1,5 +1,7 @@
 # uDeck · 面向 uConsole 物理按键的桌面
 
+<img src="src/udeck/assets/branding/udeck.svg" alt="uDeck" width="96" height="96">
+
 uDeck 是面向 1280×720 横屏 uConsole 的原生 Qt Quick 桌面壳：方向键导航，A 确认、B 返回、X 上下文菜单、Y 快捷设置，L/R 切换页面，实体键盘输入文字。内置轨迹球短按为左键、按住超过 2 秒为右键；壳内对应确认和上下文菜单，其他应用接收真实 Wayland 鼠标点击。Ctrl+Shift+Esc 打开全局控制台。
 
 基于现有 Debian 13 / labwc / Wayland 添加**独立可选会话**，不刷镜像、不改驱动、不替换合成器。软件包不修改原桌面配置或默认登录项；开机自动进入 uDeck 通过单独授权的配置工具开启。第三方应用使用自身焦点系统，Y 菜单切换按键、指针或原生输入模式。

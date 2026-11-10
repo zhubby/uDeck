@@ -1,0 +1,41 @@
+{
+  "version": 6,
+  "reference": {
+    "name": "codex-clipboard-9df3a6fc-f3eb-416e-9668-eac4f3194ffc.png",
+    "sha256": "c9c570e2e81430e20afa4d3c891d2125233d20a89421f31a3c26ef6204203606",
+    "source": "user image attachment",
+    "dimensions": [
+      280,
+      280
+    ]
+  },
+  "brief": "Turn the goggles slightly right: shift the lenses right, narrow the far lens, and adjust the strap and bridge.",
+  "method": "Direct SVG path drawing; Sharp rasterization; no image generation API",
+  "outputs": [
+    {
+      "name": "udeck-duck-v6.svg",
+      "bytes": 2315,
+      "sha256": "5f9cc342bce14935e47f202ade61442fb04013905caa9f7d7592fdc67354b3d9"
+    },
+    {
+      "name": "udeck-duck-v6.png",
+      "bytes": 71464,
+      "sha256": "c591794e697449193805fbbc064e1defa77810345cd519142152db84ad795825"
+    },
+    {
+      "name": "udeck-duck-v6-preview.png",
+      "bytes": 39109,
+      "sha256": "cdfac4262be3397b30daaadc73d6f450e14262297c7665f56e6977a26218b020"
+    }
+  ],
+  "checks": {
+    "svgParses": true,
+    "noRenderedText": true,
+    "transparentBackground": true,
+    "pngDimensions": [
+      1024,
+      1024
+    ],
+    "headNeckBillAndBadgePreserved": true
+  }
+}

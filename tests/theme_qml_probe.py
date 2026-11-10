@@ -12,6 +12,7 @@ from types import SimpleNamespace
 from PySide6.QtCore import QObject, Qt, QUrl
 from PySide6.QtGui import QFont, QFontInfo
 from PySide6.QtQml import QQmlApplicationEngine, QQmlEngine, QQmlExpression
+from PySide6.QtQuick import QQuickItem
 from PySide6.QtTest import QTest
 from PySide6.QtWebEngineQuick import QtWebEngineQuick
 from PySide6.QtWidgets import QApplication
@@ -149,6 +150,29 @@ def run():
             assert window.color().name() == expected
         colors = window.findChild(QObject, "themeColors")
         assert colors.property("theme") == theme
+
+        # Sample the rendered badge itself, including when a modal covers its
+        # header. A fixed-color SVG or a missed theme binding must fail here.
+        logos = [item for item in window.findChildren(QQuickItem, "brandLogo") if item.isVisible()]
+        assert logos, (window.title(), "Missing visible brand logo")
+        foreground = colors.property("text" if theme == "dark" else "accent")
+        background = colors.property("background")
+        for logo in logos:
+            QTest.qWait(40)
+            result = logo.grabToImage()
+            assert result
+            wait(lambda: not result.image().isNull())
+            image = result.image()
+            for name, expected in (("foreground", foreground), ("background", background)):
+                matches = sum(
+                    pixel.alpha() > 240 and max(abs(a - b) for a, b in zip(
+                        (pixel.red(), pixel.green(), pixel.blue()),
+                        (expected.red(), expected.green(), expected.blue()), strict=True)) <= 4
+                    for y in range(image.height()) for x in range(image.width())
+                    for pixel in (image.pixelColor(x, y),)
+                )
+                assert matches > image.width() * image.height() * 0.06, (
+                    window.title(), theme, name, expected.name(), matches)
 
         def luminance(color):
             rgb = [color.redF(), color.greenF(), color.blueF()]

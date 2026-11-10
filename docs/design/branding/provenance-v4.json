@@ -1,0 +1,41 @@
+{
+  "version": 4,
+  "reference": {
+    "name": "codex-clipboard-9df3a6fc-f3eb-416e-9668-eac4f3194ffc.png",
+    "sha256": "c9c570e2e81430e20afa4d3c891d2125233d20a89421f31a3c26ef6204203606",
+    "source": "user image attachment",
+    "dimensions": [
+      280,
+      280
+    ]
+  },
+  "brief": "Widen the neck outline and white throat; make the transition to the chest fuller.",
+  "method": "Direct SVG path drawing; Sharp rasterization; no image generation API",
+  "outputs": [
+    {
+      "name": "udeck-duck-v4.svg",
+      "bytes": 2292,
+      "sha256": "454247ce34844c313f254224d532b14df64fd6f069c892047d6b85d646b04d91"
+    },
+    {
+      "name": "udeck-duck-v4.png",
+      "bytes": 72034,
+      "sha256": "520d5ee7f67158484635d1c9923166f41243cfb5ebf4081adb3f663b5221624b"
+    },
+    {
+      "name": "udeck-duck-v4-preview.png",
+      "bytes": 39777,
+      "sha256": "09b981072f5924be4a7ceae6201fddd4757a4ab1d129a8546cfab204a823f80f"
+    }
+  ],
+  "checks": {
+    "svgParses": true,
+    "noRenderedText": true,
+    "transparentBackground": true,
+    "pngDimensions": [
+      1024,
+      1024
+    ],
+    "gogglesBillHighlightsPreserved": true
+  }
+}
