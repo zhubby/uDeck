@@ -120,6 +120,7 @@ def test_shell_uses_confirm_and_context_without_changing_page_or_injecting(track
     trackball.pointer.middleButton.emit(False)
     assert trackball.controller.config.data['recent']
     assert trackball.controller.navigation.page == 'home'
+    trackball.controller.dispatch('home')  # Finish any launch wait before the separate context gesture.
     trackball.pointer.middleButton.emit(True)
     trackball.now[0] += 2.1
     trackball.input._timeout()
