@@ -19,6 +19,7 @@ EXTENSIONS = {
     "reader": {".txt", ".pdf", ".epub"},
     "emulator": {".gb", ".gbc", ".gba", ".sfc", ".smc", ".nes", ".cue", ".chd", ".pbp"},
 }
+DEFAULT_FOLDERS = {"music": "Music", "video": "Video", "reader": "Books"}
 PLATFORMS = {".gb": "GB", ".gbc": "GB", ".gba": "GBA", ".sfc": "SNES",
              ".smc": "SNES", ".nes": "NES", ".cue": "PS1", ".chd": "PS1", ".pbp": "PS1"}
 
@@ -175,6 +176,17 @@ class Library(QObject):
         self.cancel = threading.Event()
         self.generation += 1
         self.pending.clear()
+        self.errors.pop("default-source", None)
+        if not self.sources and self.app in DEFAULT_FOLDERS:
+            try:
+                source = Source.create(Path.home() / DEFAULT_FOLDERS[self.app])
+            except FileNotFoundError:
+                pass
+            except (OSError, ValueError) as error:
+                self.errors["default-source"] = error_text(error)
+            else:
+                self.sources.append(source)
+                self.state.data["sources"] = [source.to_dict()]
         self.check_sources()
         cache = {item["path"]: item for item in self.items}
         for source in self.sources:

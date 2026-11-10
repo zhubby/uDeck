@@ -6,8 +6,12 @@ application suite share `udeck.__version__`. Each app has a
 desktop entry and `udeck-{music,video,browser,reader,emulator}` launcher. Installation
 selects uDeck Terminal as the system default terminal.
 
-Use Settings → Sources to add media folders; Emulator uses Settings → ROM root and
-platform subfolders instead. L/R (PageUp/PageDown) switches
+Music, Video and Reader default to `~/Music`, `~/Video` and `~/Books` when no
+sources have been configured. Subfolders are scanned recursively. Existing custom
+sources are retained. If a default folder does not exist yet, create it, add files
+and refresh the library. Use Settings → Sources to add other media folders;
+Emulator uses Settings → ROM root and platform subfolders instead.
+L/R (PageUp/PageDown) switches
 collections; directions select; A/Enter opens; B/Esc returns; X/F2 opens actions;
 Y/F3 opens settings. Ordinary A/B/X/Y letters remain text. English is the default;
 Settings → Language shares the shell's persisted English/Chinese preference.
