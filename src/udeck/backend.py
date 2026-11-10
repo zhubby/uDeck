@@ -196,10 +196,9 @@ class SystemBackend(WifiBackend, QObject):
                 await self.call("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "AddMatch", "s", [rule])
             self.bus.export("/io/github/zhubby/uDeck/BluezAgent", self.bluetooth_agent)
             self.bus.export("/org/freedesktop/NetworkManager/SecretAgent", self.network_agent)
+            await self.refresh_session()
+            self.loop.create_task(self._session_timer())
             await asyncio.gather(self.refresh_wifi(), self.refresh_bluetooth(), self.refresh_timezone())
-            if os.environ.get('UDECK_SESSION') == '1':
-                await self.refresh_session()
-                self.loop.create_task(self._session_timer())
         except Exception as error:
             self.failed.emit(tr('系统服务初始化失败：{value0}', value0=error))
         await self.refresh_audio()
@@ -218,7 +217,7 @@ class SystemBackend(WifiBackend, QObject):
             self.schedule_refresh('session')
         elif message.member == 'PrepareForSleep' and message.body and message.body[0]:
             self.publish('sessionInput', {'available': True, 'active': False, 'locked': True})
-        elif (message.path or '').startswith('/org/freedesktop/login1') and os.environ.get('UDECK_SESSION') == '1':
+        elif (message.path or '').startswith('/org/freedesktop/login1'):
             self.schedule_refresh('session')
         elif message.member == "NameOwnerChanged":
             if message.body[0] == TIMEDATE:

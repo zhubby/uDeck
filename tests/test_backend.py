@@ -5,6 +5,7 @@ import pytest
 from dbus_next import DBusError
 from dbus_next.constants import MessageType
 
+import udeck.backend as backend_module
 from udeck.backend import NM, SystemBackend
 
 
@@ -87,5 +88,75 @@ def test_wifi_enumeration_survives_secret_agent_registration_failure():
         assert backend.state["wifi"]["devices"][0]["saved"][0]["id"] == "/profile0"
         assert backend.state["wifi"]["devices"][0]["networks"][0]["saved"]
         backend.loop.close()
+
+    asyncio.run(scenario())
+
+
+def test_original_desktop_receives_logind_session_changes(monkeypatch):
+    monkeypatch.delenv('UDECK_SESSION', raising=False)
+    backend = SystemBackend()
+    refreshed = []
+    backend.schedule_refresh = refreshed.append
+    try:
+        backend._message(SimpleNamespace(message_type=MessageType.SIGNAL,
+                                        path='/org/freedesktop/login1/session/_1',
+                                        member='PropertiesChanged', body=[],
+                                        interface='org.freedesktop.DBus.Properties'))
+        assert refreshed == ['session']
+    finally:
+        backend.loop.close()
+
+
+def test_original_desktop_monitors_session_even_when_network_startup_fails(monkeypatch):
+    monkeypatch.delenv('UDECK_SESSION', raising=False)
+    monkeypatch.setenv('XDG_SESSION_ID', 'graphical-session')
+
+    class Bus:
+        async def connect(self):
+            return self
+
+        def add_message_handler(self, handler):
+            pass
+
+        def export(self, path, agent):
+            pass
+
+    monkeypatch.setattr(backend_module, 'MessageBus', lambda **kwargs: Bus())
+
+    async def scenario():
+        backend = SystemBackend()
+        backend.loop.close()
+        backend.loop = asyncio.get_running_loop()
+        monitored = []
+
+        async def call(destination, path, interface, member, *arguments):
+            if member == 'GetSession':
+                assert arguments == ('s', ['graphical-session'])
+                return ['/org/freedesktop/login1/session/_1']
+            assert member == 'AddMatch'
+            return []
+
+        async def properties(*arguments):
+            return {'Active': True, 'LockedHint': False}
+
+        async def unavailable():
+            raise RuntimeError('Network service unavailable')
+
+        async def idle():
+            pass
+
+        async def monitor():
+            monitored.append(True)
+
+        backend.call, backend.properties = call, properties
+        backend.refresh_wifi = unavailable
+        backend.refresh_bluetooth = backend.refresh_timezone = backend.refresh_audio = idle
+        backend._watch_audio = backend._hardware_timer = idle
+        backend._session_timer = monitor
+        backend.refresh_hardware = lambda: None
+        await backend._start()
+        await asyncio.sleep(0)
+        assert backend.state['sessionInput'] == {'available': True, 'active': True, 'locked': False}
+        assert monitored == [True]
 
     asyncio.run(scenario())
