@@ -40,11 +40,44 @@
       "severity": "P2",
       "confidence": 1.0,
       "evidence": "The touched template still used the removed games module for pause. It now invokes udeck-app emulator; configuration regression rejects the stale command."
+    },
+    {
+      "title": "Support the stock desktop Openbox root and namespace",
+      "file": "src/udeck/session_shortcuts.py",
+      "severity": "P2",
+      "confidence": 1.0,
+      "evidence": "The device uses namespaced openbox_config. Binding installation now preserves that namespace, comments, unrelated keys and exact original backup bytes. Two installed-package reruns reported changed=false; the live labwc shortcut opened the console."
+    },
+    {
+      "title": "Monitor logind on the original desktop before network initialization",
+      "file": "src/udeck/backend.py",
+      "severity": "P2",
+      "confidence": 1.0,
+      "evidence": "Real shells now monitor the graphical session without requiring UDECK_SESSION=1. Monitoring starts before Wi-Fi/Bluetooth initialization, with regressions for original-session updates and network failure. Installed-package console routing passed on the original rpd-labwc desktop."
+    },
+    {
+      "title": "Ignore delayed progress after file tasks have completed",
+      "file": "src/udeck/file_controller.py",
+      "severity": "P2",
+      "confidence": 1.0,
+      "evidence": "An already-completed worker could synchronously finish a task before its queued progress arrived. Terminal tasks now reject stale progress; an eager-worker regression reproduces the ordering deterministically. The final Debian build passed all 1154 tests without skips."
     }
   ],
   "residual_risks": [
-    "Physical trackball timing and device-side shutdown/reboot remain untested. SSH to the previously authorized device timed out in this session.",
-    "Existing desktop sessions require udeckctl bind-console once; the separate uDeck session includes the compositor binding directly."
+    "Physical trackball timing and feel, external devices, and actual shutdown/reboot still require manual hardware acceptance. Live device protocol checks used synthetic events.",
+    "Existing desktop sessions require udeckctl bind-console once; it is installed and verified on the target CM4. The separate uDeck session includes the compositor binding directly. Full application compatibility remains limited to that separate session."
   ],
-  "testing_gaps": ["Physical event capture, device deployment and manual hardware acceptance are pending device access."]
+  "validation": {
+    "codeRevision": "f6b6d16b4834cea8f7de908ad63b6ee0951583ee",
+    "debianArm64TestsPassed": 1154,
+    "debianArm64TestsSkipped": 0,
+    "mainDirtyWorkIntegrationTestsPassed": 109,
+    "installedDevice": "Debian 13.5 arm64 / labwc 0.9.2",
+    "installedPackageProbesPassed": true,
+    "terminalLaunchersUseNewPackagedProcessesAndRealPTY": true,
+    "desktopLoginAndUserTerminalPreserved": true,
+    "releaseCreated": false,
+    "evidenceDirectory": "artifacts/trackball-console/device/"
+  },
+  "testing_gaps": ["Manual physical event capture and feel, external devices, and actual shutdown/reboot remain outside the completed automated and device software acceptance."]
 }
