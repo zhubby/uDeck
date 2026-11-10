@@ -1,0 +1,13 @@
+Bootstrap Icons 1.13.2
+Copyright (c) 2019-2024 The Bootstrap Authors
+https://icons.getbootstrap.com/
+https://github.com/twbs/icons
+
+These six icons are licensed under the MIT License.
+The full license is included in LICENSE.txt.
+
+Source package: bootstrap-icons 1.13.2
+https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz
+
+uDeck replaces currentColor with #e8cc9f for the selected warm-gold appearance.
+Icon paths, viewBox, stroke widths and proportions are unchanged.

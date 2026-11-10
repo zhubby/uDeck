@@ -1,0 +1,60 @@
+{
+  "source": "https://icons.getbootstrap.com/",
+  "repository": "https://github.com/twbs/icons",
+  "package": "bootstrap-icons",
+  "version": "1.13.2",
+  "downloadedAt": "2026-11-10",
+  "archiveUrl": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+  "archiveFilename": "bootstrap-icons-1.13.2.tgz",
+  "archiveSha256": "7b5960145e1ab14a49a117f96a9e5a54a94fdf07f21e302d9e4f88d73dd19f9c",
+  "npmIntegrity": "sha512-fAU1Ly3dH7hwRg+CB8EZ0Vl0fF80zgXHeUVJyfUOKzoURr+TbwISbCW5tKUoQLERaWYG2emTCybcPbD96hdD1A==",
+  "npmShasum": "5f77e89f4bc80940185a3f1dab1b4878b9119b9c",
+  "license": "MIT",
+  "licenseArchivePath": "package/LICENSE",
+  "licenseSha256": "0fb3e11bd57e896c5a512afd64864d28a37de45d19835016c87ca1ad19ead969",
+  "transformation": "Replace currentColor with #e8cc9f; preserve original SVG geometry, viewBox, strokes and proportions. Render over the existing theme artwork backgrounds.",
+  "files": {
+    "terminal-fill.svg": {
+      "homeKind": "terminal",
+      "archivePath": "package/icons/terminal-fill.svg",
+      "sourceSha256": "c4c757bbafe07c0ca9b6868203ce4b97d87e751893b3e06c126a96fa7ae71b45",
+      "sha256": "16488b6732241956ffd078bebd0465c47681e9e00631ef874321dca48c5e3a30",
+      "bytes": 350
+    },
+    "music-note-beamed.svg": {
+      "homeKind": "music",
+      "archivePath": "package/icons/music-note-beamed.svg",
+      "sourceSha256": "fa6dc9c0edb64ede8b2513dca758811f8e01b52a5de08cb8bd4eb0ea7e025f54",
+      "sha256": "f310612be85f41a31ca8ce53452cb2dc4c198319e13ec258b36c182de102a7bf",
+      "bytes": 418
+    },
+    "play-btn-fill.svg": {
+      "homeKind": "video",
+      "archivePath": "package/icons/play-btn-fill.svg",
+      "sourceSha256": "c269ff29cfd9d31fb2d5786daeaf6f1d5b5d937bc54c252c961a9e08214e1eb8",
+      "sha256": "5de63a96468e148aaa8395d940adaea19cc7c41b87f04d642d33f8dad9c820bd",
+      "bytes": 294
+    },
+    "book-fill.svg": {
+      "homeKind": "reader",
+      "archivePath": "package/icons/book-fill.svg",
+      "sourceSha256": "cd3ff04503e542fa378a288dc8b302a5582469cd148db51ba57d677e34e2da1b",
+      "sha256": "5ebde2ec01ad43604621cbb5249eeb91b2437ab29a57dcaf62040cfab0e117ce",
+      "bytes": 495
+    },
+    "controller.svg": {
+      "homeKind": "emulator",
+      "archivePath": "package/icons/controller.svg",
+      "sourceSha256": "1f61a8977e3aa8f620345cced0bbeb621ac54369d876ace68be2d041c45a3b6a",
+      "sha256": "b2cc61271b6e22e11902ebef573cab40568bade3022f8e6f2be27b608b587320",
+      "bytes": 1662
+    },
+    "gear-fill.svg": {
+      "homeKind": "settings",
+      "archivePath": "package/icons/gear-fill.svg",
+      "sourceSha256": "dca7ce68ef3e4ff59217393da7c8946ac8be1925d3e4d6adea1d2638fab85db8",
+      "sha256": "ae3874185cca945687eb77def010a9d682dfbc24a58327dab2b9a6fb339bea83",
+      "bytes": 806
+    }
+  }
+}

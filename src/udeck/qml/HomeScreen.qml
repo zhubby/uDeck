@@ -78,7 +78,6 @@ Item {
                             width: parent.width * 0.76
                             height: width
                             kind: tile.modelData.homeKind
-                            ink: tile.selected ? screen.colors.accent : screen.colors.artText
                         }
                     }
                     Text {
