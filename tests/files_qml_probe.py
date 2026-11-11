@@ -7,7 +7,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ.setdefault("QT_QUICK_BACKEND", "software")
 os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
 
-from PySide6.QtCore import QCoreApplication, QEvent, QObject, Qt, QUrl
+from PySide6.QtCore import QCoreApplication, QEvent, QObject, QPointF, Qt, QUrl
 from PySide6.QtGui import QColor, QGuiApplication, QImage
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtTest import QTest
@@ -161,9 +161,26 @@ controller.dispatch("accept")
 assert not controller.modal
 controller.file_task = {}
 controller._publish()
-controller._menu("File task errors", [{"label": "unavailable.txt", "subtitle": "Permission denied; the source file is unchanged.", "wrapSubtitle": True, "action": "none"}])
+error_subtitle = "Permission denied; the source file is unchanged. " * 3
+controller._menu("File task errors", [{"label": "unavailable.txt", "subtitle": error_subtitle, "wrapSubtitle": True, "action": "none"}])
 QTest.qWait(30)
-assert window.findChild(QObject, "menuList").property("height") >= 106
+error_menu = window.findChild(QObject, "menuList")
+error_row = error_menu.property("currentItem")
+assert error_row is not None
+
+def text_items(item):
+    result = [item] if item.property("text") is not None else []
+    for child in item.childItems():
+        result.extend(text_items(child))
+    return result
+
+error_labels = text_items(error_row)
+error_detail = next(label for label in error_labels if label.property("text") == error_subtitle)
+assert error_detail.property("lineCount") == 2
+for label in error_labels:
+    top = label.mapToItem(error_menu, QPointF(0, 0)).y()
+    assert top >= -1
+    assert top + label.property("paintedHeight") <= error_menu.property("height") + 1
 controller.dispatch("back")
 QTest.qWait(30)
 QTest.keyClick(window, Qt.Key.Key_F, Qt.KeyboardModifier.ControlModifier)
