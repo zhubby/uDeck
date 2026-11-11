@@ -112,13 +112,15 @@ docker run --rm --platform linux/arm64 -v "$PWD:/workspace" \
   udeck-debian-builder python3 tools/build-release --output dist/release
 ```
 
-构建器在临时目录中构建插件及完整源码包，执行包括真实 PTY 的测试，再输出一个 arm64 `.deb`、`.dsc`、源码 `.tar.xz`、`.buildinfo`、`.changes`、套件压缩包、安装器、依赖清单、构建清单与 SHA-256。源码归档包含 vendor 原件、补丁和许可证，不包含硬件参考资料、虚拟环境或开发缓存。
+构建器在临时目录中构建插件及完整源码包，执行包括真实 PTY 的测试，再输出一个 arm64 `.deb`、`.dsc`、源码 `.tar.xz`、`.buildinfo`、`.changes`、套件压缩包、安装器、依赖清单、构建清单与 SHA-256。源码归档包含 vendor 原件、补丁、许可证、`uv.lock` 和 `.python-version`，不包含硬件参考资料、虚拟环境或开发缓存。
+
+uv 0.13.7 与 Python 3.13.18 仅用于开发及 Release 宿主机校验；源码使用者可通过 `uv sync --locked --extra dev` 重建开发环境。Debian 构建与测试仍由系统 Python、APT 的 Qt 6.8 和原生库完成，锁文件不固定 APT 依赖；安装后的设备无需 uv 或 uv 管理的 Python。
 
 GitHub Actions **只监听 `release: published`**，不监听 push、pull_request、tag push 或 workflow_dispatch。发布步骤：
 
 1. 同步源码版本与 `debian/changelog`，提交构建所需文件。
 2. 创建匹配的 `vX.Y.Z` 标签并发布 GitHub Release；草稿保存不触发构建。
-3. Action 使用原生 arm64 runner 和 Debian 13 容器，校验标签、源码及 changelog，构建并运行软件包安装/卸载/重装与默认终端检查。
+3. Action 使用原生 arm64 runner，校验标签、源码及 changelog 后，安装固定 uv，执行 `uv lock --check`、`uv sync --locked --extra dev` 和 Ruff；任一失败即停止。随后在 Debian 13 容器中构建并运行软件包安装/卸载/重装与默认终端检查。
 4. 所有检查通过后才将产物附加到该 Release。重新运行同一次发布会替换同名附件。
 
 普通 tag push 只创建标签，不构建；从草稿转为已发布 Release 才构建。稳定版本格式为 `vX.Y.Z`，版本不匹配时停止。Release 构建禁止 `nocheck` 跳过测试。默认分支保留该工作流，发布标签也必须包含该工作流及打包文件。

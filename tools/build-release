@@ -101,7 +101,7 @@ def main(argv=None):
         ignored = shutil.ignore_patterns("__pycache__", "*.pyc", "._*", "*.egg-info", ".pytest_cache", ".ruff_cache")
         for name in ("src", "vendor", "packaging", "tools", "tests", "debian", "docs", ".github"):
             shutil.copytree(root / name, source / name, ignore=ignored)
-        for name in ("README.md", "pyproject.toml", "LICENSE"):
+        for name in ("README.md", "pyproject.toml", "uv.lock", ".python-version", "LICENSE"):
             shutil.copy2(root / name, source / name)
         subprocess.run(["dpkg-buildpackage", "--build=full", "--no-sign"], cwd=source, check=True)
         assemble(root, built, options.output.resolve(), version)

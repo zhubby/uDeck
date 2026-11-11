@@ -10,23 +10,69 @@ uDeck 是原生 PySide6 / Qt Quick 桌面壳，完整套件的浏览器与 EPUB 
 
 ## 开发预览
 
+开发使用 uv **0.13.7** 和 uv 管理的 Python **3.13.18**。Linux/macOS 使用[官方版本安装器](https://docs.astral.sh/uv/getting-started/installation/#installing-a-specific-version)，固定版本的安装命令为：
+
 ```sh
-python3.13 -m venv .venv
-.venv/bin/python -m pip install -e '.[dev]'
-.venv/bin/udeck --mock --windowed
+curl -LsSf https://astral.sh/uv/0.13.7/install.sh | sh
 ```
+
+将安装目录加入 `PATH`，用 `uv --version` 确认版本；项目会拒绝其他 uv 版本。通过 Homebrew 安装时也须核对版本，Homebrew 当前版本可能与项目固定版本不同。首次迁移已有 `.venv` 时先按下文备份；新工作树可直接执行：
+
+```sh
+uv python install
+uv sync --locked --extra dev
+uv run --locked --extra dev udeck --mock --windowed
+```
+
+`uv python install` 读取 `.python-version`，在用户目录安装解释器；不替换系统 Python。`uv sync` 默认安装 editable 项目，源码修改立即生效。开发依赖沿用 `[project.optional-dependencies].dev`，因此同步和执行命令都显式传 `--extra dev`。
+
+Linux 的 `evdev` 可能需要从源码编译，Debian/Ubuntu 开发机先安装 `build-essential`，它提供编译器和 Linux 用户空间头文件。uv 管理的 Python 自带 Python 头文件；若显式选择系统 Python，还需安装对应的 `python3-dev`。这些是开发构建前提，设备安装仍按下文通过 APT 完成。
 
 预览的应用启动、文件操作、无线网络、蓝牙和电源动作全部是模拟；配置保存在临时目录，退出即清理。预览可以检查焦点与视觉，但不能证明硬件功能。
 
 ```sh
-QT_QPA_PLATFORM=offscreen PYTHONPATH=src .venv/bin/python -m udeck.main \
+QT_QPA_PLATFORM=offscreen PYTHONPATH=src uv run --locked --extra dev python -m udeck.main \
   --mock --windowed --smoke-test --page files \
   --screenshot artifacts/preview-files.png --quit-after 2
-.venv/bin/python -m pytest -q
-.venv/bin/ruff check src tests tools
+uv run --locked --extra dev pytest -q
+uv run --locked --extra dev ruff check src tests tools
 ```
 
-Qt 6.8 的 Python 开发环境使用 3.11–3.13，不使用系统默认的 Python 3.15 来安装该版本 PySide6。界面英文使用 Saira Semi Condensed，中文使用 LXGW 文楷屏幕版；字体随包提供，缺字时回退到系统字体。
+支持范围仍为 Python 3.11–3.13；开发 pin 不改变 Debian 的运行要求。不使用系统默认的 Python 3.15 来安装 Qt 6.8 的 PySide6。界面英文使用 Saira Semi Condensed，中文使用 LXGW 文楷屏幕版；字体随包提供，缺字时回退到系统字体。
+
+### 依赖更新与环境恢复
+
+`pyproject.toml` 声明支持范围，提交的 `uv.lock` 固定每个平台和 Python 版本实际选用的依赖。日常运行保持 `--locked`；声明与锁文件不匹配时命令失败，不自动改锁。`uv sync` 会移除不在选定依赖中的包，临时工具使用 `uvx` 或独立环境。
+
+检查锁文件、添加依赖及单独升级一个包：
+
+```sh
+uv lock --check
+uv add <运行依赖包名>
+uv add --optional dev <开发依赖包名>
+uv lock --upgrade-package <包名>
+uv sync --locked --extra dev
+```
+
+升级时审查 `pyproject.toml` 和 `uv.lock`，运行 pytest、Ruff 和 QML 冒烟检查；涉及 Qt、evdev 或原生插件时同时验证 Debian arm64。把依赖升级作为独立变更提交，不在普通开发同步中执行全量升级。打 wheel 继续使用隔离构建：`uv run --locked --extra dev python -m build --wheel`，保留 setuptools 后端。
+
+升级 uv 时同步修改项目的 `required-version` 和 Release workflow 中的版本；升级开发 Python 时更新 `.python-version` 并重建环境、重新验证，运行支持范围仍由 `requires-python` 决定。
+
+迁移前可先将旧环境移入已忽略的目录。若解释器仍可运行，同时保留安装清单；链接已失效时跳过清单导出：
+
+```sh
+backup="artifacts/venv-backup-$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$backup"
+if [ -x .venv/bin/python ]; then
+  uv pip freeze --python .venv/bin/python > "$backup/requirements.txt"
+fi
+mv .venv "$backup/.venv"
+printf 'Backup: %s\n' "$backup"
+uv python install
+uv sync --locked --extra dev
+```
+
+`backup` 仅在当前 shell 中有效，保留终端显示的实际目录。需要恢复时，先把新 `.venv` 改名保存到另一个 `artifacts/` 子目录，再将备份中的 `.venv` 移回项目根目录；旧环境依赖原解释器路径，失效链接不会因恢复而修复。不要在其他任务正在使用该环境时移动它，也不要复用别的工作树的 `.venv`。
 
 ## Debian 软件包
 

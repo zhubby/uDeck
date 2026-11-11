@@ -159,6 +159,8 @@ def main():
         # Check the source archive corresponds to installed Python/QML/resources, not just filenames.
         source = temporary / "source"
         run(["dpkg-source", "--extract", str(next(release.glob("*.dsc"))), str(source)])
+        for name in ("uv.lock", ".python-version"):
+            assert (source / name).read_bytes() == (Path(__file__).resolve().parents[1] / name).read_bytes(), name
         checked = 0
         package = Path("/usr/lib/python3/dist-packages/udeck")
         for path in package.rglob("*"):

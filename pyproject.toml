@@ -48,6 +48,9 @@ udeck = ["qml/*.qml", "locales/*.json", "fonts/*.ttf", "fonts/*.txt", "fonts/*.j
 "udeck.apps.reader" = ["qml/*.qml", "web/*", "web/foliate/*"]
 "udeck.apps.emulator" = ["qml/*.qml", "resources/*.json"]
 
+[tool.uv]
+required-version = "==0.13.7"
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]

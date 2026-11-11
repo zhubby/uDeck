@@ -36,24 +36,26 @@ uDeck 是面向 1280×720 横屏 uConsole 的原生 Qt Quick 桌面壳：方向�
 
 ## 安全预览
 
-建议 Python 3.13；支持 Python 3.11–3.13，Qt / PySide6 固定 6.8 系列。
+开发统一使用 uv **0.13.7** 和 uv 管理的 Python **3.13.18**；运行支持 Python 3.11–3.13，Qt / PySide6 固定 6.8 系列。先按[开发预览与依赖维护](docs/udeck/README.zh-CN.md#开发预览)安装固定版本的 uv；已有环境迁移也见该文档。
 
 ```sh
-python3.13 -m venv .venv
-.venv/bin/python -m pip install -e '.[dev]'
-.venv/bin/udeck --mock --windowed
+uv python install
+uv sync --locked --extra dev
+uv run --locked --extra dev udeck --mock --windowed
 ```
 
-`--mock` 不访问真实系统服务、不打开真实文件、不启动第三方应用，也不保存用户配置。
+`.python-version` 指定开发解释器，`uv.lock` 固定 Python 依赖；`dev` 是可选依赖，需显式选择。`--mock` 不访问真实系统服务、不打开真实文件、不启动第三方应用，也不保存用户配置。
 
 无显示器冒烟检查：
 
 ```sh
-QT_QPA_PLATFORM=offscreen PYTHONPATH=src .venv/bin/python -m udeck.main \
+QT_QPA_PLATFORM=offscreen PYTHONPATH=src uv run --locked --extra dev python -m udeck.main \
   --mock --windowed --smoke-test --screenshot artifacts/preview-home.png
-.venv/bin/python -m pytest -q
-.venv/bin/ruff check src tests tools
+uv run --locked --extra dev pytest -q
+uv run --locked --extra dev ruff check src tests tools
 ```
+
+日常同步不升级锁定版本。依赖升级与旧 `.venv` 的备份/恢复见[使用与维护](docs/udeck/README.zh-CN.md#依赖更新与环境恢复)。Debian 构建和设备运行仍使用 APT 提供的系统 Python、Qt 与原生组件。
 
 ## Debian 安装与运行
 

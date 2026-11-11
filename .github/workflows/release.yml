@@ -28,6 +28,21 @@ jobs:
           persist-credentials: false
       - name: Check release version
         run: python3 tools/build-release --tag "$RELEASE_TAG" --check-version
+      - name: Set up pinned uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: "0.13.7"
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
+            .python-version
+      - name: Verify development dependencies and lint
+        run: |
+          uv python install
+          uv lock --check
+          uv sync --locked --extra dev
+          uv run --locked --extra dev ruff check src tests tools
       - name: Prepare Debian 13 builder
         run: docker build -f tools/debian-build.Dockerfile -t udeck-debian-builder .
       - name: Build the package and matching source
