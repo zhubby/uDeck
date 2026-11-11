@@ -116,7 +116,7 @@ Item {
                                 } else if(d.mode==="text")controller.webKey(d.action)
                                 else web.runJavaScript(controller.navigationScript(d.action),function(result){
                                     if(d.action==="accept"&&result&&controller.acceptsWebResult(web.identifier,d.generation)){
-                                        if(result.x!==undefined){const point=web.mapToItem(null,result.x,result.y);controller.webClick(web.identifier,point.x,point.y)}
+                                        if(result.x!==undefined){const point=web.mapToItem(null,result.x*web.zoomFactor,result.y*web.zoomFactor);controller.webClick(web.identifier,point.x,point.y)}
                                         controller.webInput(web.identifier,result.editing===true)
                                     }
                                 })
@@ -131,8 +131,8 @@ Item {
                     anchors.centerIn:parent;width:Math.min(parent.width-80,700);spacing:22
                     Text{ font.family: surface.host.fontFamily;text:"uDeck Browser";color:surface.colors.text;font.pixelSize:40}
                     Text{ font.family: surface.host.fontFamily;width:parent.width;text:host?host.tr("Open a website or search the web. Your tabs, bookmarks and history stay on this device."):"";color:surface.colors.muted;font.pixelSize:24;wrapMode:Text.Wrap}
-                    SuiteButton{ fontFamily: surface.host.fontFamily;colors:surface.colors;promptKeys:["gamecube_button_color_a"];text:host?host.tr("Address or search"):"";selected:true;onActivated:controller.command("address")}
-                    SuiteButton{ fontFamily: surface.host.fontFamily;colors:surface.colors;text:host?host.tr("Bookmarks"):"";onActivated:controller.command("bookmarks")}
+                    SuiteButton{ objectName:"browserStartAddress";fontFamily: surface.host.fontFamily;colors:surface.colors;promptKeys:["gamecube_button_color_a"];text:host?host.tr("Address or search"):"";selected:appState.startIndex===0;onActivated:controller.command("address")}
+                    SuiteButton{ objectName:"browserStartBookmarks";fontFamily: surface.host.fontFamily;colors:surface.colors;text:host?host.tr("Bookmarks"):"";selected:appState.startIndex===1;onActivated:controller.command("bookmarks")}
                 }
             }
             ScrollView { palette: surface.colors.controls;

@@ -128,6 +128,8 @@ class BrowserController(AppController):
         if len(self.web_tabs) >= 12:
             raise ValueError(tr("Close a tab before opening another (12 tab limit)"))
         self.invalidate_web_actions()
+        self.web_mode, self.reading_text = "navigation", ""
+        self.start_index = 0
         tab = BrowserTab(url, parent=self)
         self.current_tab = tab.identifier
         self.tab = len(self.web_tabs)
@@ -147,6 +149,8 @@ class BrowserController(AppController):
         elif self.current_tab == identifier:
             neighbor = self.web_tabs[index + 1] if index + 1 < len(self.web_tabs) else self.web_tabs[index - 1]
             self.current_tab = neighbor.identifier
+            self.web_mode, self.reading_text = "navigation", ""
+            self.start_index = 0
         self.tab_model.remove(index)
         self.tab = next(i for i, t in enumerate(self.web_tabs) if t.identifier == self.current_tab)
         self.tabsChanged.emit()
@@ -160,7 +164,8 @@ class BrowserController(AppController):
             self.invalidate_web_actions()
             self.tab = index
             self.current_tab = self.web_tabs[index].identifier
-            self.web_mode = "navigation"
+            self.web_mode, self.reading_text = "navigation", ""
+            self.start_index = 0
             self.publish()
 
     def send(self, operation, **values):
@@ -218,7 +223,7 @@ class BrowserController(AppController):
         return {"currentTab": self.current_tab, "webMode": self.web_mode,
                 "url": tab.url if tab else "about:blank", "webTitle": tab.title if tab else "",
                 "loading": bool(tab and tab.loading), "webError": tab.error if tab else "",
-                "zoom": self.zoom, "readingText": self.reading_text}
+                "zoom": self.zoom, "readingText": self.reading_text, "startIndex": self.start_index}
 
     def context(self):
         self.menu(tr("Browser actions"), [
@@ -304,7 +309,9 @@ class BrowserController(AppController):
         elif action in ("up", "down", "left", "right", "accept"):
             if self.active_tab().url == "about:blank":
                 if action == "accept":
-                    self.command("address")
+                    self.command("address" if self.start_index == 0 else "bookmarks")
+                elif action in ("up", "down"):
+                    self.start_index = 0 if action == "up" else 1
             else:
                 self.send("input", action=action, mode=self.web_mode)
         self.publish()
