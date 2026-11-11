@@ -12,7 +12,7 @@ from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 
 from . import __version__
-from .console import ConsolePanel, ConsoleShortcut
+from .console import ConsolePanel
 from .controller import ShellController
 from .core import ConfigStore
 from .cursor import PointerCursor
@@ -40,6 +40,7 @@ class Control(QObject):
         self.application_router = None
         self.isolation = None
         self.console_panel = None
+        self.shortcut_session = None
 
     @Slot()
     def Console(self):
@@ -72,7 +73,23 @@ class Control(QObject):
 
     @Slot(str, result=bool)
     def InputConfigApplied(self, token):
+        if self.shortcut_session:
+            return self.shortcut_session.acknowledge(token)
         return bool(self.isolation and self.isolation.acknowledge(token))
+
+    @Slot(str, result=bool)
+    def GlobalAction(self, action):
+        if action in ('apps', 'files', 'settings') and self.application_router:
+            self.application_router.leave_menu()
+        return self.controller.globalAction(action)
+
+    @Slot(result=str)
+    def ReloadShortcuts(self):
+        if self.shortcut_session:
+            state = self.controller.data.get('sessionInput', {})
+            if state.get('available') and state.get('active') and not state.get('locked'):
+                self.shortcut_session.start(retry=True)
+        return json.dumps(self.controller._shortcut_state(), ensure_ascii=False)
 
     @Slot()
     def Lock(self):
@@ -115,6 +132,7 @@ class Control(QObject):
             "windowProtocol": bool(self.windows and self.windows.available),
             "windowCount": len(self.controller.data["windows"]),
             "input": self.controller.data["input"],
+            "shortcuts": self.controller._shortcut_state(),
             "services": {key: self.controller.data[key].get("available", False) for key in ("wifi", "bluetooth", "audio", "brightness", "battery")},
             "serviceErrors": {key: self.controller.data[key]["error"] for key in ("wifi", "bluetooth", "audio", "brightness", "battery") if self.controller.data[key].get("error")},
         }, ensure_ascii=False)
@@ -178,16 +196,27 @@ def main(argv=None):
     virtual_input = None
     direction_reader = None
     isolation = None
-    if pointer:
+    shortcut_session = None
+    if not options.mock:
         from .virtual_input import VirtualInput
 
         virtual_input = VirtualInput()
         virtual_input.start()
-    if gamepad and pointer and os.environ.get('UDECK_SESSION') == '1':
+        if controller.shortcut_store:
+            from .shortcut_session import ShortcutSession
+            shortcut_session = ShortcutSession(controller.shortcut_store, virtual_input)
+            controller.attachShortcutSession(shortcut_session)
+            control.shortcut_session = shortcut_session
+            def enable_shortcuts(values):
+                state = values.get('sessionInput', {})
+                if state.get('available') and state.get('active') and not state.get('locked'):
+                    shortcut_session.start()
+            backend.updated.connect(enable_shortcuts)
+    if gamepad and pointer and shortcut_session and shortcut_session.available and os.environ.get('UDECK_SESSION') == '1':
         from .compatibility import ApplicationRouter
         from .directions import DirectionReader
         from .session_config import DirectionIsolation
-        isolation = DirectionIsolation(virtual_input)
+        isolation = DirectionIsolation(virtual_input, coordinator=shortcut_session)
         if isolation.available:
             application_router = ApplicationRouter(controller, windows, gamepad, virtual_input, isolation)
             application_router.session_safe = False
@@ -294,7 +323,8 @@ def main(argv=None):
     from .key_test import KeyTestFilter
 
     key_test_filter = KeyTestFilter(controller, window)
-    console_shortcut = ConsoleShortcut(console_panel, window)
+    from .shortcut_recorder import ShortcutRecorder
+    controller.shortcut_recorder = ShortcutRecorder(controller, engine, window, virtual_input)
     pointer_cursor = PointerCursor(window, pointer=pointer, gamepad=gamepad)
     window.setProperty("pointerCursor", pointer_cursor)
     from .key_test_device import KeyTestReader
@@ -359,7 +389,6 @@ def main(argv=None):
         QTimer.singleShot(2000, application.quit)
     result = application.exec()
     key_test_reader.close()
-    console_shortcut.close()
     console_panel.close()
     if trackball:
         trackball.close()

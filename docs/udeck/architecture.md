@@ -9,7 +9,9 @@
 | `core.py` | 非循环空间导航、XDG 配置校验与私有原子保存 |
 | `input.py` | evdev 独立手柄发现、八步映射、前台 grab/release、方向长按重复和热拔插恢复 |
 | `pointer.py`、`trackball.py` | 持有独立鼠标接口，内置 L/R 切页；内置轨迹球短按左键、超过 2 秒右键，分离恢复事件与真实松开 |
-| `console.py`、`session_shortcuts.py` | Ctrl+Shift+Esc 控制台、原窗口焦点恢复及已有 labwc 配置的备份与快捷键安装 |
+| `console.py` | 全局控制台与原窗口焦点恢复 |
+| `shortcuts.py`、`shortcut_session.py` | 系统动作注册表、独立配置、labwc 接管备份、串行热重载及代次确认 |
+| `shortcut_controller.py`、`shortcut_recorder.py`、`screenshot.py` | 快捷键设置、隔离录制窗口与真实桌面 PNG 保存 |
 | `compatibility.py` | 按真实前台窗口选择桌面、按键、指针、原生或暂停状态，管理应用菜单与释放交接 |
 | `virtual_input.py` | 普通用户的 Wayland 虚拟键盘与指针客户端，只注入固定应用操作 |
 | `directions.py` | 只读监听已确认的内置 Keyboard；识别无修饰方向键及热拔插，不独占键盘 |
@@ -77,7 +79,9 @@ QML 列表与滚动条不接受指针滚动/拖动，输入框不允许鼠标选
 
 会话 D-Bus 名称 `io.github.zhubby.uDeck`，对象 `/io/github/zhubby/uDeck`，接口 `io.github.zhubby.uDeck.Control`。暴露 `Home`、`Switcher`、`Console`、`QuickSettings`、`AppMenu`、`InputMode`、`InputConfigApplied`、`Lock`、`Diagnose`，并保留终端路由诊断；不开放 TCP/HTTP，不接受任意脚本、文件或按键序列。应用快捷键由内置 app_id / WM_CLASS 白名单配置提供。
 
-全局控制台使用现有菜单弹层和确认框。labwc 的 `C-S-Escape` 绑定执行 `udeckctl console`，重复调用保留现有面板与确认框。Esc/B 关闭时按窗口标识恢复前台；原窗口已关闭、会话失活或锁屏时不抢焦点。在兼容指针模式下先完成方向键隔离确认，再返回应用。已有 labwc 桌面可执行 `udeckctl bind-console` 备份并添加单个快捷键；保留其他配置与默认登录方式。
+全局控制台使用现有菜单弹层和确认框。默认绑定由系统动作注册表生成并执行 `udeckctl console`，重复调用保留现有面板与确认框；主窗口不再另装本地控制台快捷键。Esc/B 关闭时按窗口标识恢复前台；原窗口已关闭、会话失活或锁屏时不抢焦点。在兼容指针模式下先完成方向键隔离确认，再返回应用。
+
+系统快捷键独立保存在 XDG `udeck/shortcuts.json`。首次在当前用户的真实、活动且未锁定 labwc 会话启用时，备份原始 XML，替换所有 keyboard keybind 并移除默认绑定继承，保留主题、鼠标和窗口规则。快捷键编辑与方向隔离由同一 `ShortcutSession` 串行处理；F24 携带配置代次确认，核对磁盘配置后才持久化 JSON，失败回滚自己的 XML 写入。外部修改不被回滚覆盖。F23 只在指定录制窗口执行 `ToggleKeybinds`，窗口销毁后恢复；取消、失焦与 15 秒超时都销毁该窗口。`udeckctl bind-console` 只请求运行中的壳重载，不再离线添加单个绑定。详见 [系统快捷键](system-shortcuts-2026-11-11.md)。
 
 配置位于 `$XDG_CONFIG_HOME/udeck/settings.json`，未设置时为 `~/.config/udeck/settings.json`；包含 favorites、recent、focus、preferences、input 和按应用保存的 `applicationInput`。旧字段与校准保留，保存失败恢复当前配置。临时文件以 0600 创建，fsync 后原子替换。输入密码和配对确认只存在于瞬时内存；SSH 密码没有部署文件或日志入口。
 

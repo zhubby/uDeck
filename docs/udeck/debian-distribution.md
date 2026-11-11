@@ -77,7 +77,7 @@ udeckctl doctor --json
 
 通过登录界面选择 **uDeck** 启动完整会话。安装保留原桌面与默认登录，并自动将 uDeck Terminal 设为系统默认终端。可选自动登录管理仍使用源码中的独立 `tools/configure-login.py`，终端默认管理使用 `udeck-terminal-default status/apply/restore --system`，无需验收 JSON。
 
-输入读取与背光权限沿用镜像已有的 udev/logind/厂商规则。`rpi-backlight` 并非 Debian 主仓库依赖；已有硬件快捷键会调用它，检测报告是否存在。缺权限时显示不可用及原因，不给整个桌面 root 权限、不把用户加入通用 `input` 组。物理亮度键与设置滑杆分别验收。
+输入读取与背光权限沿用镜像已有的 udev/logind/厂商规则。uDeck 管理的亮度快捷键与设置滑杆共用系统后端，不依赖 `rpi-backlight`；检测报告保留该厂商工具的兼容信息。缺权限时显示不可用及原因，不给整个桌面 root 权限、不把用户加入通用 `input` 组。物理亮度键与设置滑杆分别验收。桌面截屏使用新增运行依赖 `grim`。
 
 ## 升级、卸载与旧版迁移
 

@@ -21,6 +21,8 @@ from .key_test import KeyTestControls
 from .launch_controller import LaunchControls
 from .menu_icons import system_menu_icons
 from .mock import mock_apps
+from .shortcut_controller import ShortcutControls
+from .shortcuts import binding_label
 from .sounds import SoundFeedback, interaction
 from .timezone import REGIONS, local_clock, region, zone_label, zone_summary
 from .wifi import wifi_indicators, wifi_label, wifi_status, wifi_summary
@@ -30,7 +32,7 @@ CATEGORY_NAMES = {"All": tr('全部应用'), "Development": tr('开发'), "Netwo
                   "Utility": tr('工具'), "Game": tr('游戏'), "Graphics": tr('图形'), "Office": tr('办公'), "AudioVideo": tr('影音'), "Other": tr('其他')}
 
 
-class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControls, SoundFeedback):
+class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControls, ShortcutControls, SoundFeedback):
     changed = Signal()
     present = Signal()
     calibrationRequested = Signal()
@@ -45,6 +47,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     fileJobProgress = Signal(object)
     fileJobFinished = Signal(object)
     filePreviewScroll = Signal(int)
+    screenshotFinished = Signal(object)
 
     def __init__(self, backend, window_service=None, config=None, catalog=None, mock=False, *, defer_startup=False):
         super().__init__()
@@ -66,6 +69,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         self._modals = []
         self._text = ""
         self._init_key_test()
+        self._init_shortcuts()
         self.toast = ""
         self.busy = False
         self.busy_label = ""
@@ -137,6 +141,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             {"id": "battery", "name": tr('电池'), "subtitle": battery_summary(battery), "icon": "battery"},
             {"id": "input", "name": tr('按键与控制器'), "subtitle": tr('ABXY 已校准') if self.data["input"].get("verified") else (tr('ABXY 固件映射 · 可重新校准') if self.data["input"].get("mapped") else tr('校准物理 ABXY；不占用普通键盘字母')), "icon": "input-gaming"},
             {"id": "key-test", "name": tr('Key test'), "subtitle": tr('Full keyboard, controls and trackball'), "icon": "input-keyboard"},
+            {"id": "shortcuts", "name": tr('Shortcut bindings'), "subtitle": tr('System actions and keyboard combinations'), "icon": "input-keyboard"},
             {"id": "language", "name": tr('语言'), "subtitle": LANGUAGES[self.language], "icon": "preferences-desktop-locale"},
             {"id": "theme", "name": tr('Theme'), "subtitle": THEMES[self.theme], "icon": "preferences-desktop-theme"},
             {"id": "ui-sounds", "name": tr("Interface sounds"), "subtitle": tr("On") if self.config.data["preferences"]["uiSounds"] else tr("Off"), "icon": "audio-volume-high"},
@@ -193,6 +198,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             "busyLabel": self.busy_label, "favorites": self.config.data["favorites"],
             "clipboard": bool(self.clipboard), "pending": list(self.pending_system), "wifiSummary": wifi_summary(self.data["wifi"]),
             "wifiIndicators": wifi_indicators(self.data["wifi"]),
+            "homeShortcutHints": self._shortcut_hints('home', tr('主页')),
         }, self.language), ensure_ascii=False)
 
     @Slot(str, str, result=str)
@@ -372,6 +378,8 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                 modal["body"] = self._timezone_body()
             elif source == "quick-settings":
                 options = self._quick_options()
+            elif source in ('shortcuts', 'shortcuts-group', 'shortcut-action'):
+                options = self._shortcut_menu_options(modal)
             else:
                 continue
             old_options = modal["options"]
@@ -497,6 +505,12 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     @Slot(str)
     @interaction
     def dispatch(self, action):
+        if self.shortcut_recorder and self.shortcut_recorder.window:
+            if action == 'accept':
+                self.shortcut_recorder.confirm()
+            elif action == 'back':
+                self.shortcut_recorder.cancel()
+            return
         if self.startup["active"]:
             return
         if self.app_launch["pending"]:
@@ -516,7 +530,9 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                         ('home', tr('回到主界面')), ('switcher', tr('运行中')), ('settings', tr('设置')),
                         ('poweroff', tr('关机')), ('reboot', tr('重启')),
                     )
-                ], source='console', body=tr('Ctrl+Shift+Esc 打开 · Esc / B 返回应用'))
+                ], source='console', body=tr('{shortcut} opens console · Esc / B returns to the application',
+                     shortcut=binding_label(self.shortcut_store.bindings()['console'])
+                         if self.shortcut_store else tr('Unbound')))
             self.present.emit()
             return
         if self.modal.get("kind") == "key-test":
@@ -631,7 +647,9 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     @Slot(str)
     @interaction
     def activateSetting(self, identifier):
-        if identifier == "ui-sounds":
+        if identifier == "shortcuts":
+            self._open_shortcuts()
+        elif identifier == "ui-sounds":
             previous = ConfigStore(self.config.path).data["preferences"]["uiSounds"]
             self.config.data["preferences"]["uiSounds"] = not previous
             try:
@@ -861,7 +879,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                     self.feedback("error")
                     self.notify(option.get("reason") or tr('此项目当前不可用'))
                     return
-                keep_parent = modal.get('source') == 'console' or (modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot"))
+                keep_parent = modal.get('source') in ('console', 'shortcuts', 'shortcuts-group', 'shortcut-action') or (modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot", "shortcuts"))
                 if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "hotspot", "hotspot-device", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
                     self._pop()
                 self._execute_option(option)
@@ -937,6 +955,8 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         self._dispatch_modal("accept")
 
     def _execute_option(self, option):
+        if self._shortcut_option(option):
+            return
         try:
             self._apply_option(option)
         except (OSError, ValueError, KeyError, RuntimeError) as error:
@@ -1216,6 +1236,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         self._publish()
 
     def close(self):
+        self._close_shortcuts()
         self._close_loading()
         self._close_files()
         self._cancel_modals()

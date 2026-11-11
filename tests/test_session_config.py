@@ -7,6 +7,18 @@ from PySide6.QtCore import QCoreApplication
 from udeck.session_config import DirectionIsolation, render_config
 
 
+def test_custom_bindings_survive_direction_render_and_restart(tmp_path, monkeypatch):
+    from udeck.shortcuts import ShortcutStore
+    monkeypatch.setenv('XDG_CONFIG_HOME', str(tmp_path))
+    store = ShortcutStore()
+    store.save(store.propose('console', ['Ctrl+Alt+Q']))
+    original = Path('packaging/labwc/rc.xml').read_text()
+    for pointer in (False, True, False):
+        generated = render_config(original, pointer, 'generation')
+        assert 'key="C-A-q"' in generated
+        assert 'key="C-S-Escape"' not in generated
+
+
 def test_global_console_binding_survives_direction_mode_and_restore():
     original = Path('packaging/labwc/rc.xml').read_text()
     for pointer in (False, True):
@@ -23,7 +35,8 @@ def test_pointer_config_consumes_only_unmodified_directions_and_acknowledges_gen
     original = '<labwc_config><keyboard><keybind key="C-A-Escape"><action name="Execute" command="udeckctl home"/></keybind></keyboard><theme><name>PiXtrix</name></theme></labwc_config>'
     config = ElementTree.fromstring(render_config(original, True, 'abc123'))
     bindings = {entry.get('key'): entry for entry in config.findall('keyboard/keybind')}
-    assert set(bindings) == {'C-A-Escape', 'Up', 'Down', 'Left', 'Right', 'F24'}
+    assert {'C-A-Escape', 'Up', 'Down', 'Left', 'Right', 'F23', 'F24'} <= set(bindings)
+    assert not {'Return', 'Escape', 'Tab', 'a', 'b'} & set(bindings)
     assert all(bindings[key].find('action').get('name') == 'If' for key in ('Up', 'Down', 'Left', 'Right'))
     assert bindings['F24'].find('action').get('command') == 'udeckctl input-ack abc123'
     assert config.find('theme/name').text == 'PiXtrix'

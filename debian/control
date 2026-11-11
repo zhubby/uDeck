@@ -79,6 +79,7 @@ Depends:
  labwc (>= 0.9),
  xwayland,
  wlr-randr,
+ grim,
  libwayland-client0,
  libxkbcommon0,
  xkb-data,

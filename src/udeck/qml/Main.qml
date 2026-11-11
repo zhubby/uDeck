@@ -404,8 +404,8 @@ Window {
             x: footerControls.x + footerControls.width + 20
             width: Math.max(0, parent.width - x - 30)
             y: parent.height - 37 - height / 2
-            hints: [{keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"], label: window.tr("Pages")},
-                    {keys: ["keyboard_ctrl", "+", "keyboard_alt", "+", "keyboard_escape"], label: window.tr("主页")}]
+            hints: [{keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"], label: window.tr("Pages")}]
+                .concat(viewState.homeShortcutHints || [])
             fontFamily: window.fontFamily; fontSize: 20; iconSize: 32
             textColor: window.colors.pointer
         }

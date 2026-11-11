@@ -84,7 +84,7 @@ class VirtualInput(WindowService):
         context = library.xkb_context_new(0)
         definition = (b'xkb_keymap { xkb_keycodes { include "evdev+aliases(qwerty)" }; '
                       b'xkb_types { include "complete" }; xkb_compat { include "complete" }; '
-                      b'xkb_symbols { include "pc+us+inet(evdev)" key <FK24> { [ F24 ] }; }; };')
+                      b'xkb_symbols { include "pc+us+inet(evdev)" key <FK23> { [ F23 ] }; key <FK24> { [ F24 ] }; }; };')
         keymap = library.xkb_keymap_new_from_string(context, definition, 1, 0) if context else None
         allocation = None
         try:

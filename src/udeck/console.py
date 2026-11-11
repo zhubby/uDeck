@@ -1,6 +1,6 @@
-"""Global shell panel and focus restoration for compositor and local shortcuts."""
+"""Global shell panel and focus restoration for compositor shortcuts."""
 
-from PySide6.QtCore import QEvent, QObject, Qt
+from PySide6.QtCore import QObject
 
 from .windows import APP_ID
 
@@ -83,23 +83,3 @@ class ConsolePanel(QObject):
         self.controller.inputSuspended.disconnect(self.set_suspended)
         if self.windows:
             self.windows.changed.disconnect(self._windows_changed)
-
-
-class ConsoleShortcut(QObject):
-    def __init__(self, panel, window):
-        super().__init__(window)
-        self.panel, self.window = panel, window
-        window.installEventFilter(self)
-
-    def eventFilter(self, watched, event):
-        if (event.type() not in (QEvent.Type.ShortcutOverride, QEvent.Type.KeyPress, QEvent.Type.KeyRelease)
-                or event.key() != Qt.Key.Key_Escape
-                or event.modifiers() != (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier)):
-            return False
-        if event.type() == QEvent.Type.KeyPress and not event.isAutoRepeat():
-            self.panel.open()
-        event.accept()
-        return True
-
-    def close(self):
-        self.window.removeEventFilter(self)

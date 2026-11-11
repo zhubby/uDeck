@@ -23,7 +23,7 @@
 udeckctl bind-console
 ```
 
-命令要求已有、属于当前用户的 `~/.config/labwc/rc.xml`（遵循 `XDG_CONFIG_HOME`）。支持 `labwc_config` 和原桌面的 `openbox_config`，保留原有 XML 命名空间。先把原始字节以 0600 权限备份到 `~/.local/state/udeck/shortcuts/`（遵循 `XDG_STATE_HOME`），再添加/替换 `Ctrl+Shift+Esc` 的绑定并请求 labwc 热重载。保留其余快捷键、主题、注释及文件权限；重复执行不重复备份或添加。若原来同一组合键启动任务管理器，该绑定会被替换；返回的 JSON 提供原配置备份路径。恢复时把该备份复制回原路径并执行 `labwc --reconfigure`。快捷键配置不修改 LightDM、默认桌面、自动登录或系统默认终端。
+自 2026-11-11 的统一快捷键管理起，命令仅请求运行中的 uDeck 重新合成并确认全局快捷键，不再离线添加单个按键。首次真实启用时会备份并替换全部旧快捷键；主题、鼠标、窗口规则、注释及文件权限保留。当前行为、配置位置与恢复方法见 [系统快捷键](system-shortcuts-2026-11-11.md)。下文 2026-11-10 的实机结果记录的是当时的单键安装行为。
 
 通过 SSH 启动临时用户服务时，需从实际 labwc 图形会话继承 `XDG_SESSION_ID`、`XDG_SESSION_TYPE`、`XDG_SEAT`、`XDG_VTNR`，并设置已核对的 `WAYLAND_DISPLAY`。执行热重载还需该合成器的 `LABWC_PID`。SSH 自身的登录会话不能代替图形会话，也不要通过设置 `UDECK_SESSION=1` 绕过独立会话校验。
 

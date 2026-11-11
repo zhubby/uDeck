@@ -1,56 +1,46 @@
-"""Add the requested global shortcut to an existing desktop's labwc config."""
+"""Legacy offline helper using the shared system action registry.
 
+The CLI uses ShortcutSession instead so it can confirm compositor reloads.
+"""
+
+import hashlib
 import os
 import stat
-import tempfile
-import uuid
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from .shortcuts import ShortcutStore, atomic_bytes, render_bindings
+
 
 def bind_console(config, backups):
+    config, backups = Path(config), Path(backups)
     if config.is_symlink() or not config.is_file() or config.stat().st_uid != os.getuid():
         raise ValueError('An existing, user-owned regular labwc rc.xml is required')
     original = config.read_bytes()
     try:
-        root = ET.fromstring(original, parser=ET.XMLParser(target=ET.TreeBuilder(insert_comments=True)))
+        generated = render_bindings(original, ShortcutStore().bindings(), token='compat').encode()
     except ET.ParseError as error:
         raise ValueError('Invalid labwc XML: ' + str(error)) from error
-    namespace, separator, root_name = root.tag.rpartition('}')
-    prefix = namespace + '}' if separator else ''
-    if root_name not in ('labwc_config', 'openbox_config'):
-        raise ValueError('Not a labwc configuration')
-    if prefix:
-        ET.register_namespace('', namespace.removeprefix('{'))
-    keyboard = root.find(prefix + 'keyboard')
-    if keyboard is None:
-        keyboard = ET.SubElement(root, prefix + 'keyboard')
-    matches = [node for node in keyboard.findall(prefix + 'keybind') if set(node.get('key', '').split('-')) == {'C', 'S', 'Escape'}]
-    if (len(matches) == 1 and len(matches[0]) == 1 and matches[0][0].get('name') == 'Execute'
-            and matches[0][0].get('command') == 'udeckctl console'):
+    if generated == original:
         return {'changed': False, 'config': str(config)}
-    for node in matches:
-        keyboard.remove(node)
-    binding = ET.SubElement(keyboard, prefix + 'keybind', key='C-S-Escape')
-    ET.SubElement(binding, prefix + 'action', name='Execute', command='udeckctl console')
-    backups.mkdir(parents=True, exist_ok=True, mode=0o700)
-    if backups.is_symlink() or backups.stat().st_uid != os.getuid():
-        raise ValueError('Unsafe shortcut backup directory')
-    backup = backups / ('labwc-before-console-' + uuid.uuid4().hex + '.xml')
-    with backup.open('xb') as stream:
-        os.fchmod(stream.fileno(), 0o600)
-        stream.write(original)
-    descriptor, temporary = tempfile.mkstemp(prefix='.udeck-shortcut-', dir=config.parent)
-    try:
-        with os.fdopen(descriptor, 'wb') as stream:
-            os.fchmod(stream.fileno(), stat.S_IMODE(config.stat().st_mode))
-            stream.write(ET.tostring(root, encoding='utf-8', xml_declaration=True))
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary, config)
-    finally:
-        Path(temporary).unlink(missing_ok=True)
-    return {'changed': True, 'config': str(config), 'backup': str(backup)}
+    result = {'changed': True, 'config': str(config)}
+    if b'udeck-managed-shortcuts' not in original:
+        backups.mkdir(parents=True, exist_ok=True, mode=0o700)
+        if backups.is_symlink() or backups.stat().st_uid != os.getuid():
+            raise ValueError('Unsafe shortcut backup directory')
+        backup = backups / ('labwc-before-udeck-' + hashlib.sha256(original).hexdigest() + '.xml')
+        if backup.exists():
+            if backup.is_symlink() or backup.read_bytes() != original:
+                raise ValueError('Unsafe shortcut backup file')
+        else:
+            with backup.open('xb') as stream:
+                os.fchmod(stream.fileno(), 0o600)
+                stream.write(original)
+                stream.flush()
+                os.fsync(stream.fileno())
+        result['backup'] = str(backup)
+    atomic_bytes(config, generated, stat.S_IMODE(config.stat().st_mode))
+    return result
 
 
 def install():

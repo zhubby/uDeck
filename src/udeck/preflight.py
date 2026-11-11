@@ -19,7 +19,7 @@ REQUIRED_PACKAGES = (
     "python3-pyside6.qtquickcontrols2", "qml6-module-qtquick", "qml6-module-qtquick-controls",
     "qml6-module-qtquick-layouts", "qml6-module-qtquick-window", "qml6-module-qtqml-workerscript",
     "qml6-module-qtquick-templates", "qt6-svg-plugins", "qt6-wayland", "labwc", "xwayland",
-    "wlr-randr", "libwayland-client0", "libxkbcommon0", "xkb-data", "procps", "network-manager", "wpasupplicant",
+    "wlr-randr", "grim", "libwayland-client0", "libxkbcommon0", "xkb-data", "procps", "network-manager", "wpasupplicant",
     "dnsmasq-base", "nftables", "bluez", "systemd", "libpam-systemd", "tzdata", "pipewire-audio",
     "pulseaudio-utils", "libglib2.0-bin", "gvfs", "udisks2", "swayidle", "swaylock", "wlopm",
     "fcitx5", "fcitx5-frontend-qt6", "fcitx5-pinyin", "lxpolkit", "dbus-user-session",

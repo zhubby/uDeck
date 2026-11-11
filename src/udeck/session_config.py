@@ -1,6 +1,5 @@
 import argparse
 import os
-import re
 import signal
 import tempfile
 import uuid
@@ -10,26 +9,11 @@ from pathlib import Path
 from PySide6.QtCore import QObject, QTimer, Signal
 
 from .i18n import error_text, tr
+from .shortcuts import ShortcutStore, render_bindings
 
 
 def render_config(original, pointer, token):
-    if not re.fullmatch(r'[a-zA-Z0-9]{1,64}', token):
-        raise ValueError('Invalid configuration generation')
-    root = ElementTree.fromstring(original)
-    keyboard = root.find('keyboard')
-    if keyboard is None:
-        keyboard = ElementTree.SubElement(root, 'keyboard')
-    for binding in list(keyboard):
-        if binding.get('key') == 'F24':
-            keyboard.remove(binding)
-    if pointer:
-        for direction in ('Up', 'Down', 'Left', 'Right'):
-            binding = ElementTree.SubElement(keyboard, 'keybind', key=direction)
-            action = ElementTree.SubElement(binding, 'action', name='If')
-            ElementTree.SubElement(action, 'query', identifier='io.github.zhubby.uDeck.NoSuchWindow')
-    binding = ElementTree.SubElement(keyboard, 'keybind', key='F24', allowWhenLocked='yes')
-    ElementTree.SubElement(binding, 'action', name='Execute', command='udeckctl input-ack ' + token)
-    return ElementTree.tostring(root, encoding='unicode')
+    return render_bindings(original, ShortcutStore().bindings(), pointer=pointer, token=token)
 
 
 def atomic_write(path, contents):
@@ -60,9 +44,12 @@ def prepare(directory, template):
 class DirectionIsolation(QObject):
     finished = Signal(bool)
 
-    def __init__(self, output, parent=None):
+    def __init__(self, output, parent=None, *, coordinator=None):
         super().__init__(parent)
         self.output = output
+        self.coordinator = coordinator
+        if coordinator:
+            coordinator.pointerFinished.connect(self._coordinated)
         self.directory = Path(os.environ.get('UDECK_CONFIG_DIR', '/nonexistent'))
         self.pid = 0
         self.available = False
@@ -82,6 +69,10 @@ class DirectionIsolation(QObject):
 
     def _owns_compositor(self):
         try:
+            if self.coordinator:
+                return (os.environ.get('UDECK_SESSION') == '1' and self.coordinator.config is not None
+                        and self.coordinator.config.parent.absolute() == self.directory.absolute()
+                        and self.coordinator._owns_compositor() and (self.directory / 'base.xml').is_file())
             process = Path('/proc') / str(self.pid)
             arguments = (process / 'cmdline').read_bytes().split(b'\0')
             return (os.environ.get('UDECK_SESSION') == '1' and self.pid > 1
@@ -97,6 +88,10 @@ class DirectionIsolation(QObject):
             self.available = False
             self.error = tr('完整兼容模式需要独立 uDeck 会话')
             QTimer.singleShot(0, lambda: self.finished.emit(False))
+            return
+        if self.coordinator:
+            self.pending = enabled
+            self.coordinator.request_pointer(enabled)
             return
         if self.pending is enabled:
             return
@@ -123,6 +118,8 @@ class DirectionIsolation(QObject):
         self.output.chord((194,))
 
     def acknowledge(self, token):
+        if self.coordinator:
+            return self.coordinator.acknowledge(token)
         if token and token == self.token and self.pending is None and not self.error:
             return True
         if self.pending is None or token != self.token:
@@ -144,6 +141,10 @@ class DirectionIsolation(QObject):
     def restore(self):
         self.timer.stop()
         self.pending = None
+        if self.coordinator:
+            self.coordinator.restore_pointer()
+            self.applied = False
+            return
         if not self.available or not self._owns_compositor():
             return
         try:
@@ -153,6 +154,16 @@ class DirectionIsolation(QObject):
         except (OSError, ValueError, ElementTree.ParseError):
             pass
         self.applied = False
+
+    def _coordinated(self, success):
+        self.pending = None
+        self.applied = self.coordinator.pointer
+        self.token = self.coordinator.token
+        self.error = self.coordinator.error
+        if not success:
+            self.coordinator.restore_pointer()
+            self.applied = False
+        self.finished.emit(success)
 
 
 def main():

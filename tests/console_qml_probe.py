@@ -2,16 +2,17 @@ import argparse
 import json
 from pathlib import Path
 
-from PySide6.QtCore import QEvent, Qt, QUrl
-from PySide6.QtGui import QGuiApplication, QKeyEvent
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtTest import QTest
 
 from udeck import main
-from udeck.console import ConsolePanel, ConsoleShortcut
+from udeck.console import ConsolePanel
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
 from udeck.key_test import KeyTestFilter
+from udeck.main import Control
 from udeck.mock import MockBackend
 
 
@@ -41,18 +42,18 @@ def run():
     window.setWidth(options.width)
     window.setHeight(options.height)
     key_filter = KeyTestFilter(controller, window)
-    shortcut = ConsoleShortcut(panel, window)
+    control = Control(controller, None)
+    control.console_panel = panel
     try:
         QTest.qWait(100)
         controller.activateSetting('key-test')
-        modifiers = Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier
-        QTest.keyClick(window, Qt.Key.Key_Escape, modifiers)
+        control.Console()  # Compositor invocation; global keys are tested in real labwc.
         QTest.qWait(100)
         assert controller.modal['source'] == 'console'
         assert len(controller.modal['options']) == 5
         assert not controller.backend.actions
         assert window.grabWindow().save(str(options.output / 'console.png'))
-        application.sendEvent(window, QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_Escape, modifiers, '', True))
+        control.Console()
         assert len(controller._modals) == 1
         for _ in range(4):
             QTest.keyClick(window, Qt.Key.Key_Down)
@@ -64,7 +65,7 @@ def run():
         assert controller.modal['source'] == 'console'
         QTest.keyClick(window, Qt.Key.Key_Escape)
         assert not controller.modal
-        QTest.keyClick(window, Qt.Key.Key_Escape, modifiers)
+        control.Console()
         for _ in range(2):
             QTest.keyClick(window, Qt.Key.Key_Down)
         QTest.keyClick(window, Qt.Key.Key_Return)
@@ -74,10 +75,10 @@ def run():
         print(json.dumps({'qmlErrors': errors, 'actions': 5, 'shortcutFromKeyTest': True, 'repeatIgnored': True,
                           'powerConfirmation': True, 'settingsRoute': True}))
     finally:
-        shortcut.close()
         window.removeEventFilter(key_filter)
         panel.close()
         controller.close()
+        application.processEvents()
 
 
 if __name__ == '__main__':

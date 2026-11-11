@@ -66,10 +66,12 @@ def test_stock_openbox_configuration_keeps_namespace_and_existing_controls(tmp_p
     keyboards = root.findall(prefix + 'keyboard')
     assert len(keyboards) == 1
     bindings = keyboards[0].findall(prefix + 'keybind')
-    assert len(bindings) == 2
-    assert bindings[0].find(prefix + 'action').get('command') == 'rpi-backlight up'
-    assert bindings[1].get('key') == 'C-S-Escape'
-    assert bindings[1].find(prefix + 'action').get('command') == 'udeckctl console'
+    actions = {binding.get('key'): binding.find(prefix + 'action') for binding in bindings}
+    assert len(bindings) > 20
+    assert actions['XF86MonBrightnessUp'].get('command') == 'udeckctl brightness-up'
+    assert actions['C-S-Escape'].get('command') == 'udeckctl console'
+    assert actions['C-A-p'].get('command') == 'udeckctl screenshot'
+    assert b'rpi-backlight' not in config.read_bytes()
     assert b'<!-- stock desktop -->' in config.read_bytes()
     assert not bind_console(config, tmp_path / 'backups')['changed']
     assert len(list((tmp_path / 'backups').iterdir())) == 1

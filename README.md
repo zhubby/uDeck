@@ -23,7 +23,9 @@ uDeck 是面向 1280×720 横屏 uConsole 的原生 Qt Quick 桌面壳：方向�
 - 键位测试：`Settings → Key test` 或快捷设置查看方向键、ABXY、L/R 和键盘的实时按压反馈、组合键及已测试标记；长按 B / Esc 1.2 秒返回，不改变校准和映射。
 - 交互音效：`Settings → Interface sounds` 或快捷设置开关 [Kenney 界面音效](docs/design/interface-sounds.md)。导航、确认、打开、返回、开关及真实操作结果分别反馈；默认轻声，遵循系统静音，不给文字输入和后台刷新配音。
 - 输入：按实际前台窗口交接独立手柄，保留现有校准；普通字母和实体组合键不作按钮映射。壳内 L/R 切页；第三方按键模式中 A/B/X 为 Enter/Esc/Shift+F10，L/R 切换控件；指针模式支持点击、拖动与滚动，原生模式释放手柄。内置轨迹球在其他应用中支持移动、左键和长按右键，外接鼠标维持原有屏蔽策略，退出壳时释放。
-- 控制台：Ctrl+Shift+Esc 全局打开，提供回到主界面、运行中、设置、关机和重启；Esc/B 取消后恢复原窗口，关机和重启需二次确认。独立 uDeck 会话自带绑定；在已有 labwc 桌面中运行时，执行 `udeckctl bind-console`，备份原配置并添加快捷键、热重载；不更改默认登录方式。详见 [轨迹球与控制台](docs/udeck/trackball-console-2026-11-10.md)。
+- 快捷键：`Settings → Shortcut bindings / 系统设置 → 快捷键绑定` 按分组管理全部系统动作，支持录制、多组按键、清除、恢复默认及冲突转移，确认后立即保存。首次在真实 labwc 会话运行时，备份并替换原桌面快捷键，保留主题、鼠标等配置；窗口化运行也使用同一管理逻辑。应用内部快捷键与 ABXY/Fn 管理独立。详见 [系统快捷键](docs/udeck/system-shortcuts-2026-11-11.md)。
+- 截屏：默认 `Ctrl+Alt+P` 或 `PrintScreen` 使用 grim 捕获真实桌面，保存至 XDG 图片目录的 `Screenshots`，成功后显示完整路径。
+- 控制台：默认 Ctrl+Shift+Esc 全局打开，提供回到主界面、运行中、设置、关机和重启；Esc/B 取消后恢复原窗口，关机和重启需二次确认。`udeckctl bind-console` 保留为请求运行中 uDeck 重新合成快捷键的兼容命令。详见 [轨迹球与控制台](docs/udeck/trackball-console-2026-11-10.md)。
 - 光标：桌面默认隐藏，移动内置轨迹球显示 18 像素暖金圆球，静止 3 秒、使用键盘/手柄或离开窗口后隐藏；跟随主题，无拖尾、脉冲或缩放。窗口化预览也可用鼠标移动预览。光标由 `PointerCursor` 提供位置反馈，点击及第三方应用的鼠标输入由 `TrackballInput` 负责；壳内仍按当前选中项导航。
 
 ## 首页与导航
@@ -68,7 +70,7 @@ udeckctl doctor --json
 
 安装只新增程序、依赖和会话入口；**不会重启显示管理器、切换当前会话或更改自动登录**。完整会话需在现场保存工作后，通过登录界面选择 **uDeck**；原 **Raspberry Pi Desktop on Wayland** 保留。
 
-`Ctrl+Alt+Esc` 返回 uDeck、`Ctrl+Alt+Tab` 打开窗口切换器，仅在独立 uDeck 会话中生效。
+默认 `Ctrl+Alt+Esc` 返回 uDeck、`Ctrl+Alt+Tab` 打开窗口切换器；独立 uDeck 会话和已有 labwc 桌面均由运行中的 uDeck 管理快捷键。首次真实运行会备份并接管该 labwc 的全部全局快捷键，安装或 `--mock` 预览不接管。
 
 如需开机自动进入全屏 uDeck，在源码目录中显式执行：
 

@@ -99,16 +99,17 @@ def run():
         capture("invalid-name")
         controller.editText("uDeck Pocket")
         controller.dispatch("accept")
-        controller.editText("short")
+        invalid_password = "psk!42"
+        controller.editText(invalid_password)
         controller.dispatch("accept")
         assert controller.modal["error"]
         capture("password-validation")
         editor = next(item for item in window.findChildren(QQuickItem) if item.property("displayText") is not None)
-        assert editor.property("displayText") != "short"
+        assert editor.property("displayText") != invalid_password
         QTest.keyClick(window, Qt.Key.Key_F10)
         QTest.qWait(30)
-        assert editor.property("displayText") == "short"
-        assert "short" not in controller.snapshotJson
+        assert editor.property("displayText") == invalid_password
+        assert invalid_password not in controller.snapshotJson
         capture("password-visible")
         controller.editText("preview-password")
         controller.dispatch("accept")
