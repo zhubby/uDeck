@@ -9,6 +9,7 @@ Image {
         video: "play-btn-fill.svg",
         reader: "book-fill.svg",
         emulator: "controller.svg",
+        browser: "globe2.svg",
         settings: "gear-fill.svg"
     })
     source: Qt.resolvedUrl("../assets/home-icons/" + (files[kind] || files.settings))

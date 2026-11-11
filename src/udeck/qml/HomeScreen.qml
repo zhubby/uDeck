@@ -10,10 +10,16 @@ Item {
     property int index: 0
     property bool contentFocused: true
     property bool reducedMotion: false
+    readonly property int tileWidth: 180
     readonly property var selectedItem: items[index] || ({})
 
     function positionSelection() {
         shortcuts.positionViewAtIndex(index, ListView.Contain)
+        // Keep room for the selected card's scale at either edge.
+        const start = index * (tileWidth + shortcuts.spacing)
+        const minimum = start + tileWidth - shortcuts.width + shortcuts.rightMargin
+        const maximum = start - shortcuts.leftMargin
+        shortcuts.contentX = Math.max(minimum, Math.min(shortcuts.contentX, maximum))
     }
 
     onWidthChanged: Qt.callLater(positionSelection)
@@ -21,11 +27,12 @@ Item {
     ListView {
         id: shortcuts
         objectName: "homeStrip"
-        width: parent.width
+        width: Math.min(parent.width, 6 * screen.tileWidth + 5 * spacing + 20)
+        anchors.horizontalCenter: parent.horizontalCenter
         height: Math.min(236, Math.max(160, parent.height - 108))
         orientation: ListView.Horizontal
         spacing: 18
-        leftMargin: Math.max(10, (width - 6 * 180 - 5 * spacing) / 2)
+        leftMargin: 10
         rightMargin: leftMargin
         model: screen.items
         currentIndex: screen.index
@@ -41,7 +48,7 @@ Item {
             required property int index
             objectName: "homeTile-" + index
             property bool selected: screen.index === index && screen.contentFocused
-            width: 180
+            width: screen.tileWidth
             height: shortcuts.height
             Accessible.role: Accessible.Button
             Accessible.name: modelData.name

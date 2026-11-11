@@ -49,6 +49,13 @@
       "sha256": "b2cc61271b6e22e11902ebef573cab40568bade3022f8e6f2be27b608b587320",
       "bytes": 1662
     },
+    "globe2.svg": {
+      "homeKind": "browser",
+      "archivePath": "package/icons/globe2.svg",
+      "sourceSha256": "4365f2044bae83b1fc81cae38169777f62131103782ed74236b8e289822cad58",
+      "sha256": "9f0acab3be582c1cfb1461287382883bfeb0470829cf27cf5b97de265643c067",
+      "bytes": 1613
+    },
     "gear-fill.svg": {
       "homeKind": "settings",
       "archivePath": "package/icons/gear-fill.svg",

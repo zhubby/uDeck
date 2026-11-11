@@ -3,9 +3,9 @@ import json
 import tempfile
 from pathlib import Path
 
-from PySide6.QtCore import QPointF, Qt, QUrl
+from PySide6.QtCore import QPointF, QRectF, Qt, QUrl
 from PySide6.QtGui import QGuiApplication
-from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtQml import QQmlApplicationEngine, QQmlEngine, QQmlExpression
 from PySide6.QtQuick import QQuickItem
 from PySide6.QtTest import QTest
 from shiboken6 import delete
@@ -57,7 +57,7 @@ def run():
         assert screen is not None and strip is not None and navigation is not None
         tabs = [item for item in navigation.childItems() if item.objectName().startswith("mainTab-")]
         assert len(tabs) == 4
-        assert strip.property("count") == 6
+        assert strip.property("count") == 7
         first = visual_item("homeTile-0")
         second = visual_item("homeTile-1")
         assert first is not None and second is not None
@@ -81,26 +81,62 @@ def run():
             position = tile.mapToItem(strip, QPointF(0, 0))
             assert position.x() >= -1, position.x()
             assert position.x() + tile.width() <= strip.width() + 1, (position.x(), tile.width(), strip.width())
+            card = tile.childItems()[0]
+            bounds = card.mapRectToItem(strip, QRectF(0, 0, card.width(), card.height()))
+            assert bounds.left() >= 0 and bounds.right() <= strip.width(), bounds
+
+        def fully_visible():
+            visible = []
+            for index in range(7):
+                tile = visual_item("homeTile-" + str(index))
+                if tile is None:
+                    continue
+                position = tile.mapToItem(strip, QPointF(0, 0))
+                if position.x() >= -1 and position.x() + tile.width() <= strip.width() + 1:
+                    visible.append(index)
+                elif options.width >= 1280:
+                    assert position.x() + tile.width() <= 0 or position.x() >= strip.width(), position.x()
+            return visible
 
         capture("home")
         selected_visible()
-        if options.width == 1280:
+        if options.width >= 1280:
+            assert fully_visible() == list(range(6))
             for index in range(6):
                 tile = visual_item("homeTile-" + str(index))
                 assert tile is not None
                 position = tile.mapToItem(strip, QPointF(0, 0))
                 assert position.x() >= 0 and position.x() + tile.width() <= strip.width()
-        for index in range(1, 6):
+        for index in range(1, 7):
             key(Qt.Key.Key_Right)
             assert controller.navigation.index == index
             selected_visible()
             if index == 3:
                 capture("home-reader")
+            if index == 5:
+                icon = visual_item("homeIcon-browser")
+                assert icon is not None
+                expression = QQmlExpression(QQmlEngine.contextForObject(icon), icon, "Number(status)")
+                status, undefined = expression.evaluate()
+                assert not undefined and not expression.hasError(), expression.error().toString()
+                assert status == 1
+                assert icon.property("source").toString().endswith("globe2.svg")
+                capture("home-browser")
         key(Qt.Key.Key_Right)
-        assert controller.navigation.index == 5
-        if options.width < 1280:
-            assert strip.property("contentX") > 0
+        assert controller.navigation.index == 6
+        assert strip.property("contentX") > 0
+        if options.width >= 1280:
+            assert fully_visible() == list(range(1, 7))
         capture("home-settings")
+        # Scrolling back must recover the original six visible cards.
+        for index in reversed(range(6)):
+            key(Qt.Key.Key_Left)
+            assert controller.navigation.index == index
+            selected_visible()
+        if options.width >= 1280:
+            assert fully_visible() == list(range(6))
+        for _ in range(6):
+            key(Qt.Key.Key_Right)
         key(Qt.Key.Key_Up)
         assert controller.navigation.zone == "tabs"
         for page in ("apps", "windows", "files", "files"):
@@ -108,19 +144,19 @@ def run():
             assert controller.navigation.page == page
         controller.dispatch("home")
         QTest.qWait(40)
-        assert controller.navigation.index == 5
+        assert controller.navigation.index == 6
         key(Qt.Key.Key_Return)
         assert controller.navigation.page == "settings"
         assert json.loads(controller.snapshotJson)["activeTab"] == "home"
         capture("settings")
         key(Qt.Key.Key_Escape)
-        assert controller.navigation.page == "home" and controller.navigation.index == 5
+        assert controller.navigation.page == "home" and controller.navigation.index == 6
         selected_visible()
         key(Qt.Key.Key_F1)
         assert controller.modal.get("source") == "quick-settings"
         capture("quick-settings")
         key(Qt.Key.Key_Escape)
-        assert controller.navigation.page == "home" and controller.navigation.index == 5
+        assert controller.navigation.page == "home" and controller.navigation.index == 6
         assert not controller.backend.actions
         assert not errors, errors
         print(json.dumps({"tabCount": len(tabs), "shortcutCount": strip.property("count"),
