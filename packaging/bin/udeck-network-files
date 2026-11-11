@@ -1,0 +1,4 @@
+#!/usr/bin/python3
+from udeck.network_files.daemon import main
+
+main()

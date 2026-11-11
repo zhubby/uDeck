@@ -3,6 +3,8 @@ Section: x11
 Priority: optional
 Maintainer: uDeck Project <zhubby@users.noreply.github.com>
 Build-Depends:
+ python3-aiohttp (>= 3.11),
+ python3-pyside6.qtnetwork,
  debhelper-compat (= 13),
  dh-python,
  python3 (>= 3.11),
@@ -51,6 +53,8 @@ Package: udeck
 Architecture: arm64
 Conflicts: udeck-shell, udeck-terminal, udeck-apps
 Depends:
+ python3-aiohttp (>= 3.11),
+ python3-pyside6.qtnetwork,
  ${python3:Depends},
  ${misc:Depends},
  python3 (>= 3.11),

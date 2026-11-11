@@ -1,0 +1,15 @@
+[Unit]
+Description=uDeck network file access
+After=network.target
+
+[Service]
+Type=dbus
+BusName=io.github.zhubby.uDeck.NetworkFiles
+ExecStart=/usr/bin/udeck-network-files
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

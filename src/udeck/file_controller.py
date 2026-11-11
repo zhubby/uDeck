@@ -14,14 +14,16 @@ from .file_preview import preview
 from .file_trash import TrashStore
 from .files import FileOperations, query_entries
 from .i18n import tr
+from .network_files.controls import NetworkAccessControls
 
 SORT_LABELS = {"name": tr("Name"), "modified": tr("Modified"), "size": tr("Size")}
 KIND_LABELS = {"all": tr("All files"), "audio": tr("Audio"), "video": tr("Video"), "image": tr("Images"),
                "book": tr("Books"), "text": tr("Text"), "archive": tr("Archives"), "other": tr("Other files")}
 
 
-class FileControls:
+class FileControls(NetworkAccessControls):
     def _init_file_controls(self):
+        self._init_network_access()
         self._file_model = FileListModel(self)
         self._file_entries = []
         self._file_view_entries = self.data["files"]
@@ -120,7 +122,8 @@ class FileControls:
                 "current": self._file_current() or {},
                 "isTrash": self.data["directory"] == "trash:///", "task": task,
                 "clipboardCount": len(paths), "clipboardMove": clipboard.get("move", False),
-                "clipboardLabel": ", ".join(Path(path).name for path in paths[:3])}
+                "clipboardLabel": ", ".join(Path(path).name for path in paths[:3]),
+                "networkAccess": self.network_access}
 
     def _file_apply_query(self, selected=None):
         previous = self._file_current()
@@ -293,6 +296,7 @@ class FileControls:
         def option(label, command, **values):
             return {"label": label, "action": "files", "command": command, **values}
         options = [option(tr("Locations"), "locations")]
+        options.append(option(tr("Network access"), "network-access", icon="udeck-setting:wifi"))
         trash = self.data["directory"] == "trash:///"
         if item:
             if trash:
@@ -324,7 +328,9 @@ class FileControls:
     def _file_command(self, action, value="", option=None):
         option = option or {}
         selected = self._file_selected()
-        if action == "location":
+        if action.startswith("network-"):
+            self._network_command(action[8:], value)
+        elif action == "location":
             self.file_section = "list"
             self._browse(value)
         elif action == "locations":
@@ -438,7 +444,15 @@ class FileControls:
 
     def _file_submit(self, modal, text):
         purpose = modal.get("purpose")
-        if purpose == "file-search":
+        if purpose == "network-share-root":
+            path = Path(text).expanduser()
+            if not path.is_absolute() or not path.is_dir():
+                self.notify(tr("Choose an existing folder"))
+            else:
+                self.network_draft["root"] = str(path.resolve())
+                self._network_dirty = True
+                self._network_menu()
+        elif purpose == "file-search":
             self.file_query = text.strip()
             self.navigation.select(0)
             self._file_apply_query()
@@ -655,6 +669,7 @@ class FileControls:
         self._run(tr("Safely unmount"), lambda: unmount(place), lambda result: self._browse(self.data["directory"]))
 
     def _close_files(self):
+        self._close_network_access()
         self._files_closing = True
         self._file_job_cancel.set()
         self._file_refresh_timer.stop()

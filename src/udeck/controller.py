@@ -46,6 +46,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     startupLoaded = Signal(object)
     fileJobProgress = Signal(object)
     fileJobFinished = Signal(object)
+    networkAccessFinished = Signal(object)
     filePreviewScroll = Signal(int)
     screenshotFinished = Signal(object)
 

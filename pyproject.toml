@@ -8,6 +8,7 @@ dynamic = ["version"]
 description = "A button-first desktop shell for ClockworkPi uConsole"
 requires-python = ">=3.11,<3.14"
 dependencies = [
+  "aiohttp>=3.11,<4",
   "PySide6>=6.8,<6.9",
   "dbus-next>=0.2.3; sys_platform == 'linux'",
   "evdev>=1.9; sys_platform == 'linux'",
@@ -19,6 +20,7 @@ dev = ["pytest>=8", "ruff>=0.9", "build>=1", "dbus-next>=0.2.3"]
 [project.scripts]
 udeck = "udeck.main:main"
 udeckctl = "udeck.cli:main"
+udeck-network-files = "udeck.network_files.daemon:main"
 udeck-preflight = "udeck.preflight:main"
 udeck-terminal = "udeck.terminal.main:main"
 udeck-terminal-default = "udeck.terminal.defaults:main"
@@ -47,6 +49,7 @@ udeck = ["qml/*.qml", "locales/*.json", "fonts/*.ttf", "fonts/*.txt", "fonts/*.j
 "udeck.apps.browser" = ["qml/*.qml", "navigation.js"]
 "udeck.apps.reader" = ["qml/*.qml", "web/*", "web/foliate/*"]
 "udeck.apps.emulator" = ["qml/*.qml", "resources/*.json"]
+"udeck.network_files" = ["web/*"]
 
 [tool.uv]
 required-version = "==0.13.7"

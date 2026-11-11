@@ -1,4 +1,7 @@
 src/udeck/apps usr/lib/python3/dist-packages/udeck
+src/udeck/network_files usr/lib/python3/dist-packages/udeck
+packaging/bin/udeck-network-files usr/bin
+packaging/udeck-network-files.service usr/lib/systemd/user
 packaging/bin/udeck-app usr/bin
 packaging/bin/udeck-music usr/bin
 packaging/bin/udeck-video usr/bin

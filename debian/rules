@@ -28,6 +28,9 @@ override_dh_python3:
 # The private .so is a QML plugin; qmldir requires its original filename.
 	dh_python3 --no-ext-rename
 
+override_dh_installsystemduser:
+	dh_installsystemduser --no-enable
+
 override_dh_missing:
 	dh_missing --fail-missing
 
