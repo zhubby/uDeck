@@ -7,6 +7,7 @@ import time
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
+from urllib.parse import unquote
 
 from PySide6.QtCore import QEvent, QUrl
 from PySide6.QtQml import QQmlApplicationEngine, QQmlEngine, QQmlExpression
@@ -82,7 +83,7 @@ def run():
                     const icons = []
                     function visit(item) {
                         if (!item.visible) return
-                        if (item.objectName === 'settingOptionIcon' || item.objectName === 'systemSettingIcon') {
+                        if (item.objectName === 'settingOptionIcon' || item.objectName === 'systemSettingIcon' || item.objectName === 'systemOptionIcon') {
                             const p = item.mapToItem(contentItem, 0, 0)
                             let shown = true
                             for (let parent = item.parent; parent && parent !== contentItem; parent = parent.parent) {
@@ -124,6 +125,8 @@ def run():
             for icon in icons:
                 assert icon["status"] == 1, (name, icon)
                 assert icon["source"].startswith("image://desktop/"), icon
+                if args.surface == "system":
+                    assert unquote(icon["source"]).startswith("image://desktop/udeck-setting:"), icon
                 assert 0 <= icon["x"] <= window.width() - icon["width"], icon
                 assert 0 <= icon["y"] <= window.height() - icon["height"], icon
                 assert icon["labels"], (name, "Missing option text", icon)
@@ -145,6 +148,15 @@ def run():
             if args.surface == "system":
                 controller.setPage("settings")
                 capture("settings")
+                for index, setting in enumerate(controller._items()):
+                    controller.select(index)
+                    capture("settings-" + setting["id"])
+                selected = controller.navigation.index
+                controller.setTheme("dark" if args.theme == "classic" else "classic")
+                capture("settings-switched-theme")
+                assert controller.navigation.index == selected
+                controller.setTheme(args.theme)
+                capture("settings-restored-theme")
                 for item in ("language", "theme", "timezone", "wifi", "hotspot", "output", "microphone", "bluetooth", "volume"):
                     while controller.modal:
                         controller.dispatch("back")
@@ -162,10 +174,26 @@ def run():
                             controller._refresh_open_menu()
                             controller._publish()
                             capture("wifi-refreshed")
+                    if item == "bluetooth":
+                        position = next((i for i, row in enumerate(controller.modal["options"])
+                                         if row.get("action") == "device"), None)
+                        if position is not None:
+                            controller.chooseModal(position)
+                            capture("bluetooth-device")
+                    if item == "output" and controller.data["audio"].get("cards"):
+                        position = next(i for i, row in enumerate(controller.modal["options"])
+                                        if row.get("id") == "audio-modes")
+                        controller.chooseModal(position)
+                        capture("audio-cards")
+                        controller.chooseModal(0)
+                        capture("audio-profiles")
                 while controller.modal:
                     controller.dispatch("back")
                 controller.dispatch("quick-settings")
                 capture("quick-settings")
+                controller.chooseModal(next(i for i, row in enumerate(controller.modal["options"])
+                                            if row.get("action") == "power-menu"))
+                capture("power-menu")
             elif args.surface == "terminal":
                 controller.command("settings")
                 capture("settings")

@@ -10,10 +10,10 @@ from PySide6.QtGui import QColor, QIcon, QImage, QImageReader, QPainter, QPainte
 from PySide6.QtQuick import QQuickImageProvider
 
 from .file_icons import FILE_ICON_PREFIX, FILE_ICON_ROOT, ICON_PALETTES, ICON_SPECS
+from .menu_icons import SETTING_ARTWORK, SETTING_ICON_PREFIX
 
-SETTING_ICON_PREFIX = "udeck-setting:"
 SETTING_ICON_ROOT = Path(__file__).with_name("assets") / "settings-icons"
-SETTING_ICON_ASSETS = {"controller", "keyboard-fill", "command"}
+SETTING_ICON_ASSETS = set(SETTING_ARTWORK.values())
 
 
 class IconProvider(QQuickImageProvider):

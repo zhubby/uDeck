@@ -130,7 +130,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         audio, brightness = self.data["audio"], self.data["brightness"]
         wifi, bluetooth, battery = self.data["wifi"], self.data["bluetooth"], self.data["battery"]
         microphone = next((source for source in audio.get("inputs", []) if source["active"]), {})
-        return [
+        return system_menu_icons([
             {"id": "volume", "name": tr('音量'), "subtitle": tr('静音') if audio.get("muted") else f"{round(audio.get('volume', 0) * 100)}%", "icon": "audio-volume-high", "value": audio.get("volume", 0), "disabled": not audio.get("available") or not audio.get("outputs")},
             {"id": "brightness", "name": tr('屏幕亮度'), "subtitle": f"{round(brightness.get('value', 0) * 100)}%", "icon": "display-brightness", "value": brightness.get("value", 0), "disabled": not brightness.get("available")},
             {"id": "output", "name": tr('音频输出'), "subtitle": next((output["name"] for output in audio.get("outputs", []) if output.get("active")), tr('未检测到音频输出')), "icon": "audio-card", "disabled": not audio.get("available")},
@@ -151,7 +151,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             {"id": "logout", "name": tr('注销会话'), "subtitle": tr('返回登录界面；请先保存工作'), "icon": "system-log-out"},
             {"id": "reboot", "name": tr('重新启动'), "subtitle": tr('需要二次确认'), "icon": "system-reboot"},
             {"id": "poweroff", "name": tr('关闭设备'), "subtitle": tr('需要二次确认'), "icon": "system-shutdown"},
-        ]
+        ], "settings")
 
     @Property(str, notify=changed)
     def snapshotJson(self):

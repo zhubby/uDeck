@@ -1,4 +1,42 @@
-"""Theme icon names for system menu actions, independent of translated labels."""
+"""Bundled Bootstrap artwork for system settings, independent of labels."""
+
+SETTING_ICON_PREFIX = "udeck-setting:"
+SETTING_ARTWORK = {
+    "audio-volume-high": "volume-up-fill",
+    "audio-volume-muted": "volume-mute-fill",
+    "display-brightness": "brightness-high-fill",
+    "audio-card": "headphones",
+    "audio-input-microphone": "mic-fill",
+    "microphone-sensitivity-muted": "mic-mute-fill",
+    "network-wireless": "wifi",
+    "bluetooth": "bluetooth",
+    "battery": "battery-half",
+    "input-gaming": "controller",
+    "input-keyboard": "keyboard-fill",
+    "preferences-desktop-keyboard-shortcuts": "command",
+    "preferences-desktop-locale": "translate",
+    "preferences-desktop-theme": "palette-fill",
+    "preferences-system-time": "clock-fill",
+    "system-lock-screen": "lock-fill",
+    "video-display": "display",
+    "system-log-out": "box-arrow-right",
+    "system-reboot": "arrow-clockwise",
+    "system-shutdown": "power",
+    "preferences-system-windows": "window-stack",
+    "list-add": "plus-circle-fill",
+    "edit-delete": "trash3-fill",
+    "network-connect": "link-45deg",
+    "network-disconnect": "x-circle-fill",
+    "document-open-recent": "clock-history",
+    "dialog-information": "info-circle-fill",
+    "dialog-password": "key-fill",
+    "document-edit": "pencil-square",
+    "dialog-warning": "exclamation-triangle-fill",
+    "view-refresh": "arrow-clockwise",
+    "edit-find": "search",
+    "process-stop": "stop-circle-fill",
+    "preferences-system": "gear-fill",
+}
 
 SETTING_ICONS = {
     "volume": "audio-volume-high", "volume-level": "audio-volume-high",
@@ -43,7 +81,7 @@ SYSTEM_ICONS = {
 
 def system_menu_icons(options, source=""):
     settings_menu = source in {
-        "quick-settings", "language", "theme", "timezone-areas", "timezone-cities",
+        "settings", "quick-settings", "language", "theme", "timezone-areas", "timezone-cities",
         "wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details",
         "hotspot", "hotspot-device", "bluetooth", "audio-input", "audio-output", "audio-cards", "audio-profiles",
     } or any(option.get("action") in ACTION_ICONS or option.get("action") == "setting"
@@ -65,5 +103,7 @@ def system_menu_icons(options, source=""):
             else:
                 icon = ACTION_ICONS.get(action, "dialog-warning" if row.get("disabled") else "dialog-information")
             row["icon"] = icon
+        if row["icon"] in SETTING_ARTWORK:
+            row["icon"] = SETTING_ICON_PREFIX + SETTING_ARTWORK[row["icon"]]
         rows.append(row)
     return rows

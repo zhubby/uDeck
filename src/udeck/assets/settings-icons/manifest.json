@@ -9,20 +9,170 @@
   },
   "transformations": "SVG files are unchanged; currentColor is resolved from the QML theme at render time.",
   "files": {
+    "arrow-clockwise.svg": {
+      "source": "package/icons/arrow-clockwise.svg",
+      "bytes": 349,
+      "sha256": "63a5cf9bd5c8e6b73ce6030a1c812a09ab97be8b1ff5aa0d5b33751bc415170c"
+    },
+    "battery-half.svg": {
+      "source": "package/icons/battery-half.svg",
+      "bytes": 362,
+      "sha256": "2386b3e5315e72561745a3054a392dc1f667097627f11ba1ede67ac1c223db19"
+    },
+    "bluetooth.svg": {
+      "source": "package/icons/bluetooth.svg",
+      "bytes": 477,
+      "sha256": "1042d5b82be4edc49165682865f97c97d8859f755a8aacffbeb0584c5ca5b1ba"
+    },
+    "box-arrow-right.svg": {
+      "source": "package/icons/box-arrow-right.svg",
+      "bytes": 547,
+      "sha256": "a1ec3378190a414029563bd1326d8de6d3c587326cd506b78d30c5c059cb9107"
+    },
+    "brightness-high-fill.svg": {
+      "source": "package/icons/brightness-high-fill.svg",
+      "bytes": 791,
+      "sha256": "b6e2b4133ac088ab209ab7a9f7739984a4248fcb0de6f647c71a009df1b627f5"
+    },
+    "clock-fill.svg": {
+      "source": "package/icons/clock-fill.svg",
+      "bytes": 262,
+      "sha256": "26b4dbc6a85c127b3c8ce669ad32058b8ae23886af99b824f4ab35adf020d94b"
+    },
+    "clock-history.svg": {
+      "source": "package/icons/clock-history.svg",
+      "bytes": 941,
+      "sha256": "4e379874f5bc65478455eea51815638c24a0041b087149ffbc7d243535d4d829"
+    },
+    "command.svg": {
+      "source": "package/icons/command.svg",
+      "bytes": 421,
+      "sha256": "21fd274be312715c19daabe045f70bd4f43eec3cffeea0bb27cfc3562020fd27"
+    },
     "controller.svg": {
       "source": "package/icons/controller.svg",
       "bytes": 1667,
       "sha256": "1f61a8977e3aa8f620345cced0bbeb621ac54369d876ace68be2d041c45a3b6a"
+    },
+    "display.svg": {
+      "source": "package/icons/display.svg",
+      "bytes": 570,
+      "sha256": "29fcbdb8aba6327439cdd2f7ecdcb0b831f81d80d09f7bdf33a904380c0e2f44"
+    },
+    "exclamation-triangle-fill.svg": {
+      "source": "package/icons/exclamation-triangle-fill.svg",
+      "bytes": 397,
+      "sha256": "3677ae9c1f8e2fc3d95f71384bf417d9dc3af79007e363f3e0ccef2218fff290"
+    },
+    "gear-fill.svg": {
+      "source": "package/icons/gear-fill.svg",
+      "bytes": 811,
+      "sha256": "dca7ce68ef3e4ff59217393da7c8946ac8be1925d3e4d6adea1d2638fab85db8"
+    },
+    "headphones.svg": {
+      "source": "package/icons/headphones.svg",
+      "bytes": 303,
+      "sha256": "315ad592b90899fbaea5c8d55c1021bc1bb687f0d4bbb4caa5113c15132890ea"
+    },
+    "info-circle-fill.svg": {
+      "source": "package/icons/info-circle-fill.svg",
+      "bytes": 427,
+      "sha256": "896923ba1bb200ce52e7c62ea08495eaa8a79a423399d80c5a8abd9dded6b009"
+    },
+    "key-fill.svg": {
+      "source": "package/icons/key-fill.svg",
+      "bytes": 283,
+      "sha256": "3e8da2a5dcaa06f90afa859c539e1af1c98c93f92f779ac5a832dd2a920e655d"
     },
     "keyboard-fill.svg": {
       "source": "package/icons/keyboard-fill.svg",
       "bytes": 1831,
       "sha256": "997da3a67337b8f324911162911cc8421111c0bb31bed06f925aff75539fe73d"
     },
-    "command.svg": {
-      "source": "package/icons/command.svg",
-      "bytes": 421,
-      "sha256": "21fd274be312715c19daabe045f70bd4f43eec3cffeea0bb27cfc3562020fd27"
+    "link-45deg.svg": {
+      "source": "package/icons/link-45deg.svg",
+      "bytes": 518,
+      "sha256": "3a58b899539e6e96a8a279c4dcc603a562627e733484aa72f721cda06b60c1f8"
+    },
+    "lock-fill.svg": {
+      "source": "package/icons/lock-fill.svg",
+      "bytes": 339,
+      "sha256": "8fbd40ff61e9fc42df44f139d0b409b501b42d1cbde9f43f5cd5ea25cf07b304"
+    },
+    "mic-fill.svg": {
+      "source": "package/icons/mic-fill.svg",
+      "bytes": 356,
+      "sha256": "ab745c6e64706338b30d0707c1425b5bf6ceb9026ed075344330dc6ab5970c7b"
+    },
+    "mic-mute-fill.svg": {
+      "source": "package/icons/mic-mute-fill.svg",
+      "bytes": 526,
+      "sha256": "176f7285d1281a0e1d431ef7e204fadb0ba4a18c06428e9bec7920a2618962f9"
+    },
+    "palette-fill.svg": {
+      "source": "package/icons/palette-fill.svg",
+      "bytes": 464,
+      "sha256": "4f2826b32892d63877abb808c8aeaa1712cc49e85a011dd45ff7071076ee4a0f"
+    },
+    "pencil-square.svg": {
+      "source": "package/icons/pencil-square.svg",
+      "bytes": 575,
+      "sha256": "75ff482695a7214c5022f90d1651aade804b922af4f3553a4192fc828d59dd92"
+    },
+    "plus-circle-fill.svg": {
+      "source": "package/icons/plus-circle-fill.svg",
+      "bytes": 276,
+      "sha256": "3c8724ce36766c277a50e27d5b4de403deccb5b45447db740c6f29e345eb1694"
+    },
+    "power.svg": {
+      "source": "package/icons/power.svg",
+      "bytes": 261,
+      "sha256": "ab933330a7d01a0bbe2f948b5d7b7aadfc00258fc173f7f6d2db091d88f86e2b"
+    },
+    "search.svg": {
+      "source": "package/icons/search.svg",
+      "bytes": 315,
+      "sha256": "dd6f471f48724227dfde72d6253a98023d4b734d06b90a3d932cf698e3aaa1c9"
+    },
+    "stop-circle-fill.svg": {
+      "source": "package/icons/stop-circle-fill.svg",
+      "bytes": 286,
+      "sha256": "cdf3dfe2db1b1935a566a81b5debcbf7e97bd39bbe818d56f0713f11a5035e1f"
+    },
+    "translate.svg": {
+      "source": "package/icons/translate.svg",
+      "bytes": 762,
+      "sha256": "9a86eae6065e3db9e0bfea91803d4258e0ddc50fcb69797f13fb3cf856967097"
+    },
+    "trash3-fill.svg": {
+      "source": "package/icons/trash3-fill.svg",
+      "bytes": 577,
+      "sha256": "7f5d89b2a207ec352277e47a9e8f320264153955a00fe29d8d11df507c016a03"
+    },
+    "volume-mute-fill.svg": {
+      "source": "package/icons/volume-mute-fill.svg",
+      "bytes": 489,
+      "sha256": "a2d49b7b278c49f3f5fe118989b3212a5d28d2cc75878fb87d9db08bc19af50b"
+    },
+    "volume-up-fill.svg": {
+      "source": "package/icons/volume-up-fill.svg",
+      "bytes": 693,
+      "sha256": "726e5988d6a94ab05f1e3ce6505d36df28de57de09de8f80c8c125e65f2d2b27"
+    },
+    "wifi.svg": {
+      "source": "package/icons/wifi.svg",
+      "bytes": 911,
+      "sha256": "d697e91670a01573d5b01600ba76ca8f17221fb01264c796ad61b109e8076c0f"
+    },
+    "window-stack.svg": {
+      "source": "package/icons/window-stack.svg",
+      "bytes": 517,
+      "sha256": "456858443ec31ab38487e1cb57395ab0f6f8ecd3182d10f5530e47f381f2bb62"
+    },
+    "x-circle-fill.svg": {
+      "source": "package/icons/x-circle-fill.svg",
+      "bytes": 351,
+      "sha256": "d3dc741f18531d0973ec7346a855e36989d3f908c938bfb04f4cf0d212be1e72"
     },
     "LICENSE.txt": {
       "source": "package/LICENSE",
