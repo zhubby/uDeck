@@ -4,6 +4,7 @@ import argparse
 import json
 import tempfile
 import time
+from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -99,15 +100,25 @@ def run():
                                         if (!child.visible) continue
                                         if (typeof child.text === 'string' && child.text && child.text !== '›') {
                                             const point = child.mapToItem(contentItem, 0, 0)
-                                            labels.push({text: child.text, y: point.y, height: child.height,
+                                            labels.push({text: child.text, x: point.x, y: point.y, width: child.width, height: child.height,
                                                          lines: child.lineCount || 1})
                                         } else textBounds(child)
                                     }
                                 }
                                 textBounds(item.parent)
+                                const switches = []
+                                for (const child of item.parent.children) {
+                                    if (child.objectName !== 'settingOptionControls') continue
+                                    for (const control of child.children) {
+                                        if (control.visible && control.objectName === 'settingOptionSwitch') {
+                                            const p = control.mapToItem(contentItem, 0, 0)
+                                            switches.push({x: p.x, y: p.y, width: control.width, height: control.height, checked: control.checked})
+                                        }
+                                    }
+                                }
                                 icons.push({source: item.source.toString(), status: item.status,
                                     x: p.x, y: p.y, width: item.width, height: item.height,
-                                    labels: labels,
+                                    labels: labels, switches: switches, singleLine: item.parent.singleLine || false,
                                     textTop: Math.min(...labels.map(label => label.y)),
                                     textBottom: Math.max(...labels.map(label => label.y + label.height))})
                             }
@@ -133,6 +144,16 @@ def run():
                 assert abs(icon["height"] - (icon["textBottom"] - icon["textTop"])) <= 0.5, (name, icon)
                 assert abs(icon["y"] - icon["textTop"]) <= 0.5, (name, icon)
                 assert abs(icon["width"] - icon["height"]) <= 0.5, (name, icon)
+                if icon["singleLine"]:
+                    labels = sorted(icon["labels"], key=lambda label: label["x"])
+                    assert all(label["lines"] == 1 and label["width"] > 0 for label in labels), (name, icon)
+                    assert all(left["x"] + left["width"] <= right["x"] for left, right in zip(labels, labels[1:], strict=False)), (name, icon)
+                    assert all(label["x"] >= icon["x"] + icon["width"]
+                               and label["x"] + label["width"] <= window.width() for label in labels), (name, icon)
+                    for toggle in icon["switches"]:
+                        assert labels[-1]["x"] + labels[-1]["width"] <= toggle["x"], (name, icon)
+                        assert toggle["x"] + toggle["width"] <= window.width(), (name, icon)
+                        assert abs(toggle["y"] + toggle["height"] / 2 - (icon["y"] + icon["height"] / 2)) <= 0.5, (name, icon)
             assert not errors, errors
             assert window.grabWindow().save(str(args.output / (name + ".png")))
             captures.append({"name": name, "icons": icons})
@@ -157,7 +178,7 @@ def run():
                 assert controller.navigation.index == selected
                 controller.setTheme(args.theme)
                 capture("settings-restored-theme")
-                for item in ("language", "theme", "timezone", "wifi", "hotspot", "output", "microphone", "bluetooth", "volume"):
+                for item in ("language", "theme", "timezone", "wifi", "hotspot", "output", "microphone", "bluetooth", "volume", "shortcuts"):
                     while controller.modal:
                         controller.dispatch("back")
                     controller.select(next(i for i, row in enumerate(controller._items()) if row["id"] == item))
@@ -170,10 +191,66 @@ def run():
                         controller.dispatch("accept")
                         capture(item + "-detail")
                         if item == "wifi":
-                            controller.data["wifi"]["devices"][0]["scanning"] = True
+                            controller.data["wifi"]["devices"][0]["scan"] = {"status": "scanning"}
                             controller._refresh_open_menu()
                             controller._publish()
                             capture("wifi-refreshed")
+                            controller.chooseModal(next(i for i, row in enumerate(controller.modal["options"])
+                                                        if row.get("action") == "wifi-connect"))
+                            capture("wifi-network")
+                            position = next(i for i, row in enumerate(controller.modal["options"])
+                                            if row.get("action") == "wifi-autoconnect")
+                            assert controller.modal["options"][position]["checked"] is True
+                            owner = controller.modal["key"]
+                            controller.chooseModal(position)
+                            assert controller.modal["options"][position]["checked"] is False
+                            assert controller.modal["key"] == owner and controller.modal["index"] == position
+                            capture("wifi-auto-join-off")
+                            with patch.object(controller.backend, "request"):
+                                controller.chooseModal(position)
+                            assert controller.modal["options"][position]["checked"] is False
+                            assert "wifi_set_autoconnect" in controller.pending_system
+                            capture("wifi-auto-join-applying")
+                            controller.backend.operationFailed.emit("wifi_set_autoconnect", "Permission denied")
+                            assert controller.modal["options"][position]["checked"] is False
+                            capture("wifi-auto-join-failed")
+                            controller._clear_toast()
+                            controller.chooseModal(next(i for i, row in enumerate(controller.modal["options"])
+                                                        if row.get("action") == "wifi-details"))
+                            capture("wifi-network-details")
+                            for _ in range(len(controller.modal["options"]) - 1):
+                                controller.dispatch("down")
+                            capture("wifi-network-details-last")
+                        elif item == "hotspot":
+                            original = deepcopy(controller.data["wifi"])
+                            wifi = deepcopy(original)
+                            device = wifi["devices"][0]
+                            device["mode"] = "ap"
+                            device["hotspot"].update(status="active", owned=True, configured=True)
+                            device["addresses"]["ip"] = ["10.42.0.1", "fd00:1234:5678:90ab::1"]
+                            controller.backend.updated.emit({"wifi": deepcopy(wifi)})
+                            assert controller.modal["options"][0]["checked"] is True
+                            capture("hotspot-active")
+                            device["hotspot"]["status"] = "stopping"
+                            controller.backend.updated.emit({"wifi": deepcopy(wifi)})
+                            assert controller.modal["options"][0]["checked"] is True
+                            assert controller.modal["options"][0]["disabled"] is True
+                            capture("hotspot-stopping")
+                            device["hotspot"].update(status="failed", message="Stopping denied. " * 6)
+                            controller.backend.updated.emit({"wifi": deepcopy(wifi)})
+                            assert controller.modal["options"][0]["checked"] is True
+                            capture("hotspot-stop-failed")
+                            device["hotspot"].update(status="external", owned=False, message="")
+                            controller.backend.updated.emit({"wifi": deepcopy(wifi)})
+                            assert controller.modal["options"][0]["checked"] is True
+                            assert controller.modal["options"][0]["disabled"] is True
+                            capture("hotspot-external")
+                            controller.backend.updated.emit({"wifi": original})
+                    if item == "shortcuts":
+                        controller.chooseModal(0)
+                        capture("shortcuts-group")
+                        controller.chooseModal(0)
+                        capture("shortcut-action")
                     if item == "bluetooth":
                         position = next((i for i, row in enumerate(controller.modal["options"])
                                          if row.get("action") == "device"), None)
@@ -191,6 +268,16 @@ def run():
                     controller.dispatch("back")
                 controller.dispatch("quick-settings")
                 capture("quick-settings")
+                position = next(i for i, row in enumerate(controller.modal["options"]) if row.get("id") == "ui-sounds")
+                for _ in range(position):
+                    controller.dispatch("down")
+                capture("quick-settings-sounds")
+                owner = controller.modal["key"]
+                before = controller.modal["options"][position]["checked"]
+                controller.dispatch("accept")
+                assert controller.modal["key"] == owner and controller.modal["index"] == position
+                assert controller.modal["options"][position]["checked"] is not before
+                capture("quick-settings-sounds-toggled")
                 controller.chooseModal(next(i for i, row in enumerate(controller.modal["options"])
                                             if row.get("action") == "power-menu"))
                 capture("power-menu")

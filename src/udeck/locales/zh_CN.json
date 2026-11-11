@@ -717,6 +717,8 @@
   "Another adapter is using this saved configuration": "另一张网卡正在使用此保存配置",
   "Auto-join off": "自动连接已关闭",
   "Auto-join on": "自动连接已开启",
+  "Auto-join": "自动加入",
+  "Applying…": "正在应用…",
   "Auto-join preference saved": "自动连接设置已保存",
   "Cancel joining": "取消加入",
   "Change Wi-Fi password": "修改 Wi-Fi 密码",

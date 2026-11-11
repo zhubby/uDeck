@@ -144,7 +144,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             {"id": "shortcuts", "name": tr('Shortcut bindings'), "subtitle": tr('System actions and keyboard combinations'), "icon": "udeck-setting:command"},
             {"id": "language", "name": tr('语言'), "subtitle": LANGUAGES[self.language], "icon": "preferences-desktop-locale"},
             {"id": "theme", "name": tr('Theme'), "subtitle": THEMES[self.theme], "icon": "preferences-desktop-theme"},
-            {"id": "ui-sounds", "name": tr("Interface sounds"), "subtitle": tr("On") if self.config.data["preferences"]["uiSounds"] else tr("Off"), "icon": "audio-volume-high"},
+            {"id": "ui-sounds", "name": tr("Interface sounds"), "subtitle": tr("On") if self.config.data["preferences"]["uiSounds"] else tr("Off"), "checked": self.config.data["preferences"]["uiSounds"], "icon": "audio-volume-high"},
             {"id": "timezone", "name": tr('Time zone'), "subtitle": zone_summary(self.data["timezone"]), "icon": "preferences-system-time"},
             {"id": "lock", "name": tr('锁定屏幕'), "subtitle": tr('使用登录密码解锁'), "icon": "system-lock-screen"},
             {"id": "blank", "name": tr('熄灭屏幕'), "subtitle": tr('按方向键或键盘恢复；不是系统休眠'), "icon": "video-display"},
@@ -235,7 +235,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     def _quick_options(self):
         controls = {"volume", "brightness", "output", "microphone", "wifi", "hotspot", "bluetooth", "battery", "input", "key-test", "language", "theme", "timezone", "ui-sounds"}
         return [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"],
-                 "icon": entry["icon"], "disabled": entry.get("disabled", False)} for entry in self._settings() if entry["id"] in controls] + [
+                 "icon": entry["icon"], "checked": entry.get("checked"), "disabled": entry.get("disabled", False)} for entry in self._settings() if entry["id"] in controls] + [
             {"label": tr('电源与会话'), "action": "power-menu"}, {"label": tr('运行中应用'), "action": "switcher"}]
 
     @Slot(str, result=bool)
@@ -280,7 +280,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                                         for page, zone, index in self.navigation.modal_owners]
         for modal in self._modals:
             if modal.get("source") == "language":
-                modal["options"] = self._language_options()
+                modal["options"] = system_menu_icons(self._language_options(), "language")
         self._publish()
         return True
 
@@ -365,6 +365,8 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                 options = self._refresh_wifi_network(modal, device)
             elif source == "bluetooth":
                 options = self._bluetooth_options()
+            elif source == "volume":
+                options = self._volume_options()
             elif source in ("audio-input", "audio-output"):
                 options = self._audio_endpoint_options(source == "audio-input")
             elif source == "audio-cards":
@@ -675,7 +677,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             self._menu(tr('Interface theme'), self._theme_options(), source="theme",
                        index=list(THEMES).index(self.theme))
         elif identifier == "volume":
-            self._menu(tr('音量'), [{"label": tr('调整音量'), "action": "setting", "id": "volume-level"}, {"label": tr('取消静音') if self.data["audio"].get("muted") else tr('静音'), "action": "system", "systemAction": "mute"}])
+            self._menu(tr('音量'), self._volume_options(), source="volume")
         elif identifier in ("volume-level", "brightness"):
             component = "audio" if identifier == "volume-level" else "brightness"
             if not self.data[component].get("available"):
@@ -755,6 +757,16 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         return options or [{"id": "unavailable", "label": tr("Time zone service unavailable"),
                             "subtitle": state.get("error", tr("Not available")), "disabled": True}]
 
+    def _volume_options(self):
+        audio = self.data["audio"]
+        disabled = not audio.get("available") or not audio.get("outputs")
+        return [
+            {"id": "volume-level", "label": tr('调整音量'), "subtitle": f"{round(audio.get('volume', 0) * 100)}%",
+             "action": "setting", "disabled": disabled},
+            {"id": "mute", "label": tr('静音'), "checked": bool(audio.get("muted")), "pendingAction": "mute",
+             "action": "system", "systemAction": "mute", "disabled": disabled},
+        ]
+
     def _audio_endpoint_options(self, inputs=False):
         audio = self.data["audio"]
         entries = audio.get("inputs" if inputs else "outputs", [])
@@ -765,7 +777,8 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                 {"id": "input-level", "label": tr("Input volume"),
                  "subtitle": f"{round(active['volume'] * 100)}%" if active.get("volume") is not None else tr("Not available"),
                  "action": "setting", "idSetting": "microphone-level", "disabled": active.get("volume") is None},
-                {"id": "input-mute", "label": tr("Unmute microphone") if active.get("muted") else tr("Mute microphone"),
+                {"id": "input-mute", "label": tr("Mute microphone"), "checked": bool(active.get("muted")),
+                 "pendingAction": "audio_input_mute",
                  "action": "system", "systemAction": "audio_input_mute", "payload": {"id": active["id"]}},
             ]
         for entry in entries:
@@ -804,7 +817,15 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         information = self.data["bluetooth"]
         if not information.get("available"):
             return [{"label": information.get("error", tr('蓝牙适配器不可用')), "action": "none", "disabled": True}]
-        options = [{"id": "power", "label": tr('关闭蓝牙') if information["powered"] else tr('开启蓝牙'), "action": "system", "systemAction": "bluetooth_power", "payload": {"enabled": not information["powered"]}}, {"id": "scan", "label": tr('停止发现') if information.get("discovering") else tr('发现附近设备（30 秒）'), "action": "system", "systemAction": "bluetooth_stop" if information.get("discovering") else "bluetooth_scan", "disabled": not information["powered"]}]
+        options = [
+            {"id": "power", "label": tr("Bluetooth"), "checked": bool(information["powered"]),
+             "pendingAction": "bluetooth_power", "action": "system", "systemAction": "bluetooth_power",
+             "payload": {"enabled": not information["powered"]}},
+            {"id": "scan", "label": tr('发现附近设备（30 秒）'), "checked": bool(information.get("discovering")),
+             "pendingAction": "bluetooth_stop" if information.get("discovering") else "bluetooth_scan",
+             "action": "system", "systemAction": "bluetooth_stop" if information.get("discovering") else "bluetooth_scan",
+             "disabled": not information["powered"]},
+        ]
         options += [{"id": device["id"], "label": device["name"], "subtitle": tr('已连接') if device["connected"] else tr('已配对 · 未连接') if device["paired"] else tr('未配对'), "action": "device", "device": device} for device in information.get("devices", [])]
         return options
 
@@ -880,7 +901,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                     self.notify(option.get("reason") or tr('此项目当前不可用'))
                     return
                 keep_parent = modal.get('source') in ('console', 'shortcuts', 'shortcuts-group', 'shortcut-action') or (modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot", "shortcuts"))
-                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "hotspot", "hotspot-device", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
+                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "hotspot", "hotspot-device", "bluetooth", "volume", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
                     self._pop()
                 self._execute_option(option)
         elif kind == "confirm":

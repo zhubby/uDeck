@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from PySide6.QtCore import Slot
 
 from .i18n import error_text, tr
+from .menu_icons import system_menu_icons
 from .shortcuts import (
     ACTION_BY_ID,
     ACTIONS,
@@ -114,7 +115,7 @@ class ShortcutControls:
                 continue
             options = modal['options']
             selected = options[min(modal['index'], len(options) - 1)]['id'] if options else ''
-            modal['options'] = self._shortcut_menu_options(modal)
+            modal['options'] = system_menu_icons(self._shortcut_menu_options(modal), source)
             modal['index'] = next((index for index, item in enumerate(modal['options']) if item['id'] == selected), 0)
         self._publish()
 

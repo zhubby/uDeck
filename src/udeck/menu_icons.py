@@ -1,4 +1,4 @@
-"""Bundled Bootstrap artwork for system settings, independent of labels."""
+"""System menu presentation, independent of labels and action payloads."""
 
 SETTING_ICON_PREFIX = "udeck-setting:"
 SETTING_ARTWORK = {
@@ -78,12 +78,20 @@ SYSTEM_ICONS = {
     "wifi_scan": "view-refresh", "wifi_cancel_connect": "process-stop",
 }
 
+NAVIGATION_ACTIONS = {
+    "setting", "power-menu", "switcher", "timezone-region", "audio-card", "device",
+    "wifi-device", "wifi-connect", "wifi-saved", "wifi-saved-connect", "wifi-profile",
+    "wifi-password", "wifi-details", "hotspot-device", "hotspot-name", "hotspot-password",
+    "shortcut-group", "shortcut-detail", "shortcut-record",
+}
+
 
 def system_menu_icons(options, source=""):
     settings_menu = source in {
         "settings", "quick-settings", "language", "theme", "timezone-areas", "timezone-cities",
         "wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details",
-        "hotspot", "hotspot-device", "bluetooth", "audio-input", "audio-output", "audio-cards", "audio-profiles",
+        "hotspot", "hotspot-device", "bluetooth", "volume", "audio-input", "audio-output", "audio-cards", "audio-profiles",
+        "shortcuts", "shortcuts-group", "shortcut-action",
     } or any(option.get("action") in ACTION_ICONS or option.get("action") == "setting"
              or option.get("action") == "system" and option.get("systemAction") in SYSTEM_ICONS
              for option in options)
@@ -93,6 +101,9 @@ def system_menu_icons(options, source=""):
     for option in options:
         row = dict(option)
         action = row.get("action")
+        if source != "settings":
+            row["singleLine"] = True
+            row["navigate"] = action in NAVIGATION_ACTIONS and not isinstance(row.get("checked"), bool)
         if not row.get("icon"):
             if action == "setting":
                 icon = SETTING_ICONS.get(row.get("idSetting", row.get("id")), "preferences-system")
@@ -100,6 +111,8 @@ def system_menu_icons(options, source=""):
                 icon = SYSTEM_ICONS.get(row.get("systemAction"), "preferences-system")
             elif action == "audio-profile" and row.get("profile", {}).get("microphone"):
                 icon = "audio-input-microphone"
+            elif action and action.startswith("shortcut-"):
+                icon = "preferences-desktop-keyboard-shortcuts"
             else:
                 icon = ACTION_ICONS.get(action, "dialog-warning" if row.get("disabled") else "dialog-information")
             row["icon"] = icon

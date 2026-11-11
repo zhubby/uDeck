@@ -11,8 +11,8 @@ class WifiControls(HotspotControls):
         information = self.data["wifi"]
         if not information.get("available"):
             return [{"id": "unavailable", "label": information.get("error") or tr('未检测到无线网卡'), "action": "none", "disabled": True}]
-        options = [{"id": "power", "label": tr('关闭全部 Wi-Fi') if information["enabled"] else tr('开启全部 Wi-Fi'),
-                    "subtitle": tr('影响所有无线网卡'), "action": "wifi-power"}]
+        options = [{"id": "power", "label": "Wi-Fi", "checked": bool(information["enabled"]),
+                    "pendingAction": "wifi_power", "action": "wifi-power"}]
         return options + [{"id": device["id"], "deviceId": device["id"], "label": wifi_label(device),
                            "subtitle": wifi_status(device, information["enabled"]), "action": "wifi-device", "icon": "network-wireless"}
                           for device in information.get("devices", [])]
@@ -105,8 +105,8 @@ class WifiControls(HotspotControls):
             blocked = profile.get("mutationBlocked") or profile.get("blocked") or (tr("This saved configuration is read-only") if profile.get("readOnly") else "")
             disabled = bool(blocked) or not profile.get("uuid") or busy
             target = {"deviceId": device["id"], "profileUuid": profile.get("uuid", ""), "revision": profile.get("revision", "")}
-            options.append({"id": "auto-join", "label": tr("Disable auto-join") if profile.get("autoconnect", True) else tr("Enable auto-join"),
-                            "subtitle": blocked or (tr("Auto-join on") if profile.get("autoconnect", True) else tr("Auto-join off")),
+            options.append({"id": "auto-join", "label": tr("Auto-join"), "checked": bool(profile.get("autoconnect", True)),
+                            "subtitle": blocked, "pendingAction": "wifi_set_autoconnect",
                             "action": "wifi-autoconnect", "payload": {**target, "enabled": not profile.get("autoconnect", True)}, "disabled": disabled, "reason": blocked})
             if profile.get("keyManagement") in ("wpa-psk", "sae"):
                 options.append({"id": "password", "label": tr("Enter password again") if matching_operation and operation.get("status") == "failed" else tr("Change password"), "action": "wifi-password", "payload": target,

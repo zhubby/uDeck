@@ -19,7 +19,8 @@ class HotspotControls:
             return [{"id": "empty", "label": hotspot_summary(information), "action": "none", "disabled": True}]
         options = []
         if not information.get("enabled"):
-            options.append({"id": "power", "label": tr("Enable Wi-Fi to start a hotspot"), "action": "wifi-power"})
+            options.append({"id": "power", "label": "Wi-Fi", "checked": False,
+                            "pendingAction": "wifi_power", "action": "wifi-power"})
         return options + [{"id": device["id"], "label": wifi_label(device), "deviceId": device["id"],
                            "subtitle": hotspot_status(device.get("hotspot", {})) if device.get("apSupported") else tr("Hotspot not supported"),
                            "action": "hotspot-device"} for device in devices]
@@ -30,16 +31,21 @@ class HotspotControls:
         ap = device.get("mode") == "ap"
         supported = device.get("apSupported", False) and device.get("available") and device.get("managed", True)
         target = {"deviceId": device["id"], "revision": hotspot.get("revision", "")}
-        options = [{"id": "status", "label": hotspot_status(hotspot), "subtitle": hotspot.get("message", ""),
-                    "action": "none", "wrapSubtitle": True}]
+        options = []
         if ap:
-            options.append({"id": "stop", "label": tr("Turn off hotspot"), "action": "hotspot-stop", "deviceId": device["id"],
+            options.append({"id": "stop", "label": tr("Hotspot"), "icon": "network-wireless", "checked": True,
+                            "subtitle": hotspot_status(hotspot), "pendingAction": "wifi_hotspot_stop",
+                            "action": "hotspot-stop", "deviceId": device["id"],
                             "disabled": busy or not hotspot.get("owned"),
                             "reason": tr("This hotspot is managed outside uDeck") if not hotspot.get("owned") else tr("This adapter is changing hotspot state")})
         else:
-            options.append({"id": "start", "label": tr("Turn on hotspot"), "action": "hotspot-start", "deviceId": device["id"],
+            options.append({"id": "start", "label": tr("Hotspot"), "icon": "network-wireless", "checked": False,
+                            "subtitle": hotspot_status(hotspot), "pendingAction": "wifi_hotspot_start",
+                            "action": "hotspot-start", "deviceId": device["id"],
                             "disabled": not supported or not self.data["wifi"].get("enabled") or busy,
                             "reason": tr("Enable Wi-Fi and use an adapter that supports WPA2/CCMP hotspots")})
+        if hotspot.get("message"):
+            options.append({"id": "status", "label": hotspot["message"], "action": "none"})
         for field, label in (("name", tr("Hotspot name")), ("password", tr("Hotspot password"))):
             options.append({"id": field, "label": label,
                             "subtitle": (hotspot.get("ssid") or default_hotspot_name(device["interface"])) if field == "name" else (
