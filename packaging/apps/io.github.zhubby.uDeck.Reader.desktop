@@ -9,5 +9,5 @@ TryExec=udeck-reader
 Icon=io.github.zhubby.uDeck.Reader
 Terminal=false
 Categories=Office;Viewer;
-MimeType=application/pdf;application/epub+zip;text/plain;
+MimeType=application/pdf;application/epub+zip;application/x-mobipocket-ebook;text/plain;
 StartupWMClass=io.github.zhubby.uDeck.Reader

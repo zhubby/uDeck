@@ -16,7 +16,7 @@ from udeck.i18n import error_text, tr
 EXTENSIONS = {
     "music": {".mp3", ".flac", ".ogg", ".opus", ".m4a", ".aac", ".wav", ".aiff"},
     "video": {".mp4", ".mkv", ".webm", ".mov", ".avi", ".m4v", ".ts"},
-    "reader": {".txt", ".pdf", ".epub"},
+    "reader": {".txt", ".pdf", ".epub", ".mobi"},
     "emulator": {".gb", ".gbc", ".gba", ".sfc", ".smc", ".nes", ".cue", ".chd", ".pbp"},
 }
 DEFAULT_FOLDERS = {"music": "Music", "video": "Video", "reader": "Books"}

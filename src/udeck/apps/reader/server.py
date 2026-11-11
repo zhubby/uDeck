@@ -1,8 +1,9 @@
-"""Confined EPUB/TXT resource server. ZIPs are read in place, never extracted."""
+"""Confined EPUB/MOBI/TXT resource server; books are never extracted or converted."""
 
 import html
 import json
 import mimetypes
+import re
 import secrets
 import threading
 import zipfile
@@ -10,6 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, urlsplit
 
+from udeck.apps.reader.mobi import MobiFile
 from udeck.i18n import tr
 
 
@@ -18,6 +20,7 @@ class BookServer:
         self.token = secrets.token_urlsafe(32)
         self.item, self.position, self.preferences = item, position, preferences
         self.archive = None
+        self.mobi = None
         self.text = None
         self.lock = threading.Lock()
         self.closed = False
@@ -41,6 +44,8 @@ class BookServer:
                     self.archive.close()
                     raise ValueError(tr("Invalid EPUB archive entry"))
                 self.entries[name] = info.file_size
+        elif path.suffix.lower() == ".mobi":
+            self.mobi = MobiFile(path, item.get("stamp"))
         else:
             if path.stat().st_size > 64 * 1024 * 1024:
                 raise ValueError(tr("Text file exceeds 64 MiB"))
@@ -100,7 +105,16 @@ class BookServer:
         if route == "config.json":
             config = {"session": self.token, "format": self.item["format"], "title": self.item["title"],
                       "position": self.position, "preferences": self.preferences, "entries": self.entries}
+            if self.mobi:
+                config["mobiSize"] = self.mobi.size
             return json.dumps(config).encode(), "application/json", csp
+        if self.mobi and (match := re.fullmatch(r"mobi/([0-9]+)/([0-9]+)", route)):
+            start, end = map(int, match.groups())
+            with self.lock:
+                if self.closed:
+                    raise OSError(tr("Book closed"))
+                data = self.mobi.read(start, end)
+            return data, "application/octet-stream", csp
         if route == "text.txt" and self.text is not None:
             return self.text.encode(), "text/plain; charset=utf-8", csp
         if route.startswith("book/") and self.archive:
@@ -114,7 +128,7 @@ class BookServer:
             mime = mimetypes.guess_type(name)[0] or "application/octet-stream"
             return data, mime, csp
         if route == "reader.js" or (route.startswith("foliate/") and route[8:] in {
-                "view.js", "epub.js", "epubcfi.js", "progress.js", "overlayer.js", "text-walker.js",
+                "view.js", "epub.js", "mobi.js", "epubcfi.js", "progress.js", "overlayer.js", "text-walker.js",
                 "paginator.js", "fixed-layout.js", "search.js"}):
             return (base / route).read_bytes(), "text/javascript", csp
         raise KeyError(route)
@@ -126,6 +140,8 @@ class BookServer:
             self.closed = True
             if self.archive:
                 self.archive.close()
+            if self.mobi:
+                self.mobi.close()
         # shutdown can wait on the serve loop; keep it off the UI thread.
         threading.Thread(target=self.server.shutdown, daemon=True).start()
         self.server.server_close()

@@ -15,6 +15,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from unittest.mock import patch
 
+from mobi_fixture import mobi_bytes
 from PySide6.QtCore import QObject, Qt, QTimer, QUrl
 from PySide6.QtGui import QPageSize, QPainter, QPdfWriter
 from PySide6.QtQml import QQmlApplicationEngine
@@ -32,6 +33,7 @@ from udeck.icons import IconProvider
 
 def fixtures(root):
     root.mkdir(parents=True, exist_ok=True)
+    (root / "Original chapters.mobi").write_bytes(mobi_bytes())
     wav = root / "Original tone.wav"
     if not wav.exists():
         with wave.open(str(wav), "wb") as stream:
@@ -262,7 +264,7 @@ def run(app, root, language="en", width=1280, height=720):
         controller.back()
         assert controller.page == "library" and not controller.history
         completed.append("direct-open-keeps-last-pdf-position-and-closes-old-menus")
-        for extension in ("TXT", "EPUB", "PDF"):
+        for extension in ("TXT", "EPUB", "MOBI", "PDF"):
             item=next(i for i in controller.library.items if i["format"]==extension)
             controller.open_item(item["id"])
             wait(lambda: controller.reader_ready, 20)
@@ -299,7 +301,7 @@ def run(app, root, language="en", width=1280, height=720):
                 QTest.qWait(100)
                 controller.add_bookmark()
                 assert controller.store.data["bookmarks"][item["id"]]
-                if extension=="EPUB":
+                if extension in ("EPUB", "MOBI"):
                     assert len(controller.contents)==2
                     assert not any("UDECK_BOOK_SCRIPT_RAN" in line for line in controller.reader_log)
                     assert any("Content Security Policy" in line for line in controller.reader_log)

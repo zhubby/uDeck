@@ -40,6 +40,24 @@ try {
             loadBlob: async name => (await fetchEntry(name))?.blob(),
             getSize: name => cfg.entries[name] ?? 0,
         }).init()
+    } else if (cfg.format === 'MOBI') {
+        const { MOBI } = await import('./foliate/mobi.js')
+        // Foliate reads PDB records through Blob.slice(). Fetch only those ranges,
+        // so a large illustrated book need not be held in memory in its entirety.
+        const file = {
+            slice: (start = 0, end = cfg.mobiSize) => ({
+                arrayBuffer: async () => {
+                    const response = await fetch(`mobi/${start}/${end}`)
+                    if (!response.ok) throw Error('Cannot read MOBI record')
+                    return response.arrayBuffer()
+                },
+            }),
+        }
+        book = await new MOBI({
+            unzlib: async data => new Uint8Array(await new Response(
+                new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate'))
+            ).arrayBuffer()),
+        }).open(file)
     } else {
         const text = await (await fetch('text.txt')).text()
         const chunks = text.match(/[\s\S]{1,16000}/g) || ['']

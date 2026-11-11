@@ -17,11 +17,35 @@ Item {
     ColumnLayout {
         anchors.fill: parent; spacing: 0
         Rectangle {
-            Layout.fillWidth: true; Layout.preferredHeight: 52; color:surface.colors.panel
+            objectName: "readerDocumentHeader"
+            Layout.fillWidth: true; Layout.preferredHeight: 36; color:surface.colors.panel
             RowLayout {
-                anchors.fill:parent;anchors.leftMargin:28;anchors.rightMargin:28
-                Text { font.family: surface.host.fontFamily; Layout.fillWidth:true;text:appState.current.title||"";color:surface.colors.text;font.pixelSize:22;elide:Text.ElideRight }
-                Text { font.family: surface.host.fontFamily; text:surface.pdf?((appState.pdfPage+1)+" / "+appState.pdfPages+"  ·  "+(appState.pdfFit?(host?host.tr("Fit width"):""):Math.round(appState.pdfZoom*100)+"%")):(appState.readerLabel||"");color:surface.colors.muted;font.pixelSize:19 }
+                anchors.fill:parent;anchors.leftMargin:20;anchors.rightMargin:20;spacing:16
+                Text {
+                    objectName: "readerBookTitle"
+                    font.family: surface.host.fontFamily; Layout.fillWidth:true; Layout.minimumWidth:0
+                    text:appState.current.title||"";color:surface.colors.text;font.pixelSize:18;elide:Text.ElideRight
+                }
+                Text {
+                    objectName: "readerSectionTitle"
+                    font.family: surface.host.fontFamily
+                    Layout.maximumWidth:Math.min(220,surface.width*0.25)
+                    text:surface.pdf?((appState.pdfPage+1)+" / "+appState.pdfPages+"  ·  "+(appState.pdfFit?(host?host.tr("Fit width"):""):Math.round(appState.pdfZoom*100)+"%")):(appState.readerLabel||"")
+                    visible:text.length>0;color:surface.colors.muted;font.pixelSize:16;elide:Text.ElideRight
+                }
+                ProgressBar {
+                    id: readingProgress; objectName: "readerProgress"
+                    Layout.preferredWidth:surface.width<1000?120:160
+                    Layout.preferredHeight:6;Layout.alignment:Qt.AlignVCenter
+                    from:0;to:1;padding:0
+                    value:surface.pdf?(appState.pdfPages>0?(appState.pdfPage+1)/appState.pdfPages:0):(appState.position.fraction||0)
+                    Accessible.name:appState.current.title||""
+                    background:Rectangle { implicitHeight:6;radius:3;color:surface.colors.border }
+                    contentItem:Item {
+                        implicitHeight:6
+                        Rectangle { width:parent.width*readingProgress.position;height:parent.height;radius:3;color:surface.colors.accent }
+                    }
+                }
             }
         }
         Item {
@@ -71,10 +95,10 @@ Item {
             }
         }
         Rectangle {
-            Layout.fillWidth:true;Layout.preferredHeight:40;color:surface.colors.panel
-            Text{ visible: !surface.pdf; font.family: surface.host.fontFamily;anchors.centerIn:parent;text:Math.round((appState.position.fraction||0)*100)+"%";color:surface.colors.muted;font.pixelSize:17}
+            visible:surface.pdf
+            Layout.fillWidth:true;Layout.preferredHeight:32;color:surface.colors.panel
             Row {
-                visible: surface.pdf; anchors.centerIn: parent; spacing: 20
+                anchors.centerIn: parent; spacing: 20
                 Shared.InputPrompt { keys: ["keyboard_arrows"]; label: host ? host.tr("Pan") : ""; fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 17 }
                 Shared.InputPrompt { keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"]; label: host ? host.tr("Pages") : ""; fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 17 }
             }

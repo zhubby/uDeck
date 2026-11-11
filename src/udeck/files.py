@@ -81,6 +81,8 @@ def available_name(directory, name):
 
 def file_kind(name, directory=False):
     mime = mimetypes.guess_type(name)[0] or "application/octet-stream"
+    if Path(name).suffix.lower() == ".mobi":
+        mime = "application/x-mobipocket-ebook"
     mime = {"audio/x-flac": "audio/flac", "audio/x-wav": "audio/wav"}.get(mime, mime)
     icon = file_icon(name, mime, directory)
     if directory:
@@ -88,7 +90,7 @@ def file_kind(name, directory=False):
     if mime.startswith(("audio/", "video/", "image/")):
         kind = mime.split("/")[0]
         return kind, mime, icon
-    if mime in ("application/pdf", "application/epub+zip"):
+    if mime in ("application/pdf", "application/epub+zip", "application/x-mobipocket-ebook"):
         return "book", mime, icon
     if (mime.startswith("text/") or Path(name).suffix.lower() in
             (".md", ".rst", ".log", ".json", ".jsonl", ".yaml", ".yml", ".toml", ".ini", ".conf", ".cfg",

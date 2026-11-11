@@ -1,4 +1,4 @@
-"""Native PDF rendering and isolated EPUB/TXT reading sessions."""
+"""Native PDF rendering and isolated EPUB/MOBI/TXT reading sessions."""
 
 import json
 import math
@@ -260,7 +260,7 @@ class ReaderController(AppController):
             (tr("Bookmark this position"), self.add_bookmark),
             (tr("Bookmarks"), self.bookmarks_menu),
             (tr("Go to page / percentage"), lambda: self.prompt(tr("Go to page / percentage"), self.jump,
-                body=tr("PDF: page number. EPUB / TXT: 0–100 percent."))),
+                body=tr("PDF: page number. EPUB / MOBI / TXT: 0–100 percent."))),
             (tr("Find in book"), lambda: self.prompt(tr("Find in book"), self.search_book, self.search_query)),
             (tr("Clear search"), self.clear_search)])
 
