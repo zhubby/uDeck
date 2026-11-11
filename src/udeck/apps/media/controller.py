@@ -6,7 +6,7 @@ from PySide6.QtMultimedia import QMediaPlayer
 
 from udeck.apps.common.controller import AppController
 from udeck.apps.common.state import PlayQueue
-from udeck.i18n import tr
+from udeck.i18n import Msg, tr
 from udeck.sounds import interaction
 
 from .engine import MediaEngine
@@ -79,7 +79,7 @@ class MediaController(AppController):
     def extra_state(self):
         return {"media": self.media.snapshot(), "control": self.controls,
                 "controlsVisible": self.controls_visible, "repeat": self.queue.repeat,
-                "repeatLabel": {"off": tr("Off"), "all": tr("All tracks"), "one": tr("Current track")}[self.queue.repeat],
+                "repeatLabel": {"off": tr(Msg.OFF), "all": tr(Msg.ALL_TRACKS), "one": tr(Msg.CURRENT_TRACK)}[self.queue.repeat],
                 "shuffle": self.queue.shuffle, "album": self.album,
                 "subtitleText": self.subtitle_text(), "videoFrameRevision": self.media.frame_revision}
 
@@ -126,7 +126,7 @@ class MediaController(AppController):
             self.controls_visible = False
             self.clear_menus()
         elif command == "seek":
-            self.prompt(tr("Position in seconds"), lambda value: self.media.seek(float(value)))
+            self.prompt(tr(Msg.POSITION_IN_SECONDS), lambda value: self.media.seek(float(value)))
         else:
             super().command(command)
         self.publish()
@@ -137,7 +137,7 @@ class MediaController(AppController):
         self.finished_playback()
 
     def playback_failed(self, text):
-        self.error = tr("Playback failed: {error}", error=text)
+        self.error = tr(Msg.PLAYBACK_FAILED_ERROR, error=text)
         self.controls_visible = True
         self.release_music()
         self.publish()
@@ -147,7 +147,7 @@ class MediaController(AppController):
         for device in self.media.devices.audioOutputs():
             key = bytes(device.id()).hex()
             options.append((device.description(), lambda key=key: self.change_output(key)))
-        self.menu(tr("Audio output"), options, tr("Current: {output}", output=self.media.snapshot()["output"]), icon="audio-card")
+        self.menu(tr(Msg.AUDIO_OUTPUT), options, tr(Msg.CURRENT_OUTPUT_NAME, output=self.media.snapshot()["output"]), icon="audio-card")
 
     def change_output(self, identifier):
         self.media.set_output(identifier)
@@ -183,14 +183,14 @@ class MediaController(AppController):
         return ""
 
     def settings_options(self):
-        return [(tr("Audio output"), self.output_menu, "", "audio-card")]
+        return [(tr(Msg.AUDIO_OUTPUT), self.output_menu, "", "audio-card")]
 
     def library_options(self):
-        return [(tr("Search"), lambda: self.prompt(tr("Search library"), self.search, self.filter)),
-                (tr("Sources"), self.sources_menu), (tr("Refresh library"), self.refresh)]
+        return [(tr(Msg.SEARCH), lambda: self.prompt(tr(Msg.SEARCH_LIBRARY), self.search, self.filter)),
+                (tr(Msg.SOURCES), self.sources_menu), (tr(Msg.REFRESH_LIBRARY), self.refresh)]
 
     def context(self):
-        self.menu(tr("Library actions"), self.library_options())
+        self.menu(tr(Msg.LIBRARY_ACTIONS), self.library_options())
 
 def time_label(seconds):
     seconds = max(0, int(seconds))

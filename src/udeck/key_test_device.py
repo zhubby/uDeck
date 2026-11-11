@@ -9,7 +9,7 @@ import sys
 
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
-from .i18n import tr
+from .i18n import Msg, tr
 from .key_test_layout import LINUX_KEYS
 
 
@@ -49,7 +49,7 @@ class KeyTestReader(QObject):
         try:
             paths = set(list_devices())
         except OSError:
-            self.warning.emit(tr("Some system keys cannot be read. Check input device access."))
+            self.warning.emit(tr(Msg.SOME_SYSTEM_KEYS_CANNOT_BE_READ_CHECK_INPUT_DEVICE_ACCESS))
             return
         for path in set(self.devices) - paths:
             self._remove(path)
@@ -72,7 +72,7 @@ class KeyTestReader(QObject):
                 if device is not None:
                     device.close()
         self._report()
-        self.warning.emit(tr("Some system keys cannot be read. Check input device access.") if failed or not self.devices else "")
+        self.warning.emit(tr(Msg.SOME_SYSTEM_KEYS_CANNOT_BE_READ_CHECK_INPUT_DEVICE_ACCESS) if failed or not self.devices else "")
 
     def _report(self):
         status = {"keyTestNativeKeys": sorted({key for entry in self.devices.values() for key in entry["keys"]})}

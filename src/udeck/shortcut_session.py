@@ -10,7 +10,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, QTimer, Signal
 
-from .i18n import error_text, tr
+from .i18n import Msg, error_text, tr
 from .shortcuts import ShortcutStore, atomic_bytes, render_bindings
 
 
@@ -24,7 +24,7 @@ def configuration_directory(arguments, default):
         elif argument.startswith(b'-C') and len(argument) > 2:
             directory = os.fsdecode(argument[2:])
     if not directory:
-        raise ValueError(tr('Global shortcuts require the current labwc session'))
+        raise ValueError(tr(Msg.GLOBAL_SHORTCUTS_REQUIRE_THE_CURRENT_LABWC_SESSION))
     return directory
 
 
@@ -60,7 +60,7 @@ class ShortcutSession(QObject):
         except (OSError, ValueError, IndexError):
             pass
         if not self.available:
-            self.error = tr('Global shortcuts require the current labwc session')
+            self.error = tr(Msg.GLOBAL_SHORTCUTS_REQUIRE_THE_CURRENT_LABWC_SESSION)
 
     @property
     def busy(self):
@@ -95,11 +95,11 @@ class ShortcutSession(QObject):
         directory = Path(os.environ.get('XDG_STATE_HOME', Path.home() / '.local/state')) / 'udeck/shortcuts'
         directory.mkdir(parents=True, exist_ok=True, mode=0o700)
         if directory.is_symlink() or directory.stat().st_uid != os.getuid():
-            raise ValueError(tr('Unsafe shortcut backup directory'))
+            raise ValueError(tr(Msg.UNSAFE_SHORTCUT_BACKUP_DIRECTORY))
         path = directory / ('labwc-before-udeck-' + hashlib.sha256(original).hexdigest() + '.xml')
         if path.exists():
             if path.is_symlink() or path.read_bytes() != original:
-                raise ValueError(tr('Unsafe shortcut backup file'))
+                raise ValueError(tr(Msg.UNSAFE_SHORTCUT_BACKUP_FILE))
         else:
             descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
             with os.fdopen(descriptor, 'wb') as stream:
@@ -115,10 +115,10 @@ class ShortcutSession(QObject):
 
     def apply(self, overrides, *, kind='bindings', pointer=None):
         if self.busy:
-            raise ValueError(tr('Wait for the current shortcut change'))
+            raise ValueError(tr(Msg.WAIT_FOR_THE_CURRENT_SHORTCUT_CHANGE))
         if not self._owns_compositor() or not self.output or not self.output.available:
             self.available = False
-            self.error = tr('Global shortcuts require the current labwc session')
+            self.error = tr(Msg.GLOBAL_SHORTCUTS_REQUIRE_THE_CURRENT_LABWC_SESSION)
             self.finished.emit({'kind': kind, 'success': False, 'error': self.error})
             self.changed.emit()
             return
@@ -157,7 +157,7 @@ class ShortcutSession(QObject):
     def _probe(self):
         self.attempts += 1
         if self.attempts > 7 or not self.output or not self.output.available or not self._owns_compositor():
-            self._finish(False, tr('Shortcut configuration confirmation timed out'))
+            self._finish(False, tr(Msg.SHORTCUT_CONFIGURATION_CONFIRMATION_TIMED_OUT))
             return
         self.output.chord((194,))
 
@@ -168,10 +168,10 @@ class ShortcutSession(QObject):
             return self.applied
         try:
             if self.config.read_bytes() != self.pending['generated']:
-                raise ValueError(tr('Shortcut settings changed externally; reload and try again'))
+                raise ValueError(tr(Msg.SHORTCUT_SETTINGS_CHANGED_EXTERNALLY_RELOAD_AND_TRY_AGAIN))
             current = self.store.path.read_bytes() if self.store.path.exists() else None
             if current != self.pending['stored']:
-                raise ValueError(tr('Shortcut settings changed externally; reload and try again'))
+                raise ValueError(tr(Msg.SHORTCUT_SETTINGS_CHANGED_EXTERNALLY_RELOAD_AND_TRY_AGAIN))
             if self.pending['overrides'] is not None:
                 self.store.save(self.pending['overrides'])
         except (OSError, ValueError) as error:
@@ -195,7 +195,7 @@ class ShortcutSession(QObject):
                     self.applied = False
                 os.kill(self.pid, signal.SIGHUP)
             except (OSError, ValueError) as rollback:
-                self.error = tr('Could not restore shortcut configuration: {error}', error=error_text(rollback))
+                self.error = tr(Msg.COULD_NOT_RESTORE_SHORTCUT_CONFIGURATION_ERROR, error=error_text(rollback))
         self.changed.emit()
         self.finished.emit({'kind': kind, 'success': success, 'error': self.error})
         if kind == 'pointer':
@@ -207,7 +207,7 @@ class ShortcutSession(QObject):
     def restore_pointer(self):
         self.queued_pointer = None
         if self.busy:
-            self._finish(False, tr('Shortcut change cancelled'))
+            self._finish(False, tr(Msg.SHORTCUT_CHANGE_CANCELLED))
         if not self._owns_compositor():
             return
         try:
@@ -223,5 +223,5 @@ class ShortcutSession(QObject):
     def close(self):
         self.queued_pointer = None
         if self.busy:
-            self._finish(False, tr('Shortcut change cancelled'))
+            self._finish(False, tr(Msg.SHORTCUT_CHANGE_CANCELLED))
         self.timer.stop()

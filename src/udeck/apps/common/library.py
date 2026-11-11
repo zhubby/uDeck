@@ -11,7 +11,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
 
-from udeck.i18n import error_text, tr
+from udeck.i18n import Msg, error_text, tr
 
 EXTENSIONS = {
     "music": {".mp3", ".flac", ".ogg", ".opus", ".m4a", ".aac", ".wav", ".aiff"},
@@ -35,7 +35,7 @@ class Source:
     def create(cls, path, identifier=None):
         path = Path(path).expanduser().resolve(strict=True)
         if not path.is_dir():
-            raise ValueError(tr("Choose a folder"))
+            raise ValueError(tr(Msg.CHOOSE_A_FOLDER))
         stat = path.stat()
         # The saved identity survives remounts; dev/inode are revalidated on reconnect.
         identifier = identifier or hashlib.sha256(
@@ -58,7 +58,7 @@ def fingerprint(path, cancelled=lambda: False):
     with path.open("rb") as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             if cancelled():
-                raise OSError(tr("Scan cancelled"))
+                raise OSError(tr(Msg.SCAN_CANCELLED))
             digest.update(chunk)
     return digest.hexdigest()
 
@@ -79,7 +79,7 @@ def scan(source, app, cancelled=lambda: False, metadata=False, cache=None):
     cache = cache or {}
     root = Path(source.path)
     if not source.available():
-        raise OSError(tr("Source disconnected"))
+        raise OSError(tr(Msg.SOURCE_DISCONNECTED))
     for directory, folders, files in os.walk(root, followlinks=False):
         folders[:] = sorted(x for x in folders if not x.startswith(".")
                             and not (Path(directory) / x).is_symlink())
@@ -116,7 +116,7 @@ def scan(source, app, cancelled=lambda: False, metadata=False, cache=None):
             if len(items) >= 20000:
                 return items
     if not source.available():
-        raise OSError(tr("Source disconnected"))
+        raise OSError(tr(Msg.SOURCE_DISCONNECTED))
     return sorted(items, key=lambda x: (x["album"].casefold(), x["relative"].casefold()))
 
 
@@ -228,10 +228,10 @@ class Library(QObject):
         item = next((i for i in self.items if i["id"] == identifier), None)
         source = next((s for s in self.sources if item and s.id == item["sourceId"]), None)
         if not item or not source or not source.available() or not Path(item["path"]).is_file():
-            raise OSError(tr("Source disconnected. Reconnect the folder in Sources."))
+            raise OSError(tr(Msg.SOURCE_DISCONNECTED_RECONNECT_THE_FOLDER_IN_SOURCES))
         stat = Path(item["path"]).stat()
         if [stat.st_size, stat.st_mtime_ns] != item["stamp"] or Path(item["path"]).is_symlink():
-            raise OSError(tr("The file has changed. Refresh the library before opening it."))
+            raise OSError(tr(Msg.THE_FILE_HAS_CHANGED_REFRESH_THE_LIBRARY_BEFORE_OPENING_IT))
         return item
 
     def close(self):

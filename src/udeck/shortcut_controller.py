@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from PySide6.QtCore import Slot
 
-from .i18n import error_text, tr
+from .i18n import Msg, error_text, tr
 from .menu_icons import system_menu_icons
 from .shortcuts import (
     ACTION_BY_ID,
@@ -50,12 +50,12 @@ class ShortcutControls:
     def _shortcut_body(self):
         state = self._shortcut_state()
         if state['pending']:
-            return tr('Applying shortcut change…')
+            return tr(Msg.APPLYING_SHORTCUT_CHANGE)
         if state['error']:
             return state['error']
         if not state['available']:
-            return tr('Global shortcuts require the current labwc session')
-        return tr('Changes apply immediately') if not self.mock else tr('Preview bindings; desktop shortcuts are unchanged')
+            return tr(Msg.GLOBAL_SHORTCUTS_REQUIRE_THE_CURRENT_LABWC_SESSION)
+        return tr(Msg.CHANGES_APPLY_IMMEDIATELY) if not self.mock else tr(Msg.PREVIEW_BINDINGS_DESKTOP_SHORTCUTS_ARE_UNCHANGED)
 
     def _shortcut_hints(self, identifier, title):
         values = self.shortcut_store.bindings()[identifier][:1] if self.shortcut_store else []
@@ -66,15 +66,15 @@ class ShortcutControls:
             self.notify(self.shortcut_error)
             return
         options = [{'id': key, 'label': name, 'action': 'shortcut-group', 'group': key,
-                    'subtitle': tr('{count} system actions', count=sum(action.group == key for action in ACTIONS)),
+                    'subtitle': tr(Msg.COUNT_SYSTEM_ACTIONS, count=sum(action.group == key for action in ACTIONS)),
                     'wrapSubtitle': True}
                    for key, name in GROUPS.items()]
-        options.append({'id': 'reset-all', 'label': tr('Restore all defaults'), 'action': 'shortcut-reset-all'})
-        self._menu(tr('Shortcut bindings'), options, source='shortcuts', body=self._shortcut_body())
+        options.append({'id': 'reset-all', 'label': tr(Msg.RESTORE_ALL_DEFAULTS), 'action': 'shortcut-reset-all'})
+        self._menu(tr(Msg.SHORTCUT_BINDINGS), options, source='shortcuts', body=self._shortcut_body())
 
     def _shortcut_status(self, action):
         values = self.shortcut_store.bindings()[action.id]
-        status = tr('Unbound') if not values else tr('Default') if tuple(values) == action.defaults else tr('Custom')
+        status = tr(Msg.UNBOUND) if not values else tr(Msg.DEFAULT) if tuple(values) == action.defaults else tr(Msg.CUSTOM)
         available = self.mock or (bool(shutil.which('grim')) if action.feature == 'screenshot' else
                                   self.data.get(action.feature, {}).get('available', True))
         if not self.mock and action.feature == 'audio':
@@ -82,7 +82,7 @@ class ShortcutControls:
         if not self.mock and action.feature == 'logout':
             available = os.environ.get('XDG_SESSION_DESKTOP') == 'udeck'
         if not available:
-            status += ' · ' + tr('Feature unavailable')
+            status += ' · ' + tr(Msg.FEATURE_UNAVAILABLE)
         return status
 
     def _shortcut_group_options(self, group):
@@ -96,13 +96,13 @@ class ShortcutControls:
         disabled = (not self.mock and not self._shortcut_state()['available']) or self._shortcut_state()['pending']
         common = {'disabled': disabled, 'reason': self._shortcut_body()}
         values = self.shortcut_store.bindings()[identifier]
-        result = [{'id': str(index), 'label': label(value), 'subtitle': tr('Press to change this binding'), 'wrapSubtitle': True,
+        result = [{'id': str(index), 'label': label(value), 'subtitle': tr(Msg.PRESS_TO_CHANGE_THIS_BINDING), 'wrapSubtitle': True,
                    'action': 'shortcut-record', 'actionId': identifier, 'bindingIndex': index, **common}
                   for index, value in enumerate(values)]
         result += [
-            {'id': 'add', 'label': tr('Add a binding'), 'action': 'shortcut-record', 'actionId': identifier, 'bindingIndex': -1, **common},
-            {'id': 'clear', 'label': tr('Clear all bindings'), 'action': 'shortcut-write', 'actionId': identifier, 'sequences': [], **common},
-            {'id': 'reset', 'label': tr('Restore default'), 'action': 'shortcut-write', 'actionId': identifier, 'sequences': None, **common},
+            {'id': 'add', 'label': tr(Msg.ADD_A_BINDING), 'action': 'shortcut-record', 'actionId': identifier, 'bindingIndex': -1, **common},
+            {'id': 'clear', 'label': tr(Msg.CLEAR_ALL_BINDINGS), 'action': 'shortcut-write', 'actionId': identifier, 'sequences': [], **common},
+            {'id': 'reset', 'label': tr(Msg.RESTORE_DEFAULT), 'action': 'shortcut-write', 'actionId': identifier, 'sequences': None, **common},
         ]
         return result
 
@@ -142,9 +142,9 @@ class ShortcutControls:
             if self.shortcut_recorder:
                 self.shortcut_recorder.open(option['actionId'], option['bindingIndex'])
             else:
-                self.notify(tr('Shortcut recording is unavailable'))
+                self.notify(tr(Msg.SHORTCUT_RECORDING_IS_UNAVAILABLE))
         elif action == 'shortcut-reset-all':
-            self._confirm(tr('Restore all shortcut defaults?'), tr('Custom bindings will be replaced.'),
+            self._confirm(tr(Msg.RESTORE_ALL_SHORTCUT_DEFAULTS_PROMPT), tr(Msg.CUSTOM_BINDINGS_WILL_BE_REPLACED),
                           {'action': 'shortcut-reset-confirmed'})
         elif action == 'shortcut-reset-confirmed':
             self._save_shortcuts({})
@@ -161,7 +161,7 @@ class ShortcutControls:
             elif 0 <= index < len(values):
                 values[index] = sequence
             else:
-                raise ValueError(tr('Binding changed; open it again'))
+                raise ValueError(tr(Msg.BINDING_CHANGED_OPEN_IT_AGAIN))
             self._write_shortcut(identifier, values)
         except (OSError, ValueError, KeyError, AttributeError) as error:
             self.notify(error_text(error))
@@ -169,7 +169,7 @@ class ShortcutControls:
     def _write_shortcut(self, identifier, sequences, *, transfer=False):
         try:
             if self._shortcut_state()['pending']:
-                raise ValueError(tr('Wait for the current shortcut change'))
+                raise ValueError(tr(Msg.WAIT_FOR_THE_CURRENT_SHORTCUT_CHANGE))
             store = ShortcutStore(self.shortcut_store.path)
             proposal = store.propose(identifier, sequences, transfer=transfer)
             self._save_shortcuts(proposal)
@@ -177,7 +177,7 @@ class ShortcutControls:
             occupied = ''
             for sequence, key in error.conflicts:
                 occupied = occupied + ('\n' if occupied else '') + label(sequence) + ' → ' + ACTION_BY_ID[key].label
-            self._confirm(tr('Transfer this shortcut?'), occupied,
+            self._confirm(tr(Msg.TRANSFER_THIS_SHORTCUT_PROMPT), occupied,
                           {'action': 'shortcut-write', 'actionId': identifier, 'sequences': sequences, 'transfer': True})
         except (OSError, ValueError) as error:
             self.notify(error_text(error))
@@ -187,11 +187,11 @@ class ShortcutControls:
             if self.mock:
                 self.shortcut_store.save(overrides)
                 self._refresh_shortcuts()
-                self.notify(tr('Preview shortcut saved'))
+                self.notify(tr(Msg.PREVIEW_SHORTCUT_SAVED))
             elif self.shortcut_session:
                 self.shortcut_session.apply(overrides)
             else:
-                raise ValueError(tr('Global shortcuts require the current labwc session'))
+                raise ValueError(tr(Msg.GLOBAL_SHORTCUTS_REQUIRE_THE_CURRENT_LABWC_SESSION))
         except (OSError, ValueError) as error:
             self.notify(error_text(error))
 
@@ -200,7 +200,7 @@ class ShortcutControls:
             self.shortcut_store = self.shortcut_session.store
         self._refresh_shortcuts()
         if result['kind'] == 'bindings':
-            self.notify(tr('Shortcut saved') if result['success'] else result['error'])
+            self.notify(tr(Msg.SHORTCUT_SAVED) if result['success'] else result['error'])
 
     @Slot(str, result=bool)
     def globalAction(self, action):
@@ -221,7 +221,7 @@ class ShortcutControls:
             self.activateSetting(action)
         elif action == 'screenshot':
             if self.mock:
-                self.notify(tr('Screenshot preview; no desktop image was saved'))
+                self.notify(tr(Msg.SCREENSHOT_PREVIEW_NO_DESKTOP_IMAGE_WAS_SAVED))
             elif not self._capture_pending:
                 from .screenshot import capture_screen
                 self._capture_pending = True
@@ -231,7 +231,7 @@ class ShortcutControls:
             component = 'brightness' if action.startswith('brightness-') else 'audio'
             value = self.data.get(component, {})
             if not value.get('available') or (component == 'audio' and not value.get('outputs')):
-                self.notify(tr('Feature unavailable'))
+                self.notify(tr(Msg.FEATURE_UNAVAILABLE))
                 return False
             if action == 'mute':
                 self._system('mute')
@@ -250,9 +250,9 @@ class ShortcutControls:
         try:
             path = future.result()
             self.feedback('success')
-            self.notify(tr('Screenshot saved: {path}', path=str(path)))
+            self.notify(tr(Msg.SCREENSHOT_SAVED_PATH, path=str(path)))
         except Exception as error:
-            self.notify(tr('Could not save screenshot: {error}', error=error_text(error)))
+            self.notify(tr(Msg.COULD_NOT_SAVE_SCREENSHOT_ERROR, error=error_text(error)))
 
     def _close_shortcuts(self):
         if self.shortcut_recorder:

@@ -9,6 +9,7 @@ import "../../common/qml"
 
 Item {
     id: surface
+    readonly property var msg: host ? host.msg : ({})
     required property var colors
     required property var host
     property var appState:host?host.state:({current:{},position:{}})
@@ -30,7 +31,7 @@ Item {
                     objectName: "readerSectionTitle"
                     font.family: surface.host.fontFamily
                     Layout.maximumWidth:Math.min(220,surface.width*0.25)
-                    text:surface.pdf?((appState.pdfPage+1)+" / "+appState.pdfPages+"  ·  "+(appState.pdfFit?(host?host.tr("Fit width"):""):Math.round(appState.pdfZoom*100)+"%")):(appState.readerLabel||"")
+                    text:surface.pdf?((appState.pdfPage+1)+" / "+appState.pdfPages+"  ·  "+(appState.pdfFit?(host?host.tr(msg.FIT_WIDTH):""):Math.round(appState.pdfZoom*100)+"%")):(appState.readerLabel||"")
                     visible:text.length>0;color:surface.colors.muted;font.pixelSize:16;elide:Text.ElideRight
                 }
                 ProgressBar {
@@ -99,8 +100,8 @@ Item {
             Layout.fillWidth:true;Layout.preferredHeight:32;color:surface.colors.panel
             Row {
                 anchors.centerIn: parent; spacing: 20
-                Shared.InputPrompt { keys: ["keyboard_arrows"]; label: host ? host.tr("Pan") : ""; fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 17 }
-                Shared.InputPrompt { keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"]; label: host ? host.tr("Pages") : ""; fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 17 }
+                Shared.InputPrompt { keys: ["keyboard_arrows"]; label: host ? host.tr(msg.PAN) : ""; fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 17 }
+                Shared.InputPrompt { keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"]; label: host ? host.tr(msg.PAGES) : ""; fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 17 }
             }
         }
     }

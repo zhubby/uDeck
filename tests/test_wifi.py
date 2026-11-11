@@ -5,6 +5,7 @@ import pytest
 from dbus_next import DBusError, Message, Variant
 
 from udeck.backend import NM, NM_ROOT, SystemBackend, unwrap
+from udeck.i18n import render
 
 BUILTIN = NM_ROOT + "/Devices/1"
 USB = NM_ROOT + "/Devices/2"
@@ -294,8 +295,9 @@ def test_secret_agent_rejects_an_ambiguous_shared_profile_without_prompting(netw
     async def scenario():
         await backend.refresh_wifi()
         backend.wifi_profile_devices[PROFILE] = USB
-        with pytest.raises(DBusError, match="无法确认"):
+        with pytest.raises(DBusError) as failure:
             await type(backend.network_agent).GetSecrets.__wrapped__(backend.network_agent, {}, PROFILE, "802-11-wireless-security", [], 0)
+        assert "无法确认" in render(failure.value, "zh_CN")
 
     asyncio.run(scenario())
     assert prompts == []
@@ -318,8 +320,9 @@ def test_secret_agent_rejects_requests_without_a_confirmed_adapter(network_backe
             manager.broken.add(ACTIVE)
         else:
             manager.active.clear()
-        with pytest.raises(DBusError, match="无法确认"):
+        with pytest.raises(DBusError) as failure:
             await type(backend.network_agent).GetSecrets.__wrapped__(backend.network_agent, {}, PROFILE, "802-11-wireless-security", [], 0)
+        assert "无法确认" in render(failure.value, "zh_CN")
 
     asyncio.run(scenario())
     assert prompts == []
@@ -356,8 +359,9 @@ def test_secret_agent_rechecks_profile_ownership_after_password_input(network_ba
     async def scenario():
         await backend.refresh_wifi()
         backend.wifi_profile_devices[PROFILE] = BUILTIN
-        with pytest.raises(DBusError, match="无法确认"):
+        with pytest.raises(DBusError) as failure:
             await type(backend.network_agent).GetSecrets.__wrapped__(backend.network_agent, {}, PROFILE, "802-11-wireless-security", [], 0)
+        assert "无法确认" in render(failure.value, "zh_CN")
 
     asyncio.run(scenario())
 

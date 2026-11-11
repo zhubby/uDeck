@@ -8,6 +8,7 @@ import "../../common/qml"
 
 Item {
     id: surface
+    readonly property var msg: host ? host.msg : ({})
     required property var colors
     required property var host
     property var appState: host ? host.state : ({current:{},media:{}})
@@ -49,14 +50,14 @@ Item {
             }
             RowLayout {
                 spacing: 18
-                SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: surface.tr("Previous chapter"); selected: appState.control===0; onActivated: controller.command("previous") }
-                SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: appState.media.playing?surface.tr("Pause"):surface.tr("Play"); selected: appState.control===1; onActivated: controller.command("play-pause") }
-                SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: surface.tr("Next chapter"); selected: appState.control===2; onActivated: controller.command("next") }
+                SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: surface.tr(msg.PREVIOUS_CHAPTER); selected: appState.control===0; onActivated: controller.command("previous") }
+                SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: appState.media.playing?surface.tr(msg.PAUSE):surface.tr(msg.PLAY); selected: appState.control===1; onActivated: controller.command("play-pause") }
+                SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: surface.tr(msg.NEXT_CHAPTER); selected: appState.control===2; onActivated: controller.command("next") }
                 Item { Layout.fillWidth: true }
-                Shared.InputPrompt { keys: ["gamecube_button_x"]; label: surface.tr("Options"); fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 18 }
-                Shared.InputPrompt { keys: ["gamecube_button_color_b"]; label: surface.tr("Back"); fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 18 }
+                Shared.InputPrompt { keys: ["gamecube_button_x"]; label: surface.tr(msg.OPTIONS); fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 18 }
+                Shared.InputPrompt { keys: ["gamecube_button_color_b"]; label: surface.tr(msg.BACK); fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 18 }
             }
         }
     }
-    Text { font.family: surface.host.fontFamily; anchors.centerIn: parent; visible: appState.media.loading||false; text: surface.tr("Loading…"); color: surface.colors.text; font.pixelSize: 28 }
+    Text { font.family: surface.host.fontFamily; anchors.centerIn: parent; visible: appState.media.loading||false; text: surface.tr(msg.LOADING); color: surface.colors.text; font.pixelSize: 28 }
 }

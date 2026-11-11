@@ -19,7 +19,7 @@ from udeck.apps.reader.style import (
     READER_LINE_HEIGHTS,
     normalize_reader_preferences,
 )
-from udeck.i18n import tr
+from udeck.i18n import Msg, tr
 from udeck.sounds import interaction
 
 
@@ -73,7 +73,7 @@ class ReaderController(AppController):
         self.dark = preferences["dark"]
 
     def tabs(self):
-        return [tr("Recent books"), tr("Bookshelf"), tr("Folders")]
+        return [tr(Msg.RECENT_BOOKS), tr(Msg.BOOKSHELF), tr(Msg.FOLDERS)]
 
     def rows(self):
         rows = super().rows()
@@ -100,7 +100,7 @@ class ReaderController(AppController):
         if item["format"] == "PDF":
             error = self.pdf.load(item["path"])
             if error not in (QPdfDocument.Error.None_, QPdfDocument.Error.IncorrectPassword):
-                raise OSError(tr("Cannot open PDF: {error}", error=error.name))
+                raise OSError(tr(Msg.CANNOT_OPEN_PDF_ERROR, error=error.name))
             self.pdf_page = max(0, min(self.pdf.pageCount() - 1, self.position.get("page", 0)))
             self.pdf_zoom = max(0.8, min(2.0, self.position.get("zoom", 1.0)))
             self.pdf_fit = self.position.get("fit", True)
@@ -117,14 +117,14 @@ class ReaderController(AppController):
         self.publish()
 
     def password_required(self):
-        self.prompt(tr("PDF password"), self.unlock_pdf, body=(self.current or {}).get("title", ""))
+        self.prompt(tr(Msg.PDF_PASSWORD), self.unlock_pdf, body=(self.current or {}).get("title", ""))
 
     def unlock_pdf(self, text):
         self.library.require(self.current["id"])
         self.pdf.setPassword(text)
         error = self.pdf.load(self.current["path"])
         if error != QPdfDocument.Error.None_:
-            raise ValueError(tr("Incorrect PDF password"))
+            raise ValueError(tr(Msg.INCORRECT_PDF_PASSWORD))
         self.reader_ready = True
         self.pdf_revision += 1
 
@@ -169,11 +169,11 @@ class ReaderController(AppController):
                 self.search_results = data.get("results", [])
                 self.show_results()
             elif event == "error":
-                self.error = tr("Reading failed: {error}", error=data.get("error", ""))
+                self.error = tr(Msg.READING_FAILED_ERROR, error=data.get("error", ""))
             elif event == "external":
                 url = data.get("url", "")
-                self.menu(tr("External link"), [(tr("Open in browser"), lambda: self.open_external(url)),
-                                                  (tr("Cancel"), self.pop_menu)], url)
+                self.menu(tr(Msg.EXTERNAL_LINK), [(tr(Msg.OPEN_IN_BROWSER), lambda: self.open_external(url)),
+                                                  (tr(Msg.CANCEL), self.pop_menu)], url)
             self.publish()
         except (ValueError, KeyError, TypeError):
             return
@@ -254,15 +254,15 @@ class ReaderController(AppController):
     def context(self):
         if self.page != "document":
             return super().context()
-        self.menu(tr("Reading actions"), [
-            (tr("Contents"), self.contents_menu),
-            (tr("Reading layout"), self.layout_menu),
-            (tr("Bookmark this position"), self.add_bookmark),
-            (tr("Bookmarks"), self.bookmarks_menu),
-            (tr("Go to page / percentage"), lambda: self.prompt(tr("Go to page / percentage"), self.jump,
-                body=tr("PDF: page number. EPUB / MOBI / TXT: 0–100 percent."))),
-            (tr("Find in book"), lambda: self.prompt(tr("Find in book"), self.search_book, self.search_query)),
-            (tr("Clear search"), self.clear_search)])
+        self.menu(tr(Msg.READING_ACTIONS), [
+            (tr(Msg.CONTENTS), self.contents_menu),
+            (tr(Msg.READING_LAYOUT), self.layout_menu),
+            (tr(Msg.BOOKMARK_THIS_POSITION), self.add_bookmark),
+            (tr(Msg.BOOKMARKS), self.bookmarks_menu),
+            (tr(Msg.GO_TO_PAGE_PERCENTAGE), lambda: self.prompt(tr(Msg.GO_TO_PAGE_PERCENTAGE), self.jump,
+                body=tr(Msg.PDF_PAGE_NUMBER_EPUB_MOBI_TXT_0_100_PERCENT))),
+            (tr(Msg.FIND_IN_BOOK), lambda: self.prompt(tr(Msg.FIND_IN_BOOK), self.search_book, self.search_query)),
+            (tr(Msg.CLEAR_SEARCH), self.clear_search)])
 
     def contents_menu(self):
         if self.current and self.current["format"] == "PDF":
@@ -279,7 +279,7 @@ class ReaderController(AppController):
         else:
             entries = [("  " * e.get("depth", 0) + e["title"],
                         lambda href=e["href"]: self.goto_position({"cfi": href})) for e in self.contents]
-        self.menu(tr("Contents"), entries)
+        self.menu(tr(Msg.CONTENTS), entries)
 
     def goto_position(self, position):
         self.library.require(self.current["id"])
@@ -294,9 +294,9 @@ class ReaderController(AppController):
     def add_bookmark(self):
         self.save_position()
         if self.current["format"] != "PDF" and not self.position.get("cfi"):
-            raise ValueError(tr("Wait until the document is ready"))
+            raise ValueError(tr(Msg.WAIT_UNTIL_THE_DOCUMENT_IS_READY))
         bookmarks = self.store.data["bookmarks"].setdefault(self.current["id"], [])
-        label = (tr("Page {page}", page=self.pdf_page + 1) if self.current["format"] == "PDF"
+        label = (tr(Msg.PAGE_PAGE, page=self.pdf_page + 1) if self.current["format"] == "PDF"
                  else self.reader_label or f"{self.position.get('fraction', 0):.0%}")
         bookmarks.append({"label": str(label), "position": dict(self.position)})
         self.persist()
@@ -304,11 +304,11 @@ class ReaderController(AppController):
 
     def bookmarks_menu(self):
         entries = self.store.data["bookmarks"].get(self.current["id"], [])
-        self.menu(tr("Bookmarks"), [(e["label"], lambda e=e: self.bookmark_actions(e)) for e in entries])
+        self.menu(tr(Msg.BOOKMARKS), [(e["label"], lambda e=e: self.bookmark_actions(e)) for e in entries])
 
     def bookmark_actions(self, entry):
-        self.menu(entry["label"], [(tr("Open"), lambda: self.goto_position(entry["position"])),
-                                    (tr("Remove"), lambda: self.remove_bookmark(entry))])
+        self.menu(entry["label"], [(tr(Msg.OPEN), lambda: self.goto_position(entry["position"])),
+                                    (tr(Msg.REMOVE), lambda: self.remove_bookmark(entry))])
 
     def remove_bookmark(self, entry):
         self.store.data["bookmarks"][self.current["id"]].remove(entry)
@@ -320,23 +320,23 @@ class ReaderController(AppController):
     def jump(self, text):
         number = float(text)
         if not math.isfinite(number):
-            raise ValueError(tr("Enter a finite number"))
+            raise ValueError(tr(Msg.ENTER_A_FINITE_NUMBER))
         if self.current["format"] == "PDF":
             if number != int(number) or not 1 <= number <= self.pdf.pageCount():
-                raise ValueError(tr("Enter a page between 1 and {pages}", pages=self.pdf.pageCount()))
+                raise ValueError(tr(Msg.ENTER_A_PAGE_BETWEEN_1_AND_PAGES, pages=self.pdf.pageCount()))
             self.turn_pdf(int(number) - 1)
         else:
             if not 0 <= number <= 100:
-                raise ValueError(tr("Enter a percentage between 0 and 100"))
+                raise ValueError(tr(Msg.ENTER_A_PERCENTAGE_BETWEEN_0_AND_100))
             self.send_reader("fraction", number / 100)
         self.clear_menus()
 
     def search_book(self, text):
         if not text.strip():
-            raise ValueError(tr("Enter search text"))
+            raise ValueError(tr(Msg.ENTER_SEARCH_TEXT))
         self.search_query, self.search_results = text, []
         self.search_generation += 1
-        self.notice = tr("Searching…")
+        self.notice = tr(Msg.SEARCHING)
         if self.current["format"] != "PDF":
             self.send_reader("search", text)
             return
@@ -370,26 +370,26 @@ class ReaderController(AppController):
     def show_results(self):
         self.notice = ""
         if not self.search_results:
-            self.prompt(tr("No matches. Try another search"), self.search_book, self.search_query)
+            self.prompt(tr(Msg.NO_MATCHES_TRY_ANOTHER_SEARCH), self.search_book, self.search_query)
         else:
-            self.menu(tr("Search results"), [(e["title"], lambda e=e: self.goto_position(e))
+            self.menu(tr(Msg.SEARCH_RESULTS), [(e["title"], lambda e=e: self.goto_position(e))
                                                for e in self.search_results])
         self.publish()
 
     def settings_options(self):
-        options = [(tr("Night colors"), self.toggle_dark, "", "weather-clear-night"),
-                   (tr("Reading layout"), self.layout_menu, "", "document-page-setup")]
+        options = [(tr(Msg.NIGHT_COLORS), self.toggle_dark, "", "weather-clear-night"),
+                   (tr(Msg.READING_LAYOUT), self.layout_menu, "", "document-page-setup")]
         if self.current and self.current["format"] == "PDF" and self.page == "document":
-            options.append((tr("PDF zoom"), self.zoom_menu, "", "zoom-in"))
+            options.append((tr(Msg.PDF_ZOOM), self.zoom_menu, "", "zoom-in"))
         else:
-            options.append((tr("Text size: {size}", size=self.font_size), self.font_menu, "", "format-text-size"))
+            options.append((tr(Msg.TEXT_SIZE_SIZE, size=self.font_size), self.font_menu, "", "format-text-size"))
         return options
 
     def toggle_dark(self):
         self.set_background("paper" if self.dark else "night")
 
     def font_menu(self):
-        self.menu(tr("Text size"), [(str(size), lambda size=size: self.set_font(size))
+        self.menu(tr(Msg.TEXT_SIZE), [(str(size), lambda size=size: self.set_font(size))
                                      for size in READER_FONT_SIZES])
 
     def set_font(self, size):
@@ -401,14 +401,14 @@ class ReaderController(AppController):
         options = []
         pdf_document = self.page == "document" and self.current and self.current.get("format") == "PDF"
         if not pdf_document:
-            options.extend([(tr("Line spacing"), self.line_height_menu, "", "format-line-spacing"),
-                            (tr("Font"), self.font_family_menu, "", "preferences-desktop-font"),
-                            (tr("Content width"), self.content_width_menu, "", "zoom-fit-width")])
-        options.append((tr("Background"), self.background_menu, "", "preferences-desktop-wallpaper"))
-        self.menu(tr("Reading layout"), options)
+            options.extend([(tr(Msg.LINE_SPACING), self.line_height_menu, "", "format-line-spacing"),
+                            (tr(Msg.FONT), self.font_family_menu, "", "preferences-desktop-font"),
+                            (tr(Msg.CONTENT_WIDTH), self.content_width_menu, "", "zoom-fit-width")])
+        options.append((tr(Msg.BACKGROUND), self.background_menu, "", "preferences-desktop-wallpaper"))
+        self.menu(tr(Msg.READING_LAYOUT), options)
 
     def line_height_menu(self):
-        self.menu(tr("Line spacing"), [(f"{value:.1f}×", lambda value=value: self.set_line_height(value))
+        self.menu(tr(Msg.LINE_SPACING), [(f"{value:.1f}×", lambda value=value: self.set_line_height(value))
                                        for value in READER_LINE_HEIGHTS])
 
     def set_line_height(self, value):
@@ -419,9 +419,9 @@ class ReaderController(AppController):
         self.pop_menu()
 
     def font_family_menu(self):
-        self.menu(tr("Font"), [(tr("Sans-serif"), lambda: self.set_font_family("sans")),
-                                (tr("Serif"), lambda: self.set_font_family("serif")),
-                                (tr("Monospace"), lambda: self.set_font_family("mono"))])
+        self.menu(tr(Msg.FONT), [(tr(Msg.SANS_SERIF), lambda: self.set_font_family("sans")),
+                                (tr(Msg.SERIF), lambda: self.set_font_family("serif")),
+                                (tr(Msg.MONOSPACE), lambda: self.set_font_family("mono"))])
 
     def set_font_family(self, family):
         if family not in READER_FONT_FAMILIES:
@@ -431,8 +431,8 @@ class ReaderController(AppController):
         self.pop_menu()
 
     def content_width_menu(self):
-        labels = {720: "Narrow ({width}px)", 1000: "Standard ({width}px)", 1200: "Wide ({width}px)"}
-        self.menu(tr("Content width"), [(tr(labels[width], width=width),
+        labels = {720: Msg.NARROW_WIDTH_PX, 1000: Msg.STANDARD_WIDTH_PX, 1200: Msg.WIDE_WIDTH_PX}
+        self.menu(tr(Msg.CONTENT_WIDTH), [(tr(labels[width], width=width),
                                          lambda width=width: self.set_content_width(width))
                                         for width in READER_CONTENT_WIDTHS])
 
@@ -444,10 +444,10 @@ class ReaderController(AppController):
         self.pop_menu()
 
     def background_menu(self):
-        self.menu(tr("Background"), [(tr("Paper"), lambda: self.set_background("paper"), "", "weather-clear"),
-                                     (tr("Warm paper"), lambda: self.set_background("warm"), "", "weather-clear"),
-                                     (tr("Gray"), lambda: self.set_background("gray"), "", "preferences-desktop-wallpaper"),
-                                     (tr("Night"), lambda: self.set_background("night"), "", "weather-clear-night")])
+        self.menu(tr(Msg.BACKGROUND), [(tr(Msg.PAPER), lambda: self.set_background("paper"), "", "weather-clear"),
+                                     (tr(Msg.WARM_PAPER), lambda: self.set_background("warm"), "", "weather-clear"),
+                                     (tr(Msg.GRAY), lambda: self.set_background("gray"), "", "preferences-desktop-wallpaper"),
+                                     (tr(Msg.NIGHT), lambda: self.set_background("night"), "", "weather-clear-night")])
 
     def set_background(self, background):
         if background not in READER_BACKGROUNDS:
@@ -464,7 +464,7 @@ class ReaderController(AppController):
         self.persist()
 
     def zoom_menu(self):
-        self.menu(tr("PDF zoom"), [(tr("Fit width"), lambda: self.set_zoom(1, True))] + [
+        self.menu(tr(Msg.PDF_ZOOM), [(tr(Msg.FIT_WIDTH), lambda: self.set_zoom(1, True))] + [
             (f"{z:.0%}", lambda z=z: self.set_zoom(z, False)) for z in (0.8, 1, 1.25, 1.5, 2)])
 
     def set_zoom(self, zoom, fit):

@@ -19,7 +19,7 @@ from PySide6.QtCore import (
 )
 
 from udeck.apps.common.controller import AppController
-from udeck.i18n import tr
+from udeck.i18n import Msg, tr
 from udeck.sounds import interaction
 
 
@@ -30,7 +30,7 @@ def address_url(value):
     if re.match(r"^[a-zA-Z][a-zA-Z\d+.-]*:", text) and not re.match(r"^[\w.-]+:\d+(/|$)", text):
         parsed = urlsplit(text)
         if parsed.scheme not in ("http", "https") or not parsed.hostname:
-            raise ValueError(tr("Only HTTP and HTTPS addresses are allowed"))
+            raise ValueError(tr(Msg.ONLY_HTTP_AND_HTTPS_ADDRESSES_ARE_ALLOWED))
         return text
     if not any(c.isspace() for c in text) and ("." in text.split("/")[0] or text.startswith("localhost")):
         return "https://" + text
@@ -119,14 +119,14 @@ class BrowserController(AppController):
         return str(self.store.path.parent / "browser-profile")
 
     def tabs(self):
-        return [tab.title or (tr("New tab") if tab.url == "about:blank" else tab.url) for tab in self.web_tabs]
+        return [tab.title or (tr(Msg.NEW_TAB) if tab.url == "about:blank" else tab.url) for tab in self.web_tabs]
 
     def active_tab(self):
         return next((tab for tab in self.web_tabs if tab.identifier == self.current_tab), None)
 
     def new_tab(self, url="about:blank"):
         if len(self.web_tabs) >= 12:
-            raise ValueError(tr("Close a tab before opening another (12 tab limit)"))
+            raise ValueError(tr(Msg.CLOSE_A_TAB_BEFORE_OPENING_ANOTHER_12_TAB_LIMIT))
         self.invalidate_web_actions()
         self.web_mode, self.reading_text = "navigation", ""
         self.start_index = 0
@@ -226,15 +226,15 @@ class BrowserController(AppController):
                 "zoom": self.zoom, "readingText": self.reading_text, "startIndex": self.start_index}
 
     def context(self):
-        self.menu(tr("Browser actions"), [
-            (tr("Address or search"), lambda: self.command("address")),
-            (tr("New tab"), self.open_new_tab),
-            (tr("Bookmarks"), lambda: self.saved_menu(False)),
-            (tr("History"), lambda: self.saved_menu(True)),
-            (tr("Bookmark this page"), self.bookmark),
-            (tr("Interaction mode"), self.mode_menu),
-            (tr("Reload"), lambda: self.send("reload")),
-            (tr("Close tab"), self.close_active)])
+        self.menu(tr(Msg.BROWSER_ACTIONS), [
+            (tr(Msg.ADDRESS_OR_SEARCH), lambda: self.command("address")),
+            (tr(Msg.NEW_TAB), self.open_new_tab),
+            (tr(Msg.BOOKMARKS), lambda: self.saved_menu(False)),
+            (tr(Msg.HISTORY), lambda: self.saved_menu(True)),
+            (tr(Msg.BOOKMARK_THIS_PAGE), self.bookmark),
+            (tr(Msg.INTERACTION_MODE), self.mode_menu),
+            (tr(Msg.RELOAD), lambda: self.send("reload")),
+            (tr(Msg.CLOSE_TAB), self.close_active)])
 
     def open_new_tab(self):
         self.new_tab()
@@ -254,13 +254,13 @@ class BrowserController(AppController):
     def saved_menu(self, history):
         entries = self.store.data["history"] if history else [
             {"url": url, "title": title} for url, title in self.store.data["bookmarks"].items()]
-        self.menu(tr("History") if history else tr("Bookmarks"), [
+        self.menu(tr(Msg.HISTORY) if history else tr(Msg.BOOKMARKS), [
             (e["title"] or e["url"], lambda url=e["url"]: self.saved_actions(url, history), e["url"])
-            for e in entries], "" if entries else tr("No saved pages yet"))
+            for e in entries], "" if entries else tr(Msg.NO_SAVED_PAGES_YET))
 
     def saved_actions(self, url, history):
-        self.menu(url, [(tr("Open"), lambda: self.open_saved(url)),
-                        (tr("Remove"), lambda: self.remove_saved(url, history))])
+        self.menu(url, [(tr(Msg.OPEN), lambda: self.open_saved(url)),
+                        (tr(Msg.REMOVE), lambda: self.remove_saved(url, history))])
 
     def open_saved(self, url):
         self.navigate(url)
@@ -277,11 +277,11 @@ class BrowserController(AppController):
         self.saved_menu(history)
 
     def mode_menu(self):
-        self.menu(tr("Interaction mode"), [(tr(label), lambda mode=mode: self.set_mode(mode), "", icon)
-                  for label, mode, icon in (("Link navigation", "navigation", "insert-link"),
-                                           ("Reading", "reading", "accessories-ebook-reader"),
-                                           ("Virtual pointer", "pointer", "input-mouse"),
-                                           ("Text input", "text", "input-keyboard"))])
+        self.menu(tr(Msg.INTERACTION_MODE), [(tr(key), lambda mode=mode: self.set_mode(mode), "", icon)
+                  for key, mode, icon in ((Msg.LINK_NAVIGATION, "navigation", "insert-link"),
+                                         (Msg.READING, "reading", "accessories-ebook-reader"),
+                                         (Msg.VIRTUAL_POINTER, "pointer", "input-mouse"),
+                                         (Msg.TEXT_INPUT, "text", "input-keyboard"))])
 
     def set_mode(self, mode):
         self.invalidate_web_actions()
@@ -320,7 +320,7 @@ class BrowserController(AppController):
     @interaction
     def command(self, command):
         if command == "address":
-            self.prompt(tr("Address or search"), self.navigate,
+            self.prompt(tr(Msg.ADDRESS_OR_SEARCH), self.navigate,
                         "" if self.active_tab().url == "about:blank" else self.active_tab().url)
         elif command in ("reload", "stop", "forward", "back"):
             self.send(command)
@@ -333,11 +333,11 @@ class BrowserController(AppController):
         self.publish()
 
     def settings_options(self):
-        return [(tr("Page zoom: {value}", value=f"{self.zoom:.0%}"), self.zoom_menu, "", "zoom-in"),
-                (tr("Interaction mode"), self.mode_menu, "", "input-mouse")]
+        return [(tr(Msg.PAGE_ZOOM_VALUE, value=f"{self.zoom:.0%}"), self.zoom_menu, "", "zoom-in"),
+                (tr(Msg.INTERACTION_MODE), self.mode_menu, "", "input-mouse")]
 
     def zoom_menu(self):
-        self.menu(tr("Page zoom"), [(f"{z:.0%}", lambda z=z: self.set_zoom(z))
+        self.menu(tr(Msg.PAGE_ZOOM), [(f"{z:.0%}", lambda z=z: self.set_zoom(z))
                                     for z in (0.8, 1, 1.25, 1.5, 2)])
 
     def set_zoom(self, value):
@@ -347,9 +347,9 @@ class BrowserController(AppController):
 
     @Slot(str, str, int)
     def permission(self, identifier, origin, feature):
-        self.menu(tr("Website permission"), [
-            (tr("Deny"), lambda: self.permission_answer(identifier, origin, feature, False)),
-            (tr("Allow this time"), lambda: self.permission_answer(identifier, origin, feature, True))], origin)
+        self.menu(tr(Msg.WEBSITE_PERMISSION), [
+            (tr(Msg.DENY), lambda: self.permission_answer(identifier, origin, feature, False)),
+            (tr(Msg.ALLOW_THIS_TIME), lambda: self.permission_answer(identifier, origin, feature, True))], origin)
 
     def permission_answer(self, identifier, origin, feature, allow):
         import json
@@ -414,7 +414,7 @@ class BrowserController(AppController):
             root.mkdir(parents=True, exist_ok=True)
             result.update(directory=str(root), name=unused_name() if (root / proposed_name).exists() else proposed_name)
             self.pop_menu()
-        self.menu(tr("Download this file?"), [(tr("Download"), accept), (tr("Cancel"), self.pop_menu)],
+        self.menu(tr(Msg.DOWNLOAD_THIS_FILE_PROMPT), [(tr(Msg.DOWNLOAD), accept), (tr(Msg.CANCEL), self.pop_menu)],
                   url + "\n" + str(root / proposed_name), owner=identifier)
         menu = self.menus[-1]
         loop = QEventLoop(self)
@@ -450,7 +450,7 @@ class BrowserController(AppController):
 
     @Slot(int, str)
     def downloadStarted(self, identifier, path):
-        self.menu(tr("Download"), [(tr("Cancel download"), lambda: self.cancelDownload.emit(identifier))], path)
+        self.menu(tr(Msg.DOWNLOAD), [(tr(Msg.CANCEL_DOWNLOAD), lambda: self.cancelDownload.emit(identifier))], path)
         self.downloads[identifier] = self.menus[-1]
 
     @Slot(int, int, str)
@@ -459,8 +459,8 @@ class BrowserController(AppController):
         if menu is None:
             return
         self.remove_download_menu(menu)
-        self.notice = (tr("Download complete") if state == 2 else tr("Download canceled") if state == 3
-                       else tr("Download failed: {error}", error=reason))
+        self.notice = (tr(Msg.DOWNLOAD_COMPLETE) if state == 2 else tr(Msg.DOWNLOAD_CANCELED) if state == 3
+                       else tr(Msg.DOWNLOAD_FAILED_ERROR, error=reason))
         self.publish()
 
     def close(self):

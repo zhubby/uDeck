@@ -2,7 +2,7 @@ import ctypes
 import os
 import time
 
-from .i18n import error_text, tr
+from .i18n import Msg, error_text, tr
 from .windows import Interface, WindowService
 
 
@@ -48,11 +48,11 @@ class VirtualInput(WindowService):
     def start(self):
         super().start()
         if not self.display:
-            self.error = tr('无法连接 Wayland 虚拟输入')
+            self.error = tr(Msg.COULD_NOT_CONNECT_VIRTUAL_INPUT_TO_WAYLAND)
             return
         try:
             if not self.keyboard_manager or not self.pointer_manager or not self.seat:
-                raise RuntimeError(tr('合成器未提供虚拟键盘或虚拟指针协议'))
+                raise RuntimeError(tr(Msg.THE_COMPOSITOR_DOES_NOT_PROVIDE_VIRTUAL_KEYBOARD_OR_POINTER_PROTOCOLS))
             self.keyboard = self.library.wl_proxy_marshal_flags(self.keyboard_manager, 0, ctypes.byref(self.keyboard_interface), 1, 0,
                                                                ctypes.c_void_p(self.seat), ctypes.c_void_p())
             self.pointer = self.library.wl_proxy_marshal_flags(self.pointer_manager, 0, ctypes.byref(self.pointer_interface), 1, 0,
@@ -89,10 +89,10 @@ class VirtualInput(WindowService):
         allocation = None
         try:
             if not keymap:
-                raise RuntimeError(tr('无法创建虚拟键盘映射'))
+                raise RuntimeError(tr(Msg.COULD_NOT_CREATE_THE_VIRTUAL_KEYBOARD_KEYMAP))
             allocation = library.xkb_keymap_get_as_string(keymap, 1)
             if not allocation:
-                raise RuntimeError(tr('无法序列化虚拟键盘映射'))
+                raise RuntimeError(tr(Msg.COULD_NOT_SERIALIZE_THE_VIRTUAL_KEYBOARD_KEYMAP))
             contents = ctypes.string_at(allocation) + b'\0'
             for codes, name in [((42, 54), b'Shift'), ((29, 97), b'Control'), ((56, 100), b'Mod1')]:
                 index = library.xkb_keymap_mod_get_index(keymap, name)

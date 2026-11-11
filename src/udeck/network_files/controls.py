@@ -7,7 +7,7 @@ from pathlib import Path
 from PySide6.QtCore import QTimer
 from PySide6.QtDBus import QDBusConnection
 
-from ..i18n import tr
+from ..i18n import Msg, tr
 
 
 class NetworkAccessControls:
@@ -71,7 +71,7 @@ class NetworkAccessControls:
             previous = self.modal["options"][min(self.modal["index"], len(self.modal["options"]) - 1)].get("value")
             options = self._network_network_options()
             self.modal.update(options=options, index=next((i for i, row in enumerate(options) if row.get("value") == previous), 0),
-                              body="" if self.network_access.get("candidates") else tr("No connected networks are available"))
+                              body="" if self.network_access.get("candidates") else tr(Msg.NO_CONNECTED_NETWORKS_ARE_AVAILABLE))
 
     def _network_network_options(self):
         candidates = self.network_access.get("candidates", [])
@@ -79,10 +79,10 @@ class NetworkAccessControls:
                     "toggle", "network-wireless", value=row["key"],
                     subtitle=row.get("interface", "") + " · " + ", ".join(row["addresses"])) for row in candidates]
         connected = {row["key"] for row in candidates}
-        rows += [self._network_option("✓ " + tr("Unavailable network"), "toggle", "network-disconnect",
+        rows += [self._network_option("✓ " + tr(Msg.UNAVAILABLE_NETWORK), "toggle", "network-disconnect",
                                      value=key, subtitle=key, wrapSubtitle=True)
                  for key in self.network_draft["networks"] if key not in connected]
-        return rows + [self._network_option(tr("Done"), "done", "network-connect")]
+        return rows + [self._network_option(tr(Msg.DONE), "done", "network-connect")]
 
     @staticmethod
     def _network_option(label, command, icon, **values):
@@ -94,29 +94,29 @@ class NetworkAccessControls:
     def _network_options(self):
         option = self._network_option
         duration = self.network_draft["duration"]
-        labels = {0: tr("Permanent"), 3600: tr("1 hour"), 21600: tr("6 hours"), 43200: tr("12 hours")}
-        rows = [option(tr("Shared folder"), "root", "folder", subtitle=self.network_draft["root"]),
-                option(tr("Networks"), "networks", "network-wireless", subtitle=tr("{count} selected", count=len(self.network_draft["networks"]))),
-                option(tr("Access duration"), "duration", "preferences-system-time", subtitle=labels[duration])]
+        labels = {0: tr(Msg.PERMANENT), 3600: tr(Msg.N_1_HOUR), 21600: tr(Msg.N_6_HOURS), 43200: tr(Msg.N_12_HOURS)}
+        rows = [option(tr(Msg.SHARED_FOLDER), "root", "folder", subtitle=self.network_draft["root"]),
+                option(tr(Msg.NETWORKS), "networks", "network-wireless", subtitle=tr(Msg.COUNT_SELECTED, count=len(self.network_draft["networks"]))),
+                option(tr(Msg.ACCESS_DURATION), "duration", "preferences-system-time", subtitle=labels[duration])]
         if len(self.network_access["urls"]) > 2:
-            rows.append(option(tr("Access addresses"), "addresses", "network-connect"))
-        rows.append(option(tr("Apply and enable") if self.network_access["enabled"] else tr("Enable network access"),
+            rows.append(option(tr(Msg.ACCESS_ADDRESSES), "addresses", "network-connect"))
+        rows.append(option(tr(Msg.APPLY_AND_ENABLE) if self.network_access["enabled"] else tr(Msg.ENABLE_NETWORK_ACCESS),
                            "start", "network-connect", disabled=self._network_busy or not self.network_draft["networks"]))
         if self.network_access["enabled"]:
-            rows.append(option(tr("Turn off network access"), "stop", "network-disconnect", disabled=self._network_busy))
+            rows.append(option(tr(Msg.TURN_OFF_NETWORK_ACCESS), "stop", "network-disconnect", disabled=self._network_busy))
         return rows
 
     def _network_body(self):
         state = self.network_access
-        labels = {"running": tr("Network access is on"), "waiting": tr("Waiting for selected networks"), "stopped": tr("Network access is off")}
-        lines = [labels.get(state["state"], tr("Network access is off"))]
+        labels = {"running": tr(Msg.NETWORK_ACCESS_IS_ON), "waiting": tr(Msg.WAITING_FOR_SELECTED_NETWORKS), "stopped": tr(Msg.NETWORK_ACCESS_IS_OFF)}
+        lines = [labels.get(state["state"], tr(Msg.NETWORK_ACCESS_IS_OFF))]
         lines.extend(state.get("urls", [])[:2])
         if len(state.get("urls", [])) > 2:
-            lines.append(tr("{count} more addresses", count=len(state["urls"]) - 2))
+            lines.append(tr(Msg.COUNT_MORE_ADDRESSES, count=len(state["urls"]) - 2))
         if state.get("remaining") is not None:
-            lines.append(tr("{minutes} minutes remaining", minutes=max(0, state["remaining"] // 60)))
+            lines.append(tr(Msg.MINUTES_MINUTES_REMAINING, minutes=max(0, state["remaining"] // 60)))
         if state["enabled"] and state["duration"] == 0:
-            lines.append(tr("Restores automatically after restart"))
+            lines.append(tr(Msg.RESTORES_AUTOMATICALLY_AFTER_RESTART))
         lines.extend(error[:160] for error in state.get("errors", [])[:1])
         body = lines[0]
         for line in lines[1:]:
@@ -124,7 +124,7 @@ class NetworkAccessControls:
         return body
 
     def _network_menu(self):
-        self._menu(tr("Network access"), self._network_options(), body=self._network_body(), source="network-access")
+        self._menu(tr(Msg.NETWORK_ACCESS), self._network_options(), body=self._network_body(), source="network-access")
         if not self.mock:
             self._network_request("status")
 
@@ -133,14 +133,14 @@ class NetworkAccessControls:
         if command == "access":
             self._network_menu()
         elif command == "root":
-            self._text_prompt(tr("Shared folder"), tr("Enter the folder to share. The web page can only access this folder and its contents."),
+            self._text_prompt(tr(Msg.SHARED_FOLDER), tr(Msg.ENTER_THE_FOLDER_TO_SHARE_THE_WEB_PAGE_CAN_ONLY_ACCESS_THIS_FOLDER_AND_ITS_CONTENTS),
                               "network-share-root", self.network_draft["root"])
         elif command == "networks":
             candidates = self.network_access.get("candidates", [])
-            self._menu(tr("Networks"), self._network_network_options(), source="network-access-networks",
-                       body="" if candidates else tr("No connected networks are available"))
+            self._menu(tr(Msg.NETWORKS), self._network_network_options(), source="network-access-networks",
+                       body="" if candidates else tr(Msg.NO_CONNECTED_NETWORKS_ARE_AVAILABLE))
         elif command == "addresses":
-            self._menu(tr("Access addresses"), [option(url, "done", "network-connect") for url in self.network_access["urls"]],
+            self._menu(tr(Msg.ACCESS_ADDRESSES), [option(url, "done", "network-connect") for url in self.network_access["urls"]],
                        source="network-access-addresses")
         elif command == "toggle":
             self._network_dirty = True
@@ -148,8 +148,8 @@ class NetworkAccessControls:
             networks.remove(value) if value in networks else networks.append(value)
             self._network_command("networks")
         elif command == "duration":
-            values = [(0, tr("Permanent")), (3600, tr("1 hour")), (21600, tr("6 hours")), (43200, tr("12 hours"))]
-            self._menu(tr("Access duration"), [option(label, "set-duration", "preferences-system-time", value=duration)
+            values = [(0, tr(Msg.PERMANENT)), (3600, tr(Msg.N_1_HOUR)), (21600, tr(Msg.N_6_HOURS)), (43200, tr(Msg.N_12_HOURS))]
+            self._menu(tr(Msg.ACCESS_DURATION), [option(label, "set-duration", "preferences-system-time", value=duration)
                                                for duration, label in values], source="network-access-duration")
         elif command == "set-duration":
             self._network_dirty = True

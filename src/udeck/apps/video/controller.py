@@ -10,7 +10,7 @@ from PySide6.QtMultimedia import QMediaMetaData
 
 from udeck.app_routing import APP_IDS, object_path, service_name
 from udeck.apps.media.controller import MediaController, time_label
-from udeck.i18n import tr
+from udeck.i18n import Msg, tr
 
 
 class VideoController(MediaController):
@@ -18,7 +18,7 @@ class VideoController(MediaController):
         super().__init__("video", directory, language_path)
 
     def tabs(self):
-        return [tr("Continue watching"), tr("All videos"), tr("Folders")]
+        return [tr(Msg.CONTINUE_WATCHING), tr(Msg.ALL_VIDEOS), tr(Msg.FOLDERS)]
 
     def rows(self):
         rows = super().rows()
@@ -30,22 +30,22 @@ class VideoController(MediaController):
         item = self.library.require(identifier)
         position = self.store.data["positions"].get(identifier, 0)
         if position > 0:
-            self.menu(tr("Resume video?"), [
-                (tr("Continue from {position}", position=time_label(position)), lambda: self.play(item, position)),
-                (tr("Start from beginning"), lambda: self.play(item))], item["title"], item["sourceId"])
+            self.menu(tr(Msg.RESUME_VIDEO_PROMPT), [
+                (tr(Msg.CONTINUE_FROM_POSITION, position=time_label(position)), lambda: self.play(item, position)),
+                (tr(Msg.START_FROM_BEGINNING), lambda: self.play(item))], item["title"], item["sourceId"])
         else:
             self.play(item)
 
     def prepare_play(self, item, seconds, queued, music_confirmed):
         if not music_confirmed and self.music_call("IsPlaying"):
-            self.menu(tr("Music is playing"), [
-                (tr("Pause music and play video"), lambda: self.play(item, seconds, music_confirmed=True)),
-                (tr("Cancel"), self.pop_menu)], item["title"], item["sourceId"])
+            self.menu(tr(Msg.MUSIC_IS_PLAYING), [
+                (tr(Msg.PAUSE_MUSIC_AND_PLAY_VIDEO), lambda: self.play(item, seconds, music_confirmed=True)),
+                (tr(Msg.CANCEL), self.pop_menu)], item["title"], item["sourceId"])
             return False
         if music_confirmed:
             token = uuid.uuid4().hex
             if not self.music_call("PauseForVideo", token):
-                raise RuntimeError(tr("Music could not be paused. Try again."))
+                raise RuntimeError(tr(Msg.MUSIC_COULD_NOT_BE_PAUSED_TRY_AGAIN))
             self.music_token = token
         return True
 
@@ -63,22 +63,22 @@ class VideoController(MediaController):
         self.media.seek(target)
 
     def finished_playback(self):
-        self.notice = tr("Playback finished")
+        self.notice = tr(Msg.PLAYBACK_FINISHED)
         self.release_music()
 
     def settings_options(self):
         return [*super().settings_options(),
-                (tr("Resume music after video: {value}", value=tr("On") if self.store.data["preferences"].get("resumeMusic") else tr("Off")), self.toggle_resume_music, "", "media-playlist-repeat")]
+                (tr(Msg.RESUME_MUSIC_AFTER_VIDEO_VALUE, value=tr(Msg.ON) if self.store.data["preferences"].get("resumeMusic") else tr(Msg.OFF)), self.toggle_resume_music, "", "media-playlist-repeat")]
 
     def context(self):
         if self.page == "player":
-            self.menu(tr("Playback options"), [
-                (tr("Subtitles"), lambda: self.track_menu(True)),
-                (tr("External subtitles (SRT)"), self.external_subtitles),
-                (tr("Audio tracks"), lambda: self.track_menu(False)),
-                (tr("Chapters"), self.chapter_menu), (tr("Speed"), self.speed_menu),
-                (tr("Go to position"), lambda: self.command("seek")),
-                (tr("Hide controls"), lambda: self.command("hide-controls"))])
+            self.menu(tr(Msg.PLAYBACK_OPTIONS), [
+                (tr(Msg.SUBTITLES), lambda: self.track_menu(True)),
+                (tr(Msg.EXTERNAL_SUBTITLES_SRT), self.external_subtitles),
+                (tr(Msg.AUDIO_TRACKS), lambda: self.track_menu(False)),
+                (tr(Msg.CHAPTERS), self.chapter_menu), (tr(Msg.SPEED), self.speed_menu),
+                (tr(Msg.GO_TO_POSITION), lambda: self.command("seek")),
+                (tr(Msg.HIDE_CONTROLS), lambda: self.command("hide-controls"))])
         else:
             super().context()
 
@@ -106,13 +106,13 @@ class VideoController(MediaController):
     def track_menu(self, subtitles):
         player = self.media.player
         tracks = player.subtitleTracks() if subtitles else player.audioTracks()
-        options = [(tr("Off"), lambda: self.set_track(True, -1))] if subtitles else []
+        options = [(tr(Msg.OFF), lambda: self.set_track(True, -1))] if subtitles else []
         for index, metadata in enumerate(tracks):
             title = metadata.stringValue(QMediaMetaData.Key.Title)
             language = metadata.stringValue(QMediaMetaData.Key.Language)
             options.append((title or language or str(index + 1),
                             lambda i=index: self.set_track(subtitles, i)))
-        self.menu(tr("Subtitles") if subtitles else tr("Audio tracks"), options)
+        self.menu(tr(Msg.SUBTITLES) if subtitles else tr(Msg.AUDIO_TRACKS), options)
 
     def set_track(self, subtitles, index):
         if subtitles:
@@ -124,7 +124,7 @@ class VideoController(MediaController):
 
     def chapter_menu(self):
         chapters = self.current.get("metadata", {}).get("chapters", []) if self.current else []
-        self.menu(tr("Chapters"), [(c.get("tags", {}).get("title") or time_label(float(c["start_time"])),
+        self.menu(tr(Msg.CHAPTERS), [(c.get("tags", {}).get("title") or time_label(float(c["start_time"])),
                   lambda seconds=float(c["start_time"]): self.jump_chapter(seconds)) for c in chapters])
 
     def jump_chapter(self, seconds):
@@ -132,7 +132,7 @@ class VideoController(MediaController):
         self.pop_menu()
 
     def speed_menu(self):
-        self.menu(tr("Speed"), [(f"{rate:g}×", lambda r=rate: self.set_speed(r))
+        self.menu(tr(Msg.SPEED), [(f"{rate:g}×", lambda r=rate: self.set_speed(r))
                                for rate in (0.75, 1.0, 1.25, 1.5, 2.0)])
 
     def set_speed(self, rate):
@@ -159,12 +159,12 @@ class VideoController(MediaController):
             return
         self.library.require(self.current["id"])
         paths = list(Path(self.current["path"]).parent.glob("*.srt"))
-        self.menu(tr("External subtitles (SRT)"), [(p.name, lambda p=p: self.load_subtitles(p)) for p in paths])
+        self.menu(tr(Msg.EXTERNAL_SUBTITLES_SRT), [(p.name, lambda p=p: self.load_subtitles(p)) for p in paths])
 
     def load_subtitles(self, path):
         self.library.require(self.current["id"])
         if path.stat().st_size > 4 * 1024 * 1024:
-            raise ValueError(tr("Subtitle file exceeds 4 MiB"))
+            raise ValueError(tr(Msg.SUBTITLE_FILE_EXCEEDS_4_MIB))
         text = path.read_text(encoding="utf-8-sig")
         cues = []
         pattern = r"(?m)(\d\d):(\d\d):(\d\d)[,.](\d\d\d)\s*-->\s*(\d\d):(\d\d):(\d\d)[,.](\d\d\d)[^\n]*\n([\s\S]*?)(?=\n\s*\n|\Z)"
@@ -174,7 +174,7 @@ class VideoController(MediaController):
             values = [int(v) for v in match.groups()[:8]]
             cues.append((seconds(values[:4]), seconds(values[4:]), re.sub(r"<[^>]+>", "", match.group(9)).strip()))
         if not cues:
-            raise ValueError(tr("No valid SRT captions found"))
+            raise ValueError(tr(Msg.NO_VALID_SRT_CAPTIONS_FOUND))
         self.media.player.setActiveSubtitleTrack(-1)
         self.external_cues, self.external_name = cues, str(path)
         self.pop_menu()

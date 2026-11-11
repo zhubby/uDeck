@@ -8,7 +8,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, QTimer, Signal
 
-from .i18n import error_text, tr
+from .i18n import Msg, error_text, tr
 from .shortcuts import ShortcutStore, render_bindings
 
 
@@ -31,7 +31,7 @@ def atomic_write(path, contents):
 def prepare(directory, template):
     directory.mkdir(parents=True, mode=0o700, exist_ok=True)
     if directory.is_symlink() or directory.stat().st_uid != os.getuid():
-        raise RuntimeError(tr('不安全的会话配置目录'))
+        raise RuntimeError(tr(Msg.UNSAFE_SESSION_CONFIGURATION_DIRECTORY))
     directory.chmod(0o700)
     original = (template / 'rc.xml').read_text()
     atomic_write(directory / 'base.xml', original)
@@ -86,7 +86,7 @@ class DirectionIsolation(QObject):
     def request(self, enabled):
         if not self.available or not self._owns_compositor():
             self.available = False
-            self.error = tr('完整兼容模式需要独立 uDeck 会话')
+            self.error = tr(Msg.FULL_COMPATIBILITY_REQUIRES_A_STANDALONE_UDECK_SESSION)
             QTimer.singleShot(0, lambda: self.finished.emit(False))
             return
         if self.coordinator:
@@ -113,7 +113,7 @@ class DirectionIsolation(QObject):
     def _probe(self):
         self.attempts += 1
         if self.attempts > 7 or not self.output.available:
-            self._fail(tr('方向键配置确认超时；已请求恢复普通键盘'))
+            self._fail(tr(Msg.DIRECTION_CONFIGURATION_TIMED_OUT_RESTORING_NORMAL_KEYBOARD_INPUT))
             return
         self.output.chord((194,))
 

@@ -12,7 +12,7 @@ from PySide6.QtCore import QCoreApplication, Qt
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
 from udeck.desktop import DesktopCatalog
-from udeck.i18n import LANGUAGES, Message, catalog, error_text, render, tr
+from udeck.i18n import LANGUAGES, Message, Msg, catalog, error_text, render, tr, translate
 from udeck.mock import MockBackend
 from udeck.terminal.controller import TerminalController
 from udeck.terminal.core import LaunchRequest, TerminalPreferences
@@ -29,6 +29,32 @@ def controller(tmp_path):
 
 def snapshot(controller):
     return json.loads(controller.snapshotJson)
+
+
+@pytest.mark.parametrize("key", [Msg.CONNECT_TO_NAME, "connect_to_name"])
+def test_stable_message_ids_resolve_both_languages_and_keep_arguments_literal(key):
+    message = tr(key, name="音量 {literal}")
+    assert render(deepcopy(message), "en") == "Connect to 音量 {literal}?"
+    assert render(deepcopy(message), "zh_CN") == "连接 音量 {literal}？"
+
+
+def test_translation_calls_reject_display_text_as_a_message_id():
+    with pytest.raises(ValueError):
+        tr("音量")
+
+
+def test_missing_translation_falls_back_to_the_default_language(monkeypatch):
+    monkeypatch.delitem(catalog("zh_CN"), "volume", raising=False)
+    assert render(tr("volume"), "zh_CN") == "Volume"
+
+
+def test_qml_translation_boundary_resolves_ids_and_keeps_literal_content():
+    assert translate(Msg.VOLUME, "zh_CN") == "音量"
+    assert translate("volume", "en") == "Volume"
+    assert translate(tr(Msg.WI_FI_PASSWORD), "zh_CN") == "Wi-Fi 密码"
+    assert translate("音量", "en") == "音量"
+    assert translate("Volume", "zh_CN") == "Volume"
+    assert render({"name": "volume"}, "zh_CN") == {"name": "volume"}
 
 
 @pytest.mark.parametrize("preferences", [None, {}, {"language": "fr"}, {"language": []},
@@ -114,14 +140,14 @@ def test_unknown_language_does_not_write_configuration(controller):
 
 
 def test_live_backend_messages_and_password_input_keep_their_ownership(controller):
-    controller.backend.prompt.emit({"kind": "text", "title": tr("Wi-Fi 密码"),
-                                    "body": tr("连接 ") + "设置", "token": "wifi-test",
+    controller.backend.prompt.emit({"kind": "text", "title": tr(Msg.WI_FI_PASSWORD),
+                                    "body": tr(Msg.CONNECT_PREFIX) + "设置", "token": "wifi-test",
                                     "deviceId": "usb", "purpose": "agent", "secret": True})
     controller.editText("secret{}中文")
     key = controller.modal["key"]
     assert snapshot(controller)["modal"]["title"] == "Wi-Fi password"
     assert snapshot(controller)["modal"]["body"] == "Connect 设置"
-    controller.backend.operationFailed.emit("wifi_scan", tr("目标无线网卡已移除"))
+    controller.backend.operationFailed.emit("wifi_scan", tr(Msg.THE_TARGET_WI_FI_ADAPTER_WAS_REMOVED))
     assert snapshot(controller)["toast"] == "The target Wi-Fi adapter was removed"
     assert controller.setLanguage("zh_CN")
     state = snapshot(controller)
@@ -141,7 +167,7 @@ def test_queued_service_updates_detach_mutable_data_and_keep_translations(contro
     backend = SystemBackend()
     backend.updated.connect(controller._update)
     value = {"available": True, "powered": True,
-             "devices": [{"id": "external", "name": "用户设备"}], "error": tr("蓝牙适配器不可用")}
+             "devices": [{"id": "external", "name": "用户设备"}], "error": tr(Msg.BLUETOOTH_ADAPTER_UNAVAILABLE)}
 
     def publish_then_mutate():
         backend.publish("bluetooth", value)
@@ -177,12 +203,12 @@ def test_wifi_updates_and_user_names_are_not_translated(controller):
 
 
 def test_marked_messages_survive_concatenation_copy_and_nested_errors():
-    message = tr("操作失败：{value0}", value0=ValueError(tr("Wi-Fi 密码")))
+    message = tr(Msg.OPERATION_FAILED_VALUE0, value0=ValueError(tr(Msg.WI_FI_PASSWORD)))
     assert render(deepcopy(message), "en") == "Operation failed: Wi-Fi password"
-    assert isinstance(error_text(ValueError(tr("文件夹"))), Message)
-    assert render("音量" + tr(" · 链接"), "en") == "音量 · Link"
-    assert render(tr("连接 ") + "音量 {foo}", "en") == "Connect 音量 {foo}"
-    assert render(tr("音量"), "unsupported") == "Volume"
+    assert isinstance(error_text(ValueError(tr(Msg.FOLDER))), Message)
+    assert render("音量" + tr(Msg.LINK_SUFFIX), "en") == "音量 · Link"
+    assert render(tr(Msg.CONNECT_PREFIX) + "音量 {foo}", "en") == "Connect 音量 {foo}"
+    assert render(tr(Msg.VOLUME), "unsupported") == "Volume"
 
 
 def test_desktop_language_switch_preserves_selected_app_under_modal(controller, tmp_path):
@@ -229,16 +255,20 @@ def test_terminal_switches_chrome_without_restarting_sessions_or_translating_tit
 
 def test_catalogs_cover_every_marked_message_and_preserve_format_fields():
     root = Path(__file__).parents[1] / "src/udeck"
-    sources = set()
+    keys = {key.value for key in Msg}
     for path in root.rglob("*.py"):
         if path.name == "i18n.py":
             continue
         for node in ast.walk(ast.parse(path.read_text())):
-            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "tr"
-                    and node.args and isinstance(node.args[0], ast.Constant)):
-                sources.add(node.args[0].value)
+            if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == "Msg":
+                assert node.attr in Msg.__members__, (path, node.lineno, node.attr)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "tr" and node.args:
+                assert not isinstance(node.args[0], ast.Constant), (path, node.lineno)
     for path in root.rglob("*.qml"):
-        sources.update(ast.literal_eval(value) for value in re.findall(r'(?:window|root).tr\(("(?:[^"\\]|\\.)*")\)', path.read_text()))
+        text = path.read_text()
+        assert not re.search(r"\.(?:tr|translate)\(\s*['\"]", text), path
+        for name in re.findall(r"\bmsg\.([A-Z][A-Z0-9_]*)", text):
+            assert name in Msg.__members__, (path, name)
     formatter = Formatter()
 
     def fields(value):
@@ -246,6 +276,6 @@ def test_catalogs_cover_every_marked_message_and_preserve_format_fields():
 
     for language in LANGUAGES:
         messages = catalog(language)
-        assert sources <= messages.keys(), sources - messages.keys()
-        for source, translated in messages.items():
-            assert fields(source) == fields(translated), (language, source)
+        assert messages.keys() == keys, (language, keys - messages.keys(), messages.keys() - keys)
+        for key, translated in messages.items():
+            assert fields(catalog("en")[key]) == fields(translated), (language, key)

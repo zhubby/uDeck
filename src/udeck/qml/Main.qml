@@ -4,6 +4,7 @@ import QtQuick.Controls
 
 Window {
     id: window
+    readonly property var msg: controller.messageKeys
     function tr(source) { return controller.translate(source, viewState.language) }
     function desktopIconSource(name) {
         const icon = name || "application-x-executable"
@@ -164,7 +165,7 @@ Window {
             }
             Text { textFormat: Text.PlainText; text: "uDeck"; font.family: window.fontFamily; font.pixelSize: 31; font.weight: Font.DemiBold; color: window.ink }
             Rectangle { width: 1; height: 24; color: window.colors.headerDivider; anchors.verticalCenter: parent.verticalCenter }
-            Text { textFormat: Text.PlainText; text: viewState.mock ? window.tr("安全预览") : "uConsole"; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted; anchors.verticalCenter: parent.verticalCenter }
+            Text { textFormat: Text.PlainText; text: viewState.mock ? window.tr(msg.SAFE_PREVIEW) : "uConsole"; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted; anchors.verticalCenter: parent.verticalCenter }
         }
 
         Row {
@@ -216,7 +217,7 @@ Window {
                     colors: window.colors; fontFamily: window.fontFamily
                     hoverSurface: navigationPointer
                     kind: "bluetooth"
-                    description: window.tr("蓝牙") + " · " + window.tr("已开启")
+                    description: window.tr(msg.BLUETOOTH) + " · " + window.tr(msg.ENABLED)
                 }
             }
             Row {
@@ -275,7 +276,7 @@ Window {
             visible: viewState.page !== "files"
             anchors.right: parent.right; anchors.rightMargin: 30; y: 216
             width: Math.min(implicitWidth, parent.width * 0.35); elide: Text.ElideRight
-            text: viewState.mock ? window.tr("不操作真实设备") : (viewState.input.verified ? window.tr("ABXY 已校准") : (viewState.input.mapped ? window.tr("ABXY 已映射") : window.tr("ABXY 待校准")))
+            text: viewState.mock ? window.tr(msg.NO_HARDWARE_CHANGES) : (viewState.input.verified ? window.tr(msg.ABXY_CALIBRATED) : (viewState.input.mapped ? window.tr(msg.ABXY_MAPPED) : window.tr(msg.ABXY_NEEDS_CALIBRATION)))
             font.family: window.fontFamily; font.pixelSize: 24; color: viewState.mock ? window.muted : window.accent
         }
 
@@ -336,7 +337,7 @@ Window {
                     Image { x: 18; y: 17; width: 56; height: 56; source: "image://desktop/" + encodeURIComponent(modelData.icon || "application-x-executable"); sourceSize.width: 80; sourceSize.height: 80 }
                     Text { textFormat: Text.PlainText; anchors.right: parent.right; anchors.rightMargin: 18; y: 21; text: viewState.favorites.indexOf(modelData.id) >= 0 ? "★" : ""; font.family: window.fontFamily; font.pixelSize: 24; color: window.accent }
                     Text { textFormat: Text.PlainText; x: 18; y: 84; width: parent.width - 36; text: modelData.name; elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 24; font.weight: Font.Medium; color: window.ink }
-                    Text { textFormat: Text.PlainText; x: 18; y: 120; width: parent.width - 36; text: modelData.subtitle || viewState.categoryNames[modelData.category] || window.tr("应用"); elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 24; color: selected ? window.colors.selectedText : window.muted }
+                    Text { textFormat: Text.PlainText; x: 18; y: 120; width: parent.width - 36; text: modelData.subtitle || viewState.categoryNames[modelData.category] || window.tr(msg.APPS); elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 24; color: selected ? window.colors.selectedText : window.muted }
                 }
             }
 
@@ -384,8 +385,8 @@ Window {
             Column {
                 visible: viewState.page !== "files" && viewState.items.length === 0
                 anchors.centerIn: parent; spacing: 14
-                Text { textFormat: Text.PlainText; anchors.horizontalCenter: parent.horizontalCenter; text: viewState.busy ? window.tr("正在准备内容") : window.tr("这里还没有项目"); font.family: window.fontFamily; font.pixelSize: 30; color: window.ink }
-                Text { textFormat: Text.PlainText; anchors.horizontalCenter: parent.horizontalCenter; text: viewState.page === "files" ? window.tr("按 X 新建文件夹或刷新") : (viewState.page === "windows" ? window.tr("启动应用后，窗口会显示在这里") : window.tr("按 X 调整分类或搜索条件")); font.family: window.fontFamily; font.pixelSize: 24; color: window.muted }
+                Text { textFormat: Text.PlainText; anchors.horizontalCenter: parent.horizontalCenter; text: viewState.busy ? window.tr(msg.PREPARING_CONTENT) : window.tr(msg.NO_ITEMS_HERE_YET); font.family: window.fontFamily; font.pixelSize: 30; color: window.ink }
+                Text { textFormat: Text.PlainText; anchors.horizontalCenter: parent.horizontalCenter; text: viewState.page === "files" ? window.tr(msg.PRESS_X_TO_CREATE_A_FOLDER_OR_REFRESH) : (viewState.page === "windows" ? window.tr(msg.OPEN_AN_APP_TO_SEE_ITS_WINDOW_HERE) : window.tr(msg.PRESS_X_TO_CHANGE_CATEGORIES_OR_SEARCH)); font.family: window.fontFamily; font.pixelSize: 24; color: window.muted }
             }
         }
 
@@ -395,7 +396,7 @@ Window {
             objectName: "footerControls"
             x: 30; y: parent.height - 37 - height / 2; spacing: 20
             Repeater {
-                model: [{key: "gamecube_button_color_a", label: window.tr("确认")}, {key: "gamecube_button_color_b", label: window.tr("返回")}, {key: "gamecube_button_x", label: window.tr("更多")}, {key: "gamecube_button_y", label: window.tr("快捷设置")}]
+                model: [{key: "gamecube_button_color_a", label: window.tr(msg.CONFIRM)}, {key: "gamecube_button_color_b", label: window.tr(msg.BACK)}, {key: "gamecube_button_x", label: window.tr(msg.MORE)}, {key: "gamecube_button_y", label: window.tr(msg.QUICK_SETTINGS)}]
                 delegate: InputPrompt {
                     required property var modelData
                     keys: [modelData.key]; label: modelData.label
@@ -409,7 +410,7 @@ Window {
             x: footerControls.x + footerControls.width + 20
             width: Math.max(0, parent.width - x - 30)
             y: parent.height - 37 - height / 2
-            hints: [{keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"], label: window.tr("Pages")}]
+            hints: [{keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"], label: window.tr(msg.PAGES)}]
                 .concat(viewState.homeShortcutHints || [])
             fontFamily: window.fontFamily; fontSize: 20; iconSize: 32
             textColor: window.colors.pointer
@@ -543,7 +544,7 @@ Window {
                                     width: Math.min(implicitWidth, Math.max(0, (menuOption.width - systemOptionText.x - 15) * 0.52
                                         - (menuOption.toggle ? settingSwitch.width + 12 : modelData.navigate ? optionChevron.width + 12 : 0)))
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: menuOption.pending ? window.tr("Applying…") : modelData.subtitle || (menuOption.toggle ? window.tr(modelData.checked ? "On" : "Off") : "")
+                                    text: menuOption.pending ? window.tr(msg.APPLYING) : modelData.subtitle || (menuOption.toggle ? window.tr(modelData.checked ? msg.ON : msg.OFF) : "")
                                     textFormat: Text.PlainText; horizontalAlignment: Text.AlignRight
                                     font.family: window.fontFamily; font.pixelSize: 25; color: window.muted
                                     maximumLineCount: 1; elide: Text.ElideRight
@@ -587,6 +588,7 @@ Window {
                         width: parent.width
                         colors: window.colors; fontFamily: window.fontFamily; state: dialog
                         translate: window.tr
+                        msg: window.msg
                         reducedMotion: viewState.reducedMotion || false
                         compact: window.height < 660
                         notice: viewState.toast || ""
@@ -644,13 +646,13 @@ Window {
                         width: parent.width; height: panel.previewHeight
                         source: dialog.previewImage || ""; fillMode: Image.PreserveAspectFit
                     }
-                    Text { id: previewNotice; visible: !!dialog.truncated; width: parent.width; textFormat: Text.PlainText; text: window.tr("Text preview limited to 64 KiB."); font.family: window.fontFamily; font.pixelSize: 20; color: window.muted }
+                    Text { id: previewNotice; visible: !!dialog.truncated; width: parent.width; textFormat: Text.PlainText; text: window.tr(msg.TEXT_PREVIEW_LIMITED_TO_64_KIB); font.family: window.fontFamily; font.pixelSize: 20; color: window.muted }
 
                     Row {
                         visible: dialog.kind === "confirm" || dialog.kind === "text"
                         width: parent.width; spacing: 14
                         Repeater {
-                            model: [window.tr("取消"), window.tr("确认")]
+                            model: [window.tr(msg.CANCEL), window.tr(msg.CONFIRM)]
                             delegate: Rectangle {
                                 required property string modelData
                                 required property int index
@@ -667,16 +669,16 @@ Window {
                         objectName: "modalFooter"
                         fontFamily: window.fontFamily; textColor: window.muted; fontSize: 22
                         hints: dialog.fileTaskId && dialog.kind === "progress" ? [
-                            {keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr("Run in background")},
-                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr("Cancel task")}
+                            {keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr(msg.RUN_IN_BACKGROUND)},
+                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(msg.CANCEL_TASK)}
                         ] : dialog.kind === "file-preview" ? (dialog.previewType === "text" ? [
-                            {keys: ["keyboard_arrows"], label: window.tr("Scroll")}
+                            {keys: ["keyboard_arrows"], label: window.tr(msg.SCROLL)}
                         ] : []).concat([
-                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr("返回")}
-                        ]).concat(dialog.item && !dialog.item.directory && !dialog.item.trash ? [{keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr("打开")}] : []) : dialog.kind === "key-test" ? [{keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr("Hold 1.2 s to return")}] : dialog.kind === "calibration" ? [{keys: ["keyboard_escape"], label: window.tr("取消")}] : [
-                            {keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr("确认")},
-                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(dialog.kind === "text" ? "取消" : "返回")}].concat(dialog.kind === "text" && dialog.secret ? [
-                            {keys: ["gamecube_button_x"], label: window.tr(dialog.reveal ? "Hide password" : "Show password")} ] : [])
+                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(msg.BACK)}
+                        ]).concat(dialog.item && !dialog.item.directory && !dialog.item.trash ? [{keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr(msg.OPEN)}] : []) : dialog.kind === "key-test" ? [{keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(msg.HOLD_1_2_S_TO_RETURN)}] : dialog.kind === "calibration" ? [{keys: ["keyboard_escape"], label: window.tr(msg.CANCEL)}] : [
+                            {keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr(msg.CONFIRM)},
+                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(dialog.kind === "text" ? msg.CANCEL : msg.BACK)}].concat(dialog.kind === "text" && dialog.secret ? [
+                            {keys: ["gamecube_button_x"], label: window.tr(dialog.reveal ? msg.HIDE_PASSWORD : msg.SHOW_PASSWORD)} ] : [])
                     }
                     Text { textFormat: Text.PlainText; id: modalToast; visible: !!viewState.toast && dialog.kind !== "key-test"; width: parent.width; text: viewState.toast; font.family: window.fontFamily; font.pixelSize: 24; color: window.accent; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
                 }
@@ -711,7 +713,7 @@ Window {
         shown: window.viewState.startup.active
         brand: true
         applicationName: "uDeck"
-        message: window.tr("Preparing desktop…")
+        message: window.tr(msg.PREPARING_DESKTOP)
         reducedMotion: window.viewState.reducedMotion
     }
 
@@ -726,7 +728,7 @@ Window {
         applicationIcon: window.viewState.appLaunch.icon || "application-x-executable"
         homeKind: window.viewState.appLaunch.homeKind || ""
         message: window.viewState.appLaunch.message || ""
-        returnLabel: window.tr("Return to desktop")
+        returnLabel: window.tr(msg.RETURN_TO_DESKTOP)
         reducedMotion: window.viewState.reducedMotion
         immediateHide: !window.active && !headlessPreview
     }

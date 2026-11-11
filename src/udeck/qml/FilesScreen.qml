@@ -3,6 +3,7 @@ import QtQuick.Controls
 
 Item {
     id: root
+    readonly property var msg: controller.messageKeys
     required property var state
     required property var colors
     required property string fontFamily
@@ -116,8 +117,8 @@ Item {
     Column {
         anchors.centerIn: fileGrid; width: fileGrid.width - 24; spacing: 14
         visible: root.state.count === 0
-        Text { width: parent.width; textFormat: Text.PlainText; horizontalAlignment: Text.AlignHCenter; text: root.busy ? root.tr("Loading folder…") : root.state.query ? root.tr("No matching files") : root.tr("Empty folder"); font.family: root.fontFamily; font.pixelSize: 28; color: root.colors.text }
-        Text { width: parent.width; textFormat: Text.PlainText; horizontalAlignment: Text.AlignHCenter; text: root.tr("X opens file actions, search and sorting."); wrapMode: Text.Wrap; font.family: root.fontFamily; font.pixelSize: 21; color: root.colors.muted }
+        Text { width: parent.width; textFormat: Text.PlainText; horizontalAlignment: Text.AlignHCenter; text: root.busy ? root.tr(msg.LOADING_FOLDER) : root.state.query ? root.tr(msg.NO_MATCHING_FILES) : root.tr(msg.EMPTY_FOLDER); font.family: root.fontFamily; font.pixelSize: 28; color: root.colors.text }
+        Text { width: parent.width; textFormat: Text.PlainText; horizontalAlignment: Text.AlignHCenter; text: root.tr(msg.X_OPENS_FILE_ACTIONS_SEARCH_AND_SORTING); wrapMode: Text.Wrap; font.family: root.fontFamily; font.pixelSize: 21; color: root.colors.muted }
     }
 
     Rectangle {
@@ -131,17 +132,17 @@ Item {
         x: 6; y: parent.height - 52; width: parent.width - 12; height: 25; textFormat: Text.PlainText
         text: [root.current.name || "", root.current.directory ? "" : root.current.sizeLabel || "",
                root.current.trash ? root.current.originalPath : root.current.modifiedLabel || "",
-               root.current.symlink ? root.tr("Link") : ""].filter(function(value) { return !!value }).join("   ·   ")
+               root.current.symlink ? root.tr(msg.LINK) : ""].filter(function(value) { return !!value }).join("   ·   ")
         elide: Text.ElideMiddle; font.family: root.fontFamily; font.pixelSize: 21; color: root.colors.text
     }
     Text {
         objectName: "fileStatus"
         x: 6; y: parent.height - 25; width: parent.width - 12; height: 25; textFormat: Text.PlainText
-        text: (root.state.selectionMode ? root.state.selectedCount + " / " + root.state.count + "   " + root.tr("selected")
-            : root.state.count + "   " + root.tr("items"))
+        text: (root.state.selectionMode ? root.state.selectedCount + " / " + root.state.count + "   " + root.tr(msg.SELECTED)
+            : root.state.count + "   " + root.tr(msg.ITEMS))
             + "   ·   " + root.state.sortLabel + (root.state.descending ? " ↓" : " ↑") + "   ·   " + root.state.filterLabel
-            + (root.state.query ? "   ·   " + root.tr("Search") + ": " + root.state.query : "")
-            + (root.state.clipboardCount ? "   ·   " + root.tr("Clipboard") + ": " + root.state.clipboardCount + "  " + root.state.clipboardLabel : "")
+            + (root.state.query ? "   ·   " + root.tr(msg.SEARCH) + ": " + root.state.query : "")
+            + (root.state.clipboardCount ? "   ·   " + root.tr(msg.CLIPBOARD) + ": " + root.state.clipboardCount + "  " + root.state.clipboardLabel : "")
         elide: Text.ElideRight; font.family: root.fontFamily; font.pixelSize: 20; color: root.colors.muted
     }
 }

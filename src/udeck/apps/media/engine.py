@@ -8,7 +8,7 @@ from PySide6.QtGui import QImage
 from PySide6.QtMultimedia import QAudioOutput, QMediaDevices, QMediaPlayer
 from PySide6.QtQuick import QQuickImageProvider
 
-from udeck.i18n import tr
+from udeck.i18n import Msg, tr
 
 
 class FrameImages(QQuickImageProvider):
@@ -78,7 +78,7 @@ class MediaEngine(QObject):
         return {"position": self.player.position() / 1000, "duration": self.player.duration() / 1000,
                 "playing": self.player.playbackState() == QMediaPlayer.PlaybackState.PlayingState,
                 "loading": self.loading, "rate": self.player.playbackRate(),
-                "output": self.output.device().description() or tr("System default"),
+                "output": self.output.device().description() or tr(Msg.SYSTEM_DEFAULT),
                 "error": self.player.errorString(), "status": self.player.mediaStatus().name}
 
     def video_frame(self, frame):
@@ -104,10 +104,10 @@ class MediaEngine(QObject):
     def set_output(self, device_id):
         device = next((d for d in self.devices.audioOutputs() if bytes(d.id()).hex() == device_id), None)
         if device is None:
-            raise OSError(tr("Audio output disappeared"))
+            raise OSError(tr(Msg.AUDIO_OUTPUT_DISAPPEARED))
         self.output.setDevice(device)
         if self.output.device().id() != device.id():
-            raise OSError(tr("The audio output could not be changed"))
+            raise OSError(tr(Msg.THE_AUDIO_OUTPUT_COULD_NOT_BE_CHANGED))
         self.changed.emit()
 
     def close(self):

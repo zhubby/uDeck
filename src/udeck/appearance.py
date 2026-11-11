@@ -1,9 +1,9 @@
 """Global interface themes; document palettes remain independent."""
 
-from .i18n import tr
+from .i18n import Msg, tr
 
 DEFAULT_THEME = "classic"
-THEMES = {"classic": tr("Classic"), "dark": tr("Dark")}
+THEMES = {"classic": tr(Msg.CLASSIC), "dark": tr(Msg.DARK)}
 
 
 def theme_code(value):

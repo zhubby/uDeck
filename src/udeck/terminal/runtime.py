@@ -17,7 +17,7 @@ from PySide6.QtQuick import QQuickWindow  # noqa: F401 - register the native QML
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from ..core import ConfigStore
-from ..i18n import render, tr
+from ..i18n import Msg, render, tr
 from ..icons import IconProvider
 from ..performance import StartupTrace
 from ..sounds import InterfaceSounds
@@ -230,29 +230,29 @@ def main(argv=None, *, request=None, options=None, trace=None):
         request.executable()
         if not options.mock:
             if not bus.isConnected():
-                raise RuntimeError(tr('无法连接图形会话 D-Bus；请从已登录的桌面启动终端。'))
+                raise RuntimeError(tr(Msg.TERMINAL_SESSION_DBUS_UNAVAILABLE))
             if forward(request):
                 return 0
             registered = bus.registerService(service_name())
             if not registered:
                 if forward(request):
                     return 0
-                raise RuntimeError(tr('终端进程启动冲突，请重试'))
+                raise RuntimeError(tr(Msg.CONFLICTING_TERMINAL_STARTUP_TRY_AGAIN))
             if not plugin_paths():
-                raise RuntimeError(tr('缺少 QMLTermWidget 原生插件。请安装完整的 udeck-terminal 软件包，或运行 tools/build-terminal-plugin。'))
+                raise RuntimeError(tr(Msg.NATIVE_TERMINAL_PLUGIN_MISSING))
         if options.mock:
             temporary = tempfile.TemporaryDirectory(prefix="udeck-terminal-preview-")
         preferences = TerminalPreferences(Path(temporary.name) / "preferences.json" if temporary else None)
         coordinator = Coordinator(application, options, preferences, started, trace)
         control = TerminalControl(coordinator)
         if registered and not bus.registerObject(OBJECT_PATH, INTERFACE, control, QDBusConnection.RegisterOption.ExportAllSlots):
-            raise RuntimeError(tr('无法注册终端 D-Bus 接口'))
+            raise RuntimeError(tr(Msg.COULD_NOT_REGISTER_THE_TERMINAL_D_BUS_INTERFACE))
         coordinator.open(request)
         def capture():
             if options.screenshot and coordinator.recent:
                 options.screenshot.parent.mkdir(parents=True, exist_ok=True)
                 if not coordinator.recent["window"].grabWindow().save(str(options.screenshot)):
-                    coordinator.errors.append(tr('截图保存失败'))
+                    coordinator.errors.append(tr(Msg.COULD_NOT_SAVE_SCREENSHOT))
 
         def smoke():
             controller = coordinator.recent["controller"]

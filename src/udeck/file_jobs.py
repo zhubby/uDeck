@@ -3,7 +3,7 @@ import time
 from pathlib import Path
 
 from .files import CollisionError, available_name
-from .i18n import error_text, tr
+from .i18n import Msg, error_text, tr
 
 
 def distinct_sources(paths):
@@ -50,7 +50,7 @@ class FileJob:
             self.publish(True)
             for source in self.sources:
                 if self.cancelled.is_set():
-                    raise InterruptedError(tr("操作已取消"))
+                    raise InterruptedError(tr(Msg.OPERATION_CANCELLED))
                 path = source["path"] if isinstance(source, dict) else source
                 self.state["current"] = str(path)
                 try:
@@ -69,7 +69,7 @@ class FileJob:
             self.publish(True)
             for source, measured in plans:
                 if self.cancelled.is_set():
-                    raise InterruptedError(tr("操作已取消"))
+                    raise InterruptedError(tr(Msg.OPERATION_CANCELLED))
                 path = Path(source["path"] if isinstance(source, dict) else source)
                 self.state["current"] = str(path)
                 before_bytes, before_files = self.state["doneBytes"], self.state["doneFiles"]

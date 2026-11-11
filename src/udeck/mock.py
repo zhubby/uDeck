@@ -3,19 +3,19 @@ from copy import deepcopy
 
 from PySide6.QtCore import QObject, QTimer, Signal
 
-from .i18n import tr
+from .i18n import Msg, tr
 
 MOCK_APPS = [
-    ("terminal", tr('终端'), "Terminal", "utilities-terminal", "System"),
-    ("code", tr('代码编辑器'), "Visual Studio Code", "visual-studio-code", "Development"),
-    ("firefox", tr('浏览器'), "Firefox", "firefox", "Network"),
-    ("files", tr('文件管理'), tr('个人文件与存储'), "system-file-manager", "Utility"),
-    ("retroarch", "RetroArch", tr('模拟器与游戏'), "com.libretro.RetroArch", "Game"),
-    ("notes", tr('文本编辑器'), "Mousepad", "accessories-text-editor", "Utility"),
-    ("monitor", tr('系统监视器'), tr('运行状态'), "utilities-system-monitor", "System"),
-    ("calculator", tr('计算器'), tr('日常计算'), "accessories-calculator", "Utility"),
-    ("viewer", tr('图片查看器'), tr('图片与照片'), "image-x-generic", "Graphics"),
-    ("geany", "Geany", tr('轻量开发环境'), "geany", "Development"),
+    ("terminal", tr(Msg.TERMINAL), "Terminal", "utilities-terminal", "System"),
+    ("code", tr(Msg.CODE_EDITOR), "Visual Studio Code", "visual-studio-code", "Development"),
+    ("firefox", tr(Msg.BROWSER), "Firefox", "firefox", "Network"),
+    ("files", tr(Msg.FILE_MANAGER), tr(Msg.PERSONAL_FILES_AND_STORAGE), "system-file-manager", "Utility"),
+    ("retroarch", "RetroArch", tr(Msg.EMULATORS_AND_GAMES), "com.libretro.RetroArch", "Game"),
+    ("notes", tr(Msg.TEXT_EDITOR), "Mousepad", "accessories-text-editor", "Utility"),
+    ("monitor", tr(Msg.SYSTEM_MONITOR), tr(Msg.SYSTEM_ACTIVITY), "utilities-system-monitor", "System"),
+    ("calculator", tr(Msg.CALCULATOR), tr(Msg.EVERYDAY_CALCULATIONS), "accessories-calculator", "Utility"),
+    ("viewer", tr(Msg.IMAGE_VIEWER), tr(Msg.IMAGES_AND_PHOTOS), "image-x-generic", "Graphics"),
+    ("geany", "Geany", tr(Msg.LIGHTWEIGHT_DEVELOPMENT_ENVIRONMENT), "geany", "Development"),
 ]
 
 
@@ -56,32 +56,32 @@ class MockBackend(QObject):
                 "America/Los_Angeles", "America/New_York", "Asia/Hong_Kong", "Asia/Shanghai", "Asia/Tokyo",
                 "Australia/Sydney", "Etc/UTC", "Europe/Berlin", "Europe/London", "Pacific/Auckland"]},
             "wifi": {"available": True, "enabled": True, "devices": [
-                {"id": "builtin", "name": tr('内置无线网卡'), "interface": "wlan0", "kind": "builtin",
+                {"id": "builtin", "name": tr(Msg.BUILT_IN_WI_FI_ADAPTER), "interface": "wlan0", "kind": "builtin",
                  "available": True, "managed": True, "deviceState": 100, "connected": "Workshop", "strength": 92, "activeProfile": "workshop-profile",
                  "networks": [
                      {"id": "builtin-workshop", "name": "Workshop", "strength": 92, "secured": True, "connected": True, "saved": True, "security": "WPA2"},
-                     {"id": "builtin-guest", "name": "Guest", "strength": 54, "secured": False, "connected": False, "security": tr('开放网络')},
+                     {"id": "builtin-guest", "name": "Guest", "strength": 54, "secured": False, "connected": False, "security": tr(Msg.OPEN_NETWORK)},
                  ],
                  "saved": [{"id": "workshop-profile", "name": "Workshop", "ssid": list(b"Workshop"), "keyManagement": "wpa-psk", "multiConnect": 0}]},
-                {"id": "usb", "name": tr('USB 无线网卡'), "interface": "wlx001122334455", "kind": "usb",
+                {"id": "usb", "name": tr(Msg.USB_WI_FI_ADAPTER), "interface": "wlx001122334455", "kind": "usb",
                  "available": True, "managed": True, "deviceState": 30, "connected": "", "strength": None,
                  "networks": [
                      {"id": "usb-workshop", "name": "Workshop", "strength": 98, "secured": True, "connected": False, "saved": True, "security": "WPA2"},
                      {"id": "usb-studio", "name": "Studio 5G", "strength": 86, "secured": True, "connected": False, "security": "WPA3"},
-                     {"id": "usb-guest", "name": "Guest", "strength": 68, "secured": False, "connected": False, "security": tr('开放网络')},
+                     {"id": "usb-guest", "name": "Guest", "strength": 68, "secured": False, "connected": False, "security": tr(Msg.OPEN_NETWORK)},
                  ],
                  "saved": [{"id": "workshop-profile", "name": "Workshop", "ssid": list(b"Workshop"), "keyManagement": "wpa-psk", "multiConnect": 0,
-                            "blocked": tr('另一张网卡正在使用 · 可从网络列表另建连接')}]},
+                            "blocked": tr(Msg.IN_USE_BY_ANOTHER_ADAPTER_CREATE_A_SEPARATE_CONNECTION_FROM_THE_NETWORK_LIST)}]},
             ]},
             "bluetooth": {"available": True, "powered": True, "discovering": False,
-                          "devices": [{"id": "headphones", "name": tr('无线耳机'), "paired": True, "connected": True, "trusted": True},
-                                      {"id": "keyboard", "name": tr('蓝牙键盘'), "paired": True, "connected": False, "trusted": True}]},
+                          "devices": [{"id": "headphones", "name": tr(Msg.WIRELESS_HEADPHONES), "paired": True, "connected": True, "trusted": True},
+                                      {"id": "keyboard", "name": tr(Msg.BLUETOOTH_KEYBOARD), "paired": True, "connected": False, "trusted": True}]},
             "audio": {"available": True, "volume": 0.46, "muted": False,
-                      "outputs": [{"id": "speaker", "name": tr('内置扬声器'), "active": True, "bluetooth": False, "volume": 0.46, "muted": False},
-                                  {"id": "headphones", "name": tr('无线耳机'), "active": False, "bluetooth": True, "cardId": "headphones-card", "volume": 0.5, "muted": False}],
-                      "inputs": [{"id": "usb-microphone", "name": tr("USB microphone"), "active": True, "bluetooth": False, "volume": 0.65, "muted": False},
-                                 {"id": "headphones-microphone", "name": tr("Wireless headset microphone"), "active": False, "bluetooth": True, "cardId": "headphones-card", "volume": 0.5, "muted": False}],
-                      "cards": [{"id": "headphones-card", "name": tr('无线耳机'), "deviceId": "headphones", "profiles": [
+                      "outputs": [{"id": "speaker", "name": tr(Msg.BUILT_IN_SPEAKER), "active": True, "bluetooth": False, "volume": 0.46, "muted": False},
+                                  {"id": "headphones", "name": tr(Msg.WIRELESS_HEADPHONES), "active": False, "bluetooth": True, "cardId": "headphones-card", "volume": 0.5, "muted": False}],
+                      "inputs": [{"id": "usb-microphone", "name": tr(Msg.USB_MICROPHONE), "active": True, "bluetooth": False, "volume": 0.65, "muted": False},
+                                 {"id": "headphones-microphone", "name": tr(Msg.WIRELESS_HEADSET_MICROPHONE), "active": False, "bluetooth": True, "cardId": "headphones-card", "volume": 0.5, "muted": False}],
+                      "cards": [{"id": "headphones-card", "name": tr(Msg.WIRELESS_HEADPHONES), "deviceId": "headphones", "profiles": [
                           {"id": "a2dp-sink", "name": "A2DP SBC", "active": False, "microphone": False, "available": True},
                           {"id": "headset-head-unit", "name": "HFP mSBC", "active": True, "microphone": True, "available": True},
                       ]}]},
@@ -102,7 +102,7 @@ class MockBackend(QObject):
         payload = payload or {}
         if action == "timezone_set":
             if payload.get("timezone") not in self.state["timezone"]["zones"]:
-                self.operationFailed.emit(action, tr("Invalid time zone"))
+                self.operationFailed.emit(action, tr(Msg.INVALID_TIME_ZONE))
                 return
             self.state["timezone"]["current"] = payload["timezone"]
         elif action == "volume":
@@ -150,7 +150,7 @@ class MockBackend(QObject):
         elif action in ("audio_input", "audio_input_volume", "audio_input_mute"):
             target = next((source for source in self.state["audio"]["inputs"] if source["id"] == payload["id"]), None)
             if target is None:
-                self.operationFailed.emit(action, tr('音频设备已移除'))
+                self.operationFailed.emit(action, tr(Msg.THE_AUDIO_DEVICE_WAS_REMOVED))
                 return
             if action == "audio_input":
                 for source in self.state["audio"]["inputs"]:
@@ -163,7 +163,7 @@ class MockBackend(QObject):
             card = next((card for card in self.state["audio"]["cards"] if card["id"] == payload["id"]), None)
             profile = next((profile for profile in card["profiles"] if profile["id"] == payload["profile"] and profile["available"]), None) if card else None
             if profile is None:
-                self.operationFailed.emit(action, tr("Bluetooth audio mode is unavailable"))
+                self.operationFailed.emit(action, tr(Msg.BLUETOOTH_AUDIO_MODE_IS_UNAVAILABLE))
                 return
             for entry in card["profiles"]:
                 entry["active"] = entry is profile
@@ -218,7 +218,7 @@ class MockBackend(QObject):
                 profile.setdefault("autoconnect", True)
                 profile["active"] = profile["id"] == device.get("activeProfile")
                 others = any(other["id"] != device["id"] and other.get("activeProfile") == profile["id"] for other in devices)
-                profile["mutationBlocked"] = tr("Another adapter is using this saved configuration") if others else ""
+                profile["mutationBlocked"] = tr(Msg.ANOTHER_ADAPTER_IS_USING_THIS_SAVED_CONFIGURATION) if others else ""
                 profile["blocked"] = profile["mutationBlocked"] if profile.get("multiConnect", 0) not in (2, 3) else ""
             device["activeProfileUuid"] = next((p["uuid"] for p in device["saved"] if p["active"]), "")
             for network in device["networks"]:
@@ -227,14 +227,14 @@ class MockBackend(QObject):
     def _mock_wifi_action(self, action, payload):
         device = next((entry for entry in self.state["wifi"]["devices"] if entry["id"] == payload.get("deviceId")), None)
         if device is None:
-            raise RuntimeError(tr('目标无线网卡已移除'))
+            raise RuntimeError(tr(Msg.THE_TARGET_WI_FI_ADAPTER_WAS_REMOVED))
         if action.startswith("wifi_hotspot_"):
             self._mock_hotspot_action(action, payload, device)
             return
         profile = next((p for p in device["saved"] if p.get("uuid") == payload.get("profileUuid") or p["id"] == payload.get("id")), None)
         if action in ("wifi_forget", "wifi_update_password", "wifi_set_autoconnect"):
             if not profile or profile.get("revision") != payload.get("revision"):
-                raise RuntimeError(tr("The saved configuration changed. Reopen it and try again."))
+                raise RuntimeError(tr(Msg.THE_SAVED_CONFIGURATION_CHANGED_REOPEN_IT_AND_TRY_AGAIN))
             if profile.get("mutationBlocked"):
                 raise RuntimeError(profile["mutationBlocked"])
             if action == "wifi_forget":
@@ -252,9 +252,9 @@ class MockBackend(QObject):
         elif action == "wifi_cancel_connect":
             operation = device.get("operation", {})
             if operation.get("id") != payload.get("operationId") or operation.get("status") not in ("preparing", "connecting"):
-                raise RuntimeError(tr("This join request is no longer active"))
+                raise RuntimeError(tr(Msg.THIS_JOIN_REQUEST_IS_NO_LONGER_ACTIVE))
             preparing = operation["status"] == "preparing"
-            operation.update(status="cancelled", message=tr("Joining cancelled"))
+            operation.update(status="cancelled", message=tr(Msg.JOINING_CANCELLED))
             if not preparing and not device.get("connected"):
                 device["deviceState"] = 30
                 for network in device["networks"]:
@@ -270,7 +270,7 @@ class MockBackend(QObject):
                 raise RuntimeError(profile["blocked"])
             network = next((entry for entry in device["networks"] if entry.get("key") == payload.get("networkKey") or entry["id"] == payload.get("id") or (profile and entry["ssid"] == profile["ssid"])), None)
             if not network and not profile:
-                raise RuntimeError(tr('此网卡已搜索不到该网络，请重新搜索'))
+                raise RuntimeError(tr(Msg.THIS_ADAPTER_CAN_NO_LONGER_SEE_THE_NETWORK_SCAN_AGAIN))
             if not profile:
                 profile = next((p for p in device["saved"] if p["ssid"] == network["ssid"] and not p.get("blocked")), None)
             if not profile:
@@ -281,7 +281,7 @@ class MockBackend(QObject):
             target = bytes(profile["ssid"]).decode("utf-8", errors="replace")
             device.update(connected=target, deviceState=100, activeProfile=profile["id"],
                           strength=network["strength"] if network else None,
-                          operation={"id": uuid.uuid4().hex, "profileUuid": profile["uuid"], "networkKey": network["key"] if network else "", "status": "connected", "message": tr("Joined network")})
+                          operation={"id": uuid.uuid4().hex, "profileUuid": profile["uuid"], "networkKey": network["key"] if network else "", "status": "connected", "message": tr(Msg.JOINED_NETWORK)})
             for entry in device["networks"]:
                 entry["connected"] = entry is network
 
@@ -293,20 +293,20 @@ class MockBackend(QObject):
         from .wifi_backend import validate_wifi_password
         hotspot = device["hotspot"]
         if payload.get("wifiEpoch", self.state["wifi"]["epoch"]) != self.state["wifi"]["epoch"]:
-            raise RuntimeError(tr("The Wi-Fi service restarted. Reopen the adapter and try again."))
+            raise RuntimeError(tr(Msg.THE_WI_FI_SERVICE_RESTARTED_REOPEN_THE_ADAPTER_AND_TRY_AGAIN))
         if action == "wifi_hotspot_configure":
             validate_hotspot_name(payload["ssid"])
             if "password" in payload:
                 validate_wifi_password(payload["password"], "WPA2")
             if hotspot["status"] == "active" or payload.get("revision", "") != hotspot["revision"]:
-                raise RuntimeError(tr("The hotspot configuration changed. Reopen it and try again."))
+                raise RuntimeError(tr(Msg.THE_HOTSPOT_CONFIGURATION_CHANGED_REOPEN_IT_AND_TRY_AGAIN))
             if not hotspot["configured"] and "password" not in payload:
-                raise ValueError(tr("Set a password before starting this hotspot"))
+                raise ValueError(tr(Msg.SET_A_PASSWORD_BEFORE_STARTING_THIS_HOTSPOT))
             hotspot.update(configured=True, ssid=payload["ssid"], revision=uuid.uuid4().hex,
                            profileUuid="mock-hotspot:" + device["id"])
         elif action == "wifi_hotspot_start":
             if not hotspot["configured"] or payload.get("revision") != hotspot["revision"]:
-                raise RuntimeError(tr("The hotspot configuration changed. Reopen it and try again."))
+                raise RuntimeError(tr(Msg.THE_HOTSPOT_CONFIGURATION_CHANGED_REOPEN_IT_AND_TRY_AGAIN))
             self._mock_hotspot_restore[device["id"]] = {key: device.get(key) for key in ("connected", "strength", "activeProfile", "deviceState", "activeConnection")}
             active = "mock-hotspot:" + uuid.uuid4().hex
             device.update(mode="ap", connected="", strength=None, activeProfile="", deviceState=100, activeConnection=active)
@@ -316,7 +316,7 @@ class MockBackend(QObject):
                 network["connected"] = False
         elif action == "wifi_hotspot_stop":
             if hotspot["operationId"] != payload.get("operationId") or hotspot["activePath"] != payload.get("activePath"):
-                raise RuntimeError(tr("The hotspot connection changed; reopen it and try again"))
+                raise RuntimeError(tr(Msg.THE_HOTSPOT_CONNECTION_CHANGED_REOPEN_IT_AND_TRY_AGAIN))
             device.update(self._mock_hotspot_restore.pop(device["id"], {}))
             device["mode"] = "infrastructure"
             device["addresses"] = {"ip": [], "gateway": [], "dns": []}

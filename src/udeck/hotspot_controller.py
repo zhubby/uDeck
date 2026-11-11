@@ -7,7 +7,7 @@ from .hotspot import (
     hotspot_summary,
     validate_hotspot_name,
 )
-from .i18n import tr
+from .i18n import Msg, tr
 from .wifi import wifi_label
 
 
@@ -22,7 +22,7 @@ class HotspotControls:
             options.append({"id": "power", "label": "Wi-Fi", "checked": False,
                             "pendingAction": "wifi_power", "action": "wifi-power"})
         return options + [{"id": device["id"], "label": wifi_label(device), "deviceId": device["id"],
-                           "subtitle": hotspot_status(device.get("hotspot", {})) if device.get("apSupported") else tr("Hotspot not supported"),
+                           "subtitle": hotspot_status(device.get("hotspot", {})) if device.get("apSupported") else tr(Msg.HOTSPOT_NOT_SUPPORTED),
                            "action": "hotspot-device"} for device in devices]
 
     def _hotspot_device_options(self, device):
@@ -33,32 +33,32 @@ class HotspotControls:
         target = {"deviceId": device["id"], "revision": hotspot.get("revision", "")}
         options = []
         if ap:
-            options.append({"id": "stop", "label": tr("Hotspot"), "icon": "network-wireless", "checked": True,
+            options.append({"id": "stop", "label": tr(Msg.HOTSPOT), "icon": "network-wireless", "checked": True,
                             "subtitle": hotspot_status(hotspot), "pendingAction": "wifi_hotspot_stop",
                             "action": "hotspot-stop", "deviceId": device["id"],
                             "disabled": busy or not hotspot.get("owned"),
-                            "reason": tr("This hotspot is managed outside uDeck") if not hotspot.get("owned") else tr("This adapter is changing hotspot state")})
+                            "reason": tr(Msg.THIS_HOTSPOT_IS_MANAGED_OUTSIDE_UDECK) if not hotspot.get("owned") else tr(Msg.THIS_ADAPTER_IS_CHANGING_HOTSPOT_STATE)})
         else:
-            options.append({"id": "start", "label": tr("Hotspot"), "icon": "network-wireless", "checked": False,
+            options.append({"id": "start", "label": tr(Msg.HOTSPOT), "icon": "network-wireless", "checked": False,
                             "subtitle": hotspot_status(hotspot), "pendingAction": "wifi_hotspot_start",
                             "action": "hotspot-start", "deviceId": device["id"],
                             "disabled": not supported or not self.data["wifi"].get("enabled") or busy,
-                            "reason": tr("Enable Wi-Fi and use an adapter that supports WPA2/CCMP hotspots")})
+                            "reason": tr(Msg.ENABLE_WI_FI_AND_USE_AN_ADAPTER_THAT_SUPPORTS_WPA2_CCMP_HOTSPOTS)})
         if hotspot.get("message"):
             options.append({"id": "status", "label": hotspot["message"], "action": "none"})
-        for field, label in (("name", tr("Hotspot name")), ("password", tr("Hotspot password"))):
+        for field, label in (("name", tr(Msg.HOTSPOT_NAME)), ("password", tr(Msg.HOTSPOT_PASSWORD))):
             options.append({"id": field, "label": label,
                             "subtitle": (hotspot.get("ssid") or default_hotspot_name(device["interface"])) if field == "name" else (
-                                tr("Saved in NetworkManager") if hotspot.get("configured") else tr("Set a password before starting")),
+                                tr(Msg.SAVED_IN_NETWORKMANAGER) if hotspot.get("configured") else tr(Msg.SET_A_PASSWORD_BEFORE_STARTING)),
                             "action": "hotspot-" + field, "payload": target, "deviceId": device["id"],
                             "disabled": not supported or ap or busy,
-                            "reason": tr("Turn off this hotspot before editing its configuration")})
+                            "reason": tr(Msg.TURN_OFF_THIS_HOTSPOT_BEFORE_EDITING_ITS_CONFIGURATION)})
         if ap:
-            options.append({"id": "ip", "label": tr("IP address"), "subtitle": ", ".join(device.get("addresses", {}).get("ip", [])) or tr("Not available"), "action": "none", "wrapSubtitle": True})
+            options.append({"id": "ip", "label": tr(Msg.IP_ADDRESS), "subtitle": ", ".join(device.get("addresses", {}).get("ip", [])) or tr(Msg.NOT_AVAILABLE), "action": "none", "wrapSubtitle": True})
         if not supported:
-            options.append({"id": "unsupported", "label": tr("Hotspot not supported"), "subtitle": device.get("error", ""), "action": "none", "disabled": True})
+            options.append({"id": "unsupported", "label": tr(Msg.HOTSPOT_NOT_SUPPORTED), "subtitle": device.get("error", ""), "action": "none", "disabled": True})
         if ap and not hotspot.get("owned"):
-            options.append({"id": "external", "label": tr("This hotspot is managed outside uDeck"), "action": "none", "disabled": True})
+            options.append({"id": "external", "label": tr(Msg.THIS_HOTSPOT_IS_MANAGED_OUTSIDE_UDECK), "action": "none", "disabled": True})
         return options
 
     def _apply_hotspot_option(self, option):
@@ -68,9 +68,9 @@ class HotspotControls:
         target = {"deviceId": device["id"], "revision": hotspot.get("revision", "")}
         if action == "hotspot-device":
             self._menu(wifi_label(device), self._hotspot_device_options(device), source="hotspot-device", deviceId=device["id"],
-                       body=tr("Share the current internet connection. Without an uplink, devices can still communicate locally."))
+                       body=tr(Msg.HOTSPOT_UPLINK_INSTRUCTIONS))
         elif action == "hotspot-name":
-            self._text_prompt(tr("Hotspot name"), tr("Use 1–32 UTF-8 bytes"), "hotspot-name",
+            self._text_prompt(tr(Msg.HOTSPOT_NAME), tr(Msg.USE_1_32_UTF_8_BYTES), "hotspot-name",
                               text=hotspot.get("ssid") or default_hotspot_name(device["interface"]), payload=target,
                               deviceId=device["id"], hotspotRevision=target["revision"])
         elif action == "hotspot-password":
@@ -81,7 +81,7 @@ class HotspotControls:
                 return
             payload = {**target, "expectedActive": device.get("activeConnection", "/")}
             if device.get("connected") or 40 <= device.get("deviceState", 0) <= 100:
-                self._confirm(tr("Switch this adapter to a hotspot?"), wifi_label(device) + "\n" + tr("This replaces this adapter's Wi-Fi connection and may interrupt SSH. Turning off the hotspot will try to restore it."),
+                self._confirm(tr(Msg.SWITCH_THIS_ADAPTER_TO_A_HOTSPOT_PROMPT), wifi_label(device) + "\n" + tr(Msg.HOTSPOT_REPLACES_WIFI_INSTRUCTIONS),
                               {"action": "system", "systemAction": "wifi_hotspot_start", "payload": payload}, deviceId=device["id"])
             else:
                 self._system("wifi_hotspot_start", payload)
@@ -89,7 +89,7 @@ class HotspotControls:
             self._system("wifi_hotspot_stop", {"deviceId": device["id"], "operationId": hotspot.get("operationId"), "activePath": hotspot.get("activePath")})
 
     def _hotspot_password_prompt(self, device, payload):
-        self._text_prompt(tr("Hotspot password"), tr("Use 8–63 bytes or a 64-digit hexadecimal PSK. Credentials are saved by NetworkManager."),
+        self._text_prompt(tr(Msg.HOTSPOT_PASSWORD), tr(Msg.USE_8_63_BYTES_OR_A_64_DIGIT_HEXADECIMAL_PSK_CREDENTIALS_ARE_SAVED_BY_NETWORKMANAGER),
                           "hotspot-password", secret=True, wifiSecurity="WPA2", payload=payload,
                           deviceId=device["id"], hotspotRevision=payload["revision"])
 

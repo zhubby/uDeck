@@ -11,7 +11,7 @@ from copy import deepcopy
 from dbus_next import DBusError, Variant
 
 from .hotspot_backend import HotspotBackend
-from .i18n import error_text, tr
+from .i18n import Msg, error_text, tr
 from .wifi import (
     network_key,
     security_code,
@@ -40,11 +40,11 @@ def unwrap(value):
 def validate_wifi_password(password, security):
     value = str(password)
     if not value or "\x00" in value:
-        raise ValueError(tr('Wi-Fi 密码不能为空或包含空字符'))
+        raise ValueError(tr(Msg.THE_WI_FI_PASSWORD_CANNOT_BE_EMPTY_OR_CONTAIN_NUL_CHARACTERS))
     if security == "WPA3":
         return value
     if not 8 <= len(value.encode()) <= 63 and not (len(value) == 64 and all(character in "0123456789abcdefABCDEF" for character in value)):
-        raise ValueError(tr('WPA2 密码需为 8–63 字节，或 64 位十六进制 PSK'))
+        raise ValueError(tr(Msg.WPA2_REQUIRES_8_63_BYTES_OR_A_64_DIGIT_HEXADECIMAL_PSK))
     return value
 
 
@@ -121,14 +121,14 @@ class WifiBackend(HotspotBackend):
                 for entry in devices:
                     operation = self.wifi_operations.get(entry["id"], {})
                     if operation.get("status") in ("preparing", "connecting"):
-                        operation.update(status="cancelled", message=tr("Wi-Fi was turned off"))
+                        operation.update(status="cancelled", message=tr(Msg.WI_FI_WAS_TURNED_OFF))
                         entry["operation"] = self._public_wifi_operation(operation)
                     scan = self.wifi_scans.get(entry["id"], {})
                     if scan.get("status") == "scanning":
                         scan["status"] = "cancelled"
                         entry["scan"] = {"status": "cancelled"}
             self.publish("wifi", {"epoch": self.wifi_epoch, "available": bool(devices), "enabled": enabled, "devices": devices,
-                                  "error": "" if devices else tr('未检测到无线网卡'), "agentError": agent_error})
+                                  "error": "" if devices else tr(Msg.NO_WI_FI_ADAPTERS_FOUND), "agentError": agent_error})
         except Exception as error:
             self.cancel_prompts("network")
             for operation in self.wifi_operations.values():
@@ -180,7 +180,7 @@ class WifiBackend(HotspotBackend):
                          "strength": information.get("Strength", 0), "security": security,
                          "saved": any(profile["ssid"] == list(ssid_bytes) and profile["keyManagement"] in (keys or [""]) for profile in profiles),
                          "keyManagement": keys,
-                         "secured": security != tr('开放网络'), "unsupported": security in (tr('企业网络'), tr('不支持的加密')),
+                         "secured": security != tr(Msg.OPEN_NETWORK), "unsupported": security in (tr(Msg.ENTERPRISE_NETWORK), tr(Msg.UNSUPPORTED_ENCRYPTION)),
                          "connected": access_point == wireless.get("ActiveAccessPoint") and device_state == 100,
                          "connecting": access_point == wireless.get("ActiveAccessPoint") and 40 <= device_state < 100}
                 deduplication_key = entry["key"]
@@ -201,7 +201,7 @@ class WifiBackend(HotspotBackend):
                     result["connected"] = bytes(profile["ssid"]).decode("utf-8", errors="replace")
             result.update(self._wifi_progress(path, result, wireless, previous))
         except Exception as error:
-            result["error"] = tr('无法读取网卡 · ') + error_text(error)
+            result["error"] = tr(Msg.COULD_NOT_READ_ADAPTER_PREFIX) + error_text(error)
             result.update(self._wifi_progress(path, result, {}, previous))
         return result
 
@@ -223,13 +223,13 @@ class WifiBackend(HotspotBackend):
             if not self._wifi_compatible(device, profile):
                 continue
             others = usage.get(profile["id"], set()) - {device_id} if usage is not None else set()
-            mutation_blocked = tr("Another adapter is using this saved configuration") if others else (
-                tr('暂时无法确认此配置是否正在使用') if usage is None else "")
+            mutation_blocked = tr(Msg.ANOTHER_ADAPTER_IS_USING_THIS_SAVED_CONFIGURATION) if others else (
+                tr(Msg.CANNOT_DETERMINE_WHETHER_THIS_PROFILE_IS_IN_USE) if usage is None else "")
             blocked = mutation_blocked if profile["multiConnect"] not in (2, 3) else ""
             settings = unwrap(self.wifi_settings.get(profile["id"], {}))
             connection = settings.get("connection", {})
             if (settings.get("match") or connection.get("controller") or connection.get("master")) and profile["id"] not in device.get("AvailableConnections", []):
-                blocked = mutation_blocked = tr("The system cannot confirm this configuration is compatible with this adapter")
+                blocked = mutation_blocked = tr(Msg.THE_SYSTEM_CANNOT_CONFIRM_THIS_CONFIGURATION_IS_COMPATIBLE_WITH_THIS_ADAPTER)
             result.append({**profile, "blocked": blocked, "mutationBlocked": mutation_blocked,
                            "active": usage is not None and device_id in usage.get(profile["id"], set())})
         return result
@@ -336,13 +336,13 @@ class WifiBackend(HotspotBackend):
         if operation.get("status") == "connecting":
             active = device.get("activeConnection", "/")
             if state == 100 and active == operation.get("activePath"):
-                operation.update(status="connected", message=tr("Joined network"))
+                operation.update(status="connected", message=tr(Msg.JOINED_NETWORK))
             elif state == 120:
                 operation.update(status="failed", message=wifi_failure(device.get("stateReason", 0)))
             elif state in (0, 10, 20):
-                operation.update(status="failed", message=tr("This adapter cannot join this network right now"))
+                operation.update(status="failed", message=tr(Msg.THIS_ADAPTER_CANNOT_JOIN_THIS_NETWORK_RIGHT_NOW))
             elif active not in ("/", operation.get("activePath")) and time.monotonic() - operation["started"] > 3:
-                operation.update(status="superseded", message=tr("The system selected another connection"))
+                operation.update(status="superseded", message=tr(Msg.THE_SYSTEM_SELECTED_ANOTHER_CONNECTION))
             elif state == 30 and (operation.get("sawActivating") or time.monotonic() - operation["started"] > 5):
                 operation.update(status="failed", message=wifi_failure(device.get("stateReason", 0)))
             else:
@@ -367,7 +367,7 @@ class WifiBackend(HotspotBackend):
                     if properties.get("State") == 1:
                         activating_devices.update(properties.get("Devices", []))
         except Exception as error:
-            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr('无法确认请求密码的无线网卡，请重新选择网卡连接')) from error
+            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr(Msg.COULD_NOT_IDENTIFY_THE_ADAPTER_REQUESTING_A_PASSWORD_SELECT_AN_ADAPTER_AND_RECONNECT)) from error
         # SecretAgent names a profile, so prefer its one activating device.
         if len(activating_devices) == 1:
             device_id = next(iter(activating_devices))
@@ -380,21 +380,21 @@ class WifiBackend(HotspotBackend):
         else:
             device_id = None
         if device_id is None:
-            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr('无法确认请求密码的无线网卡，请重新选择网卡连接'))
+            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr(Msg.COULD_NOT_IDENTIFY_THE_ADAPTER_REQUESTING_A_PASSWORD_SELECT_AN_ADAPTER_AND_RECONNECT))
         await self._require_wifi_device(device_id)
         return device_id
 
     async def _require_wifi_device(self, device_id, inactive=False):
         known = next((entry for entry in self.state["wifi"].get("devices", []) if entry["id"] == device_id), None)
         if known is None or device_id not in (await self.call(NM, NM_ROOT, NM, "GetDevices"))[0]:
-            raise RuntimeError(tr('目标无线网卡已移除，请重新选择网卡'))
+            raise RuntimeError(tr(Msg.TARGET_ADAPTER_REMOVED_SELECT_ADAPTER))
         device = await self.properties(NM, device_id, NM + ".Device")
         if device.get("DeviceType") != 2 or device.get("Interface") != known["interface"]:
-            raise RuntimeError(tr('目标无线网卡已改变，请重新选择网卡'))
+            raise RuntimeError(tr(Msg.THE_TARGET_WI_FI_ADAPTER_CHANGED_SELECT_AN_ADAPTER_AGAIN))
         if not inactive and not device.get("Managed", True):
-            raise RuntimeError(tr('此网卡未由系统管理'))
+            raise RuntimeError(tr(Msg.THIS_ADAPTER_IS_UNMANAGED_BY_THE_SYSTEM))
         if not inactive and not await self.get(NM, NM_ROOT, NM, "WirelessEnabled"):
-            raise RuntimeError(tr('请先开启全部 Wi-Fi'))
+            raise RuntimeError(tr(Msg.TURN_ON_ALL_WI_FI_FIRST))
         return device
 
     async def _require_wifi_access_point(self, device_id, network):
@@ -413,7 +413,7 @@ class WifiBackend(HotspotBackend):
                 network["id"] = path
                 break
         else:
-            raise RuntimeError(tr('此网卡已搜索不到该网络，请重新搜索'))
+            raise RuntimeError(tr(Msg.THIS_ADAPTER_CAN_NO_LONGER_SEE_THE_NETWORK_SCAN_AGAIN))
         return device
 
     async def _checked_wifi_profile(self, payload, mutate=False):
@@ -425,12 +425,12 @@ class WifiBackend(HotspotBackend):
         target = next((entry for entry in profiles if (entry["uuid"] == payload.get("profileUuid")
                        if payload.get("profileUuid") else entry["id"] == payload.get("id"))), None)
         if target is None:
-            raise RuntimeError(tr("This saved configuration was removed or is incompatible with the adapter"))
+            raise RuntimeError(tr(Msg.THIS_SAVED_CONFIGURATION_WAS_REMOVED_OR_IS_INCOMPATIBLE_WITH_THE_ADAPTER))
         if mutate:
             if not target["uuid"] or not payload.get("revision") or payload["revision"] != target["revision"]:
-                raise RuntimeError(tr("The saved configuration changed. Reopen it and try again."))
+                raise RuntimeError(tr(Msg.THE_SAVED_CONFIGURATION_CHANGED_REOPEN_IT_AND_TRY_AGAIN))
             if target["readOnly"]:
-                raise RuntimeError(tr("This saved configuration is read-only"))
+                raise RuntimeError(tr(Msg.THIS_SAVED_CONFIGURATION_IS_READ_ONLY))
         reason = target["mutationBlocked"] if mutate else target["blocked"]
         if reason:
             raise RuntimeError(reason)
@@ -439,20 +439,20 @@ class WifiBackend(HotspotBackend):
     def _begin_wifi_join(self, device_id, **target):
         current = self.wifi_operations.get(device_id, {})
         if current.get("status") in ("preparing", "connecting"):
-            raise RuntimeError(tr("This adapter is already joining a network"))
+            raise RuntimeError(tr(Msg.THIS_ADAPTER_IS_ALREADY_JOINING_A_NETWORK))
         operation = {"id": uuid.uuid4().hex, "started": time.monotonic(), "status": "preparing",
-                     "message": tr("Preparing to join"), **target}
+                     "message": tr(Msg.PREPARING_TO_JOIN), **target}
         self.wifi_operations[device_id] = operation
         self._monitor_wifi()
         return operation
 
     def _check_wifi_join(self, device_id, operation):
         if self.wifi_operations.get(device_id) is not operation or operation["status"] != "preparing":
-            raise DBusError(NETWORK_CANCEL, tr("Joining cancelled"))
+            raise DBusError(NETWORK_CANCEL, tr(Msg.JOINING_CANCELLED))
 
     def _check_wifi_epoch(self, epoch):
         if epoch != self.wifi_epoch:
-            raise RuntimeError(tr("The Wi-Fi service restarted. Reopen the adapter and try again."))
+            raise RuntimeError(tr(Msg.THE_WI_FI_SERVICE_RESTARTED_REOPEN_THE_ADAPTER_AND_TRY_AGAIN))
 
     async def _finish_wifi_activation(self, device_id, operation, active_path, profile_uuid):
         if self.wifi_operations.get(device_id) is not operation:
@@ -477,7 +477,7 @@ class WifiBackend(HotspotBackend):
         operation = self.wifi_operations[device_id]
         current = await self._checked_wifi_profile({"deviceId": device_id, "profileUuid": profile["uuid"]})
         if current["ssid"] != profile["ssid"] or current["keyManagement"] != profile["keyManagement"]:
-            raise RuntimeError(tr("The saved configuration changed. Reopen it and try again."))
+            raise RuntimeError(tr(Msg.THE_SAVED_CONFIGURATION_CHANGED_REOPEN_IT_AND_TRY_AGAIN))
         self._check_wifi_join(device_id, operation)
         self.wifi_profile_devices[profile["id"]] = device_id
         operation["started"] = time.monotonic()
@@ -489,10 +489,10 @@ class WifiBackend(HotspotBackend):
         device = await self._require_wifi_device(device_id, inactive=True)
         active_path = device.get("ActiveConnection", "/")
         if active_path == "/":
-            raise RuntimeError(tr("The connection changed. No connection was cancelled."))
+            raise RuntimeError(tr(Msg.THE_CONNECTION_CHANGED_NO_CONNECTION_WAS_CANCELLED))
         active = await self.properties(NM, active_path, NM + ".Connection.Active")
         if active.get("Connection") != profile["id"] or set(active.get("Devices", [])) != {device_id}:
-            raise RuntimeError(tr("The connection changed. No connection was cancelled."))
+            raise RuntimeError(tr(Msg.THE_CONNECTION_CHANGED_NO_CONNECTION_WAS_CANCELLED))
         self._check_wifi_epoch(epoch)
         await self.call(NM, NM_ROOT, NM, "DeactivateConnection", "o", [active_path])
         deadline = time.monotonic() + self.wifi_disconnect_timeout
@@ -510,7 +510,7 @@ class WifiBackend(HotspotBackend):
             if active.get("State") == 4:
                 return
             if time.monotonic() >= deadline:
-                raise RuntimeError(tr("Disconnecting timed out. The saved configuration was not removed."))
+                raise RuntimeError(tr(Msg.DISCONNECTING_TIMED_OUT_THE_SAVED_CONFIGURATION_WAS_NOT_REMOVED))
             await asyncio.sleep(0.1)
 
     async def _execute_wifi(self, action, payload):
@@ -529,15 +529,15 @@ class WifiBackend(HotspotBackend):
                     self.cancel_prompts("network")
                     for operation in self.wifi_operations.values():
                         if operation["status"] in ("preparing", "connecting"):
-                            operation.update(status="cancelled", message=tr("Wi-Fi was turned off"))
+                            operation.update(status="cancelled", message=tr(Msg.WI_FI_WAS_TURNED_OFF))
             elif action == "wifi_scan":
                 await self._require_wifi_device(device_id)
                 wireless = await self.properties(NM, device_id, NM + ".Device.Wireless")
                 if wireless.get("Mode") == 3 or self.hotspot_operations.get(device_id, {}).get("status") in ("starting", "stopping", "restoring"):
-                    raise RuntimeError(tr("Turn off the hotspot before using Wi-Fi on this adapter"))
+                    raise RuntimeError(tr(Msg.TURN_OFF_THE_HOTSPOT_BEFORE_USING_WI_FI_ON_THIS_ADAPTER))
                 self._check_wifi_epoch(epoch)
                 if self.wifi_scans.get(device_id, {}).get("status") == "scanning":
-                    raise RuntimeError(tr("This adapter is already scanning"))
+                    raise RuntimeError(tr(Msg.THIS_ADAPTER_IS_ALREADY_SCANNING))
                 scan = {"status": "scanning", "baseline": wireless.get("LastScan", -1), "started": time.monotonic()}
                 self.wifi_scans[device_id] = scan
                 try:
@@ -550,38 +550,38 @@ class WifiBackend(HotspotBackend):
                 await self._require_wifi_device(device_id)
                 wireless = await self.properties(NM, device_id, NM + ".Device.Wireless")
                 if wireless.get("Mode") == 3 or self.hotspot_operations.get(device_id, {}).get("status") in ("starting", "stopping", "restoring"):
-                    raise RuntimeError(tr("Turn off the hotspot before using Wi-Fi on this adapter"))
+                    raise RuntimeError(tr(Msg.TURN_OFF_THE_HOTSPOT_BEFORE_USING_WI_FI_ON_THIS_ADAPTER))
                 self._check_wifi_epoch(epoch)
                 await self.call(NM, device_id, NM + ".Device", "Disconnect")
                 self.cancel_prompts("network", device_id=device_id)
                 if device_id in self.wifi_operations:
-                    self.wifi_operations[device_id].update(status="cancelled", message=tr("Disconnected"))
+                    self.wifi_operations[device_id].update(status="cancelled", message=tr(Msg.DISCONNECTED))
             elif action == "wifi_cancel_connect":
                 await self._require_wifi_device(device_id)
                 operation = self.wifi_operations.get(device_id, {})
                 if operation.get("id") != payload.get("operationId") or operation.get("status") not in ("preparing", "connecting"):
-                    raise RuntimeError(tr("This join request is no longer active"))
+                    raise RuntimeError(tr(Msg.THIS_JOIN_REQUEST_IS_NO_LONGER_ACTIVE))
                 active_path = operation.get("activePath")
                 if active_path:
                     device = await self.properties(NM, device_id, NM + ".Device")
                     if device.get("ActiveConnection") != active_path:
-                        raise RuntimeError(tr("The connection changed. No connection was cancelled."))
+                        raise RuntimeError(tr(Msg.THE_CONNECTION_CHANGED_NO_CONNECTION_WAS_CANCELLED))
                     self._check_wifi_epoch(epoch)
                     await self.call(NM, NM_ROOT, NM, "DeactivateConnection", "o", [active_path])
-                operation.update(status="cancelled", message=tr("Joining cancelled"))
+                operation.update(status="cancelled", message=tr(Msg.JOINING_CANCELLED))
                 self.cancel_prompts("network", device_id=device_id)
             elif action in ("wifi_connect", "wifi_connect_saved", "wifi_reconnect"):
                 await self.refresh_wifi()
                 self._check_wifi_epoch(epoch)
                 selected = next((d for d in self.state["wifi"]["devices"] if d["id"] == device_id), {})
                 if selected.get("mode") == "ap" or selected.get("hotspot", {}).get("status") in ("starting", "stopping", "restoring"):
-                    raise RuntimeError(tr("Turn off the hotspot before using Wi-Fi on this adapter"))
+                    raise RuntimeError(tr(Msg.TURN_OFF_THE_HOTSPOT_BEFORE_USING_WI_FI_ON_THIS_ADAPTER))
                 if action == "wifi_connect":
                     await self._wifi_connect(device_id, payload.get("networkKey") or payload.get("id"))
                 else:
                     profile = await self._checked_wifi_profile(payload)
                     if profile["unsupported"]:
-                        raise RuntimeError(tr('此网卡无法使用该已保存网络，请重新选择'))
+                        raise RuntimeError(tr(Msg.THIS_SAVED_NETWORK_CANNOT_BE_USED_BY_THIS_ADAPTER_SELECT_ANOTHER))
                     self._check_wifi_epoch(epoch)
                     self._begin_wifi_join(device_id, profileUuid=profile["uuid"])
                     await self.refresh_wifi()
@@ -600,12 +600,12 @@ class WifiBackend(HotspotBackend):
                     try:
                         profile = await self._checked_wifi_profile(payload, mutate=True)
                         if profile["active"]:
-                            raise RuntimeError(tr("The connection changed. Reopen this network and try again."))
+                            raise RuntimeError(tr(Msg.THE_CONNECTION_CHANGED_REOPEN_THIS_NETWORK_AND_TRY_AGAIN))
                         self._check_wifi_epoch(epoch)
                         await self.call(NM, profile["id"], NM + ".Settings.Connection", "Delete")
                     except Exception as error:
                         if disconnected:
-                            raise RuntimeError(tr("Disconnected, but forgetting the network failed: {error}", error=error_text(error))) from error
+                            raise RuntimeError(tr(Msg.DISCONNECTED_BUT_FORGETTING_THE_NETWORK_FAILED_ERROR, error=error_text(error))) from error
                         raise
                 else:
                     settings = deepcopy(profile["_settings"])
@@ -613,7 +613,7 @@ class WifiBackend(HotspotBackend):
                         settings["connection"]["autoconnect"] = Variant("b", bool(payload["enabled"]))
                     else:
                         if profile["keyManagement"] not in ("wpa-psk", "sae"):
-                            raise RuntimeError(tr('仅支持个人 Wi-Fi 网络'))
+                            raise RuntimeError(tr(Msg.ONLY_PERSONAL_WI_FI_NETWORKS_ARE_SUPPORTED))
                         password = validate_wifi_password(payload["password"], "WPA3" if profile["keyManagement"] == "sae" else "WPA2")
                         security = settings["802-11-wireless-security"]
                         security["psk"] = Variant("s", password)
@@ -623,13 +623,13 @@ class WifiBackend(HotspotBackend):
                     arguments = {"version-id": Variant("t", profile["versionId"])} if profile["versionId"] is not None else {}
                     await self.call(NM, profile["id"], NM + ".Settings.Connection", "Update2", "a{sa{sv}}ua{sv}", [settings, 1, arguments])
             else:
-                raise ValueError(tr('未知 Wi-Fi 操作'))
+                raise ValueError(tr(Msg.UNKNOWN_WI_FI_ACTION))
         except Exception as error:
             if action in ("wifi_connect", "wifi_connect_saved", "wifi_reconnect"):
                 operation = self.wifi_operations.get(device_id, {})
                 if operation is not previous_operation and operation.get("status") == "preparing":
                     cancelled = isinstance(error, DBusError) and error.type == NETWORK_CANCEL
-                    operation.update(status="cancelled" if cancelled else "failed", message=tr("Joining cancelled") if cancelled else error_text(error))
+                    operation.update(status="cancelled" if cancelled else "failed", message=tr(Msg.JOINING_CANCELLED) if cancelled else error_text(error))
             raise
         finally:
             await self.refresh_wifi()
@@ -638,7 +638,7 @@ class WifiBackend(HotspotBackend):
         device = next((entry for entry in self.state["wifi"].get("devices", []) if entry["id"] == device_id), {})
         network = next((entry for entry in device.get("networks", []) if entry.get("key") == identifier or entry["id"] == identifier), None)
         if network is None or network.get("unsupported"):
-            raise RuntimeError(tr('此网卡已搜索不到该网络，或不支持此认证方式'))
+            raise RuntimeError(tr(Msg.THE_NETWORK_IS_NO_LONGER_VISIBLE_ON_THIS_ADAPTER_OR_ITS_AUTHENTICATION_IS_UNSUPPORTED))
         network = deepcopy(network)
         await self._require_wifi_access_point(device_id, network)
         operation = self._begin_wifi_join(device_id, networkKey=network.get("key", ""), name=network["name"])
@@ -662,7 +662,7 @@ class WifiBackend(HotspotBackend):
             "ipv4": {"method": Variant("s", "auto")}, "ipv6": {"method": Variant("s", "auto")},
         }
         if network["secured"]:
-            password = await self.ask("text", tr('连接 ') + network["name"], wifi_label(device) + tr('\n输入 Wi-Fi 密码；凭据交由系统管理'),
+            password = await self.ask("text", tr(Msg.CONNECT_PREFIX) + network["name"], wifi_label(device) + tr(Msg.ENTER_THE_WI_FI_PASSWORD_CREDENTIALS_ARE_MANAGED_BY_THE_SYSTEM_NOTICE),
                                       secret=True, wifiSecurity=network["security"], cancel_error=NETWORK_CANCEL,
                                       group="network:" + device_id, deviceId=device_id)
             password = validate_wifi_password(password, network["security"])

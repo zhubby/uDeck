@@ -5,7 +5,7 @@ import sys
 from PySide6.QtCore import QEvent, QObject, QTimer, Slot
 from PySide6.QtGui import QKeySequence
 
-from .i18n import tr
+from .i18n import Msg, tr
 from .key_test_layout import (
     GAMEPAD_KEYS,
     INTERNAL_KEYS,
@@ -17,13 +17,13 @@ from .key_test_layout import (
 )
 
 TEST_ACTIONS = {
-    "up": tr("Up"), "down": tr("Down"), "left": tr("Left"), "right": tr("Right"),
+    "up": tr(Msg.UP), "down": tr(Msg.DOWN), "left": tr(Msg.LEFT), "right": tr(Msg.RIGHT),
     "accept": "A", "back": "B", "context": "X", "quick-settings": "Y",
     "previous-page": "L", "next-page": "R",
     **{key["id"]: key["label"] for key in GAMEPAD_KEYS + POINTER_KEYS},
 }
-SOURCES = {"keyboard": tr("Keyboard"), "gamepad": tr("Gamepad"), "shoulder": tr("Shoulder buttons"),
-           "pointer": tr("Trackball"), "native": tr("uConsole keyboard")}
+SOURCES = {"keyboard": tr(Msg.KEYBOARD), "gamepad": tr(Msg.GAMEPAD), "shoulder": tr(Msg.SHOULDER_BUTTONS),
+           "pointer": tr(Msg.TRACKBALL), "native": tr(Msg.UCONSOLE_KEYBOARD)}
 
 
 class KeyTestControls:
@@ -39,9 +39,9 @@ class KeyTestControls:
 
     def _open_key_test(self):
         self._clear_test_inputs()
-        self._push({"kind": "key-test", "source": "key-test", "title": tr("Key test"),
+        self._push({"kind": "key-test", "source": "key-test", "title": tr(Msg.KEY_TEST),
                     "pressed": [], "tested": [], "activeLabels": [], "pressCount": 0,
-                    "lastKey": tr("Press any key"), "lastSource": "", "exitHolding": False,
+                    "lastKey": tr(Msg.PRESS_ANY_KEY), "lastSource": "", "exitHolding": False,
                     "keyboardRows": KEYBOARD_ROWS, "gamepadKeys": GAMEPAD_KEYS, "pointerKeys": POINTER_KEYS,
                     "internalKeys": INTERNAL_KEYS, "totalKeys": sum(key["detectable"] for key in KEY_SPECS.values()),
                     "deviceWarning": ""})

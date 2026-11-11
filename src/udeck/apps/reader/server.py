@@ -12,7 +12,7 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, urlsplit
 
 from udeck.apps.reader.mobi import MobiFile
-from udeck.i18n import tr
+from udeck.i18n import Msg, tr
 
 
 class BookServer:
@@ -30,11 +30,11 @@ class BookServer:
             try:
                 self.archive = zipfile.ZipFile(path)
             except zipfile.BadZipFile as error:
-                raise ValueError(tr("Invalid EPUB archive")) from error
+                raise ValueError(tr(Msg.INVALID_EPUB_ARCHIVE)) from error
             infos = self.archive.infolist()
             if len(infos) > 20000 or sum(i.file_size for i in infos) > 1024 * 1024 * 1024:
                 self.archive.close()
-                raise ValueError(tr("EPUB archive is too large"))
+                raise ValueError(tr(Msg.EPUB_ARCHIVE_IS_TOO_LARGE))
             for info in infos:
                 name = info.filename
                 if info.is_dir():
@@ -42,13 +42,13 @@ class BookServer:
                 if (name.startswith("/") or ".." in PurePosixPath(name).parts
                         or "\\" in name or info.file_size > 64 * 1024 * 1024 or name in self.entries):
                     self.archive.close()
-                    raise ValueError(tr("Invalid EPUB archive entry"))
+                    raise ValueError(tr(Msg.INVALID_EPUB_ARCHIVE_ENTRY))
                 self.entries[name] = info.file_size
         elif path.suffix.lower() == ".mobi":
             self.mobi = MobiFile(path, item.get("stamp"))
         else:
             if path.stat().st_size > 64 * 1024 * 1024:
-                raise ValueError(tr("Text file exceeds 64 MiB"))
+                raise ValueError(tr(Msg.TEXT_FILE_EXCEEDS_64_MIB))
             raw = path.read_bytes()
             for encoding in ("utf-8-sig", "utf-16" if raw[:2] in (b"\xff\xfe", b"\xfe\xff") else "utf-8", "gb18030"):
                 try:
@@ -57,7 +57,7 @@ class BookServer:
                 except UnicodeError:
                     continue
             if self.text is None:
-                raise ValueError(tr("Unsupported text encoding (UTF-8, UTF-16 and GB18030 supported)"))
+                raise ValueError(tr(Msg.UNSUPPORTED_TEXT_ENCODING_UTF_8_UTF_16_AND_GB18030_SUPPORTED))
         owner = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -112,7 +112,7 @@ class BookServer:
             start, end = map(int, match.groups())
             with self.lock:
                 if self.closed:
-                    raise OSError(tr("Book closed"))
+                    raise OSError(tr(Msg.BOOK_CLOSED))
                 data = self.mobi.read(start, end)
             return data, "application/octet-stream", csp
         if route == "text.txt" and self.text is not None:
@@ -123,7 +123,7 @@ class BookServer:
                 raise KeyError(name)
             with self.lock:
                 if self.closed:
-                    raise OSError(tr("Book closed"))
+                    raise OSError(tr(Msg.BOOK_CLOSED))
                 data = self.archive.read(name)
             mime = mimetypes.guess_type(name)[0] or "application/octet-stream"
             return data, mime, csp

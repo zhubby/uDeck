@@ -8,7 +8,7 @@ from PySide6.QtCore import QBuffer, QByteArray, QIODevice, QSize, Qt
 from PySide6.QtGui import QImageReader
 
 from .files import FileOperations, file_kind
-from .i18n import tr
+from .i18n import Msg, tr
 
 
 def read_regular(path, limit):
@@ -17,7 +17,7 @@ def read_regular(path, limit):
     with os.fdopen(descriptor, "rb") as reader:
         information = os.fstat(reader.fileno())
         if not stat.S_ISREG(information.st_mode) or (information.st_dev, information.st_ino) != (before.st_dev, before.st_ino):
-            raise ValueError(tr("File changed; refresh before previewing."))
+            raise ValueError(tr(Msg.FILE_CHANGED_REFRESH_BEFORE_PREVIEWING))
         return reader.read(limit + 1)
 
 
@@ -32,7 +32,7 @@ def preview(path, name=None):
               + "\n" + datetime.fromtimestamp(information.st_mtime).strftime("%Y-%m-%d %H:%M")}
     if stat.S_ISLNK(information.st_mode):
         result["linkTarget"] = os.readlink(path)
-        result["body"] += "\n" + tr("Link target: {path}", path=result["linkTarget"])
+        result["body"] += "\n" + tr(Msg.LINK_TARGET_PATH, path=result["linkTarget"])
     elif stat.S_ISREG(information.st_mode) and kind == "text":
         data = read_regular(path, 65536)
         if b"\x00" not in data:

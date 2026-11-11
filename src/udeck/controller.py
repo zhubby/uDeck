@@ -16,7 +16,8 @@ from .file_controller import FileControls
 from .files import FileOperations, file_kind, validate_name
 from .home import home_shortcuts
 from .hotspot import hotspot_summary, validate_hotspot_name
-from .i18n import LANGUAGES, error_text, render, tr
+from .i18n import LANGUAGES, Msg, error_text, render, tr
+from .i18n import translate as translate_message
 from .key_test import KeyTestControls
 from .launch_controller import LaunchControls
 from .menu_icons import system_menu_icons
@@ -28,8 +29,8 @@ from .timezone import REGIONS, local_clock, region, zone_label, zone_summary
 from .wifi import wifi_indicators, wifi_label, wifi_status, wifi_summary
 from .wifi_controller import WifiControls
 
-CATEGORY_NAMES = {"All": tr('全部应用'), "Development": tr('开发'), "Network": tr('网络'), "System": tr('系统'),
-                  "Utility": tr('工具'), "Game": tr('游戏'), "Graphics": tr('图形'), "Office": tr('办公'), "AudioVideo": tr('影音'), "Other": tr('其他')}
+CATEGORY_NAMES = {"All": tr(Msg.ALL_APPS), "Development": tr(Msg.DEVELOPMENT), "Network": tr(Msg.NETWORK), "System": tr(Msg.SYSTEM),
+                  "Utility": tr(Msg.UTILITIES), "Game": tr(Msg.GAMES), "Graphics": tr(Msg.GRAPHICS), "Office": tr(Msg.OFFICE), "AudioVideo": tr(Msg.MULTIMEDIA), "Other": tr(Msg.OTHER)}
 
 
 class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControls, ShortcutControls, SoundFeedback):
@@ -99,15 +100,17 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         if mock:
             self.data["directory"] = "/home/demo"
             self._file_places_base = [{"id": name.lower(), "path": "/home/demo" + ("/" + name if name != "Home folder" else ""),
-                                      "name": tr(name), "icon": "folder"}
-                                     for name in ("Home folder", "Downloads", "Documents", "Music", "Videos", "Pictures")]
-            self._file_places_base.append({"id": "trash", "path": "trash:///", "name": tr("Trash"), "icon": "user-trash"})
+                                      "name": tr(key), "icon": "folder"}
+                                     for name, key in (("Home folder", Msg.HOME_FOLDER), ("Downloads", Msg.DOWNLOADS),
+                                                       ("Documents", Msg.DOCUMENTS), ("Music", Msg.MUSIC),
+                                                       ("Videos", Msg.VIDEOS), ("Pictures", Msg.PICTURES))]
+            self._file_places_base.append({"id": "trash", "path": "trash:///", "name": tr(Msg.TRASH), "icon": "user-trash"})
             self.data["files"] = [{"id": "/home/demo/" + name, "path": "/home/demo/" + name,
                                    "name": name, "directory": directory, "icon": "folder" if directory else "text-x-generic", "subtitle": subtitle}
-                                  for name, directory, subtitle in [("Documents", True, tr('文件夹')), ("Downloads", True, tr('文件夹')), ("Projects", True, tr('文件夹')), ("Pictures", True, tr('文件夹')), ("掌机使用笔记.md", False, "2.4 KiB"), ("README.txt", False, "1.2 KiB")]]
+                                  for name, directory, subtitle in [("Documents", True, tr(Msg.FOLDER)), ("Downloads", True, tr(Msg.FOLDER)), ("Projects", True, tr(Msg.FOLDER)), ("Pictures", True, tr(Msg.FOLDER)), ("掌机使用笔记.md", False, "2.4 KiB"), ("README.txt", False, "1.2 KiB")]]
             for entry in self.data["files"]:
                 entry["kind"], entry["mime"], entry["icon"] = file_kind(entry["name"], entry["directory"])
-            self.data["windows"] = [{"id": "terminal", "name": "zhubby@uconsole: ~", "appId": "terminal", "subtitle": tr('终端'), "icon": "utilities-terminal", "active": False}, {"id": "editor", "name": "uDeck — 代码编辑器", "appId": "code", "subtitle": "Visual Studio Code", "icon": "visual-studio-code", "active": False}]
+            self.data["windows"] = [{"id": "terminal", "name": "zhubby@uconsole: ~", "appId": "terminal", "subtitle": tr(Msg.TERMINAL), "icon": "utilities-terminal", "active": False}, {"id": "editor", "name": "uDeck — 代码编辑器", "appId": "code", "subtitle": "Visual Studio Code", "icon": "visual-studio-code", "active": False}]
         elif not defer_startup:
             self._browse(Path.home())
 
@@ -132,26 +135,26 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         wifi, bluetooth, battery = self.data["wifi"], self.data["bluetooth"], self.data["battery"]
         microphone = next((source for source in audio.get("inputs", []) if source["active"]), {})
         return system_menu_icons([
-            {"id": "volume", "name": tr('音量'), "subtitle": tr('静音') if audio.get("muted") else f"{round(audio.get('volume', 0) * 100)}%", "icon": "audio-volume-high", "value": audio.get("volume", 0), "disabled": not audio.get("available") or not audio.get("outputs")},
-            {"id": "brightness", "name": tr('屏幕亮度'), "subtitle": f"{round(brightness.get('value', 0) * 100)}%", "icon": "display-brightness", "value": brightness.get("value", 0), "disabled": not brightness.get("available")},
-            {"id": "output", "name": tr('音频输出'), "subtitle": next((output["name"] for output in audio.get("outputs", []) if output.get("active")), tr('未检测到音频输出')), "icon": "audio-card", "disabled": not audio.get("available")},
-            {"id": "microphone", "name": tr("Microphone input"), "subtitle": microphone.get("name", tr("No microphone detected")), "icon": "audio-input-microphone", "disabled": not audio.get("available")},
+            {"id": "volume", "name": tr(Msg.VOLUME), "subtitle": tr(Msg.MUTE) if audio.get("muted") else f"{round(audio.get('volume', 0) * 100)}%", "icon": "audio-volume-high", "value": audio.get("volume", 0), "disabled": not audio.get("available") or not audio.get("outputs")},
+            {"id": "brightness", "name": tr(Msg.SCREEN_BRIGHTNESS), "subtitle": f"{round(brightness.get('value', 0) * 100)}%", "icon": "display-brightness", "value": brightness.get("value", 0), "disabled": not brightness.get("available")},
+            {"id": "output", "name": tr(Msg.AUDIO_OUTPUT), "subtitle": next((output["name"] for output in audio.get("outputs", []) if output.get("active")), tr(Msg.NO_AUDIO_OUTPUT_DETECTED)), "icon": "audio-card", "disabled": not audio.get("available")},
+            {"id": "microphone", "name": tr(Msg.MICROPHONE_INPUT), "subtitle": microphone.get("name", tr(Msg.NO_MICROPHONE_DETECTED)), "icon": "audio-input-microphone", "disabled": not audio.get("available")},
             {"id": "wifi", "name": "Wi-Fi", "subtitle": wifi_summary(wifi), "icon": "network-wireless", "disabled": not wifi.get("available")},
-            {"id": "hotspot", "name": tr("Hotspot"), "subtitle": hotspot_summary(wifi), "icon": "network-wireless", "disabled": not wifi.get("available")},
-            {"id": "bluetooth", "name": tr('蓝牙'), "subtitle": tr('已开启') if bluetooth.get("powered") else tr('已关闭'), "icon": "bluetooth", "disabled": not bluetooth.get("available")},
-            {"id": "battery", "name": tr('电池'), "subtitle": battery_summary(battery), "icon": "battery"},
-            {"id": "input", "name": tr('按键与控制器'), "subtitle": tr('ABXY 已校准') if self.data["input"].get("verified") else (tr('ABXY 固件映射 · 可重新校准') if self.data["input"].get("mapped") else tr('校准物理 ABXY；不占用普通键盘字母')), "icon": "udeck-setting:controller"},
-            {"id": "key-test", "name": tr('Key test'), "subtitle": tr('Full keyboard, controls and trackball'), "icon": "udeck-setting:keyboard-fill"},
-            {"id": "shortcuts", "name": tr('Shortcut bindings'), "subtitle": tr('System actions and keyboard combinations'), "icon": "udeck-setting:command"},
-            {"id": "language", "name": tr('语言'), "subtitle": LANGUAGES[self.language], "icon": "preferences-desktop-locale"},
-            {"id": "theme", "name": tr('Theme'), "subtitle": THEMES[self.theme], "icon": "preferences-desktop-theme"},
-            {"id": "ui-sounds", "name": tr("Interface sounds"), "subtitle": tr("On") if self.config.data["preferences"]["uiSounds"] else tr("Off"), "checked": self.config.data["preferences"]["uiSounds"], "icon": "audio-volume-high"},
-            {"id": "timezone", "name": tr('Time zone'), "subtitle": zone_summary(self.data["timezone"]), "icon": "preferences-system-time"},
-            {"id": "lock", "name": tr('锁定屏幕'), "subtitle": tr('使用登录密码解锁'), "icon": "system-lock-screen"},
-            {"id": "blank", "name": tr('熄灭屏幕'), "subtitle": tr('按方向键或键盘恢复；不是系统休眠'), "icon": "video-display"},
-            {"id": "logout", "name": tr('注销会话'), "subtitle": tr('返回登录界面；请先保存工作'), "icon": "system-log-out"},
-            {"id": "reboot", "name": tr('重新启动'), "subtitle": tr('需要二次确认'), "icon": "system-reboot"},
-            {"id": "poweroff", "name": tr('关闭设备'), "subtitle": tr('需要二次确认'), "icon": "system-shutdown"},
+            {"id": "hotspot", "name": tr(Msg.HOTSPOT), "subtitle": hotspot_summary(wifi), "icon": "network-wireless", "disabled": not wifi.get("available")},
+            {"id": "bluetooth", "name": tr(Msg.BLUETOOTH), "subtitle": tr(Msg.ENABLED) if bluetooth.get("powered") else tr(Msg.DISABLED), "icon": "bluetooth", "disabled": not bluetooth.get("available")},
+            {"id": "battery", "name": tr(Msg.BATTERY), "subtitle": battery_summary(battery), "icon": "battery"},
+            {"id": "input", "name": tr(Msg.BUTTONS_AND_CONTROLLERS), "subtitle": tr(Msg.ABXY_CALIBRATED) if self.data["input"].get("verified") else (tr(Msg.ABXY_FIRMWARE_MAPPING_RECALIBRATE_AVAILABLE) if self.data["input"].get("mapped") else tr(Msg.CALIBRATE_PHYSICAL_ABXY_KEYBOARD_LETTERS_STAY_AVAILABLE)), "icon": "udeck-setting:controller"},
+            {"id": "key-test", "name": tr(Msg.KEY_TEST), "subtitle": tr(Msg.FULL_KEYBOARD_CONTROLS_AND_TRACKBALL), "icon": "udeck-setting:keyboard-fill"},
+            {"id": "shortcuts", "name": tr(Msg.SHORTCUT_BINDINGS), "subtitle": tr(Msg.SYSTEM_ACTIONS_AND_KEYBOARD_COMBINATIONS), "icon": "udeck-setting:command"},
+            {"id": "language", "name": tr(Msg.LANGUAGE), "subtitle": LANGUAGES[self.language], "icon": "preferences-desktop-locale"},
+            {"id": "theme", "name": tr(Msg.THEME), "subtitle": THEMES[self.theme], "icon": "preferences-desktop-theme"},
+            {"id": "ui-sounds", "name": tr(Msg.INTERFACE_SOUNDS), "subtitle": tr(Msg.ON) if self.config.data["preferences"]["uiSounds"] else tr(Msg.OFF), "checked": self.config.data["preferences"]["uiSounds"], "icon": "audio-volume-high"},
+            {"id": "timezone", "name": tr(Msg.TIME_ZONE), "subtitle": zone_summary(self.data["timezone"]), "icon": "preferences-system-time"},
+            {"id": "lock", "name": tr(Msg.LOCK_SCREEN), "subtitle": tr(Msg.UNLOCK_WITH_YOUR_LOGIN_PASSWORD), "icon": "system-lock-screen"},
+            {"id": "blank", "name": tr(Msg.TURN_OFF_DISPLAY), "subtitle": tr(Msg.PRESS_A_DIRECTION_OR_KEYBOARD_KEY_TO_WAKE_THE_SYSTEM_STAYS_AWAKE), "icon": "video-display"},
+            {"id": "logout", "name": tr(Msg.LOG_OUT), "subtitle": tr(Msg.RETURN_TO_LOGIN_SAVE_YOUR_WORK_FIRST), "icon": "system-log-out"},
+            {"id": "reboot", "name": tr(Msg.RESTART_SYSTEM), "subtitle": tr(Msg.CONFIRMATION_REQUIRED), "icon": "system-reboot"},
+            {"id": "poweroff", "name": tr(Msg.SHUT_DOWN), "subtitle": tr(Msg.CONFIRMATION_REQUIRED), "icon": "system-shutdown"},
         ], "settings")
 
     @Property(str, notify=changed)
@@ -181,8 +184,8 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         modal = {key: value for key, value in self.modal.items() if not compact or key not in ("items", "option")}
         if not compact and modal.get("secret"):
             modal["text"] = ""
-        titles = {"home": tr('从这里开始'), "apps": CATEGORY_NAMES[self.category], "windows": tr('正在运行'), "files": tr("Trash") if self.data["directory"] == "trash:///" else Path(self.data["directory"]).name or "/", "settings": tr('设备设置')}
-        descriptions = {"home": tr('Choose a destination with Left / Right'), "apps": tr('{value0} 个应用', value0=len(items)) + (tr(' · 搜索：{value0}', value0=self.query) if self.query else tr(' · X 筛选与操作')), "windows": tr('选择一个窗口，继续工作'), "files": self.data["directory"], "settings": tr('常用控制，直接完成')}
+        titles = {"home": tr(Msg.START_HERE), "apps": CATEGORY_NAMES[self.category], "windows": tr(Msg.RUNNING_APPS), "files": tr(Msg.TRASH) if self.data["directory"] == "trash:///" else Path(self.data["directory"]).name or "/", "settings": tr(Msg.DEVICE_SETTINGS)}
+        descriptions = {"home": tr(Msg.CHOOSE_A_DESTINATION_WITH_LEFT_RIGHT), "apps": tr(Msg.APPS_VALUE0, value0=len(items)) + (tr(Msg.SEARCH_VALUE0_SUFFIX, value0=self.query) if self.query else tr(Msg.X_FILTER_AND_ACTIONS_SUFFIX)), "windows": tr(Msg.SELECT_A_WINDOW_TO_CONTINUE), "files": self.data["directory"], "settings": tr(Msg.EVERYDAY_CONTROLS_WITHIN_REACH)}
         return json.dumps(render({
             **{key: value for key, value in self.data.items() if not compact or key != "files"},
             "mock": self.mock, "page": self.navigation.page,
@@ -199,19 +202,23 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             "busyLabel": self.busy_label, "favorites": self.config.data["favorites"],
             "clipboard": bool(self.clipboard), "pending": list(self.pending_system), "wifiSummary": wifi_summary(self.data["wifi"]),
             "wifiIndicators": wifi_indicators(self.data["wifi"]),
-            "homeShortcutHints": self._shortcut_hints('home', tr('主页')),
+            "homeShortcutHints": self._shortcut_hints('home', tr(Msg.HOME)),
         }, self.language), ensure_ascii=False)
 
+    @Property("QVariantMap", constant=True)
+    def messageKeys(self):
+        return {key.name: key.value for key in Msg}
+
     @Slot(str, str, result=str)
-    def translate(self, source, language):
-        return render(tr(source), self.language)
+    def translate(self, key, language):
+        return translate_message(key, self.language)
 
     def _language_options(self):
-        return [{"id": code, "label": name, "subtitle": tr('当前语言') if code == self.language else "",
+        return [{"id": code, "label": name, "subtitle": tr(Msg.CURRENT_LANGUAGE) if code == self.language else "",
                  "action": "language", "language": code} for code, name in LANGUAGES.items()]
 
     def _theme_options(self):
-        return [{"id": code, "label": name, "subtitle": tr("Current theme") if code == self.theme else "",
+        return [{"id": code, "label": name, "subtitle": tr(Msg.CURRENT_THEME) if code == self.theme else "",
                  "action": "theme", "theme": code} for code, name in THEMES.items()]
 
     @Slot(str, result=bool)
@@ -226,7 +233,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             self.config.save()
         except OSError as error:
             self.config.data["preferences"]["theme"] = previous
-            self.notify(tr("Could not save theme settings: {error}", error=error_text(error)))
+            self.notify(tr(Msg.COULD_NOT_SAVE_THEME_SETTINGS_ERROR, error=error_text(error)))
             return False
         self.theme = theme
         self._refresh_open_menu()
@@ -237,7 +244,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         controls = {"volume", "brightness", "output", "microphone", "wifi", "hotspot", "bluetooth", "battery", "input", "key-test", "language", "theme", "timezone", "ui-sounds"}
         return [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"],
                  "icon": entry["icon"], "checked": entry.get("checked"), "disabled": entry.get("disabled", False)} for entry in self._settings() if entry["id"] in controls] + [
-            {"label": tr('电源与会话'), "action": "power-menu"}, {"label": tr('运行中应用'), "action": "switcher"}]
+            {"label": tr(Msg.POWER_AND_SESSION), "action": "power-menu"}, {"label": tr(Msg.RUNNING_APPLICATIONS), "action": "switcher"}]
 
     @Slot(str, result=bool)
     def setLanguage(self, language):
@@ -264,7 +271,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             self.config.save()
         except OSError as error:
             self.config.data["preferences"]["language"] = previous
-            self.notify(tr('语言设置保存失败：{error}', error=error_text(error)))
+            self.notify(tr(Msg.COULD_NOT_SAVE_LANGUAGE_SETTINGS_ERROR, error=error_text(error)))
             return False
         self.language = language
         if not self.mock:
@@ -390,9 +397,9 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             modal["options"] = system_menu_icons(options, source)
             modal["index"] = next((index for index, option in enumerate(options) if option.get("id") == previous.get("id")), min(modal["index"], max(0, len(options) - 1)))
         if removed:
-            self.notify(tr('无线网卡已移除或暂不可用，请重新选择'))
+            self.notify(tr(Msg.THE_WI_FI_ADAPTER_WAS_REMOVED_OR_IS_UNAVAILABLE_SELECT_AN_ADAPTER_AGAIN))
         if removed_audio:
-            self.notify(tr('音频设备已移除'))
+            self.notify(tr(Msg.THE_AUDIO_DEVICE_WAS_REMOVED))
 
     @Slot(object)
     def _windows_changed(self, windows):
@@ -442,17 +449,17 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         if action == 'lock':
             self.inputSuspended.emit(False)
         if action == "wifi_update_password":
-            self.notify(tr("Password saved. It will be used the next time you join."))
+            self.notify(tr(Msg.PASSWORD_SAVED_IT_WILL_BE_USED_THE_NEXT_TIME_YOU_JOIN))
         elif action == "wifi_set_autoconnect":
-            self.notify(tr("Auto-join preference saved"))
+            self.notify(tr(Msg.AUTO_JOIN_PREFERENCE_SAVED))
         elif action == "wifi_forget":
-            self.notify(tr("Saved configuration forgotten"))
+            self.notify(tr(Msg.SAVED_CONFIGURATION_FORGOTTEN))
         elif action == "wifi_hotspot_configure":
-            self.notify(tr("Hotspot configuration saved. Turn it on when ready."))
+            self.notify(tr(Msg.HOTSPOT_CONFIGURATION_SAVED_TURN_IT_ON_WHEN_READY))
         elif action == "timezone_set":
-            self.notify(tr("Time zone updated") if not self.mock else tr("Preview time zone updated"))
+            self.notify(tr(Msg.TIME_ZONE_UPDATED) if not self.mock else tr(Msg.PREVIEW_TIME_ZONE_UPDATED))
         elif action not in ("refresh", "bluetooth_stop", "wifi_connect", "wifi_connect_saved", "wifi_reconnect", "wifi_scan", "wifi_cancel_connect", "wifi_hotspot_start", "wifi_hotspot_stop"):
-            self.notify(tr('预览操作已模拟，未操作真实设备') if self.mock else tr('请求已处理；连接结果以设备状态为准'))
+            self.notify(tr(Msg.PREVIEW_ACTION_SIMULATED_NO_HARDWARE_CHANGES) if self.mock else tr(Msg.REQUEST_PROCESSED_CHECK_THE_DEVICE_STATUS_FOR_THE_CONNECTION_RESULT))
         self._publish()
 
     def notify(self, message):
@@ -527,15 +534,15 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         if action == 'console':
             if not any(modal.get('source') == 'console' for modal in self._modals):
                 self._cancel_modals()
-                self._menu(tr('控制台'), [
+                self._menu(tr(Msg.CONTROL_PANEL), [
                     {'id': command, 'label': label, 'action': 'console-control', 'command': command}
                     for command, label in (
-                        ('home', tr('回到主界面')), ('switcher', tr('运行中')), ('settings', tr('设置')),
-                        ('poweroff', tr('关机')), ('reboot', tr('重启')),
+                        ('home', tr(Msg.BACK_TO_HOME)), ('switcher', tr(Msg.RUNNING)), ('settings', tr(Msg.SETTINGS)),
+                        ('poweroff', tr(Msg.POWER_OFF)), ('reboot', tr(Msg.REBOOT)),
                     )
-                ], source='console', body=tr('{shortcut} opens console · Esc / B returns to the application',
+                ], source='console', body=tr(Msg.SHORTCUT_OPENS_CONSOLE_ESC_B_RETURNS_TO_THE_APPLICATION,
                      shortcut=binding_label(self.shortcut_store.bindings()['console'])
-                         if self.shortcut_store else tr('Unbound')))
+                         if self.shortcut_store else tr(Msg.UNBOUND)))
             self.present.emit()
             return
         if self.modal.get("kind") == "key-test":
@@ -568,7 +575,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         if action == "quick-settings":
             if self.modal.get("source") == "quick-settings":
                 return
-            self._menu(tr('快捷设置'), self._quick_options(), source="quick-settings")
+            self._menu(tr(Msg.QUICK_SETTINGS), self._quick_options(), source="quick-settings")
             self.present.emit()
             return
         if self.modal:
@@ -601,14 +608,14 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         elif action == "context":
             self._context(items[min(self.navigation.index, len(items) - 1)] if items else None)
         elif action == "search":
-            self._text_prompt(tr('搜索应用'), tr('输入应用名称，按 A 或 Enter 搜索'), "search", self.query)
+            self._text_prompt(tr(Msg.SEARCH_APPS), tr(Msg.ENTER_AN_APP_NAME_THEN_PRESS_A_OR_ENTER_TO_SEARCH), "search", self.query)
         self._publish()
 
     def _activate(self, item):
         if item.get("disabled"):
             self.feedback("error")
             component = self.data.get(item["id"], {})
-            self.notify(item.get("reason") or component.get("error", tr('此功能当前不可用')))
+            self.notify(item.get("reason") or component.get("error", tr(Msg.THIS_FEATURE_IS_CURRENTLY_UNAVAILABLE)))
         elif self.navigation.page == "home" and item.get("homeKind") == "settings":
             self.setPage("settings")
         elif self.navigation.page in ("home", "apps"):
@@ -620,7 +627,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                 except RuntimeError as error:
                     self.notify(error)
             else:
-                self.notify(tr('预览：切换到 ') + item["name"])
+                self.notify(tr(Msg.PREVIEW_SWITCH_TO_PREFIX) + item["name"])
         elif self.navigation.page == "files":
             self._activate_file(item)
         elif self.navigation.page == "settings":
@@ -632,20 +639,20 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     def _context(self, item):
         page = self.navigation.page
         if page == "home" and item:
-            self._menu(item["name"], [{"label": tr('打开'), "action": "open-home", "item": item,
+            self._menu(item["name"], [{"label": tr(Msg.OPEN), "action": "open-home", "item": item,
                                       "disabled": item.get("disabled", False), "reason": item.get("reason", "")}])
         elif page == "apps":
             options = []
             if item:
-                options.extend([{"label": tr('打开应用'), "action": "launch", "item": item}, {"label": tr('取消收藏') if item["id"] in self.config.data["favorites"] else tr('加入收藏'), "action": "favorite", "id": item["id"]}])
-            options.extend([{"label": tr('搜索应用'), "action": "search"}, {"label": tr('应用分类'), "action": "categories"}, {"label": tr('清除搜索与筛选'), "action": "clear-search"}])
-            self._menu(item["name"] if item else tr('应用操作'), options)
+                options.extend([{"label": tr(Msg.OPEN_APP), "action": "launch", "item": item}, {"label": tr(Msg.REMOVE_FROM_FAVORITES) if item["id"] in self.config.data["favorites"] else tr(Msg.ADD_TO_FAVORITES), "action": "favorite", "id": item["id"]}])
+            options.extend([{"label": tr(Msg.SEARCH_APPS), "action": "search"}, {"label": tr(Msg.APP_CATEGORIES), "action": "categories"}, {"label": tr(Msg.CLEAR_SEARCH_AND_FILTERS), "action": "clear-search"}])
+            self._menu(item["name"] if item else tr(Msg.APP_ACTIONS), options)
         elif page == "files":
             self._file_context(item)
         elif page == "windows" and item:
-            self._menu(item["name"], [{"label": tr('切换到窗口'), "action": "activate-window", "item": item}, {"label": tr('请求关闭窗口'), "action": "close-window", "item": item}])
+            self._menu(item["name"], [{"label": tr(Msg.SWITCH_TO_WINDOW), "action": "activate-window", "item": item}, {"label": tr(Msg.REQUEST_WINDOW_CLOSE), "action": "close-window", "item": item}])
         else:
-            self._menu(tr('设备操作'), [{"label": tr('刷新设备状态'), "action": "system", "systemAction": "refresh"}, {"label": tr('校准 ABXY'), "action": "setting", "id": "input"}])
+            self._menu(tr(Msg.DEVICE_ACTIONS), [{"label": tr(Msg.REFRESH_DEVICE_STATUS), "action": "system", "systemAction": "refresh"}, {"label": tr(Msg.CALIBRATE_ABXY), "action": "setting", "id": "input"}])
 
     @Slot(str)
     @interaction
@@ -660,7 +667,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             except OSError:
                 self.config.data["preferences"]["uiSounds"] = previous
                 self.feedback("error")
-                self.notify(tr("Could not save interface sound settings"))
+                self.notify(tr(Msg.COULD_NOT_SAVE_INTERFACE_SOUND_SETTINGS))
                 return
             self.feedback("toggle-off" if previous else "toggle-on")
             self._refresh_open_menu()
@@ -669,66 +676,66 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         elif identifier == "timezone":
             options = self._timezone_options()
             current_region = region(self.data["timezone"].get("current", ""))
-            self._menu(tr("Time zone"), options, source="timezone-areas", body=self._timezone_body(),
+            self._menu(tr(Msg.TIME_ZONE), options, source="timezone-areas", body=self._timezone_body(),
                        index=next((i for i, option in enumerate(options) if option["id"] == current_region), 0))
         elif identifier == "language":
-            self._menu(tr('界面语言'), self._language_options(), source="language",
+            self._menu(tr(Msg.INTERFACE_LANGUAGE), self._language_options(), source="language",
                        index=list(LANGUAGES).index(self.language))
         elif identifier == "theme":
-            self._menu(tr('Interface theme'), self._theme_options(), source="theme",
+            self._menu(tr(Msg.INTERFACE_THEME), self._theme_options(), source="theme",
                        index=list(THEMES).index(self.theme))
         elif identifier == "volume":
-            self._menu(tr('音量'), self._volume_options(), source="volume")
+            self._menu(tr(Msg.VOLUME), self._volume_options(), source="volume")
         elif identifier in ("volume-level", "brightness"):
             component = "audio" if identifier == "volume-level" else "brightness"
             if not self.data[component].get("available"):
-                self.notify(self.data[component].get("error", tr('设备不可用')))
+                self.notify(self.data[component].get("error", tr(Msg.DEVICE_UNAVAILABLE)))
                 return
             value = self.data[component].get("volume" if identifier == "volume-level" else "value", 0)
             payload = {}
             if identifier == "volume-level":
                 output = next((output for output in self.data["audio"].get("outputs", []) if output["active"]), None)
                 if output is None:
-                    self.notify(tr('音频设备已移除'))
+                    self.notify(tr(Msg.THE_AUDIO_DEVICE_WAS_REMOVED))
                     return
                 payload["id"] = output["id"]
-            self._push({"kind": "slider", "title": tr('音量') if identifier == "volume-level" else tr('屏幕亮度'), "action": "volume" if identifier == "volume-level" else identifier, "value": value, "payload": payload, "body": tr('左右调节 · A 应用 · B 取消')})
+            self._push({"kind": "slider", "title": tr(Msg.VOLUME) if identifier == "volume-level" else tr(Msg.SCREEN_BRIGHTNESS), "action": "volume" if identifier == "volume-level" else identifier, "value": value, "payload": payload, "body": tr(Msg.LEFT_RIGHT_ADJUST_A_APPLY_B_CANCEL)})
         elif identifier == "output":
-            self._menu(tr('音频输出'), self._audio_endpoint_options(), source="audio-output")
+            self._menu(tr(Msg.AUDIO_OUTPUT), self._audio_endpoint_options(), source="audio-output")
         elif identifier == "microphone":
-            self._menu(tr("Microphone input"), self._audio_endpoint_options(True), source="audio-input")
+            self._menu(tr(Msg.MICROPHONE_INPUT), self._audio_endpoint_options(True), source="audio-input")
         elif identifier == "microphone-level":
             source = next((source for source in self.data["audio"].get("inputs", []) if source["active"]), None)
             if source is None or source.get("volume") is None:
-                self.notify(tr("No microphone detected"))
+                self.notify(tr(Msg.NO_MICROPHONE_DETECTED))
                 return
-            self._push({"kind": "slider", "title": tr("Input volume"), "action": "audio_input_volume",
+            self._push({"kind": "slider", "title": tr(Msg.INPUT_VOLUME), "action": "audio_input_volume",
                         "value": source["volume"], "payload": {"id": source["id"]}, "audioInputId": source["id"],
-                        "body": source["name"] + "\n" + tr('左右调节 · A 应用 · B 取消')})
+                        "body": source["name"] + "\n" + tr(Msg.LEFT_RIGHT_ADJUST_A_APPLY_B_CANCEL)})
         elif identifier == "audio-modes":
-            self._menu(tr("Bluetooth audio modes"), self._audio_card_options(), source="audio-cards")
+            self._menu(tr(Msg.BLUETOOTH_AUDIO_MODES), self._audio_card_options(), source="audio-cards")
         elif identifier == "wifi":
-            self._menu(tr('Wi-Fi 网卡'), self._wifi_options(), source="wifi", body=wifi_summary(self.data["wifi"]),
+            self._menu(tr(Msg.WI_FI_ADAPTERS), self._wifi_options(), source="wifi", body=wifi_summary(self.data["wifi"]),
                        index=1 if self.data["wifi"].get("devices") else 0)
         elif identifier == "hotspot":
-            self._menu(tr("Hotspot adapters"), self._hotspot_options(), source="hotspot", body=hotspot_summary(self.data["wifi"]))
+            self._menu(tr(Msg.HOTSPOT_ADAPTERS), self._hotspot_options(), source="hotspot", body=hotspot_summary(self.data["wifi"]))
         elif identifier == "bluetooth":
-            self._menu(tr('蓝牙'), self._bluetooth_options(), source="bluetooth")
+            self._menu(tr(Msg.BLUETOOTH), self._bluetooth_options(), source="bluetooth")
         elif identifier in ("poweroff", "reboot", "logout"):
-            title = {"poweroff": tr('关闭设备？'), "reboot": tr('重新启动？'), "logout": tr('注销当前会话？')}[identifier]
-            self._confirm(title, tr('这会关闭当前工作会话并可能中断 SSH。请确认工作已保存。'), {"action": "system", "systemAction": identifier})
+            title = {"poweroff": tr(Msg.SHUT_DOWN_PROMPT), "reboot": tr(Msg.RESTART_SYSTEM_PROMPT), "logout": tr(Msg.LOG_OUT_OF_THIS_SESSION_PROMPT)}[identifier]
+            self._confirm(title, tr(Msg.THIS_CLOSES_THE_CURRENT_WORK_SESSION_AND_MAY_INTERRUPT_SSH_SAVE_YOUR_WORK_FIRST), {"action": "system", "systemAction": identifier})
         elif identifier in ("lock", "blank"):
             self._system(identifier)
         elif identifier == "battery":
-            self._push({"kind": "information", "title": tr('电池与电源'), "source": "battery",
+            self._push({"kind": "information", "title": tr(Msg.BATTERY_AND_POWER), "source": "battery",
                         **battery_details(self.data["battery"])})
         elif identifier == "input":
             if self.mock:
-                self._push({"kind": "information", "title": tr('物理按键校准'), "body": tr('请在 uConsole 实机上逐个按下 A、B、X、Y。预览不会将键盘字母当作手柄。')})
+                self._push({"kind": "information", "title": tr(Msg.PHYSICAL_BUTTON_CALIBRATION), "body": tr(Msg.PHYSICAL_ABXY_CALIBRATION_INSTRUCTIONS)})
             elif self.data["input"].get("available"):
                 self.calibrationRequested.emit()
             else:
-                self._push({"kind": "information", "title": tr('未检测到独立手柄'), "body": self.data["input"].get("message", tr('请检查手柄模式。若 ABXY 上报 j/k/u/i 字母，请切换设备原有手柄模式；不需要刷写固件。'))})
+                self._push({"kind": "information", "title": tr(Msg.NO_SEPARATE_GAMEPAD_DETECTED), "body": self.data["input"].get("message", tr(Msg.CHECK_ABXY_GAMEPAD_MODE_INSTRUCTIONS))})
         self._publish()
 
     @Slot(result=str)
@@ -738,33 +745,33 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     def _timezone_body(self):
         state = self.data["timezone"]
         if "timezone_set" in self.pending_system:
-            return tr("Changing time zone…")
-        return state.get("error") or tr("Current time zone: {zone}", zone=zone_summary(state))
+            return tr(Msg.CHANGING_TIME_ZONE)
+        return state.get("error") or tr(Msg.CURRENT_TIME_ZONE_ZONE, zone=zone_summary(state))
 
     def _timezone_options(self, area=None):
         state = self.data["timezone"]
         zones = sorted(set(state.get("zones", [])))
         if area is None:
             options = [{"id": value, "label": REGIONS.get(value, value), "action": "timezone-region", "region": value,
-                        "subtitle": tr("Current region") if value == region(state.get("current", "")) else ""}
+                        "subtitle": tr(Msg.CURRENT_REGION) if value == region(state.get("current", "")) else ""}
                        for value in sorted({region(zone) for zone in zones})]
         else:
             options = [{"id": zone, "label": zone_label(zone.split("/", 1)[-1] if area != "Other" else zone),
-                        "subtitle": tr("Current time zone") if zone == state.get("current") else zone,
+                        "subtitle": tr(Msg.CURRENT_TIME_ZONE) if zone == state.get("current") else zone,
                         "action": "timezone-set", "timezone": zone,
                         "disabled": not state.get("available") or "timezone_set" in self.pending_system,
-                        "reason": state.get("error", tr("This request is being processed"))}
+                        "reason": state.get("error", tr(Msg.THIS_REQUEST_IS_BEING_PROCESSED))}
                        for zone in zones if region(zone) == area]
-        return options or [{"id": "unavailable", "label": tr("Time zone service unavailable"),
-                            "subtitle": state.get("error", tr("Not available")), "disabled": True}]
+        return options or [{"id": "unavailable", "label": tr(Msg.TIME_ZONE_SERVICE_UNAVAILABLE),
+                            "subtitle": state.get("error", tr(Msg.NOT_AVAILABLE)), "disabled": True}]
 
     def _volume_options(self):
         audio = self.data["audio"]
         disabled = not audio.get("available") or not audio.get("outputs")
         return [
-            {"id": "volume-level", "label": tr('调整音量'), "subtitle": f"{round(audio.get('volume', 0) * 100)}%",
+            {"id": "volume-level", "label": tr(Msg.ADJUST_VOLUME), "subtitle": f"{round(audio.get('volume', 0) * 100)}%",
              "action": "setting", "disabled": disabled},
-            {"id": "mute", "label": tr('静音'), "checked": bool(audio.get("muted")), "pendingAction": "mute",
+            {"id": "mute", "label": tr(Msg.MUTE), "checked": bool(audio.get("muted")), "pendingAction": "mute",
              "action": "system", "systemAction": "mute", "disabled": disabled},
         ]
 
@@ -775,27 +782,27 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         active = next((entry for entry in entries if entry["active"]), None)
         if inputs and active:
             options += [
-                {"id": "input-level", "label": tr("Input volume"),
-                 "subtitle": f"{round(active['volume'] * 100)}%" if active.get("volume") is not None else tr("Not available"),
+                {"id": "input-level", "label": tr(Msg.INPUT_VOLUME),
+                 "subtitle": f"{round(active['volume'] * 100)}%" if active.get("volume") is not None else tr(Msg.NOT_AVAILABLE),
                  "action": "setting", "idSetting": "microphone-level", "disabled": active.get("volume") is None},
-                {"id": "input-mute", "label": tr("Mute microphone"), "checked": bool(active.get("muted")),
+                {"id": "input-mute", "label": tr(Msg.MUTE_MICROPHONE), "checked": bool(active.get("muted")),
                  "pendingAction": "audio_input_mute",
                  "action": "system", "systemAction": "audio_input_mute", "payload": {"id": active["id"]}},
             ]
         for entry in entries:
-            subtitle = tr("Bluetooth") if entry.get("bluetooth") else ""
+            subtitle = tr(Msg.BLUETOOTH) if entry.get("bluetooth") else ""
             if entry["active"]:
-                current = tr("Current input") if inputs else tr('当前输出')
+                current = tr(Msg.CURRENT_INPUT) if inputs else tr(Msg.CURRENT_OUTPUT)
                 subtitle = current + (" · " + subtitle if subtitle else "")
             options.append({"id": entry["id"], "label": entry["name"], "subtitle": subtitle,
                             "action": "system", "systemAction": "audio_input" if inputs else "audio_output",
                             "payload": {"id": entry["id"]}})
         if not entries:
-            options.append({"id": "empty", "label": audio.get("inputError" if inputs else "outputError") or (tr("No microphone detected") if inputs else tr('未检测到音频输出')),
+            options.append({"id": "empty", "label": audio.get("inputError" if inputs else "outputError") or (tr(Msg.NO_MICROPHONE_DETECTED) if inputs else tr(Msg.NO_AUDIO_OUTPUT_DETECTED)),
                             "action": "none", "disabled": True})
         if audio.get("cards") or audio.get("cardError"):
-            options.append({"id": "audio-modes", "label": tr("Bluetooth audio modes"), "action": "setting"})
-        options.append({"id": "bluetooth", "label": tr("Bluetooth devices"), "action": "setting",
+            options.append({"id": "audio-modes", "label": tr(Msg.BLUETOOTH_AUDIO_MODES), "action": "setting"})
+        options.append({"id": "bluetooth", "label": tr(Msg.BLUETOOTH_DEVICES), "action": "setting",
                         "disabled": not self.data["bluetooth"].get("available")})
         return options
 
@@ -803,31 +810,31 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         return [{"id": card["id"], "label": card["name"],
                  "subtitle": next((profile["name"] for profile in card["profiles"] if profile["active"]), ""),
                  "action": "audio-card", "cardId": card["id"]} for card in self.data["audio"].get("cards", [])] or [
-                     {"id": "empty", "label": self.data["audio"].get("cardError") or tr("No connected Bluetooth audio device"),
+                     {"id": "empty", "label": self.data["audio"].get("cardError") or tr(Msg.NO_CONNECTED_BLUETOOTH_AUDIO_DEVICE),
                       "action": "none", "disabled": True}]
 
     def _audio_profile_options(self, card):
-        return [{"id": profile["id"], "label": tr("Call mode") if profile["microphone"] else tr("Playback mode"),
-                 "subtitle": (tr("Current mode") + " · " if profile["active"] else "") + profile["name"],
+        return [{"id": profile["id"], "label": tr(Msg.CALL_MODE) if profile["microphone"] else tr(Msg.PLAYBACK_MODE),
+                 "subtitle": (tr(Msg.CURRENT_MODE) + " · " if profile["active"] else "") + profile["name"],
                  "action": "audio-profile", "cardId": card["id"], "profile": profile,
-                 "disabled": not profile["available"], "reason": tr("Bluetooth audio mode is unavailable")}
+                 "disabled": not profile["available"], "reason": tr(Msg.BLUETOOTH_AUDIO_MODE_IS_UNAVAILABLE)}
                 for profile in card["profiles"]] or [
-                    {"id": "empty", "label": tr("Bluetooth audio mode is unavailable"), "action": "none", "disabled": True}]
+                    {"id": "empty", "label": tr(Msg.BLUETOOTH_AUDIO_MODE_IS_UNAVAILABLE), "action": "none", "disabled": True}]
 
     def _bluetooth_options(self):
         information = self.data["bluetooth"]
         if not information.get("available"):
-            return [{"label": information.get("error", tr('蓝牙适配器不可用')), "action": "none", "disabled": True}]
+            return [{"label": information.get("error", tr(Msg.BLUETOOTH_ADAPTER_UNAVAILABLE)), "action": "none", "disabled": True}]
         options = [
-            {"id": "power", "label": tr("Bluetooth"), "checked": bool(information["powered"]),
+            {"id": "power", "label": tr(Msg.BLUETOOTH), "checked": bool(information["powered"]),
              "pendingAction": "bluetooth_power", "action": "system", "systemAction": "bluetooth_power",
              "payload": {"enabled": not information["powered"]}},
-            {"id": "scan", "label": tr('发现附近设备（30 秒）'), "checked": bool(information.get("discovering")),
+            {"id": "scan", "label": tr(Msg.DISCOVER_NEARBY_DEVICES_30_SECONDS), "checked": bool(information.get("discovering")),
              "pendingAction": "bluetooth_stop" if information.get("discovering") else "bluetooth_scan",
              "action": "system", "systemAction": "bluetooth_stop" if information.get("discovering") else "bluetooth_scan",
              "disabled": not information["powered"]},
         ]
-        options += [{"id": device["id"], "label": device["name"], "subtitle": tr('已连接') if device["connected"] else tr('已配对 · 未连接') if device["paired"] else tr('未配对'), "action": "device", "device": device} for device in information.get("devices", [])]
+        options += [{"id": device["id"], "label": device["name"], "subtitle": tr(Msg.CONNECTED) if device["connected"] else tr(Msg.PAIRED_DISCONNECTED) if device["paired"] else tr(Msg.NOT_PAIRED), "action": "device", "device": device} for device in information.get("devices", [])]
         return options
 
     def _push(self, modal):
@@ -899,7 +906,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                 option = options[min(modal["index"], len(options) - 1)]
                 if option.get("disabled"):
                     self.feedback("error")
-                    self.notify(option.get("reason") or tr('此项目当前不可用'))
+                    self.notify(option.get("reason") or tr(Msg.THIS_ITEM_IS_CURRENTLY_UNAVAILABLE))
                     return
                 keep_parent = modal.get('source') in ('console', 'shortcuts', 'shortcuts-group', 'shortcut-action') or (modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot", "shortcuts"))
                 if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "hotspot", "hotspot-device", "bluetooth", "volume", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
@@ -983,7 +990,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             self._apply_option(option)
         except (OSError, ValueError, KeyError, RuntimeError) as error:
             self.feedback("error")
-            self.notify(tr('操作失败：{value0}', value0=error))
+            self.notify(tr(Msg.OPERATION_FAILED_VALUE0, value0=error))
 
     def _apply_option(self, option):
         action = option["action"]
@@ -1005,9 +1012,9 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         elif action == "timezone-set":
             state = self.data["timezone"]
             if not state.get("available"):
-                raise RuntimeError(state.get("error", tr("Time zone service unavailable")))
+                raise RuntimeError(state.get("error", tr(Msg.TIME_ZONE_SERVICE_UNAVAILABLE)))
             if option["timezone"] not in state.get("zones", []):
-                raise ValueError(tr("Invalid time zone"))
+                raise ValueError(tr(Msg.INVALID_TIME_ZONE))
             if option["timezone"] != state.get("current"):
                 self._system("timezone_set", {"timezone": option["timezone"]})
         elif action == "application-control":
@@ -1019,17 +1026,17 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         elif action == "audio-card":
             card = next((card for card in self.data["audio"].get("cards", []) if card["id"] == option["cardId"]), None)
             if card is None:
-                raise ValueError(tr('音频设备已移除'))
+                raise ValueError(tr(Msg.THE_AUDIO_DEVICE_WAS_REMOVED))
             self._menu(card["name"], self._audio_profile_options(card), source="audio-profiles", cardId=card["id"],
-                       body=tr("Call mode enables the microphone and may reduce playback quality."))
+                       body=tr(Msg.CALL_MODE_ENABLES_THE_MICROPHONE_AND_MAY_REDUCE_PLAYBACK_QUALITY))
         elif action == "audio-profile":
             if option["profile"]["active"]:
                 return
-            self._confirm(tr("Switch Bluetooth audio mode?"), tr("This may briefly interrupt audio. Call mode enables the microphone and may reduce playback quality."),
+            self._confirm(tr(Msg.SWITCH_BLUETOOTH_AUDIO_MODE_PROMPT), tr(Msg.AUDIO_PROFILE_CHANGE_INSTRUCTIONS),
                           {"action": "system", "systemAction": "audio_profile", "payload": {"id": option["cardId"], "profile": option["profile"]["id"]}},
                           cardId=option["cardId"])
         elif action == "power-menu":
-            self._menu(tr('电源与会话'), [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"]} for entry in self._settings() if entry["id"] in ("lock", "blank", "logout", "reboot", "poweroff")])
+            self._menu(tr(Msg.POWER_AND_SESSION), [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"]} for entry in self._settings() if entry["id"] in ("lock", "blank", "logout", "reboot", "poweroff")])
         elif action == "system":
             self._system(option["systemAction"], option.get("payload", {}))
         elif action == "launch":
@@ -1041,7 +1048,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             self.dispatch("search")
         elif action == "categories":
             categories = {application["category"] for application in self.applications}
-            self._menu(tr('应用分类'), [{"label": label, "action": "category", "id": identifier} for identifier, label in CATEGORY_NAMES.items() if identifier == "All" or identifier in categories])
+            self._menu(tr(Msg.APP_CATEGORIES), [{"label": label, "action": "category", "id": identifier} for identifier, label in CATEGORY_NAMES.items() if identifier == "All" or identifier in categories])
         elif action == "category":
             self.category = option["id"]
             self.config.data["preferences"]["category"] = self.category
@@ -1057,14 +1064,14 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             self._activate_file(item)
         elif action == "open-terminal":
             if self.mock:
-                self.notify(tr('预览：在此打开终端'))
+                self.notify(tr(Msg.PREVIEW_OPEN_TERMINAL_HERE))
             else:
-                self._run(tr('打开终端'), lambda: open_terminal(option["directory"]))
+                self._run(tr(Msg.OPEN_TERMINAL), lambda: open_terminal(option["directory"]))
         elif action in ("mkdir", "rename"):
-            self._text_prompt(tr('新建文件夹') if action == "mkdir" else tr('重命名'), tr('输入名称，按 A 或 Enter 确认'), action, "" if action == "mkdir" else item["name"], item=item, directory=self.data["directory"])
+            self._text_prompt(tr(Msg.NEW_FOLDER) if action == "mkdir" else tr(Msg.RENAME), tr(Msg.ENTER_A_NAME_THEN_PRESS_A_OR_ENTER_TO_CONFIRM), action, "" if action == "mkdir" else item["name"], item=item, directory=self.data["directory"])
         elif action in ("copy", "cut"):
             self.clipboard = {"path": item["path"], "move": action == "cut"}
-            self.notify(tr('已剪切，选择目标目录后粘贴') if action == "cut" else tr('已复制，选择目标目录后粘贴'))
+            self.notify(tr(Msg.CUT_CHOOSE_A_DESTINATION_FOLDER_AND_PASTE) if action == "cut" else tr(Msg.COPIED_CHOOSE_A_DESTINATION_FOLDER_AND_PASTE))
         elif action in ("paste", "overwrite"):
             self._paste(replace=action == "overwrite")
         elif action == "hidden":
@@ -1076,12 +1083,12 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         elif action in ("parent", "refresh-files"):
             self._browse(Path(self.data["directory"]).parent if action == "parent" else self.data["directory"])
         elif action == "trash":
-            self._confirm(tr('移入回收站？'), item["name"] + tr('\n不会执行永久删除。'), {"action": "trash-confirm", "item": item})
+            self._confirm(tr(Msg.MOVE_TO_TRASH_PROMPT), item["name"] + tr(Msg.THIS_DOES_NOT_PERMANENTLY_DELETE_THE_ITEM_NOTICE), {"action": "trash-confirm", "item": item})
         elif action == "trash-confirm":
             if self.mock:
                 self.data["files"] = [entry for entry in self.data["files"] if entry["id"] != item["id"]]
             else:
-                self._run(tr('移入回收站'), lambda: self.operations.trash(item["path"]), lambda result: self._browse(self.data["directory"]))
+                self._run(tr(Msg.MOVE_TO_TRASH), lambda: self.operations.trash(item["path"]), lambda result: self._browse(self.data["directory"]))
         elif action.startswith("hotspot-"):
             self._apply_hotspot_option(option)
         elif action.startswith("wifi-"):
@@ -1090,18 +1097,18 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             device = option["device"]
             options = []
             if not device["paired"]:
-                options.append({"label": tr('配对并信任此设备'), "action": "device-pair", "device": device})
+                options.append({"label": tr(Msg.PAIR_AND_TRUST_THIS_DEVICE), "action": "device-pair", "device": device})
             else:
-                options.append({"label": tr('断开连接') if device["connected"] else tr('连接设备'), "action": "system", "systemAction": "bluetooth_disconnect" if device["connected"] else "bluetooth_connect", "payload": {"id": device["id"]}})
-                options.append({"label": tr('移除配对'), "action": "device-remove", "device": device})
+                options.append({"label": tr(Msg.DISCONNECT) if device["connected"] else tr(Msg.CONNECT_DEVICE), "action": "system", "systemAction": "bluetooth_disconnect" if device["connected"] else "bluetooth_connect", "payload": {"id": device["id"]}})
+                options.append({"label": tr(Msg.REMOVE_PAIRING), "action": "device-remove", "device": device})
             self._menu(device["name"], options)
         elif action in ("device-pair", "device-remove"):
             device = option["device"]
-            self._confirm(tr('配对并信任？') if action == "device-pair" else tr('移除蓝牙设备？'), device["name"], {"action": "system", "systemAction": "bluetooth_pair" if action == "device-pair" else "bluetooth_remove", "payload": {"id": device["id"]}})
+            self._confirm(tr(Msg.PAIR_AND_TRUST_PROMPT) if action == "device-pair" else tr(Msg.REMOVE_BLUETOOTH_DEVICE_PROMPT), device["name"], {"action": "system", "systemAction": "bluetooth_pair" if action == "device-pair" else "bluetooth_remove", "payload": {"id": device["id"]}})
         elif action == "activate-window":
             self._activate(item)
         elif action == "close-window":
-            self._confirm(tr('请求关闭窗口？'), item["name"] + tr('\n应用可能要求保存工作；不会强制结束进程。'), {"action": "window-close-confirm", "item": item})
+            self._confirm(tr(Msg.REQUEST_WINDOW_CLOSE_PROMPT), item["name"] + tr(Msg.THE_APP_MAY_ASK_YOU_TO_SAVE_YOUR_WORK_IT_WILL_NOT_BE_FORCIBLY_TERMINATED_NOTICE), {"action": "window-close-confirm", "item": item})
         elif action == "window-close-confirm":
             if self.mock:
                 self.data["windows"] = [entry for entry in self.data["windows"] if entry["id"] != item["id"]]
@@ -1131,7 +1138,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             name = validate_name(text)
             if modal["purpose"] == "mkdir":
                 identifier = str(Path(modal["directory"]) / name)
-                self._file_entries = [*self._file_entries, {"id": identifier, "path": identifier, "name": name, "directory": True, "subtitle": tr('预览文件夹'), "icon": "folder"}]
+                self._file_entries = [*self._file_entries, {"id": identifier, "path": identifier, "name": name, "directory": True, "subtitle": tr(Msg.PREVIEW_FOLDER), "icon": "folder"}]
                 self._file_apply_query(identifier)
             elif modal["purpose"] == "rename":
                 identifier = str(Path(modal["item"]["path"]).with_name(name))
@@ -1145,9 +1152,9 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                 self._file_apply_query(identifier)
             self._publish()
         elif modal["purpose"] == "mkdir":
-            self._run(tr('创建文件夹'), lambda: self.operations.mkdir(modal["directory"], text), lambda result: self._browse(modal["directory"], str(result)))
+            self._run(tr(Msg.CREATE_FOLDER), lambda: self.operations.mkdir(modal["directory"], text), lambda result: self._browse(modal["directory"], str(result)))
         elif modal["purpose"] == "rename":
-            self._run(tr('重命名'), lambda: self.operations.rename(modal["item"]["path"], text), lambda result: self._browse(modal["directory"], str(result)))
+            self._run(tr(Msg.RENAME), lambda: self.operations.rename(modal["item"]["path"], text), lambda result: self._browse(modal["directory"], str(result)))
 
     def _browse(self, directory, select_path=None):
         self._browse_files(directory, select_path)
@@ -1157,7 +1164,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
 
     def _run(self, label, work, success=None, *, report_success=True):
         if self.busy:
-            self.notify(tr('请等待当前文件操作完成'))
+            self.notify(tr(Msg.WAIT_FOR_THE_CURRENT_FILE_OPERATION_TO_FINISH))
             return
         self.busy, self.busy_label = True, label
         audible = bool(self._feedback_depth)
@@ -1182,14 +1189,14 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                 self.soundRequested.emit("back" if isinstance(error, InterruptedError) else "error")
             if self.modal.get("kind") == "progress" and not self.modal.get("fileTaskId"):
                 self._pop()
-            self.notify(tr('操作已取消') if isinstance(error, InterruptedError) else tr('操作失败：{value0}', value0=error))
+            self.notify(tr(Msg.OPERATION_CANCELLED) if isinstance(error, InterruptedError) else tr(Msg.OPERATION_FAILED_VALUE0, value0=error))
         elif success:
             try:
                 success(value)
             except (OSError, ValueError, RuntimeError) as error:
                 if audible:
                     self.soundRequested.emit("error")
-                self.notify(tr('操作已执行，但更新状态失败：{value0}', value0=error))
+                self.notify(tr(Msg.THE_OPERATION_COMPLETED_BUT_STATUS_COULD_NOT_BE_UPDATED_VALUE0, value0=error))
             else:
                 if audible and report_success:
                     self.soundRequested.emit("success")
@@ -1202,7 +1209,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     def _system(self, action, payload=None):
         if (action in self.pending_system or (action.startswith("wifi_") and action != "wifi_cancel_connect" and any(pending.startswith("wifi_") for pending in self.pending_system))
                 or (action in AUDIO_ACTIONS and self.pending_system & AUDIO_ACTIONS)):
-            self.notify(tr('此请求正在处理中，请稍候'))
+            self.notify(tr(Msg.THIS_REQUEST_IS_BEING_PROCESSED_PLEASE_WAIT))
             return
         self.pending_system.add(action)
         if action == "timezone_set":
@@ -1236,7 +1243,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             if modal.get("deviceId") and not any(device["id"] == modal["deviceId"] for device in self.data["wifi"].get("devices", [])):
                 if modal.get("token"):
                     self.backend.reply(modal["token"], None)
-                self.notify(tr('目标无线网卡已移除，请重新选择'))
+                self.notify(tr(Msg.THE_TARGET_WI_FI_ADAPTER_WAS_REMOVED_SELECT_AN_ADAPTER_AGAIN))
                 return
             existing = next((entry for entry in self._modals if modal.get("token") and entry.get("token") == modal["token"]), None)
             if existing is not None:

@@ -4,10 +4,10 @@ import time
 from PySide6.QtCore import QObject, QTimer
 
 from .app_routing import NATIVE_APPS
-from .i18n import error_text, tr
+from .i18n import Msg, error_text, tr
 
 TERMINAL_APP = 'io.github.zhubby.uDeck.Terminal'
-MODE_NAMES = {'keyboard': tr('按键模式'), 'pointer': tr('指针模式'), 'native': tr('原生输入')}
+MODE_NAMES = {'keyboard': tr(Msg.BUTTON_MODE), 'pointer': tr(Msg.POINTER_MODE), 'native': tr(Msg.NATIVE_INPUT)}
 
 
 def application_profile(identifier):
@@ -17,13 +17,13 @@ def application_profile(identifier):
         kind, mode = 'native', 'native'
     elif identifier in ('firefox', 'firefox-esr', 'chromium', 'chromium-browser'):
         kind = 'browser'
-        commands = [(tr('地址栏'), (29, 38)), (tr('上一页'), (56, 105)), (tr('下一页'), (56, 106)), (tr('刷新'), (63,)), (tr('新标签页'), (29, 20))]
+        commands = [(tr(Msg.ADDRESS_BAR), (29, 38)), (tr(Msg.PREVIOUS_PAGE), (56, 105)), (tr(Msg.FORWARD), (56, 106)), (tr(Msg.REFRESH), (63,)), (tr(Msg.NEW_BROWSER_TAB), (29, 20))]
     elif identifier in ('code', 'geany', 'mousepad', 'org.xfce.mousepad'):
         kind = 'editor'
-        commands = [(tr('打开文件'), (29, 24)), (tr('保存'), (29, 31)), (tr('查找'), (29, 33)), (tr('撤销'), (29, 44))]
+        commands = [(tr(Msg.OPEN_FILE), (29, 24)), (tr(Msg.SAVE), (29, 31)), (tr(Msg.FIND), (29, 33)), (tr(Msg.UNDO), (29, 44))]
     elif identifier in ('pcmanfm', 'pcmanfm-qt'):
         kind = 'files'
-        commands = [(tr('地址栏'), (29, 38)), (tr('上级目录'), (56, 103)), (tr('上一目录'), (56, 105)), (tr('重命名'), (60,))]
+        commands = [(tr(Msg.ADDRESS_BAR), (29, 38)), (tr(Msg.PARENT_FOLDER), (56, 103)), (tr(Msg.PREVIOUS_FOLDER), (56, 105)), (tr(Msg.RENAME), (60,))]
     elif identifier in ('rp-bookshelf', 'bookshelf'):
         kind = 'bookshelf'
     elif 'terminal' in identifier or identifier in ('ghostty', 'com.mitchellh.ghostty'):
@@ -50,7 +50,7 @@ class ApplicationRouter(QObject):
         self.activation_revision = 0
         self.menu_open = False
         self.mode = 'suspended'
-        self.error = '' if self.enabled else tr('完整应用兼容模式需要独立 uDeck 会话及虚拟输入协议')
+        self.error = '' if self.enabled else tr(Msg.APP_COMPATIBILITY_REQUIRES_SESSION_AND_VIRTUAL_INPUT)
         self.key = None
         self.held = set()
         self.suppressed = set()
@@ -137,7 +137,7 @@ class ApplicationRouter(QObject):
     def direction_status(self, status):
         self.directions_available = bool(status.get('available'))
         if not self.directions_available:
-            self.error = status.get('error') or tr('内置方向键接口不可用；指针模式已停用')
+            self.error = status.get('error') or tr(Msg.BUILT_IN_DIRECTION_KEYS_ARE_UNAVAILABLE_POINTER_MODE_IS_DISABLED)
             self.release()
             if self.mode == 'pointer' or self.resume_pending or self.activation_pending:
                 self.open_menu()
@@ -170,7 +170,7 @@ class ApplicationRouter(QObject):
                    else 'suspended' if self.protocol_failed else self._desired(self.target) if self.target and self.enabled else 'native')
         if desired in ('keyboard', 'pointer') and not self.output.available:
             desired = 'suspended'
-            self.error = self.output.error or tr('虚拟输入已断开')
+            self.error = self.output.error or tr(Msg.VIRTUAL_INPUT_DISCONNECTED)
         identity = (desired, (self.target or {}).get('id') if not self.shell else '', self.suspended)
         if identity != self.key:
             self.release()
@@ -203,7 +203,7 @@ class ApplicationRouter(QObject):
         if not self.return_target or not any(entry['id'] == self.return_target['id'] for entry in self.windows.entries()):
             self._gone()
             return
-        self.error = tr('应用未取得前台焦点；请重新返回应用')
+        self.error = tr(Msg.THE_APP_IS_NOT_IN_THE_FOREGROUND_RETURN_TO_IT_AND_TRY_AGAIN)
         self.menu_open = True
         self._menu()
         self.controller.notify(self.error)
@@ -275,7 +275,7 @@ class ApplicationRouter(QObject):
     def open_menu(self):
         target = self.return_target if self.menu_open or self.activation_pending else self.target
         if not target or not self.enabled or self.suspended or not self.session_safe:
-            self.controller.notify(self.error or tr('当前没有可控制的应用窗口'))
+            self.controller.notify(self.error or tr(Msg.NO_APP_WINDOW_IS_AVAILABLE_TO_CONTROL))
             return
         self.release()
         self.activation_pending = False
@@ -292,14 +292,14 @@ class ApplicationRouter(QObject):
         target = self.return_target
         mode = self._desired(target)
         self.controller._cancel_modals()
-        self.controller._menu(target.get('name', tr('应用')) + ' · ' + MODE_NAMES[mode], [
-            {'label': tr('返回应用'), 'action': 'application-control', 'command': 'return'},
-            {'label': tr('切换操作模式'), 'action': 'application-control', 'command': 'modes'},
-            {'label': tr('常用操作'), 'action': 'application-control', 'command': 'commands'},
-            {'label': tr('返回桌面'), 'action': 'application-control', 'command': 'home'},
-            {'label': tr('快捷设置'), 'action': 'application-control', 'command': 'quick-settings'},
-            {'label': tr('请求关闭应用'), 'action': 'application-control', 'command': 'close'},
-        ], source='application', body=tr('方向键导航 · A 确认 · B 返回；指针模式中 A 按住拖动，L/R 滚动'))
+        self.controller._menu(target.get('name', tr(Msg.APPS)) + ' · ' + MODE_NAMES[mode], [
+            {'label': tr(Msg.RETURN_TO_APP), 'action': 'application-control', 'command': 'return'},
+            {'label': tr(Msg.CHANGE_INPUT_MODE), 'action': 'application-control', 'command': 'modes'},
+            {'label': tr(Msg.COMMON_ACTIONS), 'action': 'application-control', 'command': 'commands'},
+            {'label': tr(Msg.RETURN_TO_DESKTOP), 'action': 'application-control', 'command': 'home'},
+            {'label': tr(Msg.QUICK_SETTINGS), 'action': 'application-control', 'command': 'quick-settings'},
+            {'label': tr(Msg.REQUEST_APP_CLOSE), 'action': 'application-control', 'command': 'close'},
+        ], source='application', body=tr(Msg.ARROWS_NAVIGATE_A_CONFIRM_B_BACK_POINTER_MODE_HOLD_A_TO_DRAG_L_R_SCROLL))
 
     def _modal_changed(self):
         if self.menu_open and not self.controller.modal and not self.resume_pending:
@@ -316,7 +316,7 @@ class ApplicationRouter(QObject):
             self.resume()
         elif command == 'modes':
             self._menu()
-            self.controller._menu(tr('操作模式'), [{'label': name, 'action': 'application-control', 'command': 'mode:' + mode}
+            self.controller._menu(tr(Msg.INPUT_MODE), [{'label': name, 'action': 'application-control', 'command': 'mode:' + mode}
                                               for mode, name in MODE_NAMES.items()], source='application')
         elif command.startswith('mode:'):
             self.set_mode(command[5:])
@@ -324,13 +324,13 @@ class ApplicationRouter(QObject):
             self._menu()
             options = [{'label': name, 'action': 'application-control', 'command': 'shortcut:' + str(index)}
                        for index, (name, keys) in enumerate(application_profile(self.return_target['application'])['commands'])]
-            self.controller._menu(tr('常用操作'), options or [{'label': tr('此应用使用通用按键或指针操作'), 'action': 'none', 'disabled': True}], source='application')
+            self.controller._menu(tr(Msg.COMMON_ACTIONS), options or [{'label': tr(Msg.USE_STANDARD_BUTTON_OR_POINTER_CONTROLS_FOR_THIS_APP), 'action': 'none', 'disabled': True}], source='application')
         elif command.startswith('shortcut:'):
             try:
                 self.command_pending = application_profile(self.return_target['application'])['commands'][int(command[9:])][1]
                 self.resume()
             except (ValueError, IndexError):
-                self.controller.notify(tr('操作不存在'))
+                self.controller.notify(tr(Msg.ACTION_NOT_FOUND))
         elif command == 'home':
             self.leave_menu()
             self.controller.dispatch('home')
@@ -339,7 +339,7 @@ class ApplicationRouter(QObject):
             self.controller.dispatch('quick-settings')
         elif command == 'close':
             self._menu()
-            self.controller._confirm(tr('请求关闭应用？'), tr('应用可能要求保存工作；不会强制结束进程。'),
+            self.controller._confirm(tr(Msg.REQUEST_APP_CLOSE_PROMPT), tr(Msg.THE_APP_MAY_ASK_YOU_TO_SAVE_YOUR_WORK_IT_WILL_NOT_BE_FORCIBLY_TERMINATED),
                                      {'action': 'application-control', 'command': 'close-confirm'})
         elif command == 'close-confirm':
             try:
@@ -350,13 +350,13 @@ class ApplicationRouter(QObject):
 
     def set_mode(self, mode):
         if mode not in MODE_NAMES:
-            self.controller.notify(tr('未知的输入模式'))
+            self.controller.notify(tr(Msg.UNKNOWN_INPUT_MODE))
             return False
         if not self.enabled or self.suspended or not self.session_safe:
             self.controller.notify(self.error)
             return False
         if mode == 'pointer' and not self.directions_available:
-            self.controller.notify(self.error or tr('内置方向键接口不可用，无法启用指针模式'))
+            self.controller.notify(self.error or tr(Msg.BUILT_IN_DIRECTION_KEYS_ARE_UNAVAILABLE_CANNOT_ENABLE_POINTER_MODE))
             return False
         if not self.menu_open:
             self.open_menu()
@@ -364,7 +364,7 @@ class ApplicationRouter(QObject):
             return False
         identifier = self.return_target['application']
         if identifier in NATIVE_APPS and mode != 'native':
-            self.controller.notify(tr('uDeck 终端使用自身原生按键操作') if identifier == TERMINAL_APP else tr('uDeck apps manage their own input'))
+            self.controller.notify(tr(Msg.UDECK_TERMINAL_USES_ITS_OWN_NATIVE_BUTTON_CONTROLS) if identifier == TERMINAL_APP else tr(Msg.UDECK_APPS_MANAGE_THEIR_OWN_INPUT))
             self._menu()
             return False
         previous = dict(self.controller.config.data['applicationInput'])
@@ -373,7 +373,7 @@ class ApplicationRouter(QObject):
             self.controller.config.save()
         except OSError as error:
             self.controller.config.data['applicationInput'] = previous
-            self.controller.notify(tr('输入模式保存失败：') + error_text(error))
+            self.controller.notify(tr(Msg.COULD_NOT_SAVE_INPUT_MODE_PREFIX) + error_text(error))
             return False
         self.resume()
         return True

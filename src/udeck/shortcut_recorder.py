@@ -7,7 +7,7 @@ from PySide6.QtCore import Property, QEvent, QObject, Qt, QTimer, QUrl, Signal, 
 from PySide6.QtGui import QKeySequence
 from PySide6.QtQml import QQmlComponent, QQmlContext
 
-from .i18n import error_text, render, tr
+from .i18n import Msg, error_text, render, tr
 from .shortcuts import ACTION_BY_ID, label, normalize
 
 
@@ -48,7 +48,7 @@ class ShortcutRecorder(QObject):
         session = self.controller.shortcut_session
         if not self.controller.mock and (not session or not session.applied or session.busy
                                          or not self.output or not self.output.available):
-            self.controller.notify(tr('Shortcut recording is unavailable'))
+            self.controller.notify(tr(Msg.SHORTCUT_RECORDING_IS_UNAVAILABLE))
             return
         self.identifier, self.index = identifier, index
         self.sequence, self.error = '', ''
@@ -60,7 +60,7 @@ class ShortcutRecorder(QObject):
         self.component = QQmlComponent(self.engine, QUrl.fromLocalFile(str(Path(__file__).parent / 'qml/ShortcutRecorder.qml')), self)
         window = self.component.create(self.context)
         if window is None:
-            self.controller.notify(tr('Shortcut recording is unavailable'))
+            self.controller.notify(tr(Msg.SHORTCUT_RECORDING_IS_UNAVAILABLE))
             return
         self.window = window
         window.setTransientParent(self.shell)
@@ -92,7 +92,7 @@ class ShortcutRecorder(QObject):
     def _isolation_failed(self):
         if self.window and not self.ready:
             self.close(restore=True)
-            self.controller.notify(tr('Could not isolate shortcut recording'))
+            self.controller.notify(tr(Msg.COULD_NOT_ISOLATE_SHORTCUT_RECORDING))
 
     def eventFilter(self, watched, event):
         if event.type() == QEvent.Type.ShortcutOverride:
@@ -149,7 +149,7 @@ class ShortcutRecorder(QObject):
     def timeout(self):
         if self.window:
             self.close(restore=True)
-            self.controller.notify(tr('Shortcut recording timed out'))
+            self.controller.notify(tr(Msg.SHORTCUT_RECORDING_TIMED_OUT))
 
     def close(self, *, restore=False):
         self.timeout_timer.stop()

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from .i18n import tr
+from .i18n import Msg, tr
 
 
 def _text(path):
@@ -43,25 +43,25 @@ def read_battery(root):
 
 def battery_summary(battery):
     if not battery.get("available"):
-        return tr('未检测到电池')
+        return tr(Msg.NO_BATTERY_DETECTED)
     status = battery.get("status", "Charging" if battery.get("charging") else "Discharging")
-    label = {"Charging": tr('正在充电'), "Discharging": tr('电池供电'),
-             "Full": tr("Fully charged"), "Not charging": tr("Not charging")}.get(status, tr("Battery status unknown"))
-    return tr('{value0}% · {value1}', value0=battery["capacity"], value1=label)
+    label = {"Charging": tr(Msg.CHARGING), "Discharging": tr(Msg.ON_BATTERY),
+             "Full": tr(Msg.FULLY_CHARGED), "Not charging": tr(Msg.NOT_CHARGING)}.get(status, tr(Msg.BATTERY_STATUS_UNKNOWN))
+    return tr(Msg.VALUE0_VALUE1, value0=battery["capacity"], value1=label)
 
 
 def battery_details(battery):
     status = battery.get("status")
-    power_label = tr("Charging power (estimate)") if status == "Charging" else (
-        tr("Discharging power (estimate)") if status == "Discharging" else tr("Battery power (estimate)"))
+    power_label = tr(Msg.CHARGING_POWER_ESTIMATE) if status == "Charging" else (
+        tr(Msg.DISCHARGING_POWER_ESTIMATE) if status == "Discharging" else tr(Msg.BATTERY_POWER_ESTIMATE))
 
     def measurement(field, spec, unit):
         value = battery.get(field) if battery.get("available") else None
-        return f"{value:{spec}} {unit}" if value is not None else tr("Not available")
+        return f"{value:{spec}} {unit}" if value is not None else tr(Msg.NOT_AVAILABLE)
 
-    return {"body": battery_summary(battery) + "\n" + tr("Battery-side estimate. Charger input power is unavailable."),
+    return {"body": battery_summary(battery) + "\n" + tr(Msg.BATTERY_SIDE_ESTIMATE_CHARGER_INPUT_POWER_IS_UNAVAILABLE),
             "metrics": [
                 {"label": power_label, "value": measurement("power", ".2f", "W")},
-                {"label": tr("Battery voltage"), "value": measurement("voltage", ".3f", "V")},
-                {"label": tr("Battery current"), "value": measurement("current", ".3f", "A")},
+                {"label": tr(Msg.BATTERY_VOLTAGE), "value": measurement("voltage", ".3f", "V")},
+                {"label": tr(Msg.BATTERY_CURRENT), "value": measurement("current", ".3f", "A")},
             ]}

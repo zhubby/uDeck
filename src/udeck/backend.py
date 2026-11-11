@@ -14,7 +14,7 @@ from PySide6.QtCore import QObject, Signal
 
 from .audio import AUDIO_ACTIONS, audio_state
 from .battery import read_battery
-from .i18n import error_text, tr
+from .i18n import Msg, error_text, tr
 from .mock import initial_state
 from .timezone import TIMEDATE, TIMEDATE_PATH
 from .wifi import wifi_label
@@ -37,35 +37,35 @@ class BluezAgent(ServiceInterface):
 
     @method()
     async def RequestPinCode(self, device: "o") -> "s":
-        response = await self.backend.ask("text", tr('蓝牙 PIN'), tr('请输入设备要求的 PIN'), secret=True)
+        response = await self.backend.ask("text", tr(Msg.BLUETOOTH_PIN), tr(Msg.ENTER_THE_PIN_REQUESTED_BY_THE_DEVICE), secret=True)
         return str(response)
 
     @method()
     def DisplayPinCode(self, device: "o", pincode: "s"):
-        self.backend.information(tr('蓝牙配对'), tr('请在另一台设备输入 PIN：{value0}', value0=pincode))
+        self.backend.information(tr(Msg.BLUETOOTH_PAIRING), tr(Msg.ENTER_THIS_PIN_ON_THE_OTHER_DEVICE_VALUE0, value0=pincode))
 
     @method()
     async def RequestPasskey(self, device: "o") -> "u":
-        response = await self.backend.ask("text", tr('蓝牙配对码'), tr('输入 0–999999 的数字配对码'), numeric=True)
+        response = await self.backend.ask("text", tr(Msg.BLUETOOTH_PASSKEY), tr(Msg.ENTER_A_NUMERIC_PASSKEY_FROM_0_TO_999999), numeric=True)
         if not str(response).isdigit() or not 0 <= int(response) <= 999999:
-            raise DBusError("org.bluez.Error.Rejected", tr('配对码无效'))
+            raise DBusError("org.bluez.Error.Rejected", tr(Msg.INVALID_PASSKEY))
         return int(response)
 
     @method()
     def DisplayPasskey(self, device: "o", passkey: "u", entered: "q"):
-        self.backend.information(tr('蓝牙配对'), tr('请在另一台设备输入：{value0:06d} · 已输入 {value1} 位', value0=passkey, value1=entered))
+        self.backend.information(tr(Msg.BLUETOOTH_PAIRING), tr(Msg.ENTER_ON_THE_OTHER_DEVICE_VALUE0_06D_VALUE1_DIGITS_ENTERED, value0=passkey, value1=entered))
 
     @method()
     async def RequestConfirmation(self, device: "o", passkey: "u"):
-        await self.backend.ask("confirm", tr('确认蓝牙配对'), tr('两台设备是否都显示 {value0:06d}？', value0=passkey))
+        await self.backend.ask("confirm", tr(Msg.CONFIRM_BLUETOOTH_PAIRING), tr(Msg.DO_BOTH_DEVICES_SHOW_VALUE0_06D_PROMPT, value0=passkey))
 
     @method()
     async def RequestAuthorization(self, device: "o"):
-        await self.backend.ask("confirm", tr('蓝牙配对请求'), tr('允许这台设备与 uConsole 配对？'))
+        await self.backend.ask("confirm", tr(Msg.BLUETOOTH_PAIRING_REQUEST), tr(Msg.ALLOW_THIS_DEVICE_TO_PAIR_WITH_UCONSOLE_PROMPT))
 
     @method()
     async def AuthorizeService(self, device: "o", service_uuid: "s"):
-        await self.backend.ask("confirm", tr('蓝牙服务授权'), tr('允许已配对设备使用服务 {value0}？', value0=service_uuid))
+        await self.backend.ask("confirm", tr(Msg.BLUETOOTH_SERVICE_AUTHORIZATION), tr(Msg.ALLOW_THE_PAIRED_DEVICE_TO_USE_SERVICE_VALUE0_PROMPT, value0=service_uuid))
 
     @method()
     def Cancel(self):
@@ -80,23 +80,23 @@ class NetworkAgent(ServiceInterface):
     @method()
     async def GetSecrets(self, connection: "a{sa{sv}}", connection_path: "o", setting_name: "s", hints: "as", flags: "u") -> "a{sa{sv}}":
         if setting_name != "802-11-wireless-security":
-            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr('仅支持个人 Wi-Fi 网络'))
+            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr(Msg.ONLY_PERSONAL_WI_FI_NETWORKS_ARE_SUPPORTED))
         device_id = await self.backend._wifi_secret_device(connection_path)
         device = next(entry for entry in self.backend.state["wifi"]["devices"] if entry["id"] == device_id)
         epoch = self.backend.wifi_epoch
         profile = next((entry for entry in await self.backend._saved_wifi() if entry["id"] == connection_path), None)
         if not profile:
-            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr("This saved configuration was removed or is incompatible with the adapter"))
+            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr(Msg.THIS_SAVED_CONFIGURATION_WAS_REMOVED_OR_IS_INCOMPATIBLE_WITH_THE_ADAPTER))
         settings = unwrap(connection)
         security = "WPA3" if settings.get(setting_name, {}).get("key-mgmt") == "sae" else "WPA2"
-        password = await self.backend.ask("text", tr('Wi-Fi 密码'), wifi_label(device),
+        password = await self.backend.ask("text", tr(Msg.WI_FI_PASSWORD), wifi_label(device),
                                           secret=True, wifiSecurity=security, cancel_error=NETWORK_CANCEL,
                                           group="network:" + connection_path, deviceId=device_id, profileUuid=profile["uuid"])
         current = next((entry for entry in await self.backend._saved_wifi() if entry["id"] == connection_path), None)
         if self.backend.wifi_epoch != epoch or not current or current["revision"] != profile["revision"]:
-            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr("The saved configuration changed. Reopen it and try again."))
+            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr(Msg.THE_SAVED_CONFIGURATION_CHANGED_REOPEN_IT_AND_TRY_AGAIN))
         if await self.backend._wifi_secret_device(connection_path) != device_id:
-            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr('无法确认请求密码的无线网卡，请重新连接'))
+            raise DBusError(NM + ".SecretAgent.Error.NoSecrets", tr(Msg.COULD_NOT_IDENTIFY_THE_ADAPTER_REQUESTING_A_PASSWORD_RECONNECT))
         return {setting_name: {"psk": Variant("s", validate_wifi_password(password, security))}}
 
     @method()
@@ -161,7 +161,7 @@ class SystemBackend(WifiBackend, QObject):
 
     async def call(self, destination, path, interface, member, signature="", body=None, timeout=30):
         if self.bus is None:
-            raise RuntimeError(tr('系统 D-Bus 尚未连接'))
+            raise RuntimeError(tr(Msg.SYSTEM_D_BUS_IS_NOT_CONNECTED_YET))
         response = await asyncio.wait_for(self.bus.call(Message(
             destination=destination, path=path, interface=interface,
             member=member, signature=signature, body=body or [],
@@ -200,7 +200,7 @@ class SystemBackend(WifiBackend, QObject):
             self.loop.create_task(self._session_timer())
             await asyncio.gather(self.refresh_wifi(), self.refresh_bluetooth(), self.refresh_timezone())
         except Exception as error:
-            self.failed.emit(tr('系统服务初始化失败：{value0}', value0=error))
+            self.failed.emit(tr(Msg.SYSTEM_SERVICE_INITIALIZATION_FAILED_VALUE0, value0=error))
         await self.refresh_audio()
         self.refresh_hardware()
         self.loop.create_task(self._watch_audio())
@@ -298,7 +298,7 @@ class SystemBackend(WifiBackend, QObject):
                     self.timezones = sorted(set((await self.call(TIMEDATE, TIMEDATE_PATH, TIMEDATE, "ListTimezones"))[0]))
                 value = {"available": True, "current": current, "zones": self.timezones}
             except Exception as error:
-                value = {**previous, "available": False, "error": tr("Time zone service unavailable: {error}", error=error_text(error))}
+                value = {**previous, "available": False, "error": tr(Msg.TIME_ZONE_SERVICE_UNAVAILABLE_ERROR, error=error_text(error))}
             if value != previous:
                 self.publish("timezone", value)
             return value["available"]
@@ -306,27 +306,27 @@ class SystemBackend(WifiBackend, QObject):
     async def _set_timezone(self, payload):
         zone = payload.get("timezone")
         if not isinstance(zone, str) or not zone:
-            raise ValueError(tr("Invalid time zone"))
+            raise ValueError(tr(Msg.INVALID_TIME_ZONE))
         if not await self.refresh_timezone():
             raise RuntimeError(self.state["timezone"]["error"])
         if zone not in self.timezones:
-            raise ValueError(tr("Invalid time zone"))
+            raise ValueError(tr(Msg.INVALID_TIME_ZONE))
         if zone == self.state["timezone"]["current"]:
             return
         try:
             await self.call(TIMEDATE, TIMEDATE_PATH, TIMEDATE, "SetTimezone", "sb", [zone, True], timeout=120)
         except Exception as error:
             await self.refresh_timezone()
-            raise RuntimeError(tr("Could not change time zone: {error}", error=error_text(error))) from error
+            raise RuntimeError(tr(Msg.COULD_NOT_CHANGE_TIME_ZONE_ERROR, error=error_text(error))) from error
         if not await self.refresh_timezone() or self.state["timezone"]["current"] != zone:
-            raise RuntimeError(tr("Could not verify the new time zone. Check the current system setting."))
+            raise RuntimeError(tr(Msg.COULD_NOT_VERIFY_THE_NEW_TIME_ZONE_CHECK_THE_CURRENT_SYSTEM_SETTING))
 
     async def refresh_bluetooth(self):
         try:
             objects = unwrap((await self.call(BLUEZ, "/", "org.freedesktop.DBus.ObjectManager", "GetManagedObjects"))[0])
             self.adapter = next((path for path, interfaces in objects.items() if BLUEZ + ".Adapter1" in interfaces), None)
             if not self.adapter:
-                self.publish("bluetooth", {"available": False, "powered": False, "devices": [], "discovering": False, "error": tr('没有蓝牙适配器')})
+                self.publish("bluetooth", {"available": False, "powered": False, "devices": [], "discovering": False, "error": tr(Msg.NO_BLUETOOTH_ADAPTER)})
                 return
             if not self.agent_registered:
                 await self.call(BLUEZ, "/org/bluez", BLUEZ + ".AgentManager1", "RegisterAgent", "os", ["/io/github/zhubby/uDeck/BluezAgent", "KeyboardDisplay"])
@@ -338,7 +338,7 @@ class SystemBackend(WifiBackend, QObject):
             for path, interfaces in objects.items():
                 information = interfaces.get(BLUEZ + ".Device1")
                 if information is not None and information.get("Adapter") == self.adapter:
-                    devices.append({"id": path, "name": information.get("Alias") or information.get("Name") or information.get("Address", tr('蓝牙设备')),
+                    devices.append({"id": path, "name": information.get("Alias") or information.get("Name") or information.get("Address", tr(Msg.BLUETOOTH_DEVICE)),
                                     "paired": information.get("Paired", False), "connected": information.get("Connected", False),
                                     "trusted": information.get("Trusted", False), "resolved": information.get("ServicesResolved", False)})
             self.publish("bluetooth", {"available": True, "powered": adapter.get("Powered", False),
@@ -353,7 +353,7 @@ class SystemBackend(WifiBackend, QObject):
         try:
             output, errors = await asyncio.wait_for(process.communicate(), timeout)
             if process.returncode:
-                raise RuntimeError(tr('{value0} 执行失败', value0=arguments[0]))
+                raise RuntimeError(tr(Msg.VALUE0_FAILED, value0=arguments[0]))
             return output.decode(errors="replace")
         finally:
             if process.returncode is None:
@@ -374,7 +374,7 @@ class SystemBackend(WifiBackend, QObject):
                         raise result
                     values[kind] = json.loads(result)
                     if not isinstance(values[kind], list):
-                        raise ValueError(tr("Invalid audio device response"))
+                        raise ValueError(tr(Msg.INVALID_AUDIO_DEVICE_RESPONSE))
                 except Exception as error:
                     values[kind] = []
                     errors[kind] = error_text(error)
@@ -391,10 +391,10 @@ class SystemBackend(WifiBackend, QObject):
         if action == "audio_profile":
             card = next((card for card in audio.get("cards", []) if card["id"] == payload["id"]), None)
             if card is None:
-                raise ValueError(tr('音频设备已移除'))
+                raise ValueError(tr(Msg.THE_AUDIO_DEVICE_WAS_REMOVED))
             profile = next((profile for profile in card["profiles"] if profile["id"] == payload["profile"]), None)
             if profile is None or not profile["available"]:
-                raise ValueError(tr("Bluetooth audio mode is unavailable"))
+                raise ValueError(tr(Msg.BLUETOOTH_AUDIO_MODE_IS_UNAVAILABLE))
             await self.command("pactl", "set-card-profile", card["id"], profile["id"])
         else:
             inputs = action in ("audio_input", "audio_input_volume", "audio_input_mute")
@@ -402,14 +402,14 @@ class SystemBackend(WifiBackend, QObject):
             identifier = payload.get("id")
             target = next((entry for entry in entries if entry["id"] == identifier), None) if identifier else next((entry for entry in entries if entry["active"]), None)
             if target is None:
-                raise ValueError(tr('音频设备已移除'))
+                raise ValueError(tr(Msg.THE_AUDIO_DEVICE_WAS_REMOVED))
             kind = "source" if inputs else "sink"
             if action in ("audio_input", "audio_output"):
                 await self.command("pactl", "set-default-" + kind, target["id"])
             elif action in ("audio_input_volume", "volume"):
                 level = float(payload["value"])
                 if not math.isfinite(level):
-                    raise ValueError(tr("Invalid audio volume"))
+                    raise ValueError(tr(Msg.INVALID_AUDIO_VOLUME))
                 await self.command("pactl", "set-" + kind + "-volume", target["id"], f"{max(0, min(1, level)) * 100:.0f}%")
             else:
                 await self.command("pactl", "set-" + kind + "-mute", target["id"], "toggle")
@@ -422,11 +422,11 @@ class SystemBackend(WifiBackend, QObject):
                 if attempt < 5:
                     await asyncio.sleep(0.2)
                     await self.refresh_audio()
-            raise RuntimeError(tr("The Bluetooth audio mode change was not confirmed"))
+            raise RuntimeError(tr(Msg.THE_BLUETOOTH_AUDIO_MODE_CHANGE_WAS_NOT_CONFIRMED))
         if action in ("audio_input", "audio_output"):
             entries = self.state["audio"].get("inputs" if action == "audio_input" else "outputs", [])
             if not any(entry["id"] == payload["id"] and entry["active"] for entry in entries):
-                raise RuntimeError(tr("The audio device change was not confirmed"))
+                raise RuntimeError(tr(Msg.THE_AUDIO_DEVICE_CHANGE_WAS_NOT_CONFIRMED))
 
     async def _watch_audio(self):
         try:
@@ -525,10 +525,10 @@ class SystemBackend(WifiBackend, QObject):
             await self.call("org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", "Reboot" if action == "reboot" else "PowerOff", "b", [True])
         elif action == "logout":
             if os.environ.get("XDG_SESSION_DESKTOP") != "udeck":
-                raise RuntimeError(tr('仅能从独立 uDeck 会话注销；窗口预览不会注销原桌面'))
+                raise RuntimeError(tr(Msg.LOGOUT_REQUIRES_STANDALONE_SESSION))
             session = os.environ.get("XDG_SESSION_ID")
             if not session:
-                raise RuntimeError(tr('无法确定当前登录会话'))
+                raise RuntimeError(tr(Msg.COULD_NOT_IDENTIFY_THE_CURRENT_LOGIN_SESSION))
             await self.call("org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", "TerminateSession", "s", [session])
         elif action == "lock":
             await self.command("swaylock", timeout=None)
@@ -539,7 +539,7 @@ class SystemBackend(WifiBackend, QObject):
             await asyncio.gather(self.refresh_wifi(), self.refresh_bluetooth(), self.refresh_audio(), self.refresh_timezone())
             self.refresh_hardware()
         else:
-            raise ValueError(tr('未知系统操作'))
+            raise ValueError(tr(Msg.UNKNOWN_SYSTEM_OPERATION))
 
     async def _stop_discovery_later(self):
         await asyncio.sleep(30)
@@ -559,10 +559,10 @@ class SystemBackend(WifiBackend, QObject):
         try:
             answer = await asyncio.wait_for(future, 120)
             if answer is None or (kind == "confirm" and answer is not True):
-                raise DBusError(cancel_error, tr('用户取消'))
+                raise DBusError(cancel_error, tr(Msg.CANCELLED_BY_USER))
             return answer
         except TimeoutError as error:
-            raise DBusError(cancel_error, tr('确认超时')) from error
+            raise DBusError(cancel_error, tr(Msg.CONFIRMATION_TIMED_OUT)) from error
         finally:
             self.pending_prompts.pop(token, None)
             self.prompt_groups.pop(token, None)

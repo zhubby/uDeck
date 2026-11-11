@@ -18,7 +18,7 @@ from udeck.app_routing import APP_IDS, object_path, service_name
 from udeck.apps import __version__
 from udeck.apps.common.library import EXTENSIONS
 from udeck.core import ConfigStore
-from udeck.i18n import tr
+from udeck.i18n import Msg, tr
 from udeck.icons import IconProvider
 from udeck.performance import StartupTrace
 from udeck.sounds import InterfaceSounds
@@ -87,15 +87,15 @@ class AppControl(QObject):
         for value in files:
             url = QUrl(value)
             if url.scheme() and not url.isLocalFile():
-                raise ValueError(tr("Choose a local file"))
+                raise ValueError(tr(Msg.CHOOSE_A_LOCAL_FILE))
             paths.append(Path(url.toLocalFile() if url.isLocalFile() else value).expanduser().resolve(strict=True))
         for path in paths:
             if not path.is_file():
-                raise ValueError(tr("Choose a file"))
+                raise ValueError(tr(Msg.CHOOSE_A_FILE))
             if controller.app == "emulator":
                 controller.accept_file_path(path)
             elif path.suffix.lower() not in EXTENSIONS[controller.app]:
-                raise ValueError(tr("Unsupported file format: {name}", name=path.name))
+                raise ValueError(tr(Msg.UNSUPPORTED_FILE_FORMAT_NAME, name=path.name))
         self.open_generation += 1
         generation = self.open_generation
         for path in paths:

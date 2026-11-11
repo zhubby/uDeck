@@ -13,12 +13,12 @@ from .file_model import FileListModel
 from .file_preview import preview
 from .file_trash import TrashStore
 from .files import FileOperations, query_entries
-from .i18n import tr
+from .i18n import Msg, tr
 from .network_files.controls import NetworkAccessControls
 
-SORT_LABELS = {"name": tr("Name"), "modified": tr("Modified"), "size": tr("Size")}
-KIND_LABELS = {"all": tr("All files"), "audio": tr("Audio"), "video": tr("Video"), "image": tr("Images"),
-               "book": tr("Books"), "text": tr("Text"), "archive": tr("Archives"), "other": tr("Other files")}
+SORT_LABELS = {"name": tr(Msg.NAME), "modified": tr(Msg.MODIFIED), "size": tr(Msg.SIZE)}
+KIND_LABELS = {"all": tr(Msg.ALL_FILES), "audio": tr(Msg.AUDIO), "video": tr(Msg.VIDEO), "image": tr(Msg.IMAGES),
+               "book": tr(Msg.BOOKS), "text": tr(Msg.TEXT), "archive": tr(Msg.ARCHIVES), "other": tr(Msg.OTHER_FILES)}
 
 
 class FileControls(NetworkAccessControls):
@@ -44,9 +44,9 @@ class FileControls(NetworkAccessControls):
         self._file_pending_browse = None
         self._files_closing = False
         self._file_preview_text = ""
-        self._file_places_base = [{"id": "home", "path": str(Path.home()), "name": tr("Home folder"), "icon": "user-home"},
-                                  {"id": "root", "path": "/", "name": tr("File system"), "icon": "drive-harddisk"},
-                                  {"id": "trash", "path": "trash:///", "name": tr("Trash"), "icon": "user-trash"}]
+        self._file_places_base = [{"id": "home", "path": str(Path.home()), "name": tr(Msg.HOME_FOLDER), "icon": "user-home"},
+                                  {"id": "root", "path": "/", "name": tr(Msg.FILE_SYSTEM), "icon": "drive-harddisk"},
+                                  {"id": "trash", "path": "trash:///", "name": tr(Msg.TRASH), "icon": "user-trash"}]
         self.trash_store = TrashStore()
         self._file_watcher = QFileSystemWatcher(self)
         self._file_watcher.directoryChanged.connect(self._request_files_refresh)
@@ -88,7 +88,7 @@ class FileControls(NetworkAccessControls):
     def _file_breadcrumbs(self):
         directory = self.data["directory"]
         if directory == "trash:///":
-            return [{"name": tr("Trash"), "path": directory}]
+            return [{"name": tr(Msg.TRASH), "path": directory}]
         path = Path(directory)
         paths = [*reversed(path.parents), path]
         return [{"name": entry.name or "/", "path": str(entry)} for entry in paths][-32:]
@@ -104,12 +104,12 @@ class FileControls(NetworkAccessControls):
             task["summary"] = self._file_task_summary()
             sources = self.file_task.get("sources", [])
             first = sources[0] if sources else ""
-            task["sourceLabel"] = tr("From: {path}", path=task.get("current") or (first.get("path", "") if isinstance(first, dict) else first))
-            destination = task.get("directory") or (tr("Trash") if task.get("action") == "trash" else tr("Original locations"))
-            task["destinationLabel"] = tr("To: {path}", path=destination)
-            task["fileCountLabel"] = tr("{done} / {total} file(s)", done=task.get("doneFiles", 0), total=task.get("totalFiles", 0))
+            task["sourceLabel"] = tr(Msg.FROM_PATH, path=task.get("current") or (first.get("path", "") if isinstance(first, dict) else first))
+            destination = task.get("directory") or (tr(Msg.TRASH) if task.get("action") == "trash" else tr(Msg.ORIGINAL_LOCATIONS))
+            task["destinationLabel"] = tr(Msg.TO_PATH, path=destination)
+            task["fileCountLabel"] = tr(Msg.DONE_TOTAL_FILE_S, done=task.get("doneFiles", 0), total=task.get("totalFiles", 0))
             remaining = task.get("eta", -1)
-            task["etaLabel"] = tr("{seconds}s remaining", seconds=max(0, int(remaining))) if remaining >= 0 else ""
+            task["etaLabel"] = tr(Msg.SECONDS_S_REMAINING, seconds=max(0, int(remaining))) if remaining >= 0 else ""
         clipboard = self.clipboard or {}
         paths = clipboard.get("paths") or ([clipboard["path"]] if clipboard else [])
         return {"count": len(self.data["files"]), "query": self.file_query,
@@ -173,7 +173,7 @@ class FileControls(NetworkAccessControls):
             return
         directory = self.data["directory"]
         if directory != "trash:///" and not Path(directory).is_dir():
-            self.notify(tr("Folder is no longer available. Returned to Home folder."))
+            self.notify(tr(Msg.FOLDER_IS_NO_LONGER_AVAILABLE_RETURNED_TO_HOME_FOLDER))
             directory = str(Path.home())
         self._browse(directory)
 
@@ -236,7 +236,7 @@ class FileControls(NetworkAccessControls):
             self.file_place_index = min(self.file_place_index, max(0, len(self._file_places()) - 1))
             self._file_watch()
 
-        self._run(tr("读取文件夹"), read, loaded, report_success=False)
+        self._run(tr(Msg.READ_FOLDER), read, loaded, report_success=False)
 
     def _file_pending(self):
         if self._file_pending_browse and not self.busy and not self._files_closing:
@@ -284,7 +284,7 @@ class FileControls(NetworkAccessControls):
         elif action == "back" and self.data["directory"] == "trash:///":
             self._browse(Path.home())
         elif action == "search":
-            self._text_prompt(tr("Search files"), tr("Search names in this folder; subfolders are not indexed."), "file-search", self.file_query)
+            self._text_prompt(tr(Msg.SEARCH_FILES), tr(Msg.SEARCH_NAMES_IN_THIS_FOLDER_SUBFOLDERS_ARE_NOT_INDEXED), "file-search", self.file_query)
         elif action.startswith("file-"):
             self._file_command(action[5:])
         else:
@@ -295,35 +295,35 @@ class FileControls(NetworkAccessControls):
     def _file_context(self, item):
         def option(label, command, **values):
             return {"label": label, "action": "files", "command": command, **values}
-        options = [option(tr("Locations"), "locations")]
-        options.append(option(tr("Network access"), "network-access", icon="udeck-setting:wifi"))
+        options = [option(tr(Msg.LOCATIONS), "locations")]
+        options.append(option(tr(Msg.NETWORK_ACCESS), "network-access", icon="udeck-setting:wifi"))
         trash = self.data["directory"] == "trash:///"
         if item:
             if trash:
-                options.extend([option(tr("Restore selected items"), "restore"), option(tr("Restore to folder"), "restore-to")])
+                options.extend([option(tr(Msg.RESTORE_SELECTED_ITEMS), "restore"), option(tr(Msg.RESTORE_TO_FOLDER), "restore-to")])
             else:
-                options.extend([{"label": tr("打开"), "action": "open-file", "item": item},
-                                option(tr("Open with"), "open-with"),
-                                option(tr("重命名"), "rename", disabled=len(self._file_selected()) != 1),
-                                option(tr("复制"), "copy"), option(tr("剪切"), "cut"),
-                                option(tr("移入回收站"), "trash")])
-            options.append(option(tr("Preview and details"), "preview"))
-        options.extend([option(tr("Finish selection") if self.file_selection else tr("Select multiple items"), "selection"),
-                        option(tr("Select all"), "select-all"), option(tr("Search files"), "search"),
-                        option(tr("Sort and filter"), "organize"), option(tr("Go to folder"), "go")])
+                options.extend([{"label": tr(Msg.OPEN), "action": "open-file", "item": item},
+                                option(tr(Msg.OPEN_WITH), "open-with"),
+                                option(tr(Msg.RENAME), "rename", disabled=len(self._file_selected()) != 1),
+                                option(tr(Msg.COPY), "copy"), option(tr(Msg.CUT), "cut"),
+                                option(tr(Msg.MOVE_TO_TRASH), "trash")])
+            options.append(option(tr(Msg.PREVIEW_AND_DETAILS), "preview"))
+        options.extend([option(tr(Msg.FINISH_SELECTION) if self.file_selection else tr(Msg.SELECT_MULTIPLE_ITEMS), "selection"),
+                        option(tr(Msg.SELECT_ALL), "select-all"), option(tr(Msg.SEARCH_FILES), "search"),
+                        option(tr(Msg.SORT_AND_FILTER), "organize"), option(tr(Msg.GO_TO_FOLDER), "go")])
         if not trash:
-            options.extend([{"label": tr("新建文件夹"), "action": "mkdir"},
-                            {"label": tr("在此打开终端"), "action": "open-terminal", "directory": self.data["directory"]},
-                            option(tr("Remove bookmark") if self.data["directory"] in self.config.data["fileManager"]["bookmarks"] else tr("Bookmark this folder"), "bookmark")])
+            options.extend([{"label": tr(Msg.NEW_FOLDER), "action": "mkdir"},
+                            {"label": tr(Msg.OPEN_TERMINAL_HERE), "action": "open-terminal", "directory": self.data["directory"]},
+                            option(tr(Msg.REMOVE_BOOKMARK) if self.data["directory"] in self.config.data["fileManager"]["bookmarks"] else tr(Msg.BOOKMARK_THIS_FOLDER), "bookmark")])
             if self.clipboard:
-                options.extend([option(tr("粘贴到当前目录"), "paste"), option(tr("Clear clipboard"), "clear-clipboard")])
+                options.extend([option(tr(Msg.PASTE_INTO_CURRENT_FOLDER), "paste"), option(tr(Msg.CLEAR_CLIPBOARD), "clear-clipboard")])
         if self.file_query:
-            options.append(option(tr("Clear search"), "clear-search"))
+            options.append(option(tr(Msg.CLEAR_SEARCH), "clear-search"))
         if self.file_task:
-            options.append(option(tr("File task"), "task"))
-        options.extend([{"label": tr("隐藏点文件") if self.show_hidden else tr("显示点文件"), "action": "hidden"},
-                        {"label": tr("刷新"), "action": "refresh-files"}])
-        self._menu(tr("文件操作"), options)
+            options.append(option(tr(Msg.FILE_TASK), "task"))
+        options.extend([{"label": tr(Msg.HIDE_HIDDEN_FILES) if self.show_hidden else tr(Msg.SHOW_HIDDEN_FILES), "action": "hidden"},
+                        {"label": tr(Msg.REFRESH), "action": "refresh-files"}])
+        self._menu(tr(Msg.FILE_ACTIONS), options)
 
     def _file_command(self, action, value="", option=None):
         option = option or {}
@@ -338,12 +338,12 @@ class FileControls(NetworkAccessControls):
             options = [{"label": place["name"], "subtitle": " · ".join(filter(None, [place.get("details"), place["path"]])),
                         "action": "files", "command": "location", "value": place["path"]} for place in places]
             if any(place.get("mount") for place in places):
-                options.append({"label": tr("Safely unmount"), "action": "files", "command": "unmount-locations"})
-            self._menu(tr("Locations"), options)
+                options.append({"label": tr(Msg.SAFELY_UNMOUNT), "action": "files", "command": "unmount-locations"})
+            self._menu(tr(Msg.LOCATIONS), options)
         elif action == "unmount-locations":
             options = [{"label": place["name"], "subtitle": place["path"], "action": "files", "command": "unmount", "place": place}
                        for place in self._file_places() if place.get("mount")]
-            self._menu(tr("Safely unmount"), options)
+            self._menu(tr(Msg.SAFELY_UNMOUNT), options)
         elif action == "search":
             self._file_dispatch("search")
         elif action == "clear-search":
@@ -356,14 +356,14 @@ class FileControls(NetworkAccessControls):
         elif action == "descending":
             self._file_preferences(descending=not self.config.data["fileManager"]["descending"])
         elif action == "organize":
-            options = [{"label": tr("Sort: {value}", value=label), "action": "files", "command": "sort", "value": key}
+            options = [{"label": tr(Msg.SORT_VALUE, value=label), "action": "files", "command": "sort", "value": key}
                        for key, label in SORT_LABELS.items()]
-            options.append({"label": tr("Reverse order"), "action": "files", "command": "descending"})
+            options.append({"label": tr(Msg.REVERSE_ORDER), "action": "files", "command": "descending"})
             options.extend({"label": label, "action": "files", "command": "filter", "value": key}
                            for key, label in KIND_LABELS.items())
-            self._menu(tr("Sort and filter"), options)
+            self._menu(tr(Msg.SORT_AND_FILTER), options)
         elif action == "go":
-            self._text_prompt(tr("Go to folder"), tr("Enter an absolute folder path."), "file-location", self.data["directory"] if self.data["directory"] != "trash:///" else str(Path.home()))
+            self._text_prompt(tr(Msg.GO_TO_FOLDER), tr(Msg.ENTER_AN_ABSOLUTE_FOLDER_PATH), "file-location", self.data["directory"] if self.data["directory"] != "trash:///" else str(Path.home()))
         elif action == "bookmark":
             path = value or self.data["directory"]
             if path != "trash:///":
@@ -390,25 +390,25 @@ class FileControls(NetworkAccessControls):
             self.feedback("accept")
             self.file_marked.clear()
             self.file_selection = False
-            self.notify(tr("Clipboard: {count} item(s)", count=len(paths)))
+            self.notify(tr(Msg.CLIPBOARD_COUNT_ITEM_S, count=len(paths)))
         elif action == "clear-clipboard":
             self.clipboard = None
         elif action in ("paste", "paste-keep", "paste-skip", "paste-replace"):
             self._file_paste({"paste-keep": "keep", "paste-skip": "skip", "paste-replace": "replace"}.get(action, "error"))
         elif action == "confirm-replace":
-            self._confirm(tr("Replace files"), tr("Existing files will be replaced. Folders are never merged or overwritten."),
+            self._confirm(tr(Msg.REPLACE_FILES), tr(Msg.EXISTING_FILES_WILL_BE_REPLACED_FOLDERS_ARE_NEVER_MERGED_OR_OVERWRITTEN),
                           {"action": "files", "command": "paste-replace"})
         elif action == "trash" and selected and self.data["directory"] != "trash:///":
-            self._confirm(tr("移入回收站？"), tr("{count} item(s). No permanent deletion will be performed.", count=len(selected)),
+            self._confirm(tr(Msg.MOVE_TO_TRASH_PROMPT), tr(Msg.COUNT_ITEM_S_NO_PERMANENT_DELETION_WILL_BE_PERFORMED, count=len(selected)),
                           {"action": "files", "command": "trash-confirm", "items": selected})
         elif action == "trash-confirm":
             entries = option.get("items", [])
             self._file_start_job("trash", distinct_sources([entry["path"] for entry in entries]), "")
         elif action == "restore" and selected and all(entry.get("trash") for entry in selected):
-            self._confirm(tr("Restore selected items"), tr("Restore original locations. Existing files are kept; conflicts get a new name."),
+            self._confirm(tr(Msg.RESTORE_SELECTED_ITEMS), tr(Msg.RESTORE_ORIGINAL_LOCATIONS_EXISTING_FILES_ARE_KEPT_CONFLICTS_GET_A_NEW_NAME),
                           {"action": "files", "command": "restore-confirm", "items": selected})
         elif action == "restore-to" and selected and all(entry.get("trash") for entry in selected):
-            self._text_prompt(tr("Restore to folder"), tr("Enter an existing folder on the same file system."), "file-restore", str(Path.home()), items=selected)
+            self._text_prompt(tr(Msg.RESTORE_TO_FOLDER), tr(Msg.ENTER_AN_EXISTING_FOLDER_ON_THE_SAME_FILE_SYSTEM), "file-restore", str(Path.home()), items=selected)
         elif action == "restore-confirm":
             self._file_start_job("restore", option.get("items", []), "")
         elif action == "preview" and selected:
@@ -418,22 +418,22 @@ class FileControls(NetworkAccessControls):
         elif action == "open-default":
             item = option["item"]
             if self.mock:
-                self.notify(tr("预览：打开 ") + item["name"])
+                self.notify(tr(Msg.PREVIEW_OPEN_PREFIX) + item["name"])
             else:
-                self._run(tr("打开文件"), lambda: self.operations.open(item["path"]))
+                self._run(tr(Msg.OPEN_FILE), lambda: self.operations.open(item["path"]))
         elif action == "open-using":
             item = option["item"]
             if not self.mock:
-                self._run(tr("打开文件"), lambda: self.catalog.launch(value, [item["path"]]))
+                self._run(tr(Msg.OPEN_FILE), lambda: self.catalog.launch(value, [item["path"]]))
             else:
-                self.notify(tr("预览：打开 ") + item["name"])
+                self.notify(tr(Msg.PREVIEW_OPEN_PREFIX) + item["name"])
         elif action == "task" and self.file_task:
             self._file_show_task()
         elif action == "cancel-task":
             self._file_cancel_task()
         elif action == "unmount":
             place = option["place"]
-            self._confirm(tr("Safely unmount"), place["path"], {"action": "files", "command": "unmount-confirm", "place": place})
+            self._confirm(tr(Msg.SAFELY_UNMOUNT), place["path"], {"action": "files", "command": "unmount-confirm", "place": place})
         elif action == "unmount-confirm":
             self._file_unmount(option["place"])
         elif action == "rename" and selected and len(selected) == 1:
@@ -447,7 +447,7 @@ class FileControls(NetworkAccessControls):
         if purpose == "network-share-root":
             path = Path(text).expanduser()
             if not path.is_absolute() or not path.is_dir():
-                self.notify(tr("Choose an existing folder"))
+                self.notify(tr(Msg.CHOOSE_AN_EXISTING_FOLDER))
             else:
                 self.network_draft["root"] = str(path.resolve())
                 self._network_dirty = True
@@ -459,14 +459,14 @@ class FileControls(NetworkAccessControls):
         elif purpose == "file-location":
             path = Path(text).expanduser()
             if not path.is_absolute() or "\x00" in text:
-                self.notify(tr("Enter an absolute folder path."))
+                self.notify(tr(Msg.ENTER_AN_ABSOLUTE_FOLDER_PATH))
             else:
                 self.file_section = "list"
                 self._browse(path)
         elif purpose == "file-restore":
             path = Path(text).expanduser()
             if not path.is_absolute() or "\x00" in text:
-                self.notify(tr("Enter an absolute folder path."))
+                self.notify(tr(Msg.ENTER_AN_ABSOLUTE_FOLDER_PATH))
             else:
                 self._file_start_job("restore", modal["items"], str(path))
         else:
@@ -478,31 +478,31 @@ class FileControls(NetworkAccessControls):
         if not self.clipboard or self.data["directory"] == "trash:///":
             return
         if self.busy or self._file_active():
-            self.notify(tr("请等待当前文件操作完成"))
+            self.notify(tr(Msg.WAIT_FOR_THE_CURRENT_FILE_OPERATION_TO_FINISH))
             return
         if self.mock:
-            self.notify(tr("预览：粘贴操作已模拟，未访问真实文件"))
+            self.notify(tr(Msg.PREVIEW_PASTE_SIMULATED_NO_REAL_FILES_ACCESSED))
             return
         paths = distinct_sources(self.clipboard.get("paths") or [self.clipboard["path"]])
         directory = self.data["directory"]
         conflicts = [path for path in paths if (Path(directory) / Path(path).name).exists()
                      or (Path(directory) / Path(path).name).is_symlink()]
         if conflicts and policy == "error":
-            options = [{"label": tr("取消"), "action": "none"},
-                       {"label": tr("Keep both"), "action": "files", "command": "paste-keep"},
-                       {"label": tr("Skip existing"), "action": "files", "command": "paste-skip"}]
+            options = [{"label": tr(Msg.CANCEL), "action": "none"},
+                       {"label": tr(Msg.KEEP_BOTH), "action": "files", "command": "paste-keep"},
+                       {"label": tr(Msg.SKIP_EXISTING), "action": "files", "command": "paste-skip"}]
             if not any(Path(path).is_dir() or (Path(directory) / Path(path).name).is_dir() for path in conflicts):
-                options.append({"label": tr("Replace files"), "action": "files", "command": "confirm-replace"})
-            self._menu(tr("Name conflicts"), options, body=tr("{count} conflict(s). Folders are never merged or overwritten.", count=len(conflicts)))
+                options.append({"label": tr(Msg.REPLACE_FILES), "action": "files", "command": "confirm-replace"})
+            self._menu(tr(Msg.NAME_CONFLICTS), options, body=tr(Msg.COUNT_CONFLICT_S_FOLDERS_ARE_NEVER_MERGED_OR_OVERWRITTEN, count=len(conflicts)))
             return
         self._file_start_job("move" if self.clipboard["move"] else "copy", paths, directory, policy)
 
     def _file_start_job(self, action, sources, directory, policy="error"):
         if self.mock:
-            self.notify(tr("预览操作已模拟，未操作真实设备"))
+            self.notify(tr(Msg.PREVIEW_ACTION_SIMULATED_NO_HARDWARE_CHANGES))
             return
         if self._file_active() or self.busy or not sources:
-            self.notify(tr("请等待当前文件操作完成"))
+            self.notify(tr(Msg.WAIT_FOR_THE_CURRENT_FILE_OPERATION_TO_FINISH))
             return
         identifier = uuid.uuid4().hex
         self._file_job_cancel = threading.Event()
@@ -523,24 +523,24 @@ class FileControls(NetworkAccessControls):
         if not task:
             return ""
         if task.get("state") == "cancelling":
-            return tr("Cancelling safely; completed items are kept.")
+            return tr(Msg.CANCELLING_SAFELY_COMPLETED_ITEMS_ARE_KEPT)
         if task.get("phase") == "preparing":
-            return tr("Preparing file task; calculating size…")
+            return tr(Msg.PREPARING_FILE_TASK_CALCULATING_SIZE)
         if task.get("state") == "cancelled":
-            return tr("Cancelled. {count} completed item(s) were kept.", count=task.get("completedItems", 0))
+            return tr(Msg.CANCELLED_COUNT_COMPLETED_ITEM_S_WERE_KEPT, count=task.get("completedItems", 0))
         if task.get("state") in ("completed", "failed"):
-            return tr("{done} completed · {skipped} skipped · {failed} failed", done=task.get("completedItems", 0),
+            return tr(Msg.DONE_COMPLETED_SKIPPED_SKIPPED_FAILED_FAILED, done=task.get("completedItems", 0),
                       skipped=task.get("skippedItems", 0), failed=len(task.get("errors", [])))
-        return tr("{done} / {total} · {speed}/s", done=FileOperations.format_size(task.get("doneBytes", 0)),
+        return tr(Msg.DONE_TOTAL_SPEED_S, done=FileOperations.format_size(task.get("doneBytes", 0)),
                   total=FileOperations.format_size(task.get("totalBytes", 0)),
                   speed=FileOperations.format_size(task.get("speed", 0)))
 
     def _file_show_task(self):
-        labels = {"copy": tr("正在复制"), "move": tr("正在移动"), "trash": tr("移入回收站"), "restore": tr("Restore selected items")}
+        labels = {"copy": tr(Msg.COPYING), "move": tr(Msg.MOVING), "trash": tr(Msg.MOVE_TO_TRASH), "restore": tr(Msg.RESTORE_SELECTED_ITEMS)}
         task = self.file_task
         if task:
             if not self._file_active() and task.get("errors"):
-                self._menu(tr("File task errors"), [{"label": Path(error["path"]).name, "subtitle": error["reason"],
+                self._menu(tr(Msg.FILE_TASK_ERRORS), [{"label": Path(error["path"]).name, "subtitle": error["reason"],
                                                     "wrapSubtitle": True, "action": "none"} for error in task["errors"]],
                            body=self._file_task_summary())
             else:
@@ -617,11 +617,11 @@ class FileControls(NetworkAccessControls):
         if item.get("directory") and not item.get("trash"):
             self._browse(item["path"])
         elif self.mock:
-            self.notify(tr("预览：打开 ") + item["name"])
+            self.notify(tr(Msg.PREVIEW_OPEN_PREFIX) + item["name"])
         elif item.get("trash"):
             self._file_preview(item)
         else:
-            self._run(tr("打开文件"), lambda: self.operations.open(item["path"]))
+            self._run(tr(Msg.OPEN_FILE), lambda: self.operations.open(item["path"]))
 
     def _file_preview(self, item):
         owner = self.navigation.page, self.data["directory"]
@@ -631,24 +631,24 @@ class FileControls(NetworkAccessControls):
             self._file_preview_text = result.pop("previewText", "")
             if item.get("trash"):
                 details = result["body"].split("\n")
-                result["body"] = item["originalPath"] + "\n" + details[1] + "\n" + tr("Deleted: {date}", date=item.get("deletedAt", ""))
+                result["body"] = item["originalPath"] + "\n" + details[1] + "\n" + tr(Msg.DELETED_DATE, date=item.get("deletedAt", ""))
             result.update(previewText=self._file_preview_text, item=item)
             self._push(result)
         if self.mock:
             loaded({"kind": "file-preview", "title": item["name"], "body": item["path"], "previewType": "metadata"})
         else:
-            self._run(tr("Preview and details"), lambda: preview(item["path"], name=item["name"]), loaded, report_success=False)
+            self._run(tr(Msg.PREVIEW_AND_DETAILS), lambda: preview(item["path"], name=item["name"]), loaded, report_success=False)
 
     def _file_open_with(self, item):
         handlers = self.catalog.handlers(item.get("mime", "application/octet-stream")) if not self.mock else []
-        options = [{"label": tr("System default application"), "action": "files", "command": "open-default", "item": item}]
+        options = [{"label": tr(Msg.SYSTEM_DEFAULT_APPLICATION), "action": "files", "command": "open-default", "item": item}]
         options.extend({"label": entry["name"], "action": "files", "command": "open-using", "value": entry["id"], "item": item}
                        for entry in handlers)
-        self._menu(tr("Open with"), options, body=tr("This does not change default file associations."))
+        self._menu(tr(Msg.OPEN_WITH), options, body=tr(Msg.THIS_DOES_NOT_CHANGE_DEFAULT_FILE_ASSOCIATIONS))
 
     def _file_unmount(self, place):
         if self.mock:
-            self.notify(tr("预览操作已模拟，未操作真实设备"))
+            self.notify(tr(Msg.PREVIEW_ACTION_SIMULATED_NO_HARDWARE_CHANGES))
             return
         root = Path(place["path"]).resolve()
         sources = self.file_task.get("sources", []) if self._file_active() else []
@@ -656,7 +656,7 @@ class FileControls(NetworkAccessControls):
         if self._file_active() and self.file_task.get("directory"):
             targets.append(self.file_task["directory"])
         if any(Path(path).resolve().is_relative_to(root) for path in targets):
-            raise ValueError(tr("A file task is using this device. Wait for it to finish."))
+            raise ValueError(tr(Msg.A_FILE_TASK_IS_USING_THIS_DEVICE_WAIT_FOR_IT_TO_FINISH))
         if self.data["directory"] != "trash:///" and Path(self.data["directory"]).resolve().is_relative_to(root):
             self.data["directory"] = str(Path.home())
             self._file_entries, self.data["files"] = [], []
@@ -666,7 +666,7 @@ class FileControls(NetworkAccessControls):
             if self.navigation.page == "files":
                 self.navigation.select(0)
             self._file_watch()
-        self._run(tr("Safely unmount"), lambda: unmount(place), lambda result: self._browse(self.data["directory"]))
+        self._run(tr(Msg.SAFELY_UNMOUNT), lambda: unmount(place), lambda result: self._browse(self.data["directory"]))
 
     def _close_files(self):
         self._close_network_access()

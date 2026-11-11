@@ -7,12 +7,15 @@ import "../../../qml" as Shared
 
 Window {
     id: window
+    readonly property var msg: controller.messageKeys
     width: 1280; height: 720
     minimumWidth: 800; minimumHeight: 500
     visible: true
     visibility: windowed ? Window.Windowed : Window.FullScreen
     color: window.colors.background
-    title: "uDeck " + window.tr(state.app.charAt(0).toUpperCase() + state.app.slice(1))
+    title: "uDeck " + appName
+    readonly property string appName: window.tr(({music: msg.MUSIC, video: msg.VIDEO, browser: msg.BROWSER,
+                                                 reader: msg.READER, emulator: msg.EMULATOR})[state.app])
     property var state: JSON.parse(controller.viewSnapshotJson)
     property alias colors: themeColors
     Shared.ThemePalette { id: themeColors; theme: window.state.theme; profile: "apps" }
@@ -75,10 +78,10 @@ Window {
             RowLayout {
                 anchors.fill: parent; anchors.leftMargin: 28; anchors.rightMargin: 28; spacing: 18
                 Shared.BrandLogo { colors: window.colors; Layout.preferredWidth: 34; Layout.preferredHeight: 34 }
-                Text { font.family: window.fontFamily; text: window.tr(window.state.app.charAt(0).toUpperCase()+window.state.app.slice(1)); color: window.ink; font.pixelSize: 28 }
+                Text { font.family: window.fontFamily; text: window.appName; color: window.ink; font.pixelSize: 28 }
                 Item { Layout.fillWidth: true }
-                Text { font.family: window.fontFamily; text: window.state.scanning ? window.tr("Scanning…") : window.state.app === "browser" ? window.tr(({navigation:"Link navigation",reading:"Reading",pointer:"Virtual pointer",text:"Text input"})[window.state.webMode]||"Link navigation") : window.state.count+" "+window.tr("items"); color: window.muted; font.pixelSize: 18 }
-                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; promptKeys: ["gamecube_button_y"]; text: window.tr("Settings"); implicitHeight: 42; onActivated: controller.dispatch("quick-settings") }
+                Text { font.family: window.fontFamily; text: window.state.scanning ? window.tr(msg.SCANNING) : window.state.app === "browser" ? window.tr(({navigation:msg.LINK_NAVIGATION,reading:msg.READING,pointer:msg.VIRTUAL_POINTER,text:msg.TEXT_INPUT})[window.state.webMode]||msg.LINK_NAVIGATION) : window.state.count+" "+window.tr(msg.ITEMS); color: window.muted; font.pixelSize: 18 }
+                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; promptKeys: ["gamecube_button_y"]; text: window.tr(msg.SETTINGS); implicitHeight: 42; onActivated: controller.dispatch("quick-settings") }
             }
         }
         Rectangle {
@@ -146,9 +149,9 @@ Window {
                             anchors.fill: parent; visible: window.state.count===0
                             Column {
                                 anchors.centerIn: parent; width: Math.min(parent.width-36,540); spacing: 18
-                                Text { font.family: window.fontFamily; width: parent.width; text: window.state.scanning?window.tr("Scanning…"):window.tr("Nothing here yet"); color: window.ink; font.pixelSize: 30; horizontalAlignment: Text.AlignHCenter }
-                                Text { font.family: window.fontFamily; width: parent.width; text: window.state.app === "emulator" ? window.state.emptyHint : window.tr("Choose a folder in Sources, or switch to another collection."); wrapMode: window.state.app === "emulator" ? Text.WrapAnywhere : Text.Wrap; color: window.muted; font.pixelSize: 21; horizontalAlignment: Text.AlignHCenter }
-                                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; anchors.horizontalCenter: parent.horizontalCenter; promptKeys: ["gamecube_button_color_a"]; text: window.tr(window.state.app === "emulator" ? "Settings" : "Sources"); selected: true; onActivated: controller.command(window.state.app === "emulator" ? "settings" : "sources") }
+                                Text { font.family: window.fontFamily; width: parent.width; text: window.state.scanning?window.tr(msg.SCANNING):window.tr(msg.NOTHING_HERE_YET); color: window.ink; font.pixelSize: 30; horizontalAlignment: Text.AlignHCenter }
+                                Text { font.family: window.fontFamily; width: parent.width; text: window.state.app === "emulator" ? window.state.emptyHint : window.tr(msg.CHOOSE_A_FOLDER_IN_SOURCES_OR_SWITCH_TO_ANOTHER_COLLECTION); wrapMode: window.state.app === "emulator" ? Text.WrapAnywhere : Text.Wrap; color: window.muted; font.pixelSize: 21; horizontalAlignment: Text.AlignHCenter }
+                                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; anchors.horizontalCenter: parent.horizontalCenter; promptKeys: ["gamecube_button_color_a"]; text: window.tr(window.state.app === "emulator" ? msg.SETTINGS : msg.SOURCES); selected: true; onActivated: controller.command(window.state.app === "emulator" ? "settings" : "sources") }
                             }
                         }
                     }
@@ -157,13 +160,13 @@ Window {
                     visible: window.state.app==="music" || window.state.app==="emulator"
                     Layout.preferredWidth: window.width<1100?230:290; Layout.maximumWidth: window.width<1100?230:290; Layout.fillWidth: false; Layout.fillHeight: true; spacing: 16
                     Rectangle { Layout.fillWidth: true; height: 1; color: window.colors.divider }
-                    Text { font.family: window.fontFamily; text: window.state.app==="music"?window.tr("Now playing"):window.tr("Selected game"); color: window.muted; font.pixelSize: 18 }
+                    Text { font.family: window.fontFamily; text: window.state.app==="music"?window.tr(msg.NOW_PLAYING):window.tr(msg.SELECTED_GAME); color: window.muted; font.pixelSize: 18 }
                     Artwork { fontFamily: window.fontFamily; colors: window.colors; Layout.fillWidth: true; Layout.preferredHeight: 170; cover: window.state.app==="music"?(window.state.current.cover||""):(controller.selectedItem.cover||""); kind: window.state.app }
-                    Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.app==="music"?(window.state.current.title||window.tr("Choose a track")):(controller.selectedItem.title||""); wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight; color: window.ink; font.pixelSize: 25 }
+                    Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.app==="music"?(window.state.current.title||window.tr(msg.CHOOSE_A_TRACK)):(controller.selectedItem.title||""); wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight; color: window.ink; font.pixelSize: 25 }
                     Text { font.family: window.fontFamily; visible: window.state.app==="music"; text: window.time((window.state.media||{}).position)+" / "+window.time((window.state.media||{}).duration); color: window.muted; font.pixelSize: 19 }
-                    SuiteButton { fontFamily: window.fontFamily; colors: window.colors; visible: window.state.app==="music" && !!window.state.current.id; text: window.tr("Now playing"); onActivated: controller.command("now-playing") }
+                    SuiteButton { fontFamily: window.fontFamily; colors: window.colors; visible: window.state.app==="music" && !!window.state.current.id; text: window.tr(msg.NOW_PLAYING); onActivated: controller.command("now-playing") }
                     Item { Layout.fillHeight: true }
-                    Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.app==="music"?window.tr("Playback continues while browsing."):window.tr("Ctrl+Alt+M opens the game menu."); wrapMode: Text.Wrap; color: window.muted; font.pixelSize: 18 }
+                    Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.app==="music"?window.tr(msg.PLAYBACK_CONTINUES_WHILE_BROWSING):window.tr(msg.CTRL_ALT_M_OPENS_THE_GAME_MENU); wrapMode: Text.Wrap; color: window.muted; font.pixelSize: 18 }
                 }
             }
             Loader {
@@ -181,7 +184,7 @@ Window {
             RowLayout {
                 anchors.fill: parent; anchors.leftMargin: 28; anchors.rightMargin: 28; spacing: 24
                 Repeater {
-                    model: [["gamecube_button_color_a",window.tr("Open")],["gamecube_button_color_b",window.tr("Back")],["gamecube_button_x",window.tr("Actions")],["gamecube_button_y",window.tr("Settings")]]
+                    model: [["gamecube_button_color_a",window.tr(msg.OPEN)],["gamecube_button_color_b",window.tr(msg.BACK)],["gamecube_button_x",window.tr(msg.ACTIONS)],["gamecube_button_y",window.tr(msg.SETTINGS)]]
                     delegate: Shared.InputPrompt {
                         required property var modelData
                         keys: [modelData[0]]; label: modelData[1]
@@ -189,7 +192,7 @@ Window {
                     }
                 }
                 Item { Layout.fillWidth: true }
-                Shared.InputPrompt { keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"]; label: window.tr(window.state.page === "document" ? "Pages" : "Tabs"); fontFamily: window.fontFamily; textColor: window.muted; fontSize: 18 }
+                Shared.InputPrompt { keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"]; label: window.tr(window.state.page === "document" ? msg.PAGES : msg.TABS); fontFamily: window.fontFamily; textColor: window.muted; fontSize: 18 }
             }
         }
     }
@@ -267,8 +270,8 @@ Window {
                 Shared.InputHints {
                     Layout.fillWidth: true
                     fontFamily: window.fontFamily; textColor: window.muted; fontSize: 18
-                    hints: [{keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr("Confirm")},
-                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr("Back")}]
+                    hints: [{keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr(msg.CONFIRM)},
+                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(msg.BACK)}]
                 }
             }
         }

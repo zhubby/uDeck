@@ -10,7 +10,8 @@ from udeck.apps.common.library import Library
 from udeck.apps.common.model import CardListModel
 from udeck.apps.common.state import AppState
 from udeck.core import ConfigStore, move_index
-from udeck.i18n import language_code, render, tr
+from udeck.i18n import Msg, language_code, render, tr
+from udeck.i18n import translate as translate_message
 from udeck.sounds import SoundFeedback, interaction
 
 
@@ -73,7 +74,7 @@ class AppController(SoundFeedback):
             self.library.check_sources()
 
     def tabs(self):
-        return [tr("Library"), tr("Folders")]
+        return [tr(Msg.LIBRARY), tr(Msg.FOLDERS)]
 
     def rows(self):
         if not self.library:
@@ -84,7 +85,7 @@ class AppController(SoundFeedback):
         if self.filter:
             items = [i for i in items if self.filter.casefold() in
                      (i["title"] + " " + i.get("artist", "")).casefold()]
-        if self.tabs()[self.tab] == tr("Folders") and not self.folder:
+        if self.tabs()[self.tab] == tr(Msg.FOLDERS) and not self.folder:
             folders = sorted({i["folder"] for i in items})
             return [{"id": "folder:" + p, "title": Path(p).name, "subtitle": p,
                      "kind": "folder", "cover": ""} for p in folders]
@@ -155,9 +156,13 @@ class AppController(SoundFeedback):
     def isolatedMode(self):
         return self.isolated
 
+    @Property("QVariantMap", constant=True)
+    def messageKeys(self):
+        return {key.name: key.value for key in Msg}
+
     @Slot(str, str, result=str)
-    def translate(self, source, language):
-        return render(tr(source), language)
+    def translate(self, key, language):
+        return translate_message(key, language)
 
     def publish(self):
         self._view_rows()
@@ -176,14 +181,14 @@ class AppController(SoundFeedback):
             return action()
         except (OSError, ValueError, RuntimeError) as error:
             self.feedback("error")
-            self.error = tr("Operation failed: {error}", error=error)
+            self.error = tr(Msg.OPERATION_FAILED_ERROR, error=error)
             self.publish()
             return None
 
     @Slot(object)
     def _save_failed(self, error):
         self.feedback('error')
-        self.error = tr('Operation failed: {error}', error=error)
+        self.error = tr(Msg.OPERATION_FAILED_ERROR, error=error)
         self.publish()
 
     def menu(self, title, options=(), body="", owner=None, quiet=False, icon=""):
@@ -204,7 +209,7 @@ class AppController(SoundFeedback):
             self._serial += 1
             key = str(self._serial)
             self._callbacks[key] = self.pop_menu
-            rows.append({"id": key, "title": tr("Back"), "subtitle": "", "icon": "go-previous" if icon else "", "disabled": False})
+            rows.append({"id": key, "title": tr(Msg.BACK), "subtitle": "", "icon": "go-previous" if icon else "", "disabled": False})
         self.menus.append({"title": title, "body": body, "options": rows,
                            "index": next(i for i, r in enumerate(rows) if not r["disabled"]),
                            "owner": owner or (self.current or {}).get("sourceId", ""),
@@ -212,7 +217,7 @@ class AppController(SoundFeedback):
         self.publish()
 
     def prompt(self, title, callback, draft="", body="", owner=None):
-        self.menu(title, [(tr("Confirm"), lambda: self.submit(self.menus[-1]["draft"]))], body, owner)
+        self.menu(title, [(tr(Msg.CONFIRM), lambda: self.submit(self.menus[-1]["draft"]))], body, owner)
         self.menus[-1].update(input=True, draft=draft, submit=callback)
         self.publish()
 
@@ -359,11 +364,11 @@ class AppController(SoundFeedback):
         self.publish()
 
     def context(self):
-        self.menu(tr("Library actions"), [
-            (tr("Search"), lambda: self.prompt(tr("Search library"), self.search, self.filter)),
-            (tr("Clear search"), lambda: self.search("")),
-            (tr("Sources"), self.sources_menu),
-            (tr("Refresh library"), self.refresh)])
+        self.menu(tr(Msg.LIBRARY_ACTIONS), [
+            (tr(Msg.SEARCH), lambda: self.prompt(tr(Msg.SEARCH_LIBRARY), self.search, self.filter)),
+            (tr(Msg.CLEAR_SEARCH), lambda: self.search("")),
+            (tr(Msg.SOURCES), self.sources_menu),
+            (tr(Msg.REFRESH_LIBRARY), self.refresh)])
 
     def search(self, text):
         self.filter = text
@@ -375,15 +380,15 @@ class AppController(SoundFeedback):
         self.library.refresh()
 
     def sources_menu(self):
-        options = [(tr("Add folder"), lambda: self.prompt(
-            tr("Folder path"), self.library.add, str(Path.home()), tr("Files stay in their original location.")), "", "folder-new")]
+        options = [(tr(Msg.ADD_FOLDER), lambda: self.prompt(
+            tr(Msg.FOLDER_PATH), self.library.add, str(Path.home()), tr(Msg.FILES_STAY_IN_THEIR_ORIGINAL_LOCATION)), "", "folder-new")]
         for source in self.library.sources:
             options.append((Path(source.path).name, lambda s=source: self.prompt(
-                tr("Reconnect source"), lambda p: self.library.add(p), s.path),
-                tr("Connected") if source.available() else tr("Disconnected")))
-        options.extend([(tr("Refresh library"), self.refresh, "", "view-refresh"),
-                        (tr("Cancel scan"), self.cancel_scan, "", "process-stop")])
-        self.menu(tr("Sources"), options, icon="folder")
+                tr(Msg.RECONNECT_SOURCE), lambda p: self.library.add(p), s.path),
+                tr(Msg.CONNECTED) if source.available() else tr(Msg.DISCONNECTED)))
+        options.extend([(tr(Msg.REFRESH_LIBRARY), self.refresh, "", "view-refresh"),
+                        (tr(Msg.CANCEL_SCAN), self.cancel_scan, "", "process-stop")])
+        self.menu(tr(Msg.SOURCES), options, icon="folder")
 
     def cancel_scan(self):
         self.library.cancel.set()
@@ -397,12 +402,12 @@ class AppController(SoundFeedback):
     def settings(self):
         options = self.settings_options()
         if self.library:
-            options.append((tr("Sources"), self.sources_menu, "", "folder"))
-        options.append((tr("Close application"), self.requestClose, "", "window-close"))
-        self.menu(tr("Settings"), options, icon="preferences-system")
+            options.append((tr(Msg.SOURCES), self.sources_menu, "", "folder"))
+        options.append((tr(Msg.CLOSE_APPLICATION), self.requestClose, "", "window-close"))
+        self.menu(tr(Msg.SETTINGS), options, icon="preferences-system")
 
     def language_menu(self):
-        self.menu(tr("Language"), [("English", lambda: self.set_language("en")),
+        self.menu(tr(Msg.LANGUAGE), [("English", lambda: self.set_language("en")),
                                    ("简体中文", lambda: self.set_language("zh_CN"))])
 
     def set_language(self, language):
@@ -410,7 +415,7 @@ class AppController(SoundFeedback):
         config.data["preferences"]["language"] = language_code(language)
         config.save()
         self.language = language
-        if self.menus and self.menus[-1]["title"] == tr("Language"):
+        if self.menus and self.menus[-1]["title"] == tr(Msg.LANGUAGE):
             self.pop_menu()
         else:
             self.publish()
@@ -422,7 +427,7 @@ class AppController(SoundFeedback):
             self.stop_source()
             self.page = "library"
             self.history.clear()
-        self.notice = tr("Source disconnected. Reconnect it in Sources.")
+        self.notice = tr(Msg.SOURCE_DISCONNECTED_RECONNECT_IT_IN_SOURCES)
         self.publish()
 
     def stop_source(self):
@@ -440,7 +445,7 @@ class AppController(SoundFeedback):
     @interaction
     def command(self, command):
         handlers = {"settings": self.settings, "sources": self.sources_menu,
-                    "search": lambda: self.prompt(tr("Search library"), self.search, self.filter),
+                    "search": lambda: self.prompt(tr(Msg.SEARCH_LIBRARY), self.search, self.filter),
                     "refresh": self.refresh, "context": self.context, "home": lambda: self.desktop("Home")}
         if command in handlers:
             self.feedback("accept")

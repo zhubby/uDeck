@@ -7,6 +7,7 @@ import "../../qml" as Shared
 
 Window {
     id: window
+    readonly property var msg: controller.messageKeys
     function tr(source) { return controller.translate(source, state.language) }
     width: 1280
     height: 720
@@ -105,7 +106,7 @@ Window {
                         MouseArea { anchors.fill: parent; onClicked: controller.selectTab(parent.identifier) }
                     }
                 }
-                Shared.InputPrompt { keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"]; label: window.tr("会话"); fontFamily: window.fontFamily; textColor: window.muted; iconSize: 24; fontSize: 14 }
+                Shared.InputPrompt { keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"]; label: window.tr(msg.SESSIONS); fontFamily: window.fontFamily; textColor: window.muted; iconSize: 24; fontSize: 14 }
             }
         }
         Item {
@@ -146,15 +147,15 @@ Window {
                 width: parent.width - 104
                 fontFamily: window.fontFamily; textColor: window.muted; fontSize: 15; iconSize: 28
                 hints: window.state.mode === "history" ? [
-                    {keys: ["keyboard_arrows"], label: window.tr(window.state.anchored ? "Extend selection" : "Select")},
-                    {keys: ["gamecube_button_color_a"], label: window.tr(window.state.anchored ? "Copy" : "Set start")},
-                    {keys: ["gamecube_button_color_b"], label: window.tr(window.state.anchored ? "取消" : "返回")}
+                    {keys: ["keyboard_arrows"], label: window.tr(window.state.anchored ? msg.EXTEND_SELECTION : msg.SELECT)},
+                    {keys: ["gamecube_button_color_a"], label: window.tr(window.state.anchored ? msg.COPY : msg.SET_START)},
+                    {keys: ["gamecube_button_color_b"], label: window.tr(window.state.anchored ? msg.CANCEL : msg.BACK)}
                 ] : [
-                    {keys: ["gamecube_button_color_a"], label: window.tr("Send Enter")},
-                    {keys: ["gamecube_button_color_b"], label: window.tr("Send Escape")},
-                    {keys: ["gamecube_button_x"], label: window.tr("Actions")},
-                    {keys: ["gamecube_button_y"], label: window.tr("Settings")},
-                    {keys: ["keyboard_ctrl", "+", "keyboard_shift", "+", "keyboard_t"], label: window.tr("New tab")}
+                    {keys: ["gamecube_button_color_a"], label: window.tr(msg.ENTER)},
+                    {keys: ["gamecube_button_color_b"], label: window.tr(msg.ESC)},
+                    {keys: ["gamecube_button_x"], label: window.tr(msg.ACTIONS)},
+                    {keys: ["gamecube_button_y"], label: window.tr(msg.SETTINGS)},
+                    {keys: ["keyboard_ctrl", "+", "keyboard_shift", "+", "keyboard_t"], label: window.tr(msg.NEW_TAB)}
                 ]
             }
             Text { font.family: window.fontFamily; anchors.right: parent.right; anchors.rightMargin: 18; anchors.verticalCenter: parent.verticalCenter; text: window.state.fontSize + " px"; color: window.muted; font.pixelSize: 14 }
@@ -186,7 +187,7 @@ Window {
                 anchors.fill: parent
                 anchors.margins: 24
                 spacing: 14
-                Text { font.family: window.fontFamily; text: ({menu:window.tr("终端操作"),settings:window.tr("终端设置"),close:window.tr("结束会话？"),paste:window.tr("确认粘贴"),search:window.tr("搜索文字"),error:window.tr("无法完成操作")})[window.state.mode] || ""; color: window.ink; font.pixelSize: 24; font.bold: true }
+                Text { font.family: window.fontFamily; text: ({menu:window.tr(msg.TERMINAL_ACTIONS),settings:window.tr(msg.TERMINAL_SETTINGS),close:window.tr(msg.END_SESSION_PROMPT),paste:window.tr(msg.CONFIRM_PASTE),search:window.tr(msg.SEARCH_TEXT),error:window.tr(msg.UNABLE_TO_COMPLETE_OPERATION)})[window.state.mode] || ""; color: window.ink; font.pixelSize: 24; font.bold: true }
                 Text {
                     objectName: "terminalThemeHint"
                     visible: window.state.mode === "settings"
@@ -209,7 +210,7 @@ Window {
                     visible: window.state.mode === "search"
                     Layout.fillWidth: true
                     text: window.state.query
-                    placeholderText: window.tr("普通文字匹配 · Enter 下一处 · ↑ 上一处")
+                    placeholderText: window.tr(msg.PLAIN_TEXT_ENTER_NEXT_PREVIOUS)
                     font.pixelSize: 20
                     onTextEdited: controller.setQuery(text)
                     Keys.onPressed: function(event) {
@@ -262,9 +263,9 @@ Window {
                 Shared.InputHints {
                     Layout.fillWidth: true
                     fontFamily: window.fontFamily; textColor: window.muted; fontSize: 14; iconSize: 28
-                    hints: [{keys: ["keyboard_arrows"], label: window.tr("Select")},
-                            {keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr("确认")},
-                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr("返回")}]
+                    hints: [{keys: ["keyboard_arrows"], label: window.tr(msg.SELECT)},
+                            {keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr(msg.CONFIRM)},
+                            {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(msg.BACK)}]
                 }
             }
         }

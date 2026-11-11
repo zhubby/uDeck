@@ -160,7 +160,7 @@ assert image.save(str(image_path))
 show_preview(image_path, {"path": str(image_path), "name": image_path.name, "directory": False})
 assert window.findChild(QObject, "filePreviewImage").property("implicitWidth") > 0
 hints = window.findChild(QObject, "modalFooter").property("hints").toVariant()
-assert controller.translate("Scroll", language) not in [hint["label"] for hint in hints]
+assert controller.translate(controller.messageKeys["SCROLL"], language) not in [hint["label"] for hint in hints]
 assert window.grabWindow().save(str(output / "preview-image.png"))
 controller.dispatch("back")
 controller.file_task = {"id": "preview-task", "action": "copy", "state": "running", "phase": "working",

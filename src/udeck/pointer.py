@@ -4,7 +4,7 @@ import time
 
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
-from .i18n import error_text, tr
+from .i18n import Msg, error_text, tr
 from .input import STOCK_FINGERPRINT
 
 EVIOCSCLOCKID = 0x400445A0
@@ -63,10 +63,10 @@ class PointerGuard(QObject):
                 if 272 not in keys or not ({0, 1} <= relative or {0, 1} <= absolute):
                     continue
                 if any(0 < code < 256 for code in keys):
-                    errors.append(tr('{value0}: 混合键盘接口不能独占', value0=device.name))
+                    errors.append(tr(Msg.VALUE0_CANNOT_EXCLUSIVELY_GRAB_A_MIXED_KEYBOARD_INTERFACE, value0=device.name))
                     continue
                 if device.active_keys():
-                    errors.append(tr('{value0}: 请松开鼠标按键', value0=device.name))
+                    errors.append(tr(Msg.VALUE0_RELEASE_THE_MOUSE_BUTTONS, value0=device.name))
                     continue
                 device.grab()
                 monotonic = False

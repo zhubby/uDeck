@@ -6,7 +6,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtDBus import QDBusConnection, QDBusMessage, QDBusPendingCallWatcher
 
 from .app_routing import NATIVE_APPS, object_path, service_name
-from .i18n import error_text, tr
+from .i18n import Msg, error_text, tr
 from .launch import LaunchTracker
 from .mock import mock_apps
 
@@ -55,7 +55,7 @@ class LaunchControls:
         self.applications, error = result
         self.startup["phase"] = "ready"
         if error:
-            self.notify(tr("Could not read the application list: {error}", error=error_text(error)))
+            self.notify(tr(Msg.COULD_NOT_READ_THE_APPLICATION_LIST_ERROR, error=error_text(error)))
         if not self.mock:
             self._browse(Path.home())
         self._publish()
@@ -164,7 +164,7 @@ class LaunchControls:
             try:
                 self.config.remember(identifier)
             except OSError as failure:
-                notice = tr('操作已执行，但更新状态失败：{value0}', value0=failure)
+                notice = tr(Msg.THE_OPERATION_COMPLETED_BUT_STATUS_COULD_NOT_BE_UPDATED_VALUE0, value0=failure)
         self._refresh_launch()
         if notice:
             self.notify(notice)

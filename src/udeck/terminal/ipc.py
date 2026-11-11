@@ -8,7 +8,7 @@ import json
 from PySide6.QtCore import QObject, Slot
 from PySide6.QtDBus import QDBusConnection, QDBusInterface, QDBusMessage
 
-from ..i18n import render, tr
+from ..i18n import Msg, render, tr
 from ..terminal_routing import service_name as service_name
 from . import INTERFACE, OBJECT_PATH
 from .core import LaunchRequest
@@ -24,8 +24,8 @@ def forward(request):
         return False
     result = remote.call("Open", request.to_json())
     if result.type() == QDBusMessage.MessageType.ErrorMessage:
-        raise RuntimeError(tr("终端进程未响应：{error}", error=result.errorMessage()))
-    error = result.arguments()[0] if result.arguments() else tr("无效的终端响应")
+        raise RuntimeError(tr(Msg.THE_TERMINAL_PROCESS_DID_NOT_RESPOND_ERROR, error=result.errorMessage()))
+    error = result.arguments()[0] if result.arguments() else tr(Msg.INVALID_TERMINAL_RESPONSE)
     if error:
         raise RuntimeError(str(error))
     return True
@@ -40,7 +40,7 @@ class TerminalControl(QObject):
     def Open(self, payload):
         try:
             if len(payload) > 2 * 1024 * 1024:
-                raise ValueError(tr("窗口请求过大"))
+                raise ValueError(tr(Msg.THE_WINDOW_REQUEST_IS_TOO_LARGE))
             request = LaunchRequest.from_json(payload)
             request.executable()
             self.coordinator.open(request)

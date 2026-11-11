@@ -2,7 +2,7 @@ import time
 import uuid
 from dataclasses import dataclass
 
-from .i18n import error_text, tr
+from .i18n import Msg, error_text, tr
 
 
 def application_identity(identifier):
@@ -47,7 +47,7 @@ class LaunchTracker:
             "pending": True, "visible": elapsed >= 0.18, "requestId": self.current,
             "name": application["name"], "icon": application.get("icon") or "application-x-executable",
             "homeKind": application.get("homeKind", ""),
-            "message": tr("Still waiting for the application window…") if elapsed >= 8 else tr("Opening application…"),
+            "message": tr(Msg.STILL_WAITING_FOR_THE_APPLICATION_WINDOW) if elapsed >= 8 else tr(Msg.OPENING_APPLICATION),
         }
 
     def submitted(self, token):
@@ -64,7 +64,7 @@ class LaunchTracker:
     def fail(self, token, error):
         request = self.finish(token)
         if request is not None:
-            return tr("Could not start {name}: {error}", name=request.application["name"], error=error_text(error))
+            return tr(Msg.COULD_NOT_START_NAME_ERROR, name=request.application["name"], error=error_text(error))
         return None
 
     def dismiss(self):
@@ -88,9 +88,9 @@ class LaunchTracker:
             request.observable = request.observable and observable
             if not request.observable and request.submitted is not None and now - request.submitted >= 2.5:
                 self.finish(token)
-                notices.append(tr("{name}: Launch request sent.", name=request.application["name"]))
+                notices.append(tr(Msg.NAME_LAUNCH_REQUEST_SENT, name=request.application["name"]))
             elif now - request.started >= 20:
                 self.finish(token)
-                notices.append(tr("{name}: No application window detected; the application may still be starting.",
+                notices.append(tr(Msg.NAME_NO_APPLICATION_WINDOW_DETECTED_THE_APPLICATION_MAY_STILL_BE_STARTING,
                                   name=request.application["name"]))
         return notices

@@ -12,7 +12,7 @@ from pathlib import Path
 from PySide6.QtCore import QRunnable, QThreadPool
 
 from udeck.apps.common.library import Library, ScanSignals, Source, fingerprint
-from udeck.i18n import error_text, tr
+from udeck.i18n import Msg, error_text, tr
 
 DESCRIPTORS = {".cue", ".gdi", ".m3u"}
 
@@ -25,19 +25,19 @@ def confined_path(path, root):
     try:
         relative = path.relative_to(root)
     except ValueError:
-        raise ValueError(tr("Content reference leaves its platform folder: {path}", path=path)) from None
+        raise ValueError(tr(Msg.CONTENT_REFERENCE_LEAVES_ITS_PLATFORM_FOLDER_PATH, path=path)) from None
     current = root
     for part in relative.parts:
         if part == "..":
             current = current.parent
             if current != root and root not in current.parents:
-                raise ValueError(tr("Content reference leaves its platform folder: {path}", path=path))
+                raise ValueError(tr(Msg.CONTENT_REFERENCE_LEAVES_ITS_PLATFORM_FOLDER_PATH, path=path))
             continue
         current = current / part
         if current.is_symlink():
-            raise ValueError(tr("Content reference uses a symbolic link: {path}", path=current))
+            raise ValueError(tr(Msg.CONTENT_REFERENCE_USES_A_SYMBOLIC_LINK_PATH, path=current))
     if root.is_symlink():
-        raise ValueError(tr("Content reference uses a symbolic link: {path}", path=root))
+        raise ValueError(tr(Msg.CONTENT_REFERENCE_USES_A_SYMBOLIC_LINK_PATH, path=root))
     return current
 
 
@@ -48,10 +48,10 @@ def content_dependencies(path, root, cancelled=lambda: False):
     def visit(entry, depth=0):
         nonlocal edges, descriptor_bytes
         if cancelled():
-            raise OSError(tr("Scan cancelled"))
+            raise OSError(tr(Msg.SCAN_CANCELLED))
         entry = confined_path(entry, root)
         if entry in visiting or depth > 8:
-            raise ValueError(tr("Circular or deeply nested disc playlist"))
+            raise ValueError(tr(Msg.CIRCULAR_OR_DEEPLY_NESTED_DISC_PLAYLIST))
         if entry in visited:
             return
         if entry.suffix.lower() not in DESCRIPTORS or not entry.is_file():
@@ -60,7 +60,7 @@ def content_dependencies(path, root, cancelled=lambda: False):
         size = entry.stat().st_size
         descriptor_bytes += size
         if size > 2 * 1024 * 1024 or descriptor_bytes > 8 * 1024 * 1024:
-            raise ValueError(tr("Disc descriptor is too large"))
+            raise ValueError(tr(Msg.DISC_DESCRIPTOR_IS_TOO_LARGE))
         text = entry.read_text(encoding="utf-8-sig", errors="replace")
         suffix = entry.suffix.lower()
         if suffix == ".cue":
@@ -76,23 +76,23 @@ def content_dependencies(path, root, cancelled=lambda: False):
                 if len(names) != count:
                     raise ValueError("Track count mismatch")
             except (IndexError, ValueError):
-                raise ValueError(tr("Invalid GDI descriptor")) from None
+                raise ValueError(tr(Msg.INVALID_GDI_DESCRIPTOR)) from None
         if not names:
-            raise ValueError(tr("Disc descriptor contains no entries"))
+            raise ValueError(tr(Msg.DISC_DESCRIPTOR_CONTAINS_NO_ENTRIES))
         visiting.add(entry)
         for name in names:
             if cancelled():
-                raise OSError(tr("Scan cancelled"))
+                raise OSError(tr(Msg.SCAN_CANCELLED))
             edges += 1
             if edges > 8192:
-                raise ValueError(tr("Too many disc references"))
+                raise ValueError(tr(Msg.TOO_MANY_DISC_REFERENCES))
             name = name.replace("\\", "/")
             if Path(name).is_absolute() or re.match(r"^[A-Za-z]:", name):
-                raise ValueError(tr("Content reference leaves its platform folder: {path}", path=name))
+                raise ValueError(tr(Msg.CONTENT_REFERENCE_LEAVES_ITS_PLATFORM_FOLDER_PATH, path=name))
             target = confined_path(entry.parent / name, root)
             if target not in referenced:
                 if len(references) >= 512:
-                    raise ValueError(tr("Too many disc references"))
+                    raise ValueError(tr(Msg.TOO_MANY_DISC_REFERENCES))
                 referenced.add(target)
                 references.append(target)
             visit(target, depth + 1)
@@ -114,7 +114,7 @@ def scan_games(source, catalog, cancelled=lambda: False, cache=None):
     cache = cache or {}
     root = Path(source.path)
     if not source.available():
-        raise OSError(tr("Source disconnected"))
+        raise OSError(tr(Msg.SOURCE_DISCONNECTED))
     confined_path(root, root)
     manual = set(catalog.preferences.get("engineEntries", []))
     for directory in sorted(root.iterdir()):
@@ -125,12 +125,12 @@ def scan_games(source, catalog, cancelled=lambda: False, cache=None):
         platform = catalog.platform_for_directory(directory.name)
         if directory.is_symlink() or not directory.is_dir() or not platform:
             if len(result.hints) < 20:
-                result.hints.append(tr("Not scanned: {name}. Use a platform folder.", name=directory.name))
+                result.hints.append(tr(Msg.NOT_SCANNED_NAME_USE_A_PLATFORM_FOLDER, name=directory.name))
             continue
         candidates = catalog.candidates(platform.id)
         if not candidates:
             if len(result.hints) < 20:
-                result.hints.append(tr("Enable a core for {platform}", platform=platform.title))
+                result.hints.append(tr(Msg.ENABLE_A_CORE_FOR_PLATFORM, platform=platform.title))
             continue
         files = []
         for folder, folders, names in os.walk(directory, followlinks=False):
@@ -188,12 +188,12 @@ def scan_games(source, catalog, cancelled=lambda: False, cache=None):
             except (OSError, ValueError):
                 continue
             if len(result.items) >= 20000:
-                result.hints.append(tr("Library limit reached. Use a smaller ROM root."))
+                result.hints.append(tr(Msg.LIBRARY_LIMIT_REACHED_USE_A_SMALLER_ROM_ROOT))
                 return result
     if cancelled():
         return GameScan()
     if not source.available():
-        raise OSError(tr("Source disconnected"))
+        raise OSError(tr(Msg.SOURCE_DISCONNECTED))
     result.items.sort(key=lambda i: (i["platform"], i["relative"].casefold()))
     return result
 
@@ -264,7 +264,7 @@ class EmulatorLibrary(Library):
         self.errors.pop("rom-root", None)
         root = Path(self.root_path)
         if not root.is_dir():
-            self.errors["rom-root"] = tr("ROM root does not exist: {path}", path=self.root_path)
+            self.errors["rom-root"] = tr(Msg.ROM_ROOT_DOES_NOT_EXIST_PATH, path=self.root_path)
         else:
             try:
                 if not any(s.id == self.root_id and s.path == str(root.resolve()) for s in self.sources):
@@ -299,7 +299,7 @@ class EmulatorLibrary(Library):
 def create_platform_directories(root, catalog):
     root = Path(root).expanduser()
     if root.is_symlink():
-        raise ValueError(tr("Choose a folder without symbolic links"))
+        raise ValueError(tr(Msg.CHOOSE_A_FOLDER_WITHOUT_SYMBOLIC_LINKS))
     root.mkdir(parents=True, exist_ok=True)
     created = []
     for platform in catalog.platforms.values():
@@ -307,7 +307,7 @@ def create_platform_directories(root, catalog):
             continue
         path = root / platform.directory
         if path.is_symlink():
-            raise ValueError(tr("Content reference uses a symbolic link: {path}", path=path))
+            raise ValueError(tr(Msg.CONTENT_REFERENCE_USES_A_SYMBOLIC_LINK_PATH, path=path))
         path.mkdir(exist_ok=True)
         created.append(str(path))
     return created

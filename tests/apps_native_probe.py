@@ -27,7 +27,7 @@ from udeck.apps.main import AppControl, make_controller
 from udeck.apps.media.engine import FrameImages
 from udeck.apps.reader.controller import PdfImages
 from udeck.core import ConfigStore
-from udeck.i18n import render, tr
+from udeck.i18n import Msg, render, tr
 from udeck.icons import IconProvider
 
 
@@ -414,7 +414,7 @@ def run(app, root, language="en", width=1280, height=720):
             def download(confirm):
                 timer = QTimer()
                 def decide():
-                    if controller.menus and controller.menus[-1]["title"] == tr("Download this file?"):
+                    if controller.menus and controller.menus[-1]["title"] == tr(Msg.DOWNLOAD_THIS_FILE_PROMPT):
                         timer.stop()
                         decisions.append(list((root / "downloads").glob("*")))
                         capture("download-confirm" if confirm else "download-cancel")

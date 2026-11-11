@@ -6,6 +6,7 @@ from PySide6.QtCore import QCoreApplication, QObject, Signal
 from udeck.compatibility import ApplicationRouter, application_profile
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
+from udeck.i18n import Msg
 from udeck.mock import MockBackend
 
 
@@ -214,7 +215,8 @@ def test_child_dialog_inherits_parent_application_profile(routing):
 def test_profiles_use_fixed_actions_and_default_unknown_to_keyboard():
     assert application_profile('some.custom.app')['mode'] == 'keyboard'
     assert application_profile('Code')['kind'] == 'editor'
-    assert ('地址栏', (29, 38)) in application_profile('chromium')['commands']
+    commands = {label.key: keys for label, keys in application_profile('chromium')['commands']}
+    assert commands[Msg.ADDRESS_BAR] == (29, 38)
 
 
 def test_mode_config_preserves_existing_user_data(tmp_path):

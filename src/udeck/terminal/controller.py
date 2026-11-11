@@ -20,7 +20,8 @@ from PySide6.QtGui import QFont
 
 from ..appearance import THEMES
 from ..core import ConfigStore
-from ..i18n import LANGUAGES, render, tr
+from ..i18n import LANGUAGES, Msg, render, tr
+from ..i18n import translate as translate_message
 from ..sounds import SoundFeedback, interaction
 from .core import LaunchRequest
 
@@ -90,7 +91,7 @@ class TerminalController(SoundFeedback):
     def snapshotJson(self):
         return json.dumps(render({"tabs": self.tabs.items, "current": self.current, "mode": self.mode,
                            "language": self.language, "theme": self.theme,
-                           "themeLabel": tr('主题：{value0} · 跟随系统', value0=THEMES.get(self.theme, THEMES["classic"])),
+                           "themeLabel": tr(Msg.THEME_VALUE0_FOLLOW_SYSTEM, value0=THEMES.get(self.theme, THEMES["classic"])),
                            "index": self.index, "anchored": self.anchored,
                            "fontSize": self.preferences.font_size,
                            "colorScheme": "udeck-dark" if self.theme == "dark" else "udeck",
@@ -99,9 +100,13 @@ class TerminalController(SoundFeedback):
                            "options": self._options(),
                            "optionIcons": ["zoom-out", "zoom-in", "go-previous"] if self.mode == "settings" else []}, self.language), ensure_ascii=False)
 
+    @Property("QVariantMap", constant=True)
+    def messageKeys(self):
+        return {key.name: key.value for key in Msg}
+
     @Slot(str, str, result=str)
-    def translate(self, source, language):
-        return render(tr(source), self.language)
+    def translate(self, key, language):
+        return translate_message(key, self.language)
 
     @Slot(str, int, result=QFont)
     def terminalFont(self, language, pixelSize):
@@ -132,24 +137,24 @@ class TerminalController(SoundFeedback):
 
     def _options(self):
         if self.mode == "menu":
-            return [tr('新建标签'), tr('历史与复制'), tr('搜索文字'), tr('粘贴'), tr('终端设置'), tr('返回桌面'), tr('关闭标签'), tr('关闭窗口')]
+            return [tr(Msg.NEW_SESSION), tr(Msg.HISTORY_AND_COPY), tr(Msg.SEARCH_TEXT), tr(Msg.PASTE), tr(Msg.TERMINAL_SETTINGS), tr(Msg.RETURN_TO_DESKTOP), tr(Msg.CLOSE_TAB), tr(Msg.CLOSE_WINDOW)]
         if self.mode == "settings":
-            return [tr('减小字号'), tr('增大字号'), tr('返回输入')]
+            return [tr(Msg.DECREASE_FONT_SIZE), tr(Msg.INCREASE_FONT_SIZE), tr(Msg.RETURN_TO_INPUT)]
         if self.mode in ("close", "paste"):
-            return [tr('取消'), tr('确认关闭') if self.mode == "close" else tr('粘贴')]
+            return [tr(Msg.CANCEL), tr(Msg.CONFIRM_CLOSE) if self.mode == "close" else tr(Msg.PASTE)]
         if self.mode == "error":
-            return [tr('返回')]
+            return [tr(Msg.BACK)]
         return []
 
     def add_session(self, request):
         if len(self.requests) >= 32:
-            self.showError(tr('每个窗口最多 32 个会话，请关闭部分标签或新建窗口'))
+            self.showError(tr(Msg.A_WINDOW_SUPPORTS_UP_TO_32_SESSIONS_CLOSE_A_TAB_OR_OPEN_ANOTHER_WINDOW))
             return
         identifier = uuid.uuid4().hex
         self.requests[identifier] = request
         self.current = identifier
         self.feedback("open")
-        self.tabs.append({"id": identifier, "title": request.title or tr('本地 shell')})
+        self.tabs.append({"id": identifier, "title": request.title or tr(Msg.LOCAL_SHELL)})
         self.changed.emit()
 
     @Slot()
@@ -177,7 +182,7 @@ class TerminalController(SoundFeedback):
     def updateTitle(self, identifier, title):
         for position, item in enumerate(self.tabs.items):
             if item["id"] == identifier and not self.requests[identifier].title:
-                item["title"] = title[:160] or tr('本地 shell')
+                item["title"] = title[:160] or tr(Msg.LOCAL_SHELL)
                 self.tabs.dataChanged.emit(self.tabs.index(position), self.tabs.index(position), [Qt.UserRole + 2])
                 self.changed.emit()
                 break
@@ -221,7 +226,7 @@ class TerminalController(SoundFeedback):
         self.feedback("open")
         self.closing = identifiers
         self.mode, self.index = "close", 0
-        self.message = tr('关闭将结束所选会话及其中的任务。')
+        self.message = tr(Msg.CLOSING_ENDS_THE_SELECTED_SESSIONS_AND_THEIR_RUNNING_TASKS)
         self.changed.emit()
 
     @Slot(str)
@@ -232,7 +237,7 @@ class TerminalController(SoundFeedback):
 
     @Slot()
     def componentFailed(self):
-        self.showError(tr('终端原生组件加载失败，请检查 udeck-terminal 安装和 Qt 版本。'))
+        self.showError(tr(Msg.NATIVE_TERMINAL_COMPONENT_LOAD_FAILED))
 
     @Slot(str)
     @interaction
@@ -245,7 +250,7 @@ class TerminalController(SoundFeedback):
             self.feedback("open")
             self.pending_text = text
             self.mode, self.index = "paste", 0
-            self.message = tr('粘贴 {value0} 个字符？包含换行或控制字符。', value0=len(text))
+            self.message = tr(Msg.PASTE_VALUE0_CHARACTERS_THE_TEXT_INCLUDES_NEWLINES_OR_CONTROL_CHARACTERS, value0=len(text))
             self.changed.emit()
         else:
             self.mode = "input"
@@ -365,7 +370,7 @@ class TerminalController(SoundFeedback):
             try:
                 self.preferences.save()
             except OSError as error:
-                self.showError(tr('设置保存失败：{value0}', value0=error))
+                self.showError(tr(Msg.COULD_NOT_SAVE_SETTINGS_VALUE0, value0=error))
         elif mode == "paste":
             text, self.pending_text = self.pending_text, ""
             self.mode = "input"

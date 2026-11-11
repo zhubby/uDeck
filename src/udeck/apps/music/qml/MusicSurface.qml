@@ -7,6 +7,7 @@ import "../../common/qml"
 
 Item {
     id: surface
+    readonly property var msg: host ? host.msg : ({})
     required property var colors
     required property var host
     property var appState: host ? host.state : ({current:{},media:{}})
@@ -17,7 +18,7 @@ Item {
         Artwork { fontFamily: surface.host.fontFamily; colors: surface.colors; Layout.preferredWidth: host && host.width<1100?280:350; Layout.preferredHeight: width; cover: appState.current.cover||""; kind: "music" }
         ColumnLayout {
             Layout.fillWidth: true; spacing: 20
-            Text { font.family: surface.host.fontFamily; text: surface.tr("Now playing"); color: surface.colors.muted; font.pixelSize: 20 }
+            Text { font.family: surface.host.fontFamily; text: surface.tr(msg.NOW_PLAYING); color: surface.colors.muted; font.pixelSize: 20 }
             Text { font.family: surface.host.fontFamily; Layout.fillWidth: true; text: appState.current.title||""; color: surface.colors.text; font.pixelSize: 36; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
             Text { font.family: surface.host.fontFamily; Layout.fillWidth: true; text: appState.current.artist||appState.current.album||""; color: surface.colors.muted; font.pixelSize: 24; wrapMode: Text.Wrap }
             Text { font.family: surface.host.fontFamily; text: (appState.current.format||"")+"  ·  "+(appState.media.output||""); color: surface.colors.muted; font.pixelSize: 18 }
@@ -27,11 +28,11 @@ Item {
             RowLayout {
                 spacing: 14
                 SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: "⏮"; selected: appState.control===0; onActivated: controller.command("previous") }
-                SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: appState.media.playing?surface.tr("Pause"):surface.tr("Play"); selected: appState.control===1; onActivated: controller.command("play-pause") }
+                SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: appState.media.playing?surface.tr(msg.PAUSE):surface.tr(msg.PLAY); selected: appState.control===1; onActivated: controller.command("play-pause") }
                 SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: "⏭"; selected: appState.control===2; onActivated: controller.command("next") }
             }
-            Text { font.family: surface.host.fontFamily; text: surface.tr("Shuffle")+": "+(appState.shuffle?surface.tr("On"):surface.tr("Off"))+"   ·   "+surface.tr("Repeat")+": "+(appState.repeatLabel||surface.tr("Off")); color: surface.colors.muted; font.pixelSize: 18 }
+            Text { font.family: surface.host.fontFamily; text: surface.tr(msg.SHUFFLE)+": "+(appState.shuffle?surface.tr(msg.ON):surface.tr(msg.OFF))+"   ·   "+surface.tr(msg.REPEAT)+": "+(appState.repeatLabel||surface.tr(msg.OFF)); color: surface.colors.muted; font.pixelSize: 18 }
         }
     }
-    Text { font.family: surface.host.fontFamily; anchors.centerIn: parent; visible: appState.media.loading||false; text: surface.tr("Loading…"); color: surface.colors.text; font.pixelSize: 28 }
+    Text { font.family: surface.host.fontFamily; anchors.centerIn: parent; visible: appState.media.loading||false; text: surface.tr(msg.LOADING); color: surface.colors.text; font.pixelSize: 28 }
 }

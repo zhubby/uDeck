@@ -9,7 +9,7 @@ from copy import deepcopy
 from dbus_next import Variant
 
 from .hotspot import HOTSPOT_BUSY, HOTSPOT_OWNER, default_hotspot_name, validate_hotspot_name
-from .i18n import tr
+from .i18n import Msg, tr
 
 NM = "org.freedesktop.NetworkManager"
 NM_ROOT = "/org/freedesktop/NetworkManager"
@@ -70,7 +70,7 @@ class HotspotBackend:
                     and setting(raw, "connection", "permissions") == [f"user:{getpass.getuser()}:"]):
                 candidates.append(profile)
         if len(candidates) > 1:
-            raise RuntimeError(tr("Multiple hotspot configurations match this adapter; resolve them in NetworkManager"))
+            raise RuntimeError(tr(Msg.MULTIPLE_HOTSPOT_CONFIGURATIONS_MATCH_THIS_ADAPTER_RESOLVE_THEM_IN_NETWORKMANAGER))
         return candidates[0] if candidates else None
 
     @staticmethod
@@ -83,7 +83,7 @@ class HotspotBackend:
                     ("802-11-wireless-security", "group", ["ccmp"]),
                     ("ipv4", "method", "shared"), ("ipv6", "method", "disabled"))
         if any(setting(raw, group, key) != value for group, key, value in expected):
-            raise RuntimeError(tr("The hotspot configuration changed. Save its settings before starting it."))
+            raise RuntimeError(tr(Msg.THE_HOTSPOT_CONFIGURATION_CHANGED_SAVE_ITS_SETTINGS_BEFORE_STARTING_IT))
 
     async def _read_hotspot(self, path, device, wireless):
         profile = self._owned_hotspot(device, wireless)
@@ -116,34 +116,34 @@ class HotspotBackend:
         wireless = await self.properties(NM, identifier, NM + ".Device.Wireless")
         self._check_wifi_epoch(epoch)
         if permanent_mac(device, wireless) is None:
-            raise RuntimeError(tr("Cannot identify this adapter's permanent hardware address"))
+            raise RuntimeError(tr(Msg.CANNOT_IDENTIFY_THIS_ADAPTER_S_PERMANENT_HARDWARE_ADDRESS))
         operation = self.hotspot_operations.get(identifier, {})
         if operation.get("status") in HOTSPOT_BUSY and operation.get("hardware") != permanent_mac(device, wireless).hex():
-            raise RuntimeError(tr("The hotspot operation is no longer current"))
+            raise RuntimeError(tr(Msg.THE_HOTSPOT_OPERATION_IS_NO_LONGER_CURRENT))
         return device, wireless
 
     async def _checked_hotspot(self, identifier, payload, epoch, *, configure=False):
         await self._saved_wifi()
         device, wireless = await self._hotspot_target(identifier, epoch, inactive=configure)
         if not device.get("Managed", True):
-            raise RuntimeError(tr("This adapter is not managed by the system"))
+            raise RuntimeError(tr(Msg.THIS_ADAPTER_IS_NOT_MANAGED_BY_THE_SYSTEM))
         if wireless.get("WirelessCapabilities", 0) & 0x68 != 0x68:
-            raise RuntimeError(tr("This adapter does not support WPA2/CCMP hotspots"))
+            raise RuntimeError(tr(Msg.THIS_ADAPTER_DOES_NOT_SUPPORT_WPA2_CCMP_HOTSPOTS))
         profile = self._owned_hotspot(device, wireless)
         if payload.get("revision", "") != (profile["revision"] if profile else ""):
-            raise RuntimeError(tr("The hotspot configuration changed. Reopen it and try again."))
+            raise RuntimeError(tr(Msg.THE_HOTSPOT_CONFIGURATION_CHANGED_REOPEN_IT_AND_TRY_AGAIN))
         if self.hotspot_operations.get(identifier, {}).get("status") in HOTSPOT_BUSY:
-            raise RuntimeError(tr("This adapter is changing hotspot state"))
+            raise RuntimeError(tr(Msg.THIS_ADAPTER_IS_CHANGING_HOTSPOT_STATE))
         if self.wifi_operations.get(identifier, {}).get("status") in ("preparing", "connecting"):
-            raise RuntimeError(tr("This adapter is already joining a network"))
+            raise RuntimeError(tr(Msg.THIS_ADAPTER_IS_ALREADY_JOINING_A_NETWORK))
         if configure and wireless.get("Mode") == 3:
-            raise RuntimeError(tr("Turn off this hotspot before editing its configuration"))
+            raise RuntimeError(tr(Msg.TURN_OFF_THIS_HOTSPOT_BEFORE_EDITING_ITS_CONFIGURATION))
         usage = await self._wifi_profile_usage()
         self._check_wifi_epoch(epoch)
         if profile and (usage is None or usage.get(profile["id"], set()) - {identifier}):
-            raise RuntimeError(tr("Cannot confirm exclusive use of this hotspot configuration"))
+            raise RuntimeError(tr(Msg.CANNOT_CONFIRM_EXCLUSIVE_USE_OF_THIS_HOTSPOT_CONFIGURATION))
         if configure and profile and usage.get(profile["id"]):
-            raise RuntimeError(tr("Turn off this hotspot before editing its configuration"))
+            raise RuntimeError(tr(Msg.TURN_OFF_THIS_HOTSPOT_BEFORE_EDITING_ITS_CONFIGURATION))
         return device, wireless, profile
 
     async def _configure_hotspot(self, identifier, payload, epoch):
@@ -152,7 +152,7 @@ class HotspotBackend:
         password = validate_wifi_password(payload["password"], "WPA2") if "password" in payload else None
         device, wireless, profile = await self._checked_hotspot(identifier, payload, epoch, configure=True)
         if profile is None and password is None:
-            raise ValueError(tr("Set a password before starting this hotspot"))
+            raise ValueError(tr(Msg.SET_A_PASSWORD_BEFORE_STARTING_THIS_HOTSPOT))
         mac = permanent_mac(device, wireless)
         raw = deepcopy(profile["settings"]) if profile else {
             "connection": {"id": Variant("s", "uDeck hotspot " + mac.hex()), "uuid": Variant("s", str(uuid.uuid4())),
@@ -179,12 +179,12 @@ class HotspotBackend:
                 await self.call(NM, NM_ROOT + "/Settings", NM + ".Settings", "AddConnection", "a{sa{sv}}", [raw])
         except Exception:
             # Some D-Bus services include rejected settings in errors. Never forward credentials.
-            raise RuntimeError(tr("Could not save hotspot configuration. Check NetworkManager permissions.")) from None
+            raise RuntimeError(tr(Msg.COULD_NOT_SAVE_HOTSPOT_CONFIGURATION_CHECK_NETWORKMANAGER_PERMISSIONS)) from None
 
     def _check_hotspot_operation(self, identifier, operation):
         self._check_wifi_epoch(operation["epoch"])
         if self.hotspot_operations.get(identifier) is not operation:
-            raise RuntimeError(tr("The hotspot operation is no longer current"))
+            raise RuntimeError(tr(Msg.THE_HOTSPOT_OPERATION_IS_NO_LONGER_CURRENT))
 
     async def _wait_hotspot_state(self, identifier, operation, active_path, mode):
         deadline = time.monotonic() + self.hotspot_timeout
@@ -195,16 +195,16 @@ class HotspotBackend:
             if active == active_path and device.get("State") == 100 and wireless.get("Mode") == mode:
                 return
             if active not in ("/", active_path, operation.get("previousActive")):
-                raise HotspotError(tr("Another connection took over this adapter; it was left unchanged"))
+                raise HotspotError(tr(Msg.ANOTHER_CONNECTION_TOOK_OVER_THIS_ADAPTER_IT_WAS_LEFT_UNCHANGED))
             if device.get("State") in (0, 10, 20, 120) or time.monotonic() >= deadline:
-                raise HotspotError(tr("Hotspot transition failed or timed out"))
+                raise HotspotError(tr(Msg.HOTSPOT_TRANSITION_FAILED_OR_TIMED_OUT))
             await asyncio.sleep(self.hotspot_poll_interval)
 
     async def _restore_hotspot_client(self, identifier, operation):
         original = operation.get("restore")
         if not original:
             return
-        operation.update(status="restoring", message=tr("Restoring Wi-Fi…"))
+        operation.update(status="restoring", message=tr(Msg.RESTORING_WI_FI))
         await self.refresh_wifi()
         device, _ = await self._hotspot_target(identifier, operation["epoch"])
         self._check_hotspot_operation(identifier, operation)
@@ -213,26 +213,26 @@ class HotspotBackend:
             if active.get("Connection") == original["id"]:
                 await self._wait_hotspot_state(identifier, operation, device["ActiveConnection"], 2)
                 return
-            raise HotspotError(tr("Another connection took over this adapter; it was left unchanged"))
+            raise HotspotError(tr(Msg.ANOTHER_CONNECTION_TOOK_OVER_THIS_ADAPTER_IT_WAS_LEFT_UNCHANGED))
         profiles = await self._saved_wifi()
         profile = next((item for item in profiles if item["uuid"] == original["uuid"]), None)
         if profile is None:
-            raise HotspotError(tr("The previous Wi-Fi configuration was removed; reconnect manually"))
+            raise HotspotError(tr(Msg.THE_PREVIOUS_WI_FI_CONFIGURATION_WAS_REMOVED_RECONNECT_MANUALLY))
         usage = await self._wifi_profile_usage()
         if usage is None:
-            raise HotspotError(tr("Cannot confirm exclusive use of the previous Wi-Fi configuration; reconnect manually"))
+            raise HotspotError(tr(Msg.CANNOT_CONFIRM_EXCLUSIVE_USE_OF_THE_PREVIOUS_WI_FI_CONFIGURATION_RECONNECT_MANUALLY))
         if usage.get(profile["id"], set()) - {identifier}:
-            raise HotspotError(tr("The previous Wi-Fi configuration is in use by another adapter; reconnect manually"))
+            raise HotspotError(tr(Msg.THE_PREVIOUS_WI_FI_CONFIGURATION_IS_IN_USE_BY_ANOTHER_ADAPTER_RECONNECT_MANUALLY))
         profile = next((item for item in self._wifi_device_profiles(identifier, device, profiles, usage)
                         if item["uuid"] == original["uuid"]), None)
         if profile is None:
-            raise HotspotError(tr("The previous Wi-Fi configuration changed; reconnect manually"))
+            raise HotspotError(tr(Msg.THE_PREVIOUS_WI_FI_CONFIGURATION_CHANGED_RECONNECT_MANUALLY))
         if profile["revision"] != original["revision"] or profile.get("unsupported") or profile.get("blocked"):
-            raise HotspotError(tr("The previous Wi-Fi configuration changed; reconnect manually"))
+            raise HotspotError(tr(Msg.THE_PREVIOUS_WI_FI_CONFIGURATION_CHANGED_RECONNECT_MANUALLY))
         device, _ = await self._hotspot_target(identifier, operation["epoch"])
         self._check_hotspot_operation(identifier, operation)
         if device.get("ActiveConnection", "/") != "/":
-            raise HotspotError(tr("Another connection took over this adapter; it was left unchanged"))
+            raise HotspotError(tr(Msg.ANOTHER_CONNECTION_TOOK_OVER_THIS_ADAPTER_IT_WAS_LEFT_UNCHANGED))
         result = await self.call(NM, NM_ROOT, NM, "ActivateConnection", "ooo", [profile["id"], identifier, "/"])
         await self._wait_hotspot_state(identifier, operation, result[0], 2)
 
@@ -243,10 +243,10 @@ class HotspotBackend:
         if device.get("ActiveConnection", "/") != target:
             if device.get("ActiveConnection", "/") == "/":
                 return
-            raise HotspotError(tr("Another connection took over this adapter; it was left unchanged"))
+            raise HotspotError(tr(Msg.ANOTHER_CONNECTION_TOOK_OVER_THIS_ADAPTER_IT_WAS_LEFT_UNCHANGED))
         active = await self.properties(NM, target, NM + ".Connection.Active")
         if active.get("Connection") != operation["profilePath"] or active.get("Devices") != [identifier]:
-            raise HotspotError(tr("The hotspot connection changed; reopen it and try again"))
+            raise HotspotError(tr(Msg.THE_HOTSPOT_CONNECTION_CHANGED_REOPEN_IT_AND_TRY_AGAIN))
         self._check_hotspot_operation(identifier, operation)
         await self.call(NM, NM_ROOT, NM, "DeactivateConnection", "o", [target])
         deadline = time.monotonic() + self.wifi_disconnect_timeout
@@ -256,7 +256,7 @@ class HotspotBackend:
             if device.get("ActiveConnection", "/") != target:
                 return
             if time.monotonic() >= deadline:
-                raise HotspotError(tr("Stopping the hotspot timed out"))
+                raise HotspotError(tr(Msg.STOPPING_THE_HOTSPOT_TIMED_OUT))
             await asyncio.sleep(self.hotspot_poll_interval)
 
     async def _run_hotspot(self, identifier, operation, starting):
@@ -267,27 +267,27 @@ class HotspotBackend:
                 self._check_hotspot_operation(identifier, operation)
                 profile = self._owned_hotspot(device, wireless)
                 if profile is None or profile["revision"] != operation["revision"]:
-                    raise RuntimeError(tr("The hotspot configuration changed. Reopen it and try again."))
+                    raise RuntimeError(tr(Msg.THE_HOTSPOT_CONFIGURATION_CHANGED_REOPEN_IT_AND_TRY_AGAIN))
                 self._require_safe_hotspot_profile(profile)
                 if wireless.get("WirelessCapabilities", 0) & 0x68 != 0x68:
-                    raise RuntimeError(tr("This adapter does not support WPA2/CCMP hotspots"))
+                    raise RuntimeError(tr(Msg.THIS_ADAPTER_DOES_NOT_SUPPORT_WPA2_CCMP_HOTSPOTS))
                 if device.get("ActiveConnection", "/") != operation["previousActive"]:
-                    raise RuntimeError(tr("The connection changed. Reopen the hotspot and try again."))
+                    raise RuntimeError(tr(Msg.THE_CONNECTION_CHANGED_REOPEN_THE_HOTSPOT_AND_TRY_AGAIN))
                 result = await self.call(NM, NM_ROOT, NM, "ActivateConnection", "ooo", [operation["profilePath"], identifier, "/"])
                 self._check_hotspot_operation(identifier, operation)
                 operation["activePath"] = result[0]
                 await self.refresh_wifi()
                 await self._wait_hotspot_state(identifier, operation, result[0], 3)
-                operation.update(status="active", message=tr("Hotspot on"))
+                operation.update(status="active", message=tr(Msg.HOTSPOT_ON))
             else:
                 await self._deactivate_hotspot(identifier, operation)
                 await self._restore_hotspot_client(identifier, operation)
-                operation.update(status="off", message=tr("Hotspot off"))
+                operation.update(status="off", message=tr(Msg.HOTSPOT_OFF))
         except asyncio.CancelledError:
             raise
         except Exception as error:
             if self.hotspot_operations.get(identifier) is operation and self.wifi_epoch == operation["epoch"]:
-                message = tr("Could not start hotspot. Check adapter support, permissions and network sharing services.") if starting else tr("Could not stop hotspot or restore the previous Wi-Fi. Check the adapter's actual connection.")
+                message = tr(Msg.HOTSPOT_START_FAILED_INSTRUCTIONS) if starting else tr(Msg.HOTSPOT_STOP_FAILED_INSTRUCTIONS)
                 if isinstance(error, HotspotError):
                     message = error.args[0]
                 if starting:
@@ -296,9 +296,9 @@ class HotspotBackend:
                             await self._deactivate_hotspot(identifier, operation)
                         await self._restore_hotspot_client(identifier, operation)
                     except HotspotError as recovery_error:
-                        message = tr("Hotspot failed") + " · " + recovery_error.args[0]
+                        message = tr(Msg.HOTSPOT_FAILED) + " · " + recovery_error.args[0]
                     except Exception:
-                        message = tr("Hotspot failed; the previous Wi-Fi could not be restored. Check the adapter's actual connection.")
+                        message = tr(Msg.HOTSPOT_WIFI_RESTORE_FAILED_INSTRUCTIONS)
                 try:
                     device, _ = await self._hotspot_target(identifier, operation["epoch"])
                     self._check_hotspot_operation(identifier, operation)
@@ -323,19 +323,19 @@ class HotspotBackend:
         if action == "wifi_hotspot_start":
             device, wireless, profile = await self._checked_hotspot(identifier, payload, epoch)
             if profile is None:
-                raise RuntimeError(tr("Set a password before starting this hotspot"))
+                raise RuntimeError(tr(Msg.SET_A_PASSWORD_BEFORE_STARTING_THIS_HOTSPOT))
             self._require_safe_hotspot_profile(profile)
             if wireless.get("Mode") == 3:
-                raise RuntimeError(tr("A hotspot is already using this adapter"))
+                raise RuntimeError(tr(Msg.A_HOTSPOT_IS_ALREADY_USING_THIS_ADAPTER))
             previous = device.get("ActiveConnection", "/")
             if payload.get("expectedActive", "/") != previous:
-                raise RuntimeError(tr("The connection changed. Reopen the hotspot and try again."))
+                raise RuntimeError(tr(Msg.THE_CONNECTION_CHANGED_REOPEN_THE_HOTSPOT_AND_TRY_AGAIN))
             restore = next((p for p in self.state["wifi"]["devices"] if p["id"] == identifier), {}).get("saved", [])
             restore = next((p for p in restore if p.get("active")), None)
             operation = {"id": uuid.uuid4().hex, "epoch": epoch, "status": "starting", "previousActive": previous,
                          "hardware": permanent_mac(device, wireless).hex(),
                          "profilePath": profile["id"], "revision": profile["revision"],
-                         "restore": deepcopy(restore), "message": tr("Starting hotspot…")}
+                         "restore": deepcopy(restore), "message": tr(Msg.STARTING_HOTSPOT)}
         elif action == "wifi_hotspot_stop":
             device, wireless = await self._hotspot_target(identifier, epoch)
             await self._saved_wifi()
@@ -343,14 +343,14 @@ class HotspotBackend:
             self._check_wifi_epoch(epoch)
             if (not current["owned"] or current["status"] in HOTSPOT_BUSY or current["activePath"] != payload.get("activePath")
                     or current["operationId"] != payload.get("operationId")):
-                raise RuntimeError(tr("The hotspot connection changed; reopen it and try again"))
+                raise RuntimeError(tr(Msg.THE_HOTSPOT_CONNECTION_CHANGED_REOPEN_IT_AND_TRY_AGAIN))
             profile = self._owned_hotspot(device, wireless)
             operation = {**self.hotspot_operations.get(identifier, {}), "id": uuid.uuid4().hex, "epoch": epoch,
                          "hardware": permanent_mac(device, wireless).hex(),
                          "profilePath": profile["id"], "activePath": current["activePath"],
-                         "status": "stopping", "message": tr("Stopping hotspot…")}
+                         "status": "stopping", "message": tr(Msg.STOPPING_HOTSPOT)}
         else:
-            raise ValueError(tr("Unknown hotspot operation"))
+            raise ValueError(tr(Msg.UNKNOWN_HOTSPOT_OPERATION))
         self._check_wifi_epoch(epoch)
         self.hotspot_operations[identifier] = operation
         self.hotspot_tasks[identifier] = asyncio.create_task(self._run_hotspot(identifier, operation, action == "wifi_hotspot_start"))

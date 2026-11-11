@@ -9,6 +9,7 @@ from PySide6.QtCore import QCoreApplication
 
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
+from udeck.i18n import render
 from udeck.mock import MockBackend
 
 
@@ -96,7 +97,7 @@ def test_global_off_requires_confirmation_and_leaves_devices_visible(controller)
     controller.activateSetting("wifi")
     choose(controller, "wifi-power")
     assert controller.modal["kind"] == "confirm"
-    assert "所有" in controller.modal["body"]
+    assert "所有" in render(controller.modal["body"], "zh_CN")
     assert "wifi_power" not in controller.backend.actions
     controller.dispatch("right")
     controller.dispatch("accept")
@@ -118,7 +119,7 @@ def test_unplug_returns_to_adapters_and_dismisses_only_target_overlays(controlle
     controller.backend.updated.emit({"wifi": wifi})
     assert controller.modal["source"] == "wifi"
     assert len(controller._modals) == len(controller.navigation.modal_owners) == 1
-    assert "移除" in controller.toast
+    assert "移除" in render(controller.toast, "zh_CN")
     if overlay == "password":
         assert replies == [("usb-password", None)]
     controller.dispatch("back")
@@ -138,7 +139,7 @@ def test_refresh_updates_parent_menu_under_network_confirmation(controller):
     assert controller.modal["kind"] == "confirm"
     controller.dispatch("back")
     assert controller.modal["source"] == "wifi-network"
-    assert "已连接" in controller.modal["body"]
+    assert "已连接" in render(controller.modal["body"], "zh_CN")
 
 
 def test_network_refresh_preserves_focus_when_access_point_changes(controller):
@@ -189,7 +190,7 @@ def test_connected_adapter_without_visible_ssid_can_still_be_disconnected(contro
     controller.activateSetting("wifi")
     index = next(index for index, option in enumerate(controller.modal["options"]) if option.get("deviceId") == "builtin")
     controller.chooseModal(index)
-    assert "已连接" in controller.modal["body"]
+    assert "已连接" in render(controller.modal["body"], "zh_CN")
     assert any(option["action"] == "wifi-disconnect" for option in controller.modal["options"])
     assert "1 connected" in json.loads(controller.snapshotJson)["wifiSummary"]
 

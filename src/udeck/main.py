@@ -10,13 +10,14 @@ from PySide6.QtCore import QObject, Qt, QTimer, QUrl, Slot
 from PySide6.QtDBus import QDBusConnection
 from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
+from shiboken6 import delete
 
 from . import __version__
 from .console import ConsolePanel
 from .controller import ShellController
 from .core import ConfigStore
 from .cursor import PointerCursor
-from .i18n import render, tr
+from .i18n import Msg, render, tr
 from .icons import IconProvider
 from .input import Gamepad
 from .mock import MockBackend
@@ -64,7 +65,7 @@ class Control(QObject):
         if self.application_router:
             self.application_router.open_menu()
         else:
-            self.controller.notify(tr('完整应用兼容模式需要独立 uDeck 会话'))
+            self.controller.notify(tr(Msg.FULL_APP_COMPATIBILITY_REQUIRES_A_STANDALONE_UDECK_SESSION))
             self.controller.present.emit()
 
     @Slot(str, result=bool)
@@ -140,19 +141,19 @@ class Control(QObject):
 
 def main(argv=None):
     language = ConfigStore().data["preferences"]["language"]
-    parser = argparse.ArgumentParser(description=render(tr('uDeck · uConsole 按键原生桌面'), language))
-    parser.add_argument("--mock", action="store_true", help=render(tr('安全预览，不操作真实硬件、应用或文件'), language))
-    parser.add_argument("--windowed", action="store_true", help=render(tr('以普通窗口运行，不切换桌面会话'), language))
-    parser.add_argument("--no-input", action="store_true", help=render(tr('诊断时不接管手柄和鼠标设备'), language))
-    parser.add_argument("--screenshot", type=Path, help=render(tr('保存当前窗口 PNG'), language))
+    parser = argparse.ArgumentParser(description=render(tr(Msg.UDECK_BUTTON_FIRST_DESKTOP_FOR_UCONSOLE), language))
+    parser.add_argument("--mock", action="store_true", help=render(tr(Msg.SAFE_PREVIEW_WITHOUT_ACCESSING_HARDWARE_APPS_OR_FILES), language))
+    parser.add_argument("--windowed", action="store_true", help=render(tr(Msg.RUN_IN_A_NORMAL_WINDOW_WITHOUT_CHANGING_THE_DESKTOP_SESSION), language))
+    parser.add_argument("--no-input", action="store_true", help=render(tr(Msg.DO_NOT_TAKE_OVER_GAMEPAD_OR_MOUSE_DEVICES_DURING_DIAGNOSTICS), language))
+    parser.add_argument("--screenshot", type=Path, help=render(tr(Msg.SAVE_A_PNG_OF_THE_CURRENT_WINDOW), language))
     parser.add_argument("--quit-after", type=float, default=0, metavar="SECONDS")
     parser.add_argument("--page", choices=("home", "apps", "windows", "files", "settings"), default="home")
-    parser.add_argument("--smoke-test", action="store_true", help=render(tr('只在 --mock 下执行界面冒烟检查'), language))
+    parser.add_argument("--smoke-test", action="store_true", help=render(tr(Msg.RUN_INTERFACE_SMOKE_CHECKS_IN_MOCK_MODE_ONLY), language))
     options = parser.parse_args(argv)
     if options.smoke_test and not options.mock:
-        parser.error(render(tr('--smoke-test 必须同时使用 --mock，避免操作真实设备'), language))
+        parser.error(render(tr(Msg.SMOKE_TEST_REQUIRES_MOCK_TO_AVOID_OPERATING_REAL_DEVICES), language))
     if not options.mock and sys.platform != "linux":
-        parser.error(render(tr('真实桌面仅支持 Linux；请在此平台使用 --mock --windowed'), language))
+        parser.error(render(tr(Msg.THE_REAL_DESKTOP_REQUIRES_LINUX_USE_MOCK_WINDOWED_ON_THIS_PLATFORM), language))
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
     if os.environ.get("QT_QPA_PLATFORM") == "offscreen":
         os.environ.setdefault("QT_QUICK_BACKEND", "software")
@@ -180,7 +181,7 @@ def main(argv=None):
     ipc_registered = session_bus.isConnected() and not options.mock
     if ipc_registered:
         if not session_bus.registerService(service_name):
-            print(render(tr('uDeck 已在本会话运行；请使用 udeckctl 返回桌面。'), controller.language), file=sys.stderr)
+            print(render(tr(Msg.UDECK_IS_ALREADY_RUNNING_IN_THIS_SESSION_USE_UDECKCTL_TO_RETURN_TO_THE_DESKTOP), controller.language), file=sys.stderr)
             controller.close()
             if temporary:
                 temporary.cleanup()
@@ -237,7 +238,7 @@ def main(argv=None):
             'available': False, 'mode': 'unavailable', 'application': '', 'windowId': '',
             'virtualInput': bool(virtual_input and virtual_input.available), 'directionIsolation': False,
             'directionReader': False, 'sessionSafe': False, 'configurationPending': False,
-            'error': tr('完整应用兼容模式需要独立 uDeck 会话；窗口预览和原桌面不接管应用输入'),
+            'error': tr(Msg.APP_COMPATIBILITY_REQUIRES_STANDALONE_SESSION),
         }})
     if pointer:
         pointer.action.connect(application_router.action if application_router else controller.dispatch)
@@ -267,23 +268,23 @@ def main(argv=None):
         def calibrate():
             calibration.update({"buttons": {}, "axes": {}, "keyboard": {}, "step": 0})
             gamepad.calibrating = True
-            controller._push({"kind": "calibration", "title": tr('按键校准 · 上'), "body": tr('请按下物理方向键「上」并松开。\n方向键支持原生键盘事件；ABXY 仅接收独立手柄事件。Esc 取消。')})
+            controller._push({"kind": "calibration", "title": tr(Msg.BUTTON_CALIBRATION_UP), "body": tr(Msg.PHYSICAL_DIRECTION_CALIBRATION_INSTRUCTIONS)})
 
         def captured(kind, code):
             if controller.modal.get("kind") != "calibration":
                 gamepad.calibrating = False
                 return
             if code in calibration[kind]:
-                controller.notify(tr('此按钮已记录，请按屏幕指定的另一个按钮'))
+                controller.notify(tr(Msg.THIS_BUTTON_IS_ALREADY_RECORDED_PRESS_THE_OTHER_INDICATED_BUTTON))
                 return
             actions = ("up", "down", "left", "right", "accept", "back", "context", "quick-settings")
-            labels = (tr('上'), tr('下'), tr('左'), tr('右'), "A", "B", "X", "Y")
+            labels = (tr(Msg.UP), tr(Msg.DOWN), tr(Msg.LEFT), tr(Msg.RIGHT), "A", "B", "X", "Y")
             action = actions[calibration["step"]]
             if kind == "keyboard" and (code != action or action not in ("up", "down", "left", "right")):
-                controller.notify(tr('请按屏幕指定的方向；ABXY 步骤只接收独立手柄事件'))
+                controller.notify(tr(Msg.PRESS_THE_INDICATED_DIRECTION_ABXY_STEPS_REQUIRE_A_SEPARATE_GAMEPAD))
                 return
             if kind == "axes" and action not in ("up", "down", "left", "right"):
-                controller.notify(tr('此步骤请按下 ABXY 按钮，而非方向键'))
+                controller.notify(tr(Msg.PRESS_AN_ABXY_BUTTON_FOR_THIS_STEP_NOT_A_DIRECTION_KEY))
                 return
             calibration[kind][code] = action
             calibration["step"] += 1
@@ -294,13 +295,13 @@ def main(argv=None):
                     config.save()
                 except OSError as error:
                     controller._pop()
-                    controller.notify(tr('校准在本次运行生效，但配置保存失败：{value0}', value0=error))
+                    controller.notify(tr(Msg.CALIBRATION_IS_ACTIVE_FOR_THIS_RUN_BUT_SETTINGS_COULD_NOT_BE_SAVED_VALUE0, value0=error))
                     return
                 controller._pop()
-                controller.notify(tr('方向键与 ABXY 映射已保存；请继续实测长按、返回和文字输入'))
+                controller.notify(tr(Msg.BUTTON_MAPPING_SAVED_INSTRUCTIONS))
             else:
                 label = labels[calibration["step"]]
-                controller.modal.update({"title": tr('按键校准 · ') + label, "body": tr('请按下物理「') + label + tr('」并松开。\n方向键支持原生键盘事件；ABXY 仅接收独立手柄事件。Esc 取消。')})
+                controller.modal.update({"title": tr(Msg.BUTTON_CALIBRATION_PREFIX) + label, "body": tr(Msg.PRESS_PHYSICAL) + label + tr(Msg.DIRECTION_CALIBRATION_SUFFIX)})
                 controller._publish()
 
         controller.calibrationRequested.connect(calibrate)
@@ -367,7 +368,7 @@ def main(argv=None):
         if options.screenshot:
             options.screenshot.parent.mkdir(parents=True, exist_ok=True)
             if not window.grabWindow().save(str(options.screenshot)):
-                qml_errors.append(tr('截图保存失败'))
+                qml_errors.append(tr(Msg.COULD_NOT_SAVE_SCREENSHOT))
 
     if options.smoke_test:
         def smoke():
@@ -414,6 +415,8 @@ def main(argv=None):
     if ipc_registered:
         session_bus.unregisterObject(CONTROL_PATH)
         session_bus.unregisterService(service_name)
+    # QML holds weak context references; destroy bindings while controllers live.
+    delete(engine)
     if temporary:
         temporary.cleanup()
     return 2 if qml_errors else result

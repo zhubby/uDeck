@@ -16,7 +16,7 @@ from shiboken6 import delete
 from udeck import main
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
-from udeck.i18n import tr
+from udeck.i18n import Msg, tr
 from udeck.mock import MockBackend
 
 
@@ -118,7 +118,7 @@ def run():
         capture("client-and-hotspot")
         for status in ("starting", "stopping", "restoring", "failed"):
             wifi = deepcopy(backend.state["wifi"])
-            wifi["devices"][1]["hotspot"].update(status=status, message=tr("Hotspot transition failed or timed out") if status == "failed" else "")
+            wifi["devices"][1]["hotspot"].update(status=status, message=tr(Msg.HOTSPOT_TRANSITION_FAILED_OR_TIMED_OUT) if status == "failed" else "")
             controller._update({"wifi": wifi})
             capture(status)
         controller._update({"wifi": deepcopy(backend.state["wifi"])})

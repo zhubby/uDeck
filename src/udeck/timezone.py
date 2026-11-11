@@ -2,15 +2,15 @@
 
 from PySide6.QtCore import QDateTime, QTimeZone
 
-from .i18n import tr
+from .i18n import Msg, tr
 
 TIMEDATE = "org.freedesktop.timedate1"
 TIMEDATE_PATH = "/org/freedesktop/timedate1"
 REGIONS = {
-    "Africa": tr("Africa"), "America": tr("Americas"), "Antarctica": tr("Antarctica"),
-    "Arctic": tr("Arctic"), "Asia": tr("Asia"), "Atlantic": tr("Atlantic"),
-    "Australia": tr("Australia"), "Europe": tr("Europe"), "Indian": tr("Indian Ocean"),
-    "Pacific": tr("Pacific"), "Other": tr("UTC and other zones"),
+    "Africa": tr(Msg.AFRICA), "America": tr(Msg.AMERICAS), "Antarctica": tr(Msg.ANTARCTICA),
+    "Arctic": tr(Msg.ARCTIC), "Asia": tr(Msg.ASIA), "Atlantic": tr(Msg.ATLANTIC),
+    "Australia": tr(Msg.AUSTRALIA), "Europe": tr(Msg.EUROPE), "Indian": tr(Msg.INDIAN_OCEAN),
+    "Pacific": tr(Msg.PACIFIC), "Other": tr(Msg.UTC_AND_OTHER_ZONES),
 }
 
 
@@ -24,7 +24,7 @@ def zone_label(zone):
 
 
 def zone_summary(state):
-    return state.get("current") or tr("Not available")
+    return state.get("current") or tr(Msg.NOT_AVAILABLE)
 
 
 def local_clock(zone):

@@ -7,12 +7,12 @@ without including them in the number of keys the application can observe.
 
 from PySide6.QtCore import Qt
 
-from .i18n import tr
+from .i18n import Msg, tr
 
 
 def cap(identifier, label=None, icon=None, *, weight=1, detectable=True, rotation=0):
     label = label or identifier.upper()
-    return {"id": identifier, "label": label, "labelSource": getattr(label, "source", label), "key": icon or "",
+    return {"id": identifier, "label": label, "labelKey": getattr(label, "key", ""), "key": icon or "",
             "weight": weight, "detectable": detectable, "rotation": rotation}
 
 
@@ -37,29 +37,29 @@ KEYBOARD_ROWS = [
      cap("delete", "Del", "keyboard_delete"), cap("home", "Home", "keyboard_home"),
      cap("end", "End", "keyboard_end"), cap("page-up", "PgUp", "keyboard_page_up"),
      cap("page-down", "PgDn", "keyboard_page_down")],
-    [cap("volume-down", tr("Vol −")), cap("volume-up", tr("Vol +")), cap("mute", tr("Mute")),
-     cap("brightness-down", tr("Light −")), cap("brightness-up", tr("Light +"))],
+    [cap("volume-down", tr(Msg.VOLUME_DOWN_SHORT)), cap("volume-up", tr(Msg.VOLUME_UP_SHORT)), cap("mute", tr(Msg.MUTE)),
+     cap("brightness-down", tr(Msg.BRIGHTNESS_DOWN_SHORT)), cap("brightness-up", tr(Msg.BRIGHTNESS_UP_SHORT))],
 ]
 GAMEPAD_KEYS = [
     cap("previous-page", "L / M1", "gamecube_trigger_l"), cap("select", "Select"),
     cap("start", "Start", "gamecube_button_start"), cap("next-page", "R / M2", "gamecube_trigger_r"),
-    cap("up", tr("Up"), "keyboard_arrow_up"), cap("context", "X", "gamecube_button_x"),
-    cap("left", tr("Left"), "keyboard_arrow_up", rotation=270),
-    cap("right", tr("Right"), "keyboard_arrow_up", rotation=90),
+    cap("up", tr(Msg.UP), "keyboard_arrow_up"), cap("context", "X", "gamecube_button_x"),
+    cap("left", tr(Msg.LEFT), "keyboard_arrow_up", rotation=270),
+    cap("right", tr(Msg.RIGHT), "keyboard_arrow_up", rotation=90),
     cap("quick-settings", "Y", "gamecube_button_y"), cap("accept", "A", "gamecube_button_color_a"),
-    cap("down", tr("Down"), "keyboard_arrow_up", rotation=180), cap("back", "B", "gamecube_button_color_b"),
+    cap("down", tr(Msg.DOWN), "keyboard_arrow_up", rotation=180), cap("back", "B", "gamecube_button_color_b"),
 ]
 POINTER_KEYS = [
-    cap("pointer-left", tr("Trackball left"), "keyboard_arrow_up", rotation=270),
-    cap("pointer-up", tr("Trackball up"), "keyboard_arrow_up"),
-    cap("pointer-down", tr("Trackball down"), "keyboard_arrow_up", rotation=180),
-    cap("pointer-right", tr("Trackball right"), "keyboard_arrow_up", rotation=90),
-    cap("pointer-click", tr("Middle click"), "mouse_scroll"),
-    cap("wheel-up", tr("Scroll up"), "mouse_scroll_up"), cap("wheel-down", tr("Scroll down"), "mouse_scroll_down"),
+    cap("pointer-left", tr(Msg.TRACKBALL_LEFT), "keyboard_arrow_up", rotation=270),
+    cap("pointer-up", tr(Msg.TRACKBALL_UP), "keyboard_arrow_up"),
+    cap("pointer-down", tr(Msg.TRACKBALL_DOWN), "keyboard_arrow_up", rotation=180),
+    cap("pointer-right", tr(Msg.TRACKBALL_RIGHT), "keyboard_arrow_up", rotation=90),
+    cap("pointer-click", tr(Msg.MIDDLE_CLICK), "mouse_scroll"),
+    cap("wheel-up", tr(Msg.SCROLL_UP), "mouse_scroll_up"), cap("wheel-down", tr(Msg.SCROLL_DOWN), "mouse_scroll_down"),
 ]
-INTERNAL_KEYS = [cap("keyboard-light", tr("Backlight"), detectable=False),
-                 cap("keyboard-lock", tr("Key lock"), detectable=False),
-                 cap("power", tr("Power"), detectable=False)]
+INTERNAL_KEYS = [cap("keyboard-light", tr(Msg.BACKLIGHT), detectable=False),
+                 cap("keyboard-lock", tr(Msg.KEY_LOCK), detectable=False),
+                 cap("power", tr(Msg.POWER), detectable=False)]
 KEY_SPECS = {key["id"]: key for key in sum(KEYBOARD_ROWS, []) + GAMEPAD_KEYS + POINTER_KEYS + INTERNAL_KEYS}
 
 # Linux evdev codes, also used to interpret XKB native scan codes (evdev + 8).

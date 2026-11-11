@@ -6,7 +6,7 @@ from pathlib import Path
 from PySide6.QtCore import Slot
 
 from udeck.apps.media.controller import MediaController
-from udeck.i18n import tr
+from udeck.i18n import Msg, tr
 
 
 class MusicController(MediaController):
@@ -14,7 +14,7 @@ class MusicController(MediaController):
         super().__init__("music", directory, language_path)
 
     def tabs(self):
-        return [tr("Albums"), tr("Tracks"), tr("Queue"), tr("Folders")]
+        return [tr(Msg.ALBUMS), tr(Msg.TRACKS), tr(Msg.QUEUE), tr(Msg.FOLDERS)]
 
     def rows(self):
         rows = super().rows()
@@ -47,32 +47,32 @@ class MusicController(MediaController):
             self.play(self.library.require(identifier), queued=True)
         else:
             self.media.player.pause()
-            self.notice = tr("Queue finished")
+            self.notice = tr(Msg.QUEUE_FINISHED)
 
     def finished_playback(self):
         self.attempt(self.next_track)
 
     def context(self):
         if self.page == "player" or self.tab == 2:
-            options = [(tr("Show queue"), self.queue_view),
-                       (tr("Shuffle: {value}", value=tr("On") if self.queue.shuffle else tr("Off")), self.toggle_shuffle),
-                       (tr("Repeat: {value}", value={"off": tr("Off"), "all": tr("All tracks"), "one": tr("Current track")}[self.queue.repeat]), self.toggle_repeat)]
+            options = [(tr(Msg.SHOW_QUEUE), self.queue_view),
+                       (tr(Msg.SHUFFLE_VALUE, value=tr(Msg.ON) if self.queue.shuffle else tr(Msg.OFF)), self.toggle_shuffle),
+                       (tr(Msg.REPEAT_VALUE, value={"off": tr(Msg.OFF), "all": tr(Msg.ALL_TRACKS), "one": tr(Msg.CURRENT_TRACK)}[self.queue.repeat]), self.toggle_repeat)]
             if self.selected in self.queue.items:
-                options += [(tr("Move up"), self.queue_move), (tr("Remove from queue"), self.queue_remove)]
-            self.menu(tr("Queue"), options)
+                options += [(tr(Msg.MOVE_UP), self.queue_move), (tr(Msg.REMOVE_FROM_QUEUE), self.queue_remove)]
+            self.menu(tr(Msg.QUEUE), options)
         else:
             options = self.library_options()
             if self.selected:
-                options.insert(0, (tr("Add to queue"), self.enqueue))
-            self.menu(tr("Library actions"), options)
+                options.insert(0, (tr(Msg.ADD_TO_QUEUE), self.enqueue))
+            self.menu(tr(Msg.LIBRARY_ACTIONS), options)
 
     @Slot()
     def requestClose(self):
         if self.media.snapshot()["playing"]:
-            self.menu(tr("Music is playing"), [
-                (tr("Continue in background"), self.background, "", "preferences-system-windows"),
-                (tr("Stop and exit"), self.stop_exit, "", "media-playback-stop"),
-                (tr("Cancel"), self.pop_menu, "", "go-previous")])
+            self.menu(tr(Msg.MUSIC_IS_PLAYING), [
+                (tr(Msg.CONTINUE_IN_BACKGROUND), self.background, "", "preferences-system-windows"),
+                (tr(Msg.STOP_AND_EXIT), self.stop_exit, "", "media-playback-stop"),
+                (tr(Msg.CANCEL), self.pop_menu, "", "go-previous")])
         else:
             super().requestClose()
 

@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 
 from .files import FileOperations
-from .i18n import tr
+from .i18n import Msg, tr
 
 
 def mount_path(value):
@@ -35,7 +35,7 @@ def mounted_locations(text=None):
         locations.append({"id": "mount:" + fields[0], "mountId": fields[0], "path": str(directory),
                           "name": directory.name, "icon": "drive-removable-media", "device": mount_path(filesystem[1]),
                           "readonly": "ro" in fields[5].split(","), "available": available, "capacity": capacity,
-                          "details": tr("Read only") if "ro" in fields[5].split(",") else tr("{size} free", size=FileOperations.format_size(available)) if capacity else "",
+                          "details": tr(Msg.READ_ONLY) if "ro" in fields[5].split(",") else tr(Msg.SIZE_FREE, size=FileOperations.format_size(available)) if capacity else "",
                           "mount": True})
     return locations
 
@@ -48,10 +48,10 @@ def user_locations(home=None, configuration=None):
         text = configuration.read_text()
     except (OSError, UnicodeError):
         text = ""
-    result = [{"id": "home", "path": str(home), "name": tr("Home folder"), "icon": "user-home"}]
-    definitions = (("DOWNLOAD", "Downloads", tr("Downloads")), ("DOCUMENTS", "Documents", tr("Documents")),
-                   ("MUSIC", "Music", tr("Music")), ("VIDEOS", "Videos", tr("Videos")),
-                   ("PICTURES", "Pictures", tr("Pictures")))
+    result = [{"id": "home", "path": str(home), "name": tr(Msg.HOME_FOLDER), "icon": "user-home"}]
+    definitions = (("DOWNLOAD", "Downloads", tr(Msg.DOWNLOADS)), ("DOCUMENTS", "Documents", tr(Msg.DOCUMENTS)),
+                   ("MUSIC", "Music", tr(Msg.MUSIC)), ("VIDEOS", "Videos", tr(Msg.VIDEOS)),
+                   ("PICTURES", "Pictures", tr(Msg.PICTURES)))
     for identifier, fallback, label in definitions:
         match = re.search(r'^XDG_' + identifier + r'_DIR="([^"\n]*)"\s*$', text, re.MULTILINE)
         value = match[1].replace("${HOME}", str(home)).replace("$HOME", str(home)) if match else str(home / fallback)
@@ -60,8 +60,8 @@ def user_locations(home=None, configuration=None):
         directory = Path(value)
         if directory.is_absolute() and directory.is_dir() and directory != home:
             result.append({"id": identifier.lower(), "path": str(directory), "name": label, "icon": "folder"})
-    result.extend([{"id": "root", "path": "/", "name": tr("File system"), "icon": "drive-harddisk"},
-                   {"id": "trash", "path": "trash:///", "name": tr("Trash"), "icon": "user-trash"}])
+    result.extend([{"id": "root", "path": "/", "name": tr(Msg.FILE_SYSTEM), "icon": "drive-harddisk"},
+                   {"id": "trash", "path": "trash:///", "name": tr(Msg.TRASH), "icon": "user-trash"}])
     return result
 
 
@@ -71,9 +71,9 @@ def unmount(location):
     directory = Path(location.get("path", "/")).resolve()
     if current is None or not any(directory != base and directory.is_relative_to(base)
             for base in (Path("/media"), Path("/run/media"), Path("/mnt"))):
-        raise ValueError(tr("The mounted device changed. Refresh locations and try again."))
+        raise ValueError(tr(Msg.THE_MOUNTED_DEVICE_CHANGED_REFRESH_LOCATIONS_AND_TRY_AGAIN))
     try:
         subprocess.run(["gio", "mount", "--unmount", "--", directory.as_uri()], check=True,
                        capture_output=True, text=True, errors="replace", timeout=30)
     except subprocess.CalledProcessError as error:
-        raise RuntimeError(tr("Could not unmount device: {reason}", reason=error.stderr.strip())) from error
+        raise RuntimeError(tr(Msg.COULD_NOT_UNMOUNT_DEVICE_REASON, reason=error.stderr.strip())) from error

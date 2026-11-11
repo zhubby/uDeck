@@ -8,7 +8,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from .i18n import tr
+from .i18n import Msg, tr
 
 
 def terminal_command(arguments=None):
@@ -17,14 +17,14 @@ def terminal_command(arguments=None):
         return [resolver, "--", *arguments] if arguments else [resolver]
     terminal = shutil.which("x-terminal-emulator")
     if not terminal:
-        raise RuntimeError(tr('没有可用的默认终端，请安装 xdg-terminal-exec 或终端模拟器'))
+        raise RuntimeError(tr(Msg.NO_DEFAULT_TERMINAL_AVAILABLE_INSTALL_XDG_TERMINAL_EXEC_OR_A_TERMINAL_EMULATOR))
     return [terminal, "-e", *arguments] if arguments else [terminal]
 
 
 def open_terminal(directory):
     directory = Path(directory).absolute()
     if not directory.is_dir():
-        raise ValueError(tr('终端工作目录不存在'))
+        raise ValueError(tr(Msg.THE_TERMINAL_WORKING_DIRECTORY_DOES_NOT_EXIST))
     # An explicit directory/command must create a window even when the terminal
     # primary already exists; a plain launch only activates its recent window.
     resolver = shutil.which("xdg-terminal-exec")
@@ -51,7 +51,7 @@ def parse_exec(command, name="", icon="", desktop_path="", files=()):
             continue
         result.append(re.sub(r"%([%ckfFuU])", lambda match: substitutions[match[1]], token))
     if not result:
-        raise ValueError(tr('应用没有可执行命令'))
+        raise ValueError(tr(Msg.THE_APP_HAS_NO_EXECUTABLE_COMMAND))
     return result
 
 
@@ -128,7 +128,7 @@ class DesktopCatalog:
 
             application = Gio.DesktopAppInfo.new_from_filename(entry["desktop"])
             if application is None or not application.launch([Gio.File.new_for_path(str(path)) for path in files], None):
-                raise RuntimeError(tr('系统拒绝启动应用'))
+                raise RuntimeError(tr(Msg.THE_SYSTEM_REFUSED_TO_START_THE_APP))
         except ImportError:
             arguments = parse_exec(entry["exec"], entry["name"], entry["icon"], entry["desktop"], files)
             if entry["terminal"]:

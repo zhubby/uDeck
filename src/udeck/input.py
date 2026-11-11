@@ -2,7 +2,7 @@ import sys
 
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
-from .i18n import error_text, tr
+from .i18n import Msg, error_text, tr
 
 DIRECTIONS = {"left", "right", "up", "down"}
 BUTTON_ACTIONS = {"accept", "back", "context", "quick-settings"}
@@ -121,7 +121,7 @@ class Gamepad(QObject):
                                   **self._mapping_status(source), "grabbed": False})
                 self._try_grab()
                 return
-            self.status.emit({"available": False, "verified": False, "message": tr('未找到独立手柄；可用方向键、Enter、Esc 操作')})
+            self.status.emit({"available": False, "verified": False, "message": tr(Msg.NO_SEPARATE_GAMEPAD_FOUND_USE_ARROWS_ENTER_AND_ESC)})
         except (ImportError, OSError) as error:
             self.status.emit({"available": False, "verified": False, "message": error_text(error)})
 
@@ -137,7 +137,7 @@ class Gamepad(QObject):
             self.status.emit({"grabbed": True})
         except OSError:
             self._close()
-            self.status.emit({"grabbed": False, "message": tr('未能获取手柄输入；请确认设备已连接，且未被其他程序占用')})
+            self.status.emit({"grabbed": False, "message": tr(Msg.COULD_NOT_ACQUIRE_GAMEPAD_INPUT)})
 
     def _read(self, *arguments):
         try:
@@ -148,7 +148,7 @@ class Gamepad(QObject):
                     continue
                 if event.type == ecodes.EV_SYN and event.code == ecodes.SYN_DROPPED:
                     self._close()
-                    self.status.emit({"grabbed": False, "message": tr('输入事件丢失，请松开按键后重试')})
+                    self.status.emit({"grabbed": False, "message": tr(Msg.INPUT_EVENTS_WERE_LOST_RELEASE_THE_BUTTONS_AND_TRY_AGAIN)})
                     return
                 if event.type == ecodes.EV_KEY:
                     was_pressed = event.code in self.router.pressed
@@ -183,7 +183,7 @@ class Gamepad(QObject):
             pass
         except (OSError, AttributeError):
             self._close()
-            self.status.emit({"available": False, "grabbed": False, "message": tr('手柄已断开')})
+            self.status.emit({"available": False, "grabbed": False, "message": tr(Msg.GAMEPAD_DISCONNECTED)})
 
     def _update_direction(self):
         key_directions = [self.router.mapping.get(code) for code in sorted(self.router.pressed)]

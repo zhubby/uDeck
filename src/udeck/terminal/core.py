@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from ..core import ConfigStore
-from ..i18n import render, tr
+from ..i18n import Msg, render, tr
 
 
 def plugin_paths():
@@ -37,18 +37,18 @@ class LaunchRequest:
 
     def __post_init__(self):
         if not _string(self.cwd) or not Path(self.cwd).is_absolute() or not Path(self.cwd).is_dir():
-            raise ValueError(tr('工作目录不存在或无法访问'))
+            raise ValueError(tr(Msg.THE_WORKING_DIRECTORY_DOES_NOT_EXIST_OR_IS_INACCESSIBLE))
         if not isinstance(self.argv, list) or not all(_string(item) for item in self.argv):
-            raise ValueError(tr('程序参数必须是独立的文字参数'))
+            raise ValueError(tr(Msg.PROGRAM_ARGUMENTS_MUST_BE_INDIVIDUAL_TEXT_VALUES))
         if self.argv and not self.argv[0]:
-            raise ValueError(tr('未指定要运行的程序'))
+            raise ValueError(tr(Msg.NO_PROGRAM_SPECIFIED))
         if not _string(self.title) or type(self.new_window) is not bool:
-            raise ValueError(tr('终端窗口参数无效'))
+            raise ValueError(tr(Msg.INVALID_TERMINAL_WINDOW_ARGUMENTS))
         if not isinstance(self.environment, dict) or not all(
             _string(key) and key and "=" not in key and _string(value)
             for key, value in self.environment.items()
         ):
-            raise ValueError(tr('程序环境无效'))
+            raise ValueError(tr(Msg.INVALID_PROGRAM_ENVIRONMENT))
 
     def to_json(self):
         return json.dumps(asdict(self), ensure_ascii=False)
@@ -58,10 +58,10 @@ class LaunchRequest:
         try:
             data = json.loads(value)
             if not isinstance(data, dict) or set(data) != {"cwd", "argv", "title", "environment", "new_window"}:
-                raise ValueError(tr('窗口请求无效'))
+                raise ValueError(tr(Msg.INVALID_WINDOW_REQUEST))
             return cls(**data)
         except (TypeError, KeyError, json.JSONDecodeError) as error:
-            raise ValueError(tr('窗口请求无效')) from error
+            raise ValueError(tr(Msg.INVALID_WINDOW_REQUEST)) from error
 
     def executable(self):
         program = self.argv[0] if self.argv else (pwd.getpwuid(os.getuid()).pw_shell or "/bin/sh")
@@ -73,25 +73,25 @@ class LaunchRequest:
                                           for entry in self.environment.get("PATH", os.defpath).split(os.pathsep))
             resolved = shutil.which(program, path=search_path)
         if not resolved:
-            raise ValueError(tr('无法运行程序：{value0}', value0=program))
+            raise ValueError(tr(Msg.CANNOT_RUN_PROGRAM_VALUE0, value0=program))
         return resolved, self.argv[1:] if self.argv else []
 
 
 def parse_launch(arguments=None, *, cwd=None, environment=None):
     arguments = list(arguments) if arguments is not None else None
     language = ConfigStore().data["preferences"]["language"]
-    parser = argparse.ArgumentParser(description=render(tr('uDeck Terminal · 按键原生终端'), language))
+    parser = argparse.ArgumentParser(description=render(tr(Msg.UDECK_TERMINAL_BUTTON_FIRST_TERMINAL), language))
     parser.add_argument("--new-window", action="store_true")
     parser.add_argument("--working-directory")
     parser.add_argument("-T", "--title", default="")
     parser.add_argument("-e", dest="execute", nargs=argparse.REMAINDER)
-    parser.add_argument("--mock", action="store_true", help=render(tr('安全界面预览，不启动真实进程'), language))
+    parser.add_argument("--mock", action="store_true", help=render(tr(Msg.PREVIEW_THE_INTERFACE_WITHOUT_STARTING_REAL_PROCESSES), language))
     parser.add_argument("--windowed", action="store_true")
     parser.add_argument("--no-input", action="store_true")
     parser.add_argument("--screenshot", type=Path)
     parser.add_argument("--quit-after", type=float, default=0)
     parser.add_argument("--smoke-test", action="store_true")
-    parser.add_argument("--doctor", action="store_true", help=render(tr('输出只读诊断 JSON'), language))
+    parser.add_argument("--doctor", action="store_true", help=render(tr(Msg.OUTPUT_READ_ONLY_DIAGNOSTIC_JSON), language))
     parser.add_argument("program", nargs=argparse.REMAINDER)
     options = parser.parse_args(arguments)
     command = options.execute if options.execute is not None else options.program
@@ -99,11 +99,11 @@ def parse_launch(arguments=None, *, cwd=None, environment=None):
         command = command[1:]
     actual = arguments if arguments is not None else sys.argv[1:]
     if (options.execute is not None or "--" in actual) and not command:
-        parser.error(render(tr('-e 或 -- 后必须指定程序'), language))
+        parser.error(render(tr(Msg.SPECIFY_A_PROGRAM_AFTER_E_OR), language))
     if options.execute is not None and options.program:
-        parser.error(render(tr('程序参数不能重复指定'), language))
+        parser.error(render(tr(Msg.PROGRAM_ARGUMENTS_WERE_SPECIFIED_MORE_THAN_ONCE), language))
     if options.smoke_test and not options.mock:
-        parser.error(render(tr('--smoke-test 必须配合 --mock，避免执行真实命令'), language))
+        parser.error(render(tr(Msg.SMOKE_TEST_REQUIRES_MOCK_TO_AVOID_RUNNING_REAL_COMMANDS), language))
     directory = Path(options.working_directory or cwd or Path.cwd()).expanduser().absolute()
     request = LaunchRequest(str(directory), command, options.title,
                             dict(os.environ if environment is None else environment),

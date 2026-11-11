@@ -12,6 +12,7 @@ from PySide6.QtCore import QCoreApplication
 from udeck.backend import SystemBackend
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
+from udeck.i18n import Msg, error_text
 from udeck.mock import MockBackend
 
 
@@ -149,8 +150,9 @@ def test_removed_endpoint_is_rechecked_before_any_audio_write(audio_server, acti
     backend, server, commands = audio_server
     asyncio.run(backend.refresh_audio())
     server[kind] = [entry for entry in server[kind] if entry["name"] != target]
-    with pytest.raises((ValueError, RuntimeError), match="音频设备已移除"):
+    with pytest.raises((ValueError, RuntimeError)) as failure:
         asyncio.run(backend._execute(action, {"id": target, "value": 0.5}))
+    assert error_text(failure.value).key == Msg.THE_AUDIO_DEVICE_WAS_REMOVED
     assert not any(args[0] == "pactl" and args[1].startswith("set-") for args in commands)
 
 

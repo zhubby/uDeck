@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from .hotspot import HOTSPOT_BUSY, hotspot_status
-from .i18n import tr
+from .i18n import Msg, tr
 
 
 def wifi_identity(interface, sysfs_root=Path("/sys/class/net")):
@@ -16,45 +16,45 @@ def wifi_identity(interface, sysfs_root=Path("/sys/class/net")):
         elif buses & {"mmc", "sdio", "platform"}:
             kind = "builtin"
     return {"interface": interface, "kind": kind,
-            "name": {"usb": tr('USB 无线网卡'), "builtin": tr('内置无线网卡')}.get(kind, tr('无线网卡'))}
+            "name": {"usb": tr(Msg.USB_WI_FI_ADAPTER), "builtin": tr(Msg.BUILT_IN_WI_FI_ADAPTER)}.get(kind, tr(Msg.WI_FI_ADAPTER))}
 
 
 def wifi_label(device):
-    return device.get("name", tr('无线网卡')) + (" · " + device["interface"] if device.get("interface") else "")
+    return device.get("name", tr(Msg.WI_FI_ADAPTER)) + (" · " + device["interface"] if device.get("interface") else "")
 
 
 def wifi_status(device, enabled=True):
     if not enabled:
-        return tr('全部 Wi-Fi 已关闭')
+        return tr(Msg.ALL_WI_FI_OFF)
     if not device.get("managed", True):
-        return tr('未由系统管理')
+        return tr(Msg.UNMANAGED_BY_SYSTEM)
     if device.get("error"):
         return device["error"]
     if device.get("mode") == "ap" or device.get("hotspot", {}).get("status") in HOTSPOT_BUSY:
         hotspot = device.get("hotspot", {})
         return hotspot_status(hotspot) + " · " + (hotspot.get("activeSsid") or hotspot.get("ssid", ""))
     if device.get("connected"):
-        return tr('已连接 · ') + device["connected"]
+        return tr(Msg.CONNECTED_PREFIX) + device["connected"]
     state = device.get("deviceState", 0)
     if state == 100:
-        return tr('已连接')
+        return tr(Msg.CONNECTED)
     if 40 <= state < 100:
-        return tr('正在连接') + (" · " + device["connecting"] if device.get("connecting") else "")
+        return tr(Msg.CONNECTING) + (" · " + device["connecting"] if device.get("connecting") else "")
     if state == 20:
-        return tr('暂不可用')
-    return tr('未连接')
+        return tr(Msg.UNAVAILABLE)
+    return tr(Msg.NOT_CONNECTED)
 
 
 def wifi_summary(information):
     devices = information.get("devices", [])
     if not devices:
-        return information.get("error") or tr('未检测到无线网卡')
+        return information.get("error") or tr(Msg.NO_WI_FI_ADAPTERS_FOUND)
     if not information.get("enabled"):
-        return tr('Wi-Fi 已关闭') if len(devices) == 1 else tr('{value0} 张网卡 · Wi-Fi 已关闭', value0=len(devices))
+        return tr(Msg.WI_FI_OFF) if len(devices) == 1 else tr(Msg.VALUE0_ADAPTERS_WI_FI_OFF, value0=len(devices))
     if len(devices) == 1:
         return wifi_status(devices[0])
     connected = sum(device.get("mode") != "ap" and (bool(device.get("connected")) or device.get("deviceState") == 100) for device in devices)
-    return tr('{value0} 张网卡 · {value1} 已连接', value0=len(devices), value1=connected)
+    return tr(Msg.VALUE0_ADAPTERS_VALUE1_CONNECTED, value0=len(devices), value1=connected)
 
 
 def wifi_indicators(information):
@@ -91,7 +91,7 @@ def wifi_indicators(information):
                        if kind == "hotspot" else wifi_status(device, enabled))
         label = wifi_label(device) + "\n" + description
         if status == "connected":
-            label += "\n" + (tr('信号强度：{strength}%', strength=strength) if strength is not None else tr('信号强度暂不可用'))
+            label += "\n" + (tr(Msg.SIGNAL_STRENGTH, strength=strength) if strength is not None else tr(Msg.SIGNAL_STRENGTH_UNAVAILABLE))
         if kind == "hotspot" and hotspot.get("message"):
             label += "\n" + hotspot["message"]
         indicators.append({"id": device["id"], "kind": kind, "status": status, "strength": strength,
@@ -102,7 +102,7 @@ def wifi_indicators(information):
 def wifi_security(information):
     flags = information.get("WpaFlags", 0) | information.get("RsnFlags", 0)
     enterprise = bool(flags & 0x200) and not bool(flags & 0x500)
-    security = tr('企业网络') if enterprise else "WPA3" if flags & 0x400 else "WPA2" if flags & 0x100 else tr('不支持的加密') if information.get("Flags", 0) & 1 else tr('开放网络')
+    security = tr(Msg.ENTERPRISE_NETWORK) if enterprise else "WPA3" if flags & 0x400 else "WPA2" if flags & 0x100 else tr(Msg.UNSUPPORTED_ENCRYPTION) if information.get("Flags", 0) & 1 else tr(Msg.OPEN_NETWORK)
     keys = (["wpa-psk"] if flags & 0x100 else []) + (["sae"] if flags & 0x400 else [])
     return security, keys
 
@@ -124,17 +124,17 @@ def network_key(ssid, security):
 
 def wifi_failure(reason):
     if reason == 7:
-        return tr("Wi-Fi credentials are required or were rejected")
+        return tr(Msg.WI_FI_CREDENTIALS_ARE_REQUIRED_OR_WERE_REJECTED)
     if reason in (8, 9, 10, 11):
-        return tr("Wi-Fi authentication or negotiation failed")
+        return tr(Msg.WI_FI_AUTHENTICATION_OR_NEGOTIATION_FAILED)
     if reason in (5, 6, 15, 16, 17):
-        return tr("Could not obtain a network address")
+        return tr(Msg.COULD_NOT_OBTAIN_A_NETWORK_ADDRESS)
     if reason == 53:
-        return tr("The network is no longer in range")
-    return tr("Wi-Fi connection failed (system reason {reason})", reason=reason)
+        return tr(Msg.THE_NETWORK_IS_NO_LONGER_IN_RANGE)
+    return tr(Msg.WI_FI_CONNECTION_FAILED_SYSTEM_REASON_REASON, reason=reason)
 
 
 def wifi_phase(state):
-    return tr("Preparing to join") if state == 40 else tr("Configuring Wi-Fi") if state == 50 else (
-        tr("Waiting for credentials") if state == 60 else tr("Obtaining a network address") if state == 70 else
-        tr("Checking the connection") if state in (80, 90) else tr("Joining network"))
+    return tr(Msg.PREPARING_TO_JOIN) if state == 40 else tr(Msg.CONFIGURING_WI_FI) if state == 50 else (
+        tr(Msg.WAITING_FOR_CREDENTIALS) if state == 60 else tr(Msg.OBTAINING_A_NETWORK_ADDRESS) if state == 70 else
+        tr(Msg.CHECKING_THE_CONNECTION) if state in (80, 90) else tr(Msg.JOINING_NETWORK))

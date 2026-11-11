@@ -7,6 +7,7 @@ import pytest
 from udeck import files
 from udeck.backend import validate_wifi_password
 from udeck.files import FileOperations
+from udeck.i18n import render
 
 
 @pytest.mark.parametrize(("password", "security", "valid"), [
@@ -56,8 +57,9 @@ def test_copy_of_changing_source_aborts_without_deletion(tmp_path, monkeypatch):
         source.write_text("changed while copying")
 
     monkeypatch.setattr(files.shutil, "copystat", changed)
-    with pytest.raises(RuntimeError, match="发生变化"):
+    with pytest.raises(RuntimeError) as failure:
         FileOperations().transfer(source, destination)
+    assert "发生变化" in render(failure.value, "zh_CN")
     assert source.read_text() == "changed while copying"
     assert list(destination.iterdir()) == []
 
@@ -67,8 +69,9 @@ def test_copy_of_fifo_is_rejected_without_blocking(tmp_path):
     os.mkfifo(source)
     destination = tmp_path / "destination"
     destination.mkdir()
-    with pytest.raises(ValueError, match="管道"):
+    with pytest.raises(ValueError) as failure:
         FileOperations().transfer(source, destination)
+    assert "管道" in render(failure.value, "zh_CN")
 
 
 def test_copy_staging_is_private_before_metadata_is_applied(tmp_path, monkeypatch):

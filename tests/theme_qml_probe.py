@@ -24,7 +24,7 @@ from udeck.apps.media.engine import FrameImages
 from udeck.apps.reader.controller import PdfImages
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
-from udeck.i18n import tr
+from udeck.i18n import Msg, tr
 from udeck.mock import MockBackend
 from udeck.terminal.core import LaunchRequest, TerminalPreferences
 from udeck.terminal.main import Coordinator
@@ -270,7 +270,7 @@ def run():
                     controller.pop_menu()
                 verify_colors(app_window, theme)
                 capture(app_window, f"{controller.app}-{theme}-library")
-                controller.prompt(tr("Folder path"), lambda _: None, "keep 中文 {draft}")
+                controller.prompt(tr(Msg.FOLDER_PATH), lambda _: None, "keep 中文 {draft}")
                 QTest.qWait(30)
                 field = text_field(app_window)
                 field.setProperty("cursorPosition", 4)
@@ -309,7 +309,7 @@ def run():
         shell.activateSetting("wifi")
         capture(window, "shell-dark-wifi")
         shell.dispatch("back")
-        shell._text_prompt(tr("Wi-Fi 密码"), "A very long wireless network name 中文", "wifi", secret=True)
+        shell._text_prompt(tr(Msg.WI_FI_PASSWORD), "A very long wireless network name 中文", "wifi", secret=True)
         QTest.qWait(30)
         editor = text_field(window)
         editor.setProperty("text", "keep secret 中文")
@@ -324,7 +324,7 @@ def run():
         # replacing their input fields, content surfaces or Terminal sessions.
         for controller, _, _ in apps:
             controller.pop_menu()
-            controller.prompt(tr("Folder path"), lambda _: None, "keep 中文 {draft}")
+            controller.prompt(tr(Msg.FOLDER_PATH), lambda _: None, "keep 中文 {draft}")
         QTest.qWait(40)
         editors = [text_field(app_window) for _, _, app_window in apps]
         surfaces = [app_window.findChild(QObject, "appSurface") for _, _, app_window in apps]

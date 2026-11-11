@@ -4,6 +4,7 @@ import QtQuick.Controls
 
 Window {
     id: window
+    readonly property var msg: controller.messageKeys
     title: "uDeck Shortcut Recorder"
     visible: false
     flags: Qt.Dialog | Qt.FramelessWindowHint
@@ -47,8 +48,8 @@ Window {
         }
         Text {
             width: parent.width
-            text: !window.state.ready ? window.tr("Preparing shortcut recording…") : window.state.sequence
-                ? window.tr("Release all keys, then confirm") : window.tr("Press a new key combination")
+            text: !window.state.ready ? window.tr(msg.PREPARING_SHORTCUT_RECORDING) : window.state.sequence
+                ? window.tr(msg.RELEASE_ALL_KEYS_THEN_CONFIRM) : window.tr(msg.PRESS_A_NEW_KEY_COMBINATION)
             textFormat: Text.PlainText; font.family: fonts.family; font.pixelSize: 23
             color: colors.muted; wrapMode: Text.Wrap
         }
@@ -66,7 +67,7 @@ Window {
         }
         Text {
             width: parent.width; height: 48
-            text: window.state.error || window.tr("Esc cancels · recording ends after 15 seconds")
+            text: window.state.error || window.tr(msg.ESC_CANCELS_RECORDING_ENDS_AFTER_15_SECONDS)
             textFormat: Text.PlainText; font.family: fonts.family; font.pixelSize: 21
             color: window.state.error ? colors.error : colors.muted
             wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
@@ -74,11 +75,11 @@ Window {
         Row {
             spacing: 20
             RecorderButton {
-                text: window.tr("Cancel"); promptKeys: ["gamecube_button_color_b", "/", "keyboard_escape"]
+                text: window.tr(msg.CANCEL); promptKeys: ["gamecube_button_color_b", "/", "keyboard_escape"]
                 onClicked: recorder.cancel()
             }
             RecorderButton {
-                text: window.tr("Confirm"); promptKeys: ["gamecube_button_color_a", "/", "keyboard_enter"]
+                text: window.tr(msg.CONFIRM); promptKeys: ["gamecube_button_color_a", "/", "keyboard_enter"]
                 enabled: window.state.canConfirm; onClicked: recorder.confirm()
             }
         }

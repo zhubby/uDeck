@@ -4,11 +4,11 @@ import tempfile
 from pathlib import Path
 
 from .appearance import theme_code
-from .i18n import language_code, tr
+from .i18n import Msg, language_code, tr
 
 PAGES = ("home", "apps", "windows", "files")
 ALL_PAGES = (*PAGES, "settings")
-PAGE_NAMES = (tr('主页'), tr('应用'), tr('运行中'), tr('文件'))
+PAGE_NAMES = (tr(Msg.HOME), tr(Msg.APPS), tr(Msg.RUNNING), tr(Msg.FILES))
 
 
 def move_index(index, direction, count, columns=1):
@@ -36,7 +36,7 @@ class Navigation:
 
     def set_page(self, page):
         if page not in ALL_PAGES:
-            raise ValueError(tr('未知页面'))
+            raise ValueError(tr(Msg.UNKNOWN_PAGE))
         self.positions[self.page] = self.index
         self.page = page
         self.index = max(0, int(self.positions.get(page, 0)))

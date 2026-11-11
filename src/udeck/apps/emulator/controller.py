@@ -20,7 +20,7 @@ from udeck.apps.emulator.catalog import CoreCatalog, message_lines, probe_core, 
 from udeck.apps.emulator.library import EmulatorLibrary, confined_path, content_dependencies
 from udeck.apps.emulator.services import CoreInventoryTask, LaunchTask
 from udeck.apps.emulator.settings import EmulatorSettings
-from udeck.i18n import error_text, tr
+from udeck.i18n import Msg, error_text, tr
 from udeck.sounds import interaction
 
 
@@ -29,7 +29,7 @@ def file_hash(path, cancelled=lambda: False):
     with Path(path).open("rb") as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             if cancelled():
-                raise OSError(tr("Scan cancelled"))
+                raise OSError(tr(Msg.SCAN_CANCELLED))
             digest.update(chunk)
     return digest.hexdigest()
 
@@ -58,33 +58,33 @@ def preflight(item, preferences, executable=None, catalog=None, validate_native=
     missing, optional, dependencies = [], [], []
     core = None
     if not executable:
-        missing.append(tr("RetroArch is not installed"))
+        missing.append(tr(Msg.RETROARCH_IS_NOT_INSTALLED))
     if not item.get("noContent"):
         path = Path(item["path"])
         try:
             confined_path(path, item.get("platformRoot", path.parent))
             if not path.is_file():
-                missing.append(tr("Game source is disconnected"))
+                missing.append(tr(Msg.GAME_SOURCE_IS_DISCONNECTED))
             else:
                 dependencies = content_dependencies(path, item.get("platformRoot", path.parent), cancelled)
-                missing.extend(tr("Missing disc track: {name}", name=p.name) for p in dependencies if not p.is_file())
+                missing.extend(tr(Msg.MISSING_DISC_TRACK_NAME, name=p.name) for p in dependencies if not p.is_file())
         except (OSError, ValueError) as error:
             missing.append(error_text(error))
     try:
         core = catalog.resolve(item, require_available=False)
         if not Path(core.path).is_file():
-            raise ValueError(tr("Missing core: {core}", core=core.id))
+            raise ValueError(tr(Msg.MISSING_CORE_CORE, core=core.id))
         if validate_native and (core.status != "available" or probe_key(core.path) != core.signature):
             core.signature = probe_key(core.path)
             catalog.apply_probe(core.id, probe_core(core.path))
         if core.status != "available":
-            missing.append(tr("Core cannot be loaded: {core} · {reason}", core=core.id,
-                              reason=core.reason or tr("Checking…")))
+            missing.append(tr(Msg.CORE_CANNOT_BE_LOADED_CORE_REASON, core=core.id,
+                              reason=core.reason or tr(Msg.CHECKING)))
         firmware = catalog.firmware_check(core, item["platform"], system)
-        missing.extend(tr("Missing firmware: {name}", name=name) for name in firmware["required"])
+        missing.extend(tr(Msg.MISSING_FIRMWARE_NAME, name=name) for name in firmware["required"])
         optional = firmware["optional"]
         if item.get("noContent") and not core.no_content:
-            missing.append(tr("This core requires content"))
+            missing.append(tr(Msg.THIS_CORE_REQUIRES_CONTENT))
     except (OSError, ValueError) as error:
         missing.append(error_text(error))
     checks = {"ready": not missing, "errors": missing, "core": core.path if core else "",
@@ -112,24 +112,24 @@ class SaveStore:
     def inspect(self, slot):
         name = self.manifest().get(str(slot))
         if not isinstance(name, str) or not re.fullmatch(r"[0-9a-f]{32}", name):
-            raise ValueError(tr("This save slot is empty"))
+            raise ValueError(tr(Msg.THIS_SAVE_SLOT_IS_EMPTY))
         value = json.loads((self.root / name / "metadata.json").read_text())
         if not isinstance(value, dict):
-            raise ValueError(tr("The save state is damaged"))
+            raise ValueError(tr(Msg.THE_SAVE_STATE_IS_DAMAGED))
         return value
 
     def manifest(self):
         try:
             slots = json.loads((self.root / "slots.json").read_text())
             if not isinstance(slots, dict):
-                raise ValueError(tr("The save index is damaged"))
+                raise ValueError(tr(Msg.THE_SAVE_INDEX_IS_DAMAGED))
             return slots
         except FileNotFoundError:
             return {}
 
     def publish(self, slot, state_file, metadata, thumbnail=None):
         if not Path(state_file).is_file() or Path(state_file).stat().st_size == 0:
-            raise OSError(tr("The core did not write a save state"))
+            raise OSError(tr(Msg.THE_CORE_DID_NOT_WRITE_A_SAVE_STATE))
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
         name = uuid.uuid4().hex
         staging = self.root / ("." + name)
@@ -157,23 +157,23 @@ class SaveStore:
     def load(self, slot, content_hash, core_hash):
         name = self.manifest().get(str(slot))
         if not isinstance(name, str) or len(name) != 32 or any(c not in "0123456789abcdef" for c in name):
-            raise ValueError(tr("This save slot is empty"))
+            raise ValueError(tr(Msg.THIS_SAVE_SLOT_IS_EMPTY))
         directory = self.root / name
         metadata = json.loads((directory / "metadata.json").read_text())
         if not isinstance(metadata, dict):
-            raise ValueError(tr("The save state is damaged"))
+            raise ValueError(tr(Msg.THE_SAVE_STATE_IS_DAMAGED))
         if metadata.get("version") != 1 or metadata.get("contentHash") != content_hash or metadata.get("coreHash") != core_hash:
-            raise ValueError(tr("This state belongs to another game or core version"))
+            raise ValueError(tr(Msg.THIS_STATE_BELONGS_TO_ANOTHER_GAME_OR_CORE_VERSION))
         path = directory / "state"
         if file_hash(path) != metadata.get("sha256"):
-            raise ValueError(tr("The save state is damaged"))
+            raise ValueError(tr(Msg.THE_SAVE_STATE_IS_DAMAGED))
         return path, metadata
 
 
 class CoreSaveStore(SaveStore):
     def __init__(self, game_root, core_id, core_hash):
         if not re.fullmatch(r"[A-Za-z0-9_-]+", core_id) or not re.fullmatch(r"[0-9a-f]{64}", core_hash):
-            raise ValueError(tr("Invalid core save identity"))
+            raise ValueError(tr(Msg.INVALID_CORE_SAVE_IDENTITY))
         self.game_root, self.core_id, self.core_hash = Path(game_root), core_id, core_hash
         super().__init__(self.game_root / "cores" / core_id / core_hash)
         self.sram_root = self.root.parent / "sram"
@@ -197,7 +197,7 @@ def latest_save(game_root, slot="auto"):
 def config_quote(value):
     value = str(value)
     if any(x in value for x in ('"', '\n', '\r')):
-        raise ValueError(tr("Unsupported quote or newline in emulator path"))
+        raise ValueError(tr(Msg.UNSUPPORTED_QUOTE_OR_NEWLINE_IN_EMULATOR_PATH))
     return '"' + value + '"'
 
 
@@ -251,7 +251,7 @@ class RetroEngine(QObject):
 
     def start(self, item, checks, save_store, resume=False):
         if self.running():
-            raise RuntimeError(tr("A game is already running"))
+            raise RuntimeError(tr(Msg.A_GAME_IS_ALREADY_RUNNING))
         self.store = save_store
         core_hash = checks.get("coreHash") or file_hash(checks["core"])
         self.metadata = {"contentHash": checks.get("contentHash") or content_hash(item), "coreHash": core_hash,
@@ -304,7 +304,7 @@ class RetroEngine(QObject):
 
     def send(self, command):
         if not self.running() or self.process.write((command + "\n").encode()) < 0:
-            raise OSError(tr("The emulator command channel is unavailable"))
+            raise OSError(tr(Msg.THE_EMULATOR_COMMAND_CHANNEL_IS_UNAVAILABLE))
 
     def read_stdout(self):
         self.stdout += bytes(self.process.readAllStandardOutput()).decode(errors="replace")
@@ -379,12 +379,12 @@ class RetroEngine(QObject):
             self.send("GET_STATUS")
         if self.status == "starting" and time.monotonic() > self.deadline:
             self.timer.stop()
-            self.failed.emit(tr("RetroArch did not report a loaded game. Check its log."))
+            self.failed.emit(tr(Msg.RETROARCH_DID_NOT_REPORT_A_LOADED_GAME_CHECK_ITS_LOG))
         if self.pending:
             task = self.pending
             if time.monotonic() > task["deadline"]:
                 self.pending = None
-                self.failed.emit(tr("The emulator did not confirm the operation"))
+                self.failed.emit(tr(Msg.THE_EMULATOR_DID_NOT_CONFIRM_THE_OPERATION))
             elif task["kind"] == "save" and self.state_path.is_file():
                 stamp = (self.state_path.stat().st_mtime_ns, self.state_path.stat().st_size)
                 if (stamp[1] == task.get("expected") and stamp != task["old"]
@@ -407,15 +407,15 @@ class RetroEngine(QObject):
 
     def resume(self):
         if self.pending:
-            raise RuntimeError(tr("Pause the game and wait for the current operation"))
+            raise RuntimeError(tr(Msg.PAUSE_THE_GAME_AND_WAIT_FOR_THE_CURRENT_OPERATION))
         if self.status == "paused":
             self.send("PAUSE_TOGGLE")
 
     def save(self, slot):
         if not self.metadata.get("savestate", True):
-            raise RuntimeError(tr("This core does not support save states"))
+            raise RuntimeError(tr(Msg.THIS_CORE_DOES_NOT_SUPPORT_SAVE_STATES))
         if self.pending or self.status != "paused":
-            raise RuntimeError(tr("Pause the game and wait for the current operation"))
+            raise RuntimeError(tr(Msg.PAUSE_THE_GAME_AND_WAIT_FOR_THE_CURRENT_OPERATION))
         stat = self.state_path.stat() if self.state_path.exists() else None
         self.pending = {"kind": "save", "slot": str(slot), "old": (stat.st_mtime_ns, stat.st_size) if stat else None,
                         "deadline": time.monotonic() + 15}
@@ -424,9 +424,9 @@ class RetroEngine(QObject):
     def load(self, slot):
         try:
             if not self.metadata.get("savestate", True):
-                raise RuntimeError(tr("This core does not support save states"))
+                raise RuntimeError(tr(Msg.THIS_CORE_DOES_NOT_SUPPORT_SAVE_STATES))
             if self.pending or self.status != "paused":
-                raise RuntimeError(tr("Pause the game and wait for the current operation"))
+                raise RuntimeError(tr(Msg.PAUSE_THE_GAME_AND_WAIT_FOR_THE_CURRENT_OPERATION))
             path, metadata = self.store.load(slot, self.metadata["contentHash"], self.metadata["coreHash"])
             self.read_stderr()
             shutil.copyfile(path, self.state_path)
@@ -553,7 +553,7 @@ class EmulatorController(EmulatorSettings, AppController):
                                     catalog=self.catalog, validate_native=False)
 
     def tabs(self):
-        return [tr("Recently played"), tr("All platforms"), tr("Favorites")]
+        return [tr(Msg.RECENTLY_PLAYED), tr(Msg.ALL_PLATFORMS), tr(Msg.FAVORITES)]
 
     def rows(self):
         rows = super().rows()
@@ -582,7 +582,7 @@ class EmulatorController(EmulatorSettings, AppController):
 
     def open_item(self, identifier):
         if self.engine.running():
-            raise RuntimeError(tr("A game is already running"))
+            raise RuntimeError(tr(Msg.A_GAME_IS_ALREADY_RUNNING))
         self.current = self.library.require(identifier)
         self.cancel_launch()
         self.update_checks()
@@ -594,19 +594,19 @@ class EmulatorController(EmulatorSettings, AppController):
             slots = self.save_store().manifest() if self.current and (self.engine.store or self.checks.get("coreHash")) else {}
         except (OSError, ValueError) as error:
             slots = {}
-            save_error = tr("Cannot read saves: {error}", error=error)
+            save_error = tr(Msg.CANNOT_READ_SAVES_ERROR, error=error)
         return {"platform": self.platform, "gameStatus": self.engine.status,
                 "gameChecks": self.checks, "saveSlots": list(slots),
                 "gameBusy": bool(self.engine.pending) or self.launching, "sourceMissing": self.source_missing,
                 "saveError": save_error, "romRoot": self.library.root_path,
                 "coreCount": len(self.catalog.cores), "coresPending": self.cores_pending,
                 "scanHints": self.library.reports.get(self.library.root_id, []),
-                "emptyHint": tr("ROM root: {path}\nUse platform folders: gba/ · psp/ · psx/ · dreamcast/",
+                "emptyHint": tr(Msg.ROM_ROOT_PATH_USE_PLATFORM_FOLDERS_GBA_PSP_PSX_DREAMCAST,
                                 path=self.library.root_path)}
 
     def start_game(self, resume=False):
         if self.launching or self.engine.running():
-            raise RuntimeError(tr("A game is already starting or running"))
+            raise RuntimeError(tr(Msg.A_GAME_IS_ALREADY_STARTING_OR_RUNNING))
         item = self.require_current()
         if resume:
             _, metadata = latest_save(self.game_root())
@@ -619,11 +619,11 @@ class EmulatorController(EmulatorSettings, AppController):
                 saved_core = self.catalog.cores.get(original)
                 if (not selected or selected.id != original or selected.core_hash != metadata.get("coreHash")):
                     restore = saved_core and saved_core.status == "available" and saved_core.core_hash == metadata.get("coreHash")
-                    self.menu(tr("Resume uses another core"), [
-                        (tr("Restore original core"), (lambda: self.restore_core(original)) if restore else None,
+                    self.menu(tr(Msg.RESUME_USES_ANOTHER_CORE), [
+                        (tr(Msg.RESTORE_ORIGINAL_CORE), (lambda: self.restore_core(original)) if restore else None,
                          original + " · " + str(metadata.get("coreVersion", ""))),
-                        (tr("Start fresh"), lambda: self.start_game(False)), (tr("Cancel"), self.pop_menu)],
-                        tr("The saved state requires its original core and version. Your saves are kept."))
+                        (tr(Msg.START_FRESH), lambda: self.start_game(False)), (tr(Msg.CANCEL), self.pop_menu)],
+                        tr(Msg.THE_SAVED_STATE_REQUIRES_ITS_ORIGINAL_CORE_AND_VERSION_YOUR_SAVES_ARE_KEPT))
                     return
             else:
                 resume = False
@@ -636,7 +636,7 @@ class EmulatorController(EmulatorSettings, AppController):
         self.launch_tasks[self.launch_generation] = task
         QThreadPool.globalInstance().start(task)
         self.clear_menus()
-        self.notice = tr("Preparing game…")
+        self.notice = tr(Msg.PREPARING_GAME)
         self.publish()
 
     def restore_core(self, identifier):
@@ -664,15 +664,15 @@ class EmulatorController(EmulatorSettings, AppController):
     def complete_launch(self):
         item = self.require_current()
         if item["id"] != self.launch_item["id"] or probe_key(self.checks["core"]) != self.checks["coreSignature"]:
-            raise ValueError(tr("The game or core changed. Try again."))
+            raise ValueError(tr(Msg.THE_GAME_OR_CORE_CHANGED_TRY_AGAIN))
         for path, stamp in self.checks.get("contentStamps", {}).items():
             stat = Path(path).stat()
             if [stat.st_size, stat.st_mtime_ns] != stamp:
-                raise ValueError(tr("The file has changed. Refresh the library before opening it."))
+                raise ValueError(tr(Msg.THE_FILE_HAS_CHANGED_REFRESH_THE_LIBRARY_BEFORE_OPENING_IT))
         saves = self.save_store()
         if self.launch_resume:
             if not self.checks["savestate"]:
-                raise ValueError(tr("This core does not support save states"))
+                raise ValueError(tr(Msg.THIS_CORE_DOES_NOT_SUPPORT_SAVE_STATES))
             saves.load("auto", self.checks["contentHash"], self.checks["coreHash"])
         self.engine.start(item, self.checks, saves, self.launch_resume)
         self.page = "game-running"
@@ -707,11 +707,11 @@ class EmulatorController(EmulatorSettings, AppController):
     def run_core(self, identifier, platform=None):
         core = self.catalog.cores[identifier]
         if self.engine.running():
-            raise RuntimeError(tr("A game is already running"))
+            raise RuntimeError(tr(Msg.A_GAME_IS_ALREADY_RUNNING))
         platform = self.catalog.canonical(platform) if platform else next(
             (p for p in core.platforms if self.catalog.enabled(core, p)), None)
         if platform not in core.platforms or not self.catalog.enabled(core, platform):
-            raise ValueError(tr("Selected core is unavailable: {core}", core=identifier))
+            raise ValueError(tr(Msg.SELECTED_CORE_IS_UNAVAILABLE_CORE, core=identifier))
         self.current = {"id": "core:" + identifier, "title": core.name, "coreId": identifier,
                         "platform": platform, "noContent": True, "path": "", "format": "", "sourceId": ""}
         self.page = "game-details"
@@ -721,11 +721,11 @@ class EmulatorController(EmulatorSettings, AppController):
         path = Path(path)
         source = next((s for s in self.library.sources if s.id == self.library.root_id and Path(s.path) in path.parents), None)
         if not source:
-            raise ValueError(tr("Place this game inside a platform folder under {path}", path=self.library.root_path))
+            raise ValueError(tr(Msg.PLACE_THIS_GAME_INSIDE_A_PLATFORM_FOLDER_UNDER_PATH, path=self.library.root_path))
         relative = path.relative_to(source.path)
         platform = self.catalog.platform_for_directory(relative.parts[0]) if len(relative.parts) > 1 else None
         if not platform or not self.catalog.candidates(platform.id, path.suffix):
-            raise ValueError(tr("No enabled core supports this platform folder and format"))
+            raise ValueError(tr(Msg.NO_ENABLED_CORE_SUPPORTS_THIS_PLATFORM_FOLDER_AND_FORMAT))
         confined_path(path, Path(source.path) / relative.parts[0])
         if platform.mode in ("manual", "dos"):
             entries = self.store.data["preferences"].setdefault("engineEntries", [])
@@ -740,22 +740,22 @@ class EmulatorController(EmulatorSettings, AppController):
         self.clear_menus()
         self.present.emit()
         options = [
-            (tr("Resume"), self.resume_game if not self.source_missing else None,
-             tr("Reconnect the source first") if self.source_missing else "")]
+            (tr(Msg.RESUME), self.resume_game if not self.source_missing else None,
+             tr(Msg.RECONNECT_THE_SOURCE_FIRST) if self.source_missing else "")]
         if self.engine.metadata.get("savestate", True):
             options.extend([
-            (tr("Save state"), (lambda: self.slots_menu(False)) if not self.source_missing else None),
-            (tr("Load state"), (lambda: self.slots_menu(True)) if not self.source_missing else None),
-            (tr("Save and return to library"), self.save_exit if not self.source_missing else None),
-            (tr("Return without saving"), self.confirm_quit)])
+            (tr(Msg.SAVE_STATE), (lambda: self.slots_menu(False)) if not self.source_missing else None),
+            (tr(Msg.LOAD_STATE), (lambda: self.slots_menu(True)) if not self.source_missing else None),
+            (tr(Msg.SAVE_AND_RETURN_TO_LIBRARY), self.save_exit if not self.source_missing else None),
+            (tr(Msg.RETURN_WITHOUT_SAVING), self.confirm_quit)])
         else:
-            options.append((tr("Return to library"), self.engine.quit))
-        options.extend([(tr("Controls"), self.controls_menu), (tr("Settings"), self.settings)])
-        self.menu(tr("Game paused"), options)
+            options.append((tr(Msg.RETURN_TO_LIBRARY), self.engine.quit))
+        options.extend([(tr(Msg.CONTROLS), self.controls_menu), (tr(Msg.SETTINGS), self.settings)])
+        self.menu(tr(Msg.GAME_PAUSED), options)
 
     def resume_game(self):
         if self.source_missing:
-            raise OSError(tr("The source is disconnected"))
+            raise OSError(tr(Msg.THE_SOURCE_IS_DISCONNECTED))
         self.engine.resume()
         self.clear_menus()
         self.desktop("Home") if not self.window else self.window.showMinimized()
@@ -765,15 +765,15 @@ class EmulatorController(EmulatorSettings, AppController):
         options = []
         for slot in ("1", "2", "3"):
             exists = slot in slots
-            options.append((tr("Slot {slot}", slot=slot),
+            options.append((tr(Msg.SLOT_SLOT, slot=slot),
                             (lambda s=slot: self.confirm_slot(s, load)) if exists or not load else None,
-                            tr("Saved") if exists else tr("Empty")))
-        self.menu(tr("Load state") if load else tr("Save state"), options)
+                            tr(Msg.SAVED) if exists else tr(Msg.EMPTY)))
+        self.menu(tr(Msg.LOAD_STATE) if load else tr(Msg.SAVE_STATE), options)
 
     def confirm_slot(self, slot, load):
-        self.menu(tr("Load this state?") if load else tr("Replace this slot?") if slot in self.save_store().manifest() else tr("Save in this slot?"),
-                  [(tr("Confirm"), lambda: self.slot_action(slot, load)), (tr("Cancel"), self.pop_menu)],
-                  tr("Loading replaces progress made since the saved state.") if load else "")
+        self.menu(tr(Msg.LOAD_THIS_STATE_PROMPT) if load else tr(Msg.REPLACE_THIS_SLOT_PROMPT) if slot in self.save_store().manifest() else tr(Msg.SAVE_IN_THIS_SLOT_PROMPT),
+                  [(tr(Msg.CONFIRM), lambda: self.slot_action(slot, load)), (tr(Msg.CANCEL), self.pop_menu)],
+                  tr(Msg.LOADING_REPLACES_PROGRESS_MADE_SINCE_THE_SAVED_STATE) if load else "")
 
     def slot_action(self, slot, load):
         self.require_current()
@@ -781,7 +781,7 @@ class EmulatorController(EmulatorSettings, AppController):
         self.engine.load(slot) if load else self.engine.save(slot)
 
     def save_done(self, slot):
-        self.notice = tr("State saved")
+        self.notice = tr(Msg.STATE_SAVED)
         if self.exit_after_save:
             self.exit_after_save = False
             self.engine.quit()
@@ -789,7 +789,7 @@ class EmulatorController(EmulatorSettings, AppController):
             self.pause_menu()
 
     def load_done(self):
-        self.notice = tr("State loaded")
+        self.notice = tr(Msg.STATE_LOADED)
         if self.source_missing:
             self.pause_menu()
         else:
@@ -801,15 +801,15 @@ class EmulatorController(EmulatorSettings, AppController):
         self.exit_after_save = True
 
     def confirm_quit(self):
-        self.menu(tr("Return without saving?"), [(tr("Confirm"), self.engine.quit), (tr("Cancel"), self.pop_menu)])
+        self.menu(tr(Msg.RETURN_WITHOUT_SAVING_PROMPT), [(tr(Msg.CONFIRM), self.engine.quit), (tr(Msg.CANCEL), self.pop_menu)])
 
     def controls_menu(self):
-        self.menu(tr("Controls"), [(tr("Back"), self.pop_menu)],
-                  tr("During gameplay, all buttons belong to RetroArch. Ctrl+Alt+M opens this menu. Ctrl+Alt+Esc returns to the desktop."))
+        self.menu(tr(Msg.CONTROLS), [(tr(Msg.BACK), self.pop_menu)],
+                  tr(Msg.GAMEPLAY_INPUT_INSTRUCTIONS))
 
     def game_failed(self, text):
         self.exit_after_save = False
-        self.error = tr("Emulator error: {error}", error=text)
+        self.error = tr(Msg.EMULATOR_ERROR_ERROR, error=text)
         self.present.emit()
         self.publish()
 
@@ -830,25 +830,25 @@ class EmulatorController(EmulatorSettings, AppController):
         elif self.engine.running():
             self.engine.pause()
         else:
-            self.menu(tr("Emulator actions"), [(tr("Platform filter"), self.platform_menu),
-                       (tr("Toggle favorite"), self.toggle_favorite),
-                       (tr("Search"), lambda: self.prompt(tr("Search library"), self.search, self.filter)),
-                       (tr("Browse ROM root"), self.show_rom_root),
-                       (tr("Refresh library"), self.refresh)],
+            self.menu(tr(Msg.EMULATOR_ACTIONS), [(tr(Msg.PLATFORM_FILTER), self.platform_menu),
+                       (tr(Msg.TOGGLE_FAVORITE), self.toggle_favorite),
+                       (tr(Msg.SEARCH), lambda: self.prompt(tr(Msg.SEARCH_LIBRARY), self.search, self.filter)),
+                       (tr(Msg.BROWSE_ROM_ROOT), self.show_rom_root),
+                       (tr(Msg.REFRESH_LIBRARY), self.refresh)],
                        message_lines(self.library.reports.get(self.library.root_id, [])))
 
     def detail_menu(self):
         self.menu(self.current["title"], [
-            (tr("Continue"), lambda: self.start_game(True)),
-            (tr("Restart"), lambda: self.start_game()),
-            (tr("Choose core"), self.choose_game_core),
-            (tr("Toggle favorite"), self.toggle_favorite), (tr("Settings"), self.settings)],
+            (tr(Msg.CONTINUE), lambda: self.start_game(True)),
+            (tr(Msg.RESTART), lambda: self.start_game()),
+            (tr(Msg.CHOOSE_CORE), self.choose_game_core),
+            (tr(Msg.TOGGLE_FAVORITE), self.toggle_favorite), (tr(Msg.SETTINGS), self.settings)],
             message_lines(self.checks.get("errors", [])))
 
     def platform_menu(self):
         platforms = [p for p in self.catalog.platforms.values() if self.catalog.platform_cores(p.id)
                      or any(self.catalog.canonical(i["platform"]) == p.id for i in self.library.items)]
-        self.menu(tr("Platform filter"), [(tr("All"), lambda: self.set_platform("All"))] +
+        self.menu(tr(Msg.PLATFORM_FILTER), [(tr(Msg.ALL), lambda: self.set_platform("All"))] +
                   [(p.title, lambda p=p: self.set_platform(p.id), p.directory + "/")
                    for p in sorted(platforms, key=lambda p: p.title.casefold())])
 
@@ -897,7 +897,7 @@ class EmulatorController(EmulatorSettings, AppController):
         else:
             super().dispatch(action)
         if (self.engine.running() and not self.source_missing and len(self.menus) == 1
-                and self.menus[0]["title"] == tr("Game paused") and self.menus[0]["options"][0]["disabled"]):
+                and self.menus[0]["title"] == tr(Msg.GAME_PAUSED) and self.menus[0]["options"][0]["disabled"]):
             self.refresh_pause_menu()
         self.publish()
 
@@ -917,7 +917,7 @@ class EmulatorController(EmulatorSettings, AppController):
                 item = self.library.require(self.current["id"])
                 if content_hash(item) == self.engine.metadata.get("contentHash"):
                     self.source_missing = False
-                    if len(self.menus) == 1 and self.menus[0]["title"] == tr("Game paused"):
+                    if len(self.menus) == 1 and self.menus[0]["title"] == tr(Msg.GAME_PAUSED):
                         self.refresh_pause_menu()
             except (OSError, ValueError):
                 pass

@@ -1,6 +1,6 @@
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
-from .i18n import error_text, tr
+from .i18n import Msg, error_text, tr
 from .input import STOCK_FINGERPRINT
 
 ARROWS = {103: 'up', 108: 'down', 105: 'left', 106: 'right'}
@@ -49,7 +49,7 @@ class DirectionReader(QObject):
                 self.available = True
                 self._status()
                 return
-            self._status(tr('未找到内置 Keyboard 方向键接口'))
+            self._status(tr(Msg.BUILT_IN_KEYBOARD_DIRECTION_INTERFACE_NOT_FOUND))
         except (ImportError, OSError) as error:
             self._disconnect()
             self._status(error_text(error))

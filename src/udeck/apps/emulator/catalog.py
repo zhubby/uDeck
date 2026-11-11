@@ -10,7 +10,7 @@ import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from udeck.i18n import tr
+from udeck.i18n import Msg, tr
 
 LEGACY_PLATFORMS = {"GB": "gb", "GBA": "gba", "NES": "nes", "SNES": "snes", "PS1": "psx"}
 ARCHIVES = {".zip", ".7z"}
@@ -223,15 +223,15 @@ class CoreCatalog:
             if (not core or platform not in core.platforms or not self.enabled(core, platform)
                     or core.status == "incompatible" or (require_available and core.status != "available")
                     or (not item.get("noContent") and not core.supports(suffix))):
-                raise ValueError(tr("Selected core is unavailable: {core}", core=explicit))
+                raise ValueError(tr(Msg.SELECTED_CORE_IS_UNAVAILABLE_CORE, core=explicit))
             return core
         candidates = self.candidates(platform, suffix)
         default = self.preferences.get("platformCores", {}).get(platform)
         core = next((c for c in candidates if c.id == default), next(iter(candidates), None))
         if not core:
-            raise ValueError(tr("No enabled core supports this game: {platform}", platform=platform))
+            raise ValueError(tr(Msg.NO_ENABLED_CORE_SUPPORTS_THIS_GAME_PLATFORM, platform=platform))
         if require_available and core.status != "available":
-            raise ValueError(tr("Core validation is still running: {core}", core=core.id))
+            raise ValueError(tr(Msg.CORE_VALIDATION_IS_STILL_RUNNING_CORE, core=core.id))
         return core
 
     def firmware_check(self, core, platform, system):

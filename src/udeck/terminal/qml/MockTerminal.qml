@@ -4,6 +4,7 @@ import "../../qml" as Shared
 
 FocusScope {
     id: root
+    readonly property var msg: hostController ? hostController.messageKeys : ({})
     property string identifier
     property QtObject hostController: null
     property int fontSize: 20
@@ -18,10 +19,10 @@ FocusScope {
     Text {
         objectName: "terminalContent"
         anchors.fill: parent
-        text: "uDeck Terminal  ·  " + root.tr("界面预览")
+        text: "uDeck Terminal  ·  " + root.tr(msg.INTERFACE_PREVIEW)
             + "\n\nzhubby@uconsole:~ $ uname -m\naarch64\nzhubby@uconsole:~ $ printf '你好，uDeck\\n'\n你好，uDeck\n\n"
             + "\uf07c ~/Projects   \uf120 shell   \ue0b0 Powerline   \udb80\udc01 Material\n\n"
-            + root.tr("会话在返回桌面后继续运行。") + "\n\nzhubby@uconsole:~ $ ▏"
+            + root.tr(msg.SESSIONS_KEEP_RUNNING_WHEN_YOU_RETURN_TO_THE_DESKTOP) + "\n\nzhubby@uconsole:~ $ ▏"
         color: themeColors.text
         font: terminalFonts.contentFont
         wrapMode: Text.Wrap

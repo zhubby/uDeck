@@ -17,7 +17,7 @@ from shiboken6 import delete
 from udeck import main
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
-from udeck.i18n import tr
+from udeck.i18n import Msg, tr
 from udeck.mock import MockBackend
 from udeck.wifi import wifi_failure
 
@@ -113,7 +113,7 @@ def run():
         own_profile = {**usb["saved"][0], "id": "usb-independent", "uuid": "usb-independent", "revision": "fixture",
                        "name": "Workshop (USB)", "blocked": "", "mutationBlocked": "", "active": False}
         usb["saved"].append(own_profile)
-        usb["operation"] = {"id": "joining-fixture", "profileUuid": own_profile["uuid"], "networkKey": usb["networks"][0]["key"], "status": "connecting", "message": tr("Obtaining a network address"), "timedOut": True}
+        usb["operation"] = {"id": "joining-fixture", "profileUuid": own_profile["uuid"], "networkKey": usb["networks"][0]["key"], "status": "connecting", "message": tr(Msg.OBTAINING_A_NETWORK_ADDRESS), "timedOut": True}
         usb["deviceState"] = 70
         backend.updated.emit({"wifi": deepcopy(backend.state["wifi"])})
         capture("join-progress")
