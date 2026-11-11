@@ -70,8 +70,9 @@ class MusicController(MediaController):
     def requestClose(self):
         if self.media.snapshot()["playing"]:
             self.menu(tr("Music is playing"), [
-                (tr("Continue in background"), self.background),
-                (tr("Stop and exit"), self.stop_exit), (tr("Cancel"), self.pop_menu)])
+                (tr("Continue in background"), self.background, "", "preferences-system-windows"),
+                (tr("Stop and exit"), self.stop_exit, "", "media-playback-stop"),
+                (tr("Cancel"), self.pop_menu, "", "go-previous")])
         else:
             super().requestClose()
 

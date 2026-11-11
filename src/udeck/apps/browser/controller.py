@@ -272,9 +272,11 @@ class BrowserController(AppController):
         self.saved_menu(history)
 
     def mode_menu(self):
-        self.menu(tr("Interaction mode"), [(tr(label), lambda mode=mode: self.set_mode(mode))
-                  for label, mode in (("Link navigation", "navigation"), ("Reading", "reading"),
-                                      ("Virtual pointer", "pointer"), ("Text input", "text"))])
+        self.menu(tr("Interaction mode"), [(tr(label), lambda mode=mode: self.set_mode(mode), "", icon)
+                  for label, mode, icon in (("Link navigation", "navigation", "insert-link"),
+                                           ("Reading", "reading", "accessories-ebook-reader"),
+                                           ("Virtual pointer", "pointer", "input-mouse"),
+                                           ("Text input", "text", "input-keyboard"))])
 
     def set_mode(self, mode):
         self.invalidate_web_actions()
@@ -324,8 +326,8 @@ class BrowserController(AppController):
         self.publish()
 
     def settings_options(self):
-        return [(tr("Page zoom: {value}", value=f"{self.zoom:.0%}"), self.zoom_menu),
-                (tr("Interaction mode"), self.mode_menu)]
+        return [(tr("Page zoom: {value}", value=f"{self.zoom:.0%}"), self.zoom_menu, "", "zoom-in"),
+                (tr("Interaction mode"), self.mode_menu, "", "input-mouse")]
 
     def zoom_menu(self):
         self.menu(tr("Page zoom"), [(f"{z:.0%}", lambda z=z: self.set_zoom(z))

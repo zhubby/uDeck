@@ -96,7 +96,8 @@ class TerminalController(SoundFeedback):
                            "colorScheme": "udeck-dark" if self.theme == "dark" else "udeck",
                            "query": self.query, "message": self.message,
                            "pastePreview": self._paste_preview(),
-                           "options": self._options()}, self.language), ensure_ascii=False)
+                           "options": self._options(),
+                           "optionIcons": ["zoom-out", "zoom-in", "go-previous"] if self.mode == "settings" else []}, self.language), ensure_ascii=False)
 
     @Slot(str, str, result=str)
     def translate(self, source, language):

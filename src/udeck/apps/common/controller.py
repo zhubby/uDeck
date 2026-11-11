@@ -186,21 +186,25 @@ class AppController(SoundFeedback):
         self.error = tr('Operation failed: {error}', error=error)
         self.publish()
 
-    def menu(self, title, options=(), body="", owner=None, quiet=False):
+    def menu(self, title, options=(), body="", owner=None, quiet=False, icon=""):
         if not quiet:
             self.feedback("open")
+        if not icon and self.menus:
+            parent = self.menus[-1]
+            icon = parent["options"][parent["index"]].get("icon", "")
         rows = []
         for label, callback, *detail in options:
             self._serial += 1
             key = str(self._serial)
             self._callbacks[key] = callback
             rows.append({"id": key, "title": label, "subtitle": detail[0] if detail else "",
+                         "icon": detail[1] if len(detail) > 1 else icon,
                          "disabled": callback is None})
         if not rows or all(r["disabled"] for r in rows):
             self._serial += 1
             key = str(self._serial)
             self._callbacks[key] = self.pop_menu
-            rows.append({"id": key, "title": tr("Back"), "subtitle": "", "disabled": False})
+            rows.append({"id": key, "title": tr("Back"), "subtitle": "", "icon": "go-previous" if icon else "", "disabled": False})
         self.menus.append({"title": title, "body": body, "options": rows,
                            "index": next(i for i, r in enumerate(rows) if not r["disabled"]),
                            "owner": owner or (self.current or {}).get("sourceId", ""),
@@ -372,13 +376,14 @@ class AppController(SoundFeedback):
 
     def sources_menu(self):
         options = [(tr("Add folder"), lambda: self.prompt(
-            tr("Folder path"), self.library.add, str(Path.home()), tr("Files stay in their original location.")))]
+            tr("Folder path"), self.library.add, str(Path.home()), tr("Files stay in their original location.")), "", "folder-new")]
         for source in self.library.sources:
             options.append((Path(source.path).name, lambda s=source: self.prompt(
                 tr("Reconnect source"), lambda p: self.library.add(p), s.path),
                 tr("Connected") if source.available() else tr("Disconnected")))
-        options.extend([(tr("Refresh library"), self.refresh), (tr("Cancel scan"), self.cancel_scan)])
-        self.menu(tr("Sources"), options)
+        options.extend([(tr("Refresh library"), self.refresh, "", "view-refresh"),
+                        (tr("Cancel scan"), self.cancel_scan, "", "process-stop")])
+        self.menu(tr("Sources"), options, icon="folder")
 
     def cancel_scan(self):
         self.library.cancel.set()
@@ -390,11 +395,11 @@ class AppController(SoundFeedback):
         return []
 
     def settings(self):
-        options = self.settings_options() + [(tr("Language"), self.language_menu)]
+        options = self.settings_options()
         if self.library:
-            options.append((tr("Sources"), self.sources_menu))
-        options.append((tr("Close application"), self.requestClose))
-        self.menu(tr("Settings"), options)
+            options.append((tr("Sources"), self.sources_menu, "", "folder"))
+        options.append((tr("Close application"), self.requestClose, "", "window-close"))
+        self.menu(tr("Settings"), options, icon="preferences-system")
 
     def language_menu(self):
         self.menu(tr("Language"), [("English", lambda: self.set_language("en")),

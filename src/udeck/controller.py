@@ -19,6 +19,7 @@ from .hotspot import hotspot_summary, validate_hotspot_name
 from .i18n import LANGUAGES, error_text, render, tr
 from .key_test import KeyTestControls
 from .launch_controller import LaunchControls
+from .menu_icons import system_menu_icons
 from .mock import mock_apps
 from .sounds import SoundFeedback, interaction
 from .timezone import REGIONS, local_clock, region, zone_label, zone_summary
@@ -135,7 +136,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             {"id": "bluetooth", "name": tr('蓝牙'), "subtitle": tr('已开启') if bluetooth.get("powered") else tr('已关闭'), "icon": "bluetooth", "disabled": not bluetooth.get("available")},
             {"id": "battery", "name": tr('电池'), "subtitle": battery_summary(battery), "icon": "battery"},
             {"id": "input", "name": tr('按键与控制器'), "subtitle": tr('ABXY 已校准') if self.data["input"].get("verified") else (tr('ABXY 固件映射 · 可重新校准') if self.data["input"].get("mapped") else tr('校准物理 ABXY；不占用普通键盘字母')), "icon": "input-gaming"},
-            {"id": "key-test", "name": tr('Key test'), "subtitle": tr('Full keyboard, controls and trackball'), "icon": "input-gaming"},
+            {"id": "key-test", "name": tr('Key test'), "subtitle": tr('Full keyboard, controls and trackball'), "icon": "input-keyboard"},
             {"id": "language", "name": tr('语言'), "subtitle": LANGUAGES[self.language], "icon": "preferences-desktop-locale"},
             {"id": "theme", "name": tr('Theme'), "subtitle": THEMES[self.theme], "icon": "preferences-desktop-theme"},
             {"id": "ui-sounds", "name": tr("Interface sounds"), "subtitle": tr("On") if self.config.data["preferences"]["uiSounds"] else tr("Off"), "icon": "audio-volume-high"},
@@ -228,7 +229,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     def _quick_options(self):
         controls = {"volume", "brightness", "output", "microphone", "wifi", "hotspot", "bluetooth", "battery", "input", "key-test", "language", "theme", "timezone", "ui-sounds"}
         return [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"],
-                 "disabled": entry.get("disabled", False)} for entry in self._settings() if entry["id"] in controls] + [
+                 "icon": entry["icon"], "disabled": entry.get("disabled", False)} for entry in self._settings() if entry["id"] in controls] + [
             {"label": tr('电源与会话'), "action": "power-menu"}, {"label": tr('运行中应用'), "action": "switcher"}]
 
     @Slot(str, result=bool)
@@ -375,7 +376,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                 continue
             old_options = modal["options"]
             previous = old_options[min(modal["index"], len(old_options) - 1)] if old_options else {}
-            modal["options"] = options
+            modal["options"] = system_menu_icons(options, source)
             modal["index"] = next((index for index, option in enumerate(options) if option.get("id") == previous.get("id")), min(modal["index"], max(0, len(options) - 1)))
         if removed:
             self.notify(tr('无线网卡已移除或暂不可用，请重新选择'))
@@ -823,7 +824,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             self._pop(reject=True)
 
     def _menu(self, title, options, **values):
-        self._push({"kind": "menu", "title": title, "options": options, **values})
+        self._push({"kind": "menu", "title": title, "options": system_menu_icons(options, values.get("source", "")), **values})
 
     def _confirm(self, title, body, option, **values):
         self._push({"kind": "confirm", "title": title, "body": body, "option": option, **values})

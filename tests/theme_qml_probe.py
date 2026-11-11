@@ -120,11 +120,11 @@ def run():
 
     def engine_for(controller, path, shell=False):
         engine = QQmlApplicationEngine()
+        engine.addImageProvider("desktop", main.IconProvider())
         engine.warnings.connect(lambda warnings: errors.extend(w.toString() for w in warnings))
         context = engine.rootContext()
         context.setContextProperty("controller", controller)
         if shell:
-            engine.addImageProvider("desktop", main.IconProvider())
             context.setContextProperty("windowedPreview", True)
             context.setContextProperty("headlessPreview", True)
         else:
@@ -161,7 +161,7 @@ def run():
             QTest.qWait(40)
             result = logo.grabToImage()
             assert result
-            wait(lambda: not result.image().isNull())
+            wait(lambda result=result: not result.image().isNull())
             image = result.image()
             for name, expected in (("foreground", foreground), ("background", background)):
                 matches = sum(

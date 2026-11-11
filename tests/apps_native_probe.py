@@ -27,6 +27,7 @@ from udeck.apps.media.engine import FrameImages
 from udeck.apps.reader.controller import PdfImages
 from udeck.core import ConfigStore
 from udeck.i18n import render, tr
+from udeck.icons import IconProvider
 
 
 def fixtures(root):
@@ -77,6 +78,7 @@ def run(app, root, language="en", width=1280, height=720):
     controller.isolated = True
     controller.set_language(language)
     engine = QQmlApplicationEngine()
+    engine.addImageProvider("desktop", IconProvider())
     errors = []
     engine.warnings.connect(lambda values: errors.extend(x.toString() for x in values))
     engine.rootContext().setContextProperty("controller", controller)

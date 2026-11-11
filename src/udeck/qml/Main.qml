@@ -349,13 +349,24 @@ Window {
                     required property var modelData
                     required property int index
                     property bool selected: viewState.index === index && viewState.zone === "content"
-                    width: itemList.width - 12; height: 84; radius: 10
+                    width: itemList.width - 12; height: Math.max(84, systemSettingText.implicitHeight + 20); radius: 10
                     color: selected ? window.colors.selected : window.colors.panel
                     border.width: selected ? 3 : 1
                     border.color: selected ? window.accent : window.colors.rowBorder
-                    Image { x: 18; anchors.verticalCenter: parent.verticalCenter; width: 44; height: 44; source: "image://desktop/" + encodeURIComponent(modelData.icon || "application-x-executable") }
-                    Text { textFormat: Text.PlainText; x: 83; y: 12; width: parent.width - 310; text: modelData.name; elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 25; color: modelData.disabled ? window.muted : window.ink }
-                    Text { textFormat: Text.PlainText; x: 83; y: 47; width: parent.width - 150; text: modelData.subtitle || ""; elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted }
+                    Image {
+                        id: systemSettingIcon; objectName: "systemSettingIcon"
+                        x: 18; anchors.verticalCenter: parent.verticalCenter
+                        height: systemSettingText.implicitHeight; width: height
+                        source: "image://desktop/" + encodeURIComponent(modelData.icon || "application-x-executable")
+                        sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
+                    }
+                    Column {
+                        id: systemSettingText; anchors.verticalCenter: parent.verticalCenter
+                        x: systemSettingIcon.x + systemSettingIcon.width + 18
+                        width: parent.width - x - 28; spacing: 4
+                        Text { textFormat: Text.PlainText; width: parent.width - (modelData.value !== undefined ? 190 : 30); text: modelData.name; elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 25; color: modelData.disabled ? window.muted : window.ink }
+                        Text { textFormat: Text.PlainText; width: parent.width; visible: !!modelData.subtitle; text: modelData.subtitle || ""; elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted }
+                    }
                     Rectangle {
                         visible: modelData.value !== undefined
                         anchors.right: parent.right; anchors.rightMargin: 26; y: 28; width: 170; height: 7; radius: 4; color: window.colors.rowTrack
@@ -421,7 +432,7 @@ Window {
                 property real menuChromeHeight: dialog.kind === "menu" ? 96 + dialogTitle.implicitHeight + modalFooter.implicitHeight
                     + (dialog.body ? dialogBody.implicitHeight + 20 : 0)
                     + (viewState.toast ? modalToast.height + 20 : 0) : 0
-                property real menuRowsHeight: Math.max(0, (dialog.options || []).reduce(function(total, option) { return total + (option.wrapSubtitle ? 106 : option.subtitle ? 75 : 64) + 5 }, 0) - 5)
+                property real menuRowsHeight: Math.max(menuList.contentHeight, Math.max(0, (dialog.options || []).length * 69 - 5))
                 property real previewChromeHeight: 96 + dialogTitle.implicitHeight + modalFooter.implicitHeight
                     + (dialog.body ? (dialog.kind === "file-preview" ? previewDetails.height : dialogBody.height) + 20 : 0)
                     + (dialog.truncated ? previewNotice.height + 20 : 0)
@@ -484,13 +495,27 @@ Window {
                         delegate: Rectangle {
                             required property var modelData
                             required property int index
-                            width: menuList.width - 10; height: modelData.wrapSubtitle ? 106 : modelData.subtitle ? 75 : 64; radius: 8
+                            width: menuList.width - 10; height: Math.max(64, systemOptionText.implicitHeight + 16); radius: 8
                             color: dialog.index === index ? window.colors.menuSelected : "transparent"
                             border.width: dialog.index === index ? 3 : 0
                             border.color: window.accent
                             opacity: modelData.disabled ? 0.45 : 1
-                            Text { textFormat: Text.PlainText; x: 15; y: modelData.subtitle ? 8 : 14; width: parent.width - 30; text: modelData.label; font.family: window.fontFamily; font.pixelSize: 25; color: window.ink; elide: Text.ElideRight }
-                            Text { textFormat: Text.PlainText; x: 15; y: 43; width: parent.width - 30; visible: !!modelData.subtitle; text: modelData.subtitle || ""; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted; wrapMode: modelData.wrapSubtitle ? Text.WrapAnywhere : Text.NoWrap; maximumLineCount: modelData.wrapSubtitle ? 2 : 1; elide: Text.ElideRight }
+                            Image {
+                                id: systemOptionIcon
+                                objectName: "settingOptionIcon"
+                                visible: !!modelData.icon
+                                x: 15; anchors.verticalCenter: parent.verticalCenter
+                                height: systemOptionText.implicitHeight; width: height
+                                source: visible ? "image://desktop/" + encodeURIComponent(modelData.icon) : ""
+                                sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
+                            }
+                            Column {
+                                id: systemOptionText; anchors.verticalCenter: parent.verticalCenter
+                                x: modelData.icon ? systemOptionIcon.x + systemOptionIcon.width + 14 : 15
+                                width: parent.width - x - 15; spacing: 4
+                                Text { textFormat: Text.PlainText; width: parent.width; text: modelData.label; font.family: window.fontFamily; font.pixelSize: 25; color: window.ink; elide: Text.ElideRight }
+                                Text { textFormat: Text.PlainText; width: parent.width; visible: !!modelData.subtitle; text: modelData.subtitle || ""; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted; wrapMode: modelData.wrapSubtitle ? Text.WrapAnywhere : Text.NoWrap; maximumLineCount: modelData.wrapSubtitle ? 2 : 1; elide: Text.ElideRight }
+                            }
                         }
                     }
 

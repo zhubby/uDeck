@@ -377,12 +377,12 @@ class ReaderController(AppController):
         self.publish()
 
     def settings_options(self):
-        options = [(tr("Night colors"), self.toggle_dark),
-                   (tr("Reading layout"), self.layout_menu)]
+        options = [(tr("Night colors"), self.toggle_dark, "", "weather-clear-night"),
+                   (tr("Reading layout"), self.layout_menu, "", "document-page-setup")]
         if self.current and self.current["format"] == "PDF" and self.page == "document":
-            options.append((tr("PDF zoom"), self.zoom_menu))
+            options.append((tr("PDF zoom"), self.zoom_menu, "", "zoom-in"))
         else:
-            options.append((tr("Text size: {size}", size=self.font_size), self.font_menu))
+            options.append((tr("Text size: {size}", size=self.font_size), self.font_menu, "", "format-text-size"))
         return options
 
     def toggle_dark(self):
@@ -401,10 +401,10 @@ class ReaderController(AppController):
         options = []
         pdf_document = self.page == "document" and self.current and self.current.get("format") == "PDF"
         if not pdf_document:
-            options.extend([(tr("Line spacing"), self.line_height_menu),
-                            (tr("Font"), self.font_family_menu),
-                            (tr("Content width"), self.content_width_menu)])
-        options.append((tr("Background"), self.background_menu))
+            options.extend([(tr("Line spacing"), self.line_height_menu, "", "format-line-spacing"),
+                            (tr("Font"), self.font_family_menu, "", "preferences-desktop-font"),
+                            (tr("Content width"), self.content_width_menu, "", "zoom-fit-width")])
+        options.append((tr("Background"), self.background_menu, "", "preferences-desktop-wallpaper"))
         self.menu(tr("Reading layout"), options)
 
     def line_height_menu(self):
@@ -444,10 +444,10 @@ class ReaderController(AppController):
         self.pop_menu()
 
     def background_menu(self):
-        self.menu(tr("Background"), [(tr("Paper"), lambda: self.set_background("paper")),
-                                     (tr("Warm paper"), lambda: self.set_background("warm")),
-                                     (tr("Gray"), lambda: self.set_background("gray")),
-                                     (tr("Night"), lambda: self.set_background("night"))])
+        self.menu(tr("Background"), [(tr("Paper"), lambda: self.set_background("paper"), "", "weather-clear"),
+                                     (tr("Warm paper"), lambda: self.set_background("warm"), "", "weather-clear"),
+                                     (tr("Gray"), lambda: self.set_background("gray"), "", "preferences-desktop-wallpaper"),
+                                     (tr("Night"), lambda: self.set_background("night"), "", "weather-clear-night")])
 
     def set_background(self, background):
         if background not in READER_BACKGROUNDS:

@@ -13,17 +13,16 @@ class EmulatorSettings:
     def settings(self):
         self.cancel_launch()
         self.menu(tr("Settings"), [
-            (tr("ROM root"), self.rom_picker, self.library.root_path),
+            (tr("ROM root"), self.rom_picker, self.library.root_path, "folder"),
             (tr("Create platform folders"), self.confirm_platform_folders,
-             tr("Create folders for enabled platforms; existing files are kept.")),
+             tr("Create folders for enabled platforms; existing files are kept."), "folder-new"),
             (tr("Core management"), self.core_management,
-             tr("{count} installed cores", count=len(self.catalog.cores))),
-            (tr("Add engine entry"), self.engine_platform_menu),
-            (tr("Core folder"), lambda: self.folder_picker("coreDirectory", "/usr/lib/aarch64-linux-gnu/libretro")),
-            (tr("Firmware folder"), lambda: self.folder_picker("firmwareDirectory", str(Path.home() / ".config/retroarch/system"))),
-            (tr("Refresh library"), self.refresh),
-            (tr("Language"), self.language_menu),
-            (tr("Close application"), self.requestClose)], self.scan_description())
+             tr("{count} installed cores", count=len(self.catalog.cores)), "applications-system"),
+            (tr("Add engine entry"), self.engine_platform_menu, "", "list-add"),
+            (tr("Core folder"), lambda: self.folder_picker("coreDirectory", "/usr/lib/aarch64-linux-gnu/libretro"), "", "folder"),
+            (tr("Firmware folder"), lambda: self.folder_picker("firmwareDirectory", str(Path.home() / ".config/retroarch/system")), "", "folder"),
+            (tr("Refresh library"), self.refresh, "", "view-refresh"),
+            (tr("Close application"), self.requestClose, "", "window-close")], self.scan_description(), icon="preferences-system")
 
     def scan_description(self):
         return tr("Scanning…") if self.library.pending else (
@@ -70,21 +69,21 @@ class EmulatorSettings:
             self.path_picker(target, callback, boundary, file_filter, replace=True)
         options = []
         if file_filter is None:
-            options.append((tr("Use this folder"), lambda: callback(str(path))))
+            options.append((tr("Use this folder"), lambda: callback(str(path)), "", "emblem-default"))
         if path != path.parent and (boundary is None or path != Path(boundary)):
-            options.append((tr("Parent folder"), lambda: navigate(path.parent)))
+            options.append((tr("Parent folder"), lambda: navigate(path.parent), "", "go-up"))
         if boundary is None:
             options.append((tr("Enter path"), lambda: self.prompt(tr("Folder path"),
-                           lambda text: self.picker_path(text, callback), str(path))))
+                           lambda text: self.picker_path(text, callback), str(path)), "", "document-edit"))
         for entry in entries:
             if entry.is_symlink() or entry.name.startswith("."):
                 continue
             if entry.is_dir():
-                options.append(("▸ " + entry.name, lambda p=entry: navigate(p)))
+                options.append(("▸ " + entry.name, lambda p=entry: navigate(p), "", "folder"))
             elif file_filter and file_filter(entry):
-                options.append((entry.name, lambda p=entry: callback(str(p))))
-        options.append((tr("Cancel"), self.pop_menu))
-        self.menu(tr("Choose a file") if file_filter else tr("Choose a folder"), options, str(path), owner="picker")
+                options.append((entry.name, lambda p=entry: callback(str(p)), "", "application-x-executable"))
+        options.append((tr("Cancel"), self.pop_menu, "", "go-previous"))
+        self.menu(tr("Choose a file") if file_filter else tr("Choose a folder"), options, str(path), owner="picker", icon="folder")
         self.menus[-1].update(picker=True, pickerParent=(lambda: navigate(path.parent))
                              if path != path.parent and (boundary is None or path != Path(boundary)) else None)
 
@@ -98,8 +97,8 @@ class EmulatorSettings:
             self.pop_menu()
 
     def confirm_platform_folders(self):
-        self.menu(tr("Create platform folders?"), [(tr("Create"), self.make_platform_folders),
-                  (tr("Cancel"), self.pop_menu)], self.library.root_path)
+        self.menu(tr("Create platform folders?"), [(tr("Create"), self.make_platform_folders, "", "folder-new"),
+                  (tr("Cancel"), self.pop_menu, "", "go-previous")], self.library.root_path)
 
     def make_platform_folders(self):
         created = create_platform_directories(self.library.root_path, self.catalog)
@@ -116,8 +115,8 @@ class EmulatorSettings:
         return tr("Enabled · load checked") if self.catalog.enabled(core, platform) else tr("Disabled · load checked")
 
     def core_management(self, quiet=False):
-        options = [(tr("Search cores"), lambda: self.prompt(tr("Search cores"), self.core_search)),
-                   (tr("Refresh core list"), self.refresh_catalog)]
+        options = [(tr("Search cores"), lambda: self.prompt(tr("Search cores"), self.core_search), "", "edit-find"),
+                   (tr("Refresh core list"), self.refresh_catalog, "", "view-refresh")]
         for platform in sorted(self.catalog.platforms.values(), key=lambda p: p.title.casefold()):
             cores = self.catalog.platform_cores(platform.id)
             if not cores:
@@ -130,7 +129,7 @@ class EmulatorSettings:
             options.append((tr("No installed cores found"), None))
         self.menu(tr("Core management"), options,
                   tr("{count} installed cores · {pending} checking. Loading checks do not verify gameplay.",
-                     count=len(self.catalog.cores), pending=self.cores_pending), quiet=quiet)
+                     count=len(self.catalog.cores), pending=self.cores_pending), quiet=quiet, icon="applications-system")
         self.menus[-1].update(coreView="catalog")
 
     def core_search(self, text):
@@ -142,7 +141,7 @@ class EmulatorSettings:
                  (c.id + " " + c.name + " " + " ".join(c.platforms)).casefold()]
         self.menu(tr("Search cores"), [(c.name, lambda c=c: self.core_details(c.id),
                   c.id + " · " + self.core_status(c)) for c in sorted(cores, key=lambda c: c.name.casefold())],
-                  tr("{count} matching cores", count=len(cores)), quiet=quiet)
+                  tr("{count} matching cores", count=len(cores)), quiet=quiet, icon="applications-system")
         self.menus[-1].update(coreView="search", coreQuery=query)
 
     def platform_cores_menu(self, platform, quiet=False):
@@ -157,7 +156,7 @@ class EmulatorSettings:
         self.menu(value.title, [(c.name, lambda c=c: self.core_details(c.id, platform),
                   ("★ " if c.id == default else "") + c.id + " · " + self.core_status(c, platform))
                   for c in self.catalog.platform_cores(platform)],
-                  str(Path(self.library.root_path) / value.directory), quiet=quiet)
+                  str(Path(self.library.root_path) / value.directory), quiet=quiet, icon="applications-system")
         self.menus[-1].update(coreView="platform", platformId=platform)
 
     def core_details(self, identifier, platform=None, quiet=False):
@@ -167,16 +166,16 @@ class EmulatorSettings:
         enable = not self.catalog.enabled(core, platform)
         options = [(tr("Enable core") if enable else tr("Disable core"),
                     (lambda: self.toggle_core(identifier, enable, platform))
-                    if not enable or core.status == "available" else None)]
+                    if not enable or core.status == "available" else None, "", "emblem-default" if enable else "process-stop")]
         if self.catalog.enabled(core, platform) and core.status == "available":
             if platform:
-                options.append((tr("Use as platform default"), lambda: self.set_default_core(platform, identifier)))
+                options.append((tr("Use as platform default"), lambda: self.set_default_core(platform, identifier), "", "emblem-default"))
             else:
                 options.extend((tr("Default for {platform}", platform=self.catalog.platforms[p].title),
-                                lambda p=p: self.set_default_core(p, identifier)) for p in core.platforms)
+                                lambda p=p: self.set_default_core(p, identifier), "", "emblem-default") for p in core.platforms)
             if core.no_content:
-                options.append((tr("Run core without content"), lambda: self.run_core(identifier, platform)))
-        options.append((tr("Back"), self.pop_menu))
+                options.append((tr("Run core without content"), lambda: self.run_core(identifier, platform), "", "media-playback-start"))
+        options.append((tr("Back"), self.pop_menu, "", "go-previous"))
         formats = " · ".join(core.extensions) or tr("No content required")
         self.menu(core.name, options, message_lines([
             core.id + (" · " + core.version if core.version else ""), self.core_status(core, platform),
@@ -261,7 +260,7 @@ class EmulatorSettings:
         self.menu(tr("Add engine entry"), [(p.title, lambda p=p: self.engine_entry_picker(p.id), p.directory + "/")
                   for p in self.catalog.platforms.values() if p.mode in ("manual", "dos", "scummvm")
                   and self.catalog.candidates(p.id)],
-                  tr("Choose the launch file, not the folder containing game assets."))
+                  tr("Choose the launch file, not the folder containing game assets."), icon="input-gaming")
 
     def engine_entry_picker(self, platform):
         root = Path(self.library.root_path)

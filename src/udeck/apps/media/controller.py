@@ -147,7 +147,7 @@ class MediaController(AppController):
         for device in self.media.devices.audioOutputs():
             key = bytes(device.id()).hex()
             options.append((device.description(), lambda key=key: self.change_output(key)))
-        self.menu(tr("Audio output"), options, tr("Current: {output}", output=self.media.snapshot()["output"]))
+        self.menu(tr("Audio output"), options, tr("Current: {output}", output=self.media.snapshot()["output"]), icon="audio-card")
 
     def change_output(self, identifier):
         self.media.set_output(identifier)
@@ -183,7 +183,7 @@ class MediaController(AppController):
         return ""
 
     def settings_options(self):
-        return [(tr("Audio output"), self.output_menu)]
+        return [(tr("Audio output"), self.output_menu, "", "audio-card")]
 
     def library_options(self):
         return [(tr("Search"), lambda: self.prompt(tr("Search library"), self.search, self.filter)),

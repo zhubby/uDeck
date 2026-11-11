@@ -19,6 +19,7 @@ from udeck.apps import __version__
 from udeck.apps.common.library import EXTENSIONS
 from udeck.core import ConfigStore
 from udeck.i18n import tr
+from udeck.icons import IconProvider
 from udeck.performance import StartupTrace
 from udeck.sounds import InterfaceSounds
 
@@ -224,6 +225,7 @@ def main(argv=None, *, options=None, trace=None):
     if options.language:
         controller.language = options.language
     engine = QQmlApplicationEngine()
+    engine.addImageProvider("desktop", IconProvider())
     if options.app in ("music", "video"):
         from udeck.apps.media.engine import FrameImages
 

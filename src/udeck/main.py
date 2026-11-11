@@ -1,45 +1,23 @@
 import argparse
-import hashlib
 import json
 import os
 import sys
 import tempfile
 import time
 from pathlib import Path
-from urllib.parse import unquote
 
-from PySide6.QtCore import (
-    QBuffer,
-    QByteArray,
-    QIODevice,
-    QObject,
-    QRectF,
-    QSize,
-    Qt,
-    QTimer,
-    QUrl,
-    Slot,
-)
+from PySide6.QtCore import QObject, Qt, QTimer, QUrl, Slot
 from PySide6.QtDBus import QDBusConnection
-from PySide6.QtGui import (
-    QColor,
-    QGuiApplication,
-    QIcon,
-    QImage,
-    QImageReader,
-    QPainter,
-    QPen,
-)
+from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
-from PySide6.QtQuick import QQuickImageProvider
 
 from . import __version__
 from .console import ConsolePanel, ConsoleShortcut
 from .controller import ShellController
 from .core import ConfigStore
 from .cursor import PointerCursor
-from .file_icons import FILE_ICON_PREFIX, FILE_ICON_ROOT, ICON_PALETTES, ICON_SPECS
 from .i18n import render, tr
+from .icons import IconProvider
 from .input import Gamepad
 from .mock import MockBackend
 from .pointer import PointerGuard
@@ -48,159 +26,6 @@ from .windows import APP_ID, WindowService
 
 CONTROL_PATH = "/io/github/zhubby/uDeck"
 CONTROL_INTERFACE = "io.github.zhubby.uDeck.Control"
-
-
-class IconProvider(QQuickImageProvider):
-    def __init__(self):
-        super().__init__(QQuickImageProvider.ImageType.Image)
-
-    def requestImage(self, identifier, size, requested_size):
-        name = unquote(identifier)
-        dimension = max(48, min(160, requested_size.width() if requested_size.width() > 0 else 80))
-        if name.startswith(FILE_ICON_PREFIX):
-            image = self._draw_file(name, dimension)
-        else:
-            icon = QIcon(name) if name.startswith("/") else QIcon.fromTheme(name)
-            image = icon.pixmap(QSize(dimension, dimension)).toImage() if not icon.isNull() else self._draw(name, dimension)
-        size.setWidth(image.width())
-        size.setHeight(image.height())
-        return image
-
-    def _draw_file(self, name, dimension):
-        asset, palette = ICON_SPECS.get(name.removeprefix(FILE_ICON_PREFIX), ICON_SPECS["unknown"])
-        background, foreground = ICON_PALETTES[palette]
-        try:
-            data = (FILE_ICON_ROOT / (asset + ".svg")).read_bytes().replace(b"currentColor", foreground.encode())
-        except OSError:
-            return self._draw("text-x-generic", dimension)
-        buffer = QBuffer()
-        buffer.setData(QByteArray(data))
-        buffer.open(QIODevice.OpenModeFlag.ReadOnly)
-        reader = QImageReader(buffer, b"svg")
-        glyph_size = round(dimension * 0.7)
-        reader.setScaledSize(QSize(glyph_size, glyph_size))
-        glyph = reader.read()
-        if glyph.isNull():
-            return self._draw("text-x-generic", dimension)
-        image = QImage(dimension, dimension, QImage.Format.Format_ARGB32_Premultiplied)
-        image.fill(Qt.GlobalColor.transparent)
-        painter = QPainter(image)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor(background))
-        inset = dimension / 64
-        painter.drawRoundedRect(QRectF(inset, inset, dimension - 2 * inset, dimension - 2 * inset),
-                                dimension * 0.2, dimension * 0.2)
-        margin = (dimension - glyph_size) / 2
-        painter.drawImage(QRectF(margin, margin, glyph_size, glyph_size), glyph)
-        painter.end()
-        return image
-
-    def _draw(self, name, dimension):
-        image = QImage(dimension, dimension, QImage.Format.Format_ARGB32_Premultiplied)
-        image.fill(Qt.GlobalColor.transparent)
-        painter = QPainter(image)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.scale(dimension / 64, dimension / 64)
-        painter.setPen(Qt.PenStyle.NoPen)
-        shades = ["#394b4d", "#4e4233", "#3d4658", "#4b4351", "#3e4d41"]
-        painter.setBrush(QColor(shades[hashlib.sha256(name.encode()).digest()[0] % len(shades)]))
-        painter.drawRoundedRect(1, 1, 62, 62, 13, 13)
-        painter.setPen(QPen(QColor("#ead7b2"), 3, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        if "folder" in name or "file-manager" in name:
-            painter.drawLine(14, 22, 14, 46)
-            painter.drawLine(14, 46, 50, 46)
-            painter.drawLine(50, 46, 50, 25)
-            painter.drawLine(50, 25, 32, 25)
-            painter.drawLine(32, 25, 27, 19)
-            painter.drawLine(27, 19, 14, 19)
-            painter.drawLine(14, 19, 14, 22)
-        elif "terminal" in name:
-            painter.drawLine(16, 21, 27, 31)
-            painter.drawLine(27, 31, 16, 41)
-            painter.drawLine(34, 43, 48, 43)
-        elif "code" in name or "geany" in name:
-            painter.drawLine(24, 21, 14, 32)
-            painter.drawLine(14, 32, 24, 43)
-            painter.drawLine(40, 21, 50, 32)
-            painter.drawLine(50, 32, 40, 43)
-            painter.drawLine(36, 17, 28, 47)
-        elif any(term in name for term in ("game", "retro", "libretro")):
-            painter.drawRoundedRect(11, 20, 42, 27, 9, 9)
-            painter.drawLine(18, 33, 30, 33)
-            painter.drawLine(24, 27, 24, 39)
-            painter.drawEllipse(40, 28, 3, 3)
-            painter.drawEllipse(46, 35, 3, 3)
-        elif "grid" in name:
-            for horizontal in (16, 36):
-                for vertical in (16, 36):
-                    painter.drawRoundedRect(horizontal, vertical, 13, 13, 2, 2)
-        elif name == "audio-x-generic":
-            painter.drawLine(27, 20, 47, 15)
-            painter.drawLine(27, 20, 27, 43)
-            painter.drawLine(47, 15, 47, 38)
-            painter.drawEllipse(15, 39, 12, 9)
-            painter.drawEllipse(35, 34, 12, 9)
-        elif name == "video-x-generic":
-            painter.drawRoundedRect(12, 16, 40, 32, 4, 4)
-            painter.drawLine(28, 24, 40, 32)
-            painter.drawLine(40, 32, 28, 40)
-            painter.drawLine(28, 40, 28, 24)
-        elif name == "image-x-generic":
-            painter.drawRoundedRect(12, 15, 40, 34, 4, 4)
-            painter.drawEllipse(20, 22, 6, 6)
-            painter.drawLine(14, 44, 29, 31)
-            painter.drawLine(29, 31, 38, 39)
-            painter.drawLine(38, 39, 44, 33)
-            painter.drawLine(44, 33, 51, 42)
-        elif name in ("application-pdf", "accessories-ebook-reader"):
-            painter.drawRoundedRect(13, 16, 38, 34, 3, 3)
-            painter.drawLine(32, 17, 32, 49)
-            painter.drawLine(19, 25, 26, 25)
-            painter.drawLine(38, 25, 45, 25)
-            painter.drawLine(19, 34, 26, 34)
-            painter.drawLine(38, 34, 45, 34)
-        elif name == "package-x-generic":
-            painter.drawRoundedRect(16, 13, 32, 38, 3, 3)
-            for vertical in (20, 27, 34):
-                painter.drawLine(29, vertical, 35, vertical)
-            painter.drawRect(29, 41, 6, 5)
-        elif name == "user-trash":
-            painter.drawLine(15, 20, 49, 20)
-            painter.drawLine(25, 13, 39, 13)
-            painter.drawLine(19, 22, 22, 49)
-            painter.drawLine(22, 49, 42, 49)
-            painter.drawLine(42, 49, 45, 22)
-            painter.drawLine(28, 28, 29, 42)
-            painter.drawLine(36, 28, 35, 42)
-        elif name in ("drive-harddisk", "drive-removable-media"):
-            painter.drawRoundedRect(14, 14, 36, 36, 5, 5)
-            painter.drawLine(15, 38, 49, 38)
-            painter.drawEllipse(38, 43, 3, 3)
-        elif any(term in name for term in ("preferences", "brightness", "audio")):
-            for horizontal, vertical in ((20, 24), (32, 39), (44, 28)):
-                painter.drawLine(horizontal, 15, horizontal, 49)
-                painter.fillRect(horizontal - 4, vertical - 4, 8, 8, QColor("#ead7b2"))
-        elif "wireless" in name or "firefox" in name:
-            painter.drawEllipse(15, 15, 34, 34)
-            painter.drawLine(32, 18, 32, 46)
-            painter.drawLine(18, 32, 46, 32)
-            painter.drawEllipse(24, 15, 16, 34)
-        elif "go-home" in name or name == "user-home":
-            painter.drawLine(13, 29, 32, 14)
-            painter.drawLine(32, 14, 51, 29)
-            painter.drawLine(19, 25, 19, 49)
-            painter.drawLine(19, 49, 45, 49)
-            painter.drawLine(45, 49, 45, 25)
-            painter.drawRect(28, 36, 9, 13)
-        else:
-            painter.drawRoundedRect(17, 13, 30, 38, 3, 3)
-            painter.drawLine(24, 25, 40, 25)
-            painter.drawLine(24, 33, 40, 33)
-            painter.drawLine(24, 41, 34, 41)
-        painter.end()
-        return image
 
 
 class Control(QObject):

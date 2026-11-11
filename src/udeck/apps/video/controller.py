@@ -68,7 +68,7 @@ class VideoController(MediaController):
 
     def settings_options(self):
         return [*super().settings_options(),
-                (tr("Resume music after video: {value}", value=tr("On") if self.store.data["preferences"].get("resumeMusic") else tr("Off")), self.toggle_resume_music)]
+                (tr("Resume music after video: {value}", value=tr("On") if self.store.data["preferences"].get("resumeMusic") else tr("Off")), self.toggle_resume_music, "", "media-playlist-repeat")]
 
     def context(self):
         if self.page == "player":

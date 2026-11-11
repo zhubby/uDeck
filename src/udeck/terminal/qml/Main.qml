@@ -235,11 +235,27 @@ Window {
                         required property int index
                         required property string modelData
                         width: optionsList.width
-                        height: 42
+                        height: window.state.mode === "settings" ? Math.max(42, settingOptionLabel.implicitHeight + 16) : 42
                         radius: 6
                         color: index === window.state.index ? window.colors.menuSelected : "transparent"
                         border.color: index === window.state.index ? window.accent : "transparent"
-                        Text { font.family: window.fontFamily; anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left; anchors.leftMargin: 12; text: parent.modelData; color: window.ink; font.pixelSize: 18 }
+                        Image {
+                            id: terminalSettingIcon
+                            objectName: "settingOptionIcon"
+                            visible: window.state.mode === "settings"
+                            x: 12; anchors.verticalCenter: parent.verticalCenter
+                            height: settingOptionLabel.implicitHeight; width: height
+                            source: visible ? "image://desktop/" + encodeURIComponent(window.state.optionIcons[index] || "preferences-system") : ""
+                            sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
+                        }
+                        Text {
+                            id: settingOptionLabel; font.family: window.fontFamily
+                            anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left
+                            anchors.leftMargin: window.state.mode === "settings" ? terminalSettingIcon.x + terminalSettingIcon.width + 12 : 12
+                            width: parent.width - anchors.leftMargin - 12
+                            text: parent.modelData; color: window.ink; font.pixelSize: 18
+                            wrapMode: window.state.mode === "settings" ? Text.Wrap : Text.NoWrap
+                        }
                         MouseArea { anchors.fill: parent; onClicked: { while (window.state.index < index) controller.dispatch("down"); while (window.state.index > index) controller.dispatch("up"); controller.dispatch("accept") } }
                     }
                 }

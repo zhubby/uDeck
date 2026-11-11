@@ -71,7 +71,7 @@ def test_reader_layout_menu_hides_reflow_controls_for_pdf(reader_controller):
     controller.layout_menu()
 
     assert captured["title"] == "Reading layout"
-    assert [str(label) for label, _ in captured["options"]] == ["Background"]
+    assert [str(label) for label, *_ in captured["options"]] == ["Background"]
 
 
 def test_reader_layout_menu_exposes_reflow_controls_for_epub(reader_controller):
@@ -83,6 +83,6 @@ def test_reader_layout_menu_exposes_reflow_controls_for_epub(reader_controller):
 
     controller.layout_menu()
 
-    assert [str(label) for label, _ in captured["options"]] == [
+    assert [str(label) for label, *_ in captured["options"]] == [
         "Line spacing", "Font", "Content width", "Background"
     ]

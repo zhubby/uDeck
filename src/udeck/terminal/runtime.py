@@ -18,6 +18,7 @@ from PySide6.QtWidgets import QApplication, QMessageBox
 
 from ..core import ConfigStore
 from ..i18n import render, tr
+from ..icons import IconProvider
 from ..performance import StartupTrace
 from ..sounds import InterfaceSounds
 from . import APP_ID, INTERFACE, OBJECT_PATH, __version__
@@ -46,6 +47,7 @@ class Coordinator(QObject):
             except (OSError, ValueError, KeyError):
                 pass
         self.engine = QQmlEngine()
+        self.engine.addImageProvider("desktop", IconProvider())
         for path in plugin_paths():
             self.engine.addImportPath(str(path))
         self.errors = []

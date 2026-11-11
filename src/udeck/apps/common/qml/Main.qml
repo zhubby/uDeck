@@ -245,8 +245,19 @@ Window {
                         color: index===options.currentIndex?window.colors.selected:"transparent"
                         border.width: 3; border.color: index===options.currentIndex?window.accent:"transparent"
                         opacity: modelData.disabled?0.45:1
+                        Image {
+                            id: appSettingIcon
+                            objectName: "settingOptionIcon"
+                            visible: !!modelData.icon
+                            x: 14; anchors.verticalCenter: parent.verticalCenter
+                            height: optionContents.implicitHeight; width: height
+                            source: visible ? "image://desktop/" + encodeURIComponent(modelData.icon) : ""
+                            sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
+                        }
                         Column {
-                            id: optionContents; anchors.verticalCenter: parent.verticalCenter; x: 14; width: parent.width-28; spacing: 4
+                            id: optionContents; anchors.verticalCenter: parent.verticalCenter
+                            x: modelData.icon ? appSettingIcon.x + appSettingIcon.width + 14 : 14
+                            width: parent.width-x-14; spacing: 4
                             Text { font.family: window.fontFamily; width: parent.width; text: modelData.title; color: window.ink; wrapMode: Text.Wrap; font.pixelSize: 22 }
                             Text { font.family: window.fontFamily; width: parent.width; visible: !!modelData.subtitle; text: modelData.subtitle; color: window.muted; wrapMode: Text.Wrap; font.pixelSize: 17 }
                         }

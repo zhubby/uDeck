@@ -18,6 +18,7 @@ import udeck
 from udeck.apps.common.library import Source, scan
 from udeck.apps.main import make_controller
 from udeck.apps.reader.controller import PdfImages
+from udeck.icons import IconProvider
 
 os.environ.setdefault('QT_QUICK_CONTROLS_STYLE', 'Basic')
 QtWebEngineQuick.initialize()
@@ -39,6 +40,7 @@ with tempfile.TemporaryDirectory() as task_dir:
     controller.library.sources = [Source.create(content)]
     controller.library.items = scan(controller.library.sources[0], 'reader')
     engine = QQmlApplicationEngine()
+    engine.addImageProvider("desktop", IconProvider())
     errors = []
     engine.warnings.connect(lambda warnings: errors.extend(w.toString() for w in warnings))
     engine.addImageProvider('pdf', PdfImages(controller))

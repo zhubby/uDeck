@@ -15,6 +15,7 @@ from test_games_catalog import installed
 
 from udeck.apps.emulator.controller import EmulatorController
 from udeck.core import ConfigStore
+from udeck.icons import IconProvider
 
 
 def run(root, language, theme):
@@ -41,6 +42,7 @@ def run(root, language, theme):
         (folder / name).write_bytes(b"Original preview fixture; no commercial game")
     controller.library.configure_root(rom_root)
     engine = QQmlApplicationEngine()
+    engine.addImageProvider("desktop", IconProvider())
     errors = []
     engine.warnings.connect(lambda warnings: errors.extend(w.toString() for w in warnings))
     engine.rootContext().setContextProperty("controller", controller)
