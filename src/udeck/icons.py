@@ -2,6 +2,7 @@
 
 import hashlib
 import math
+from pathlib import Path
 from urllib.parse import unquote
 
 from PySide6.QtCore import QBuffer, QByteArray, QIODevice, QRectF, QSize, Qt
@@ -9,6 +10,10 @@ from PySide6.QtGui import QColor, QIcon, QImage, QImageReader, QPainter, QPainte
 from PySide6.QtQuick import QQuickImageProvider
 
 from .file_icons import FILE_ICON_PREFIX, FILE_ICON_ROOT, ICON_PALETTES, ICON_SPECS
+
+SETTING_ICON_PREFIX = "udeck-setting:"
+SETTING_ICON_ROOT = Path(__file__).with_name("assets") / "settings-icons"
+SETTING_ICON_ASSETS = {"controller", "keyboard-fill", "command"}
 
 
 class IconProvider(QQuickImageProvider):
@@ -20,12 +25,33 @@ class IconProvider(QQuickImageProvider):
         dimension = max(48, min(160, requested_size.width() if requested_size.width() > 0 else 80))
         if name.startswith(FILE_ICON_PREFIX):
             image = self._draw_file(name, dimension)
+        elif name.startswith(SETTING_ICON_PREFIX):
+            image = self._draw_bundled_setting(name, dimension)
         else:
             icon = QIcon(name) if name.startswith("/") else QIcon.fromTheme(name)
             image = icon.pixmap(QSize(dimension, dimension)).toImage() if not icon.isNull() else self._draw(name, dimension)
         size.setWidth(image.width())
         size.setHeight(image.height())
         return image
+
+    def _draw_bundled_setting(self, name, dimension):
+        asset, _, color = name.removeprefix(SETTING_ICON_PREFIX).partition("/")
+        if asset not in SETTING_ICON_ASSETS:
+            return self._draw("preferences-system", dimension)
+        ink = QColor(color)
+        if not ink.isValid():
+            ink = QColor("#e8cc9f")
+        try:
+            data = (SETTING_ICON_ROOT / (asset + ".svg")).read_bytes()
+        except OSError:
+            return self._draw("preferences-system", dimension)
+        buffer = QBuffer()
+        buffer.setData(QByteArray(data.replace(b"currentColor", ink.name().encode())))
+        buffer.open(QIODevice.OpenModeFlag.ReadOnly)
+        reader = QImageReader(buffer, b"svg")
+        reader.setScaledSize(QSize(dimension, dimension))
+        image = reader.read()
+        return image if not image.isNull() else self._draw("preferences-system", dimension)
 
     def _draw_file(self, name, dimension):
         asset, palette = ICON_SPECS.get(name.removeprefix(FILE_ICON_PREFIX), ICON_SPECS["unknown"])

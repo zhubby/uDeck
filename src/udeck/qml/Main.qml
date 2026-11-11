@@ -5,6 +5,11 @@ import QtQuick.Controls
 Window {
     id: window
     function tr(source) { return controller.translate(source, viewState.language) }
+    function desktopIconSource(name) {
+        const icon = name || "application-x-executable"
+        const tint = icon.startsWith("udeck-setting:") ? "/" + window.colors.artText.toString() : ""
+        return "image://desktop/" + encodeURIComponent(icon + tint)
+    }
     width: 1280
     height: 720
     minimumWidth: 960
@@ -357,7 +362,7 @@ Window {
                         id: systemSettingIcon; objectName: "systemSettingIcon"
                         x: 18; anchors.verticalCenter: parent.verticalCenter
                         height: systemSettingText.implicitHeight; width: height
-                        source: "image://desktop/" + encodeURIComponent(modelData.icon || "application-x-executable")
+                        source: window.desktopIconSource(modelData.icon)
                         sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
                     }
                     Column {
@@ -506,7 +511,7 @@ Window {
                                 visible: !!modelData.icon
                                 x: 15; anchors.verticalCenter: parent.verticalCenter
                                 height: systemOptionText.implicitHeight; width: height
-                                source: visible ? "image://desktop/" + encodeURIComponent(modelData.icon) : ""
+                                source: visible ? window.desktopIconSource(modelData.icon) : ""
                                 sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
                             }
                             Column {
