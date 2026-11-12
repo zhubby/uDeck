@@ -1,0 +1,509 @@
+{
+  "date": "2026-11-12",
+  "status": "automated_validation_passed_manual_acceptance_pending",
+  "product_revision": "c4c1602dd686efec7ccd44be711c667538caf137",
+  "probe_revision": "94b7baba2b13ff0abd1317b32f88dcf6057bdd44",
+  "package": {
+    "name": "udeck_0.2.3_arm64.deb",
+    "version": "0.2.3",
+    "architecture": "arm64",
+    "bytes": 23249820,
+    "sha256": "7605907dafee986b297527df86463abdf2a5c0a91a77d561881e9e44655697e1",
+    "git_dirty": false,
+    "source_files_verified": 413,
+    "product_sources_match_current_worktree": true
+  },
+  "builds": {
+    "first_arm64": {
+      "passed": 1481,
+      "skipped": 0,
+      "failures": 0,
+      "warnings": 13,
+      "pytest_seconds": 636.72,
+      "log_sha256": "81565f52c9765336e117709b1110d6b3d42e9c7889649238704bec400a5f6491"
+    },
+    "final_arm64": {
+      "passed": 1482,
+      "skipped": 0,
+      "failures": 0,
+      "warnings": 13,
+      "pytest_seconds": 615.59,
+      "log_sha256": "8866c472830402b9e848b5e2bd8659220abda2d96de77ca339d08a5fed4a2578",
+      "build_seconds": 695.7064784580143
+    }
+  },
+  "suites": {
+    "cm4_unmodified_baseline": {
+      "tests": 1479,
+      "failures": 7,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 1472,
+      "junit_seconds": 1740.765,
+      "failed_cases": [
+        "test_both_themes_render_and_sync_without_recreating_native_windows[1280-720-en]",
+        "test_both_themes_render_and_sync_without_recreating_native_windows[1280-720-zh_CN]",
+        "test_both_themes_render_and_sync_without_recreating_native_windows[960-600-en]",
+        "test_both_themes_render_and_sync_without_recreating_native_windows[960-600-zh_CN]",
+        "test_browser_pointer_stays_visible_after_moving_and_resizing[classic-en]",
+        "test_browser_pointer_stays_visible_after_moving_and_resizing[classic-zh_CN]",
+        "test_browser_pointer_stays_visible_after_moving_and_resizing[dark-zh_CN]"
+      ]
+    },
+    "cm4_linux_native": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 5,
+      "junit_seconds": 35.057,
+      "failed_cases": []
+    },
+    "cm4_ui_regression": {
+      "tests": 72,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 72,
+      "junit_seconds": 289.728,
+      "failed_cases": []
+    },
+    "cm4_video_and_wait_regression": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 2,
+      "junit_seconds": 15.14,
+      "failed_cases": []
+    },
+    "cm4_audio_regression": {
+      "tests": 37,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 37,
+      "junit_seconds": 36.087,
+      "failed_cases": []
+    },
+    "installed_network_regression": {
+      "tests": 51,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 51,
+      "junit_seconds": 78.985,
+      "failed_cases": []
+    },
+    "macos_probe_regression": {
+      "tests": 87,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 87,
+      "junit_seconds": 248.375,
+      "failed_cases": []
+    },
+    "macos_audio_regression": {
+      "tests": 37,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 37,
+      "junit_seconds": 15.943,
+      "failed_cases": []
+    }
+  },
+  "cm4_initial_graphical_probe": {
+    "pid": 2588067,
+    "state": "failed",
+    "revision": "8fdf47c",
+    "platform": "actual Wayland compositor; isolated controllers and data; synthetic Qt actions",
+    "started_at": "2026-11-12T03:37:52.589548+00:00",
+    "checks": [
+      {
+        "app": "music",
+        "state": "passed",
+        "started_at": 1794454672.5903828,
+        "pid": 2588072,
+        "exit_code": 0,
+        "seconds": 15.923
+      },
+      {
+        "app": "video",
+        "state": "failed",
+        "started_at": 1794454688.5147796,
+        "pid": 2588544,
+        "exit_code": 1,
+        "seconds": 9.11
+      },
+      {
+        "app": "browser",
+        "state": "passed",
+        "started_at": 1794454697.6257644,
+        "pid": 2588849,
+        "exit_code": 0,
+        "seconds": 15.418
+      },
+      {
+        "app": "reader",
+        "state": "passed",
+        "started_at": 1794454713.045428,
+        "pid": 2589327,
+        "exit_code": 0,
+        "seconds": 23.947
+      }
+    ],
+    "finished_at": "2026-11-12T03:38:56.994282+00:00"
+  },
+  "baseline_resolution": "Four theme fixtures and three Browser pointer fixtures fixed by 94b7bab; the initial native Video subtitle probe was corrected and rerun separately. Initial failures are retained.",
+  "installed_workflows": {
+    "pid": 2611676,
+    "state": "passed",
+    "module_source": "installed /usr/lib/python3/dist-packages",
+    "started_at": 1794455635.4605675,
+    "stages": [
+      {
+        "name": "preflight",
+        "state": "passed",
+        "started_at": 1794455635.4610233,
+        "pid": 2611682,
+        "exit_code": 0,
+        "seconds": 0.427
+      },
+      {
+        "name": "terminal-wayland",
+        "state": "passed",
+        "started_at": 1794455635.889405,
+        "pid": 2611691,
+        "exit_code": 0,
+        "seconds": 20.323
+      },
+      {
+        "name": "terminal-xcb",
+        "state": "passed",
+        "started_at": 1794455656.2146668,
+        "pid": 2612564,
+        "exit_code": 0,
+        "seconds": 18.886
+      },
+      {
+        "name": "app-music",
+        "state": "passed",
+        "started_at": 1794455675.1022167,
+        "pid": 2613423,
+        "exit_code": 0,
+        "seconds": 15.982
+      },
+      {
+        "name": "app-video",
+        "state": "passed",
+        "started_at": 1794455691.0855649,
+        "pid": 2613881,
+        "exit_code": 0,
+        "seconds": 14.247
+      },
+      {
+        "name": "app-browser",
+        "state": "passed",
+        "started_at": 1794455705.3333876,
+        "pid": 2614349,
+        "exit_code": 0,
+        "seconds": 15.123
+      },
+      {
+        "name": "app-reader",
+        "state": "passed",
+        "started_at": 1794455720.4575183,
+        "pid": 2614822,
+        "exit_code": 0,
+        "seconds": 35.186
+      },
+      {
+        "name": "network-regression",
+        "state": "passed",
+        "started_at": 1794455755.6527293,
+        "pid": 2615813,
+        "exit_code": 0,
+        "seconds": 81.39
+      }
+    ],
+    "finished_at": 1794455837.0441482
+  },
+  "terminals": {
+    "wayland": {
+      "backend": "wayland",
+      "input": "synthetic Qt keyboard events",
+      "installedModule": "/usr/lib/python3/dist-packages/udeck/terminal/main.py",
+      "checks": {
+        "qml-shortcuts-modal-isolation-close-cancel": "passed",
+        "keyboard-escape-function-arrows-ctrl-letters": "passed",
+        "vim-edit-save-exit": "passed",
+        "less-scroll-search-exit": "passed",
+        "tmux-shell-detach": "passed",
+        "codex-tui-startup-keyboard-exit": "passed",
+        "abnormal-exit-removes-window": "passed"
+      },
+      "buildId": "21bbc39e161e6f0dc89b48f01785783fb86726da69581feeabb76acca5e4f878",
+      "codexVersion": "codex-cli 0.130.0",
+      "codexScope": "Rendered interactive editor; interrupted without submitting a prompt",
+      "qmlErrors": [],
+      "result": "passed"
+    },
+    "xcb": {
+      "backend": "xcb",
+      "input": "synthetic Qt keyboard events",
+      "installedModule": "/usr/lib/python3/dist-packages/udeck/terminal/main.py",
+      "checks": {
+        "qml-shortcuts-modal-isolation-close-cancel": "passed",
+        "keyboard-escape-function-arrows-ctrl-letters": "passed",
+        "vim-edit-save-exit": "passed",
+        "less-scroll-search-exit": "passed",
+        "tmux-shell-detach": "passed",
+        "codex-tui-startup-keyboard-exit": "passed",
+        "abnormal-exit-removes-window": "passed"
+      },
+      "buildId": "21bbc39e161e6f0dc89b48f01785783fb86726da69581feeabb76acca5e4f878",
+      "codexVersion": "codex-cli 0.130.0",
+      "codexScope": "Rendered interactive editor; interrupted without submitting a prompt",
+      "qmlErrors": [],
+      "result": "passed"
+    }
+  },
+  "games": [
+    {
+      "platform": "gb",
+      "core": "gambatte",
+      "stateBytes": 26672,
+      "thumbnail": true,
+      "checks": [
+        "launch",
+        "settings-preserve-pid",
+        "pause",
+        "save",
+        "load",
+        "save-return",
+        "restore-disabled-core",
+        "resume-after-restart"
+      ]
+    },
+    {
+      "platform": "nes",
+      "core": "nestopia",
+      "stateBytes": 5096,
+      "thumbnail": true,
+      "checks": [
+        "launch",
+        "settings-preserve-pid",
+        "pause",
+        "save",
+        "load",
+        "save-return",
+        "restore-disabled-core",
+        "resume-after-restart"
+      ]
+    },
+    {
+      "platform": "gba",
+      "core": "mgba",
+      "stateBytes": 528472,
+      "thumbnail": true,
+      "checks": [
+        "launch",
+        "settings-preserve-pid",
+        "pause",
+        "save",
+        "load",
+        "save-return",
+        "restore-disabled-core",
+        "resume-after-restart"
+      ]
+    },
+    {
+      "platform": "2048",
+      "core": "2048",
+      "libraryName": "2048",
+      "stateName": "2048.state",
+      "checks": [
+        "no-content-launch",
+        "pause",
+        "normal-exit",
+        "save",
+        "load",
+        "save-return",
+        "resume-after-restart"
+      ]
+    },
+    {
+      "platform": "bomberman",
+      "core": "mrboom",
+      "libraryName": "Mr.Boom",
+      "stateName": "Mr.Boom.state",
+      "checks": [
+        "no-content-launch",
+        "pause",
+        "normal-exit",
+        "save",
+        "load",
+        "save-return",
+        "resume-after-restart"
+      ]
+    }
+  ],
+  "network": {
+    "external-http": {
+      "state": "passed",
+      "seconds": 53.807,
+      "payload_bytes": 1048607,
+      "payload_sha256": "70246f6c4e045a2bfd875da16272d4b6d065385cf6dfbf02e00e2aafb1a58775",
+      "checks": 8,
+      "cycles": 20
+    },
+    "external-http-installed": {
+      "state": "passed",
+      "seconds": 52.063,
+      "payload_bytes": 1048607,
+      "payload_sha256": "70246f6c4e045a2bfd875da16272d4b6d065385cf6dfbf02e00e2aafb1a58775",
+      "checks": 8,
+      "cycles": 20
+    },
+    "external-lifecycle": {
+      "state": "passed",
+      "seconds": 36.88,
+      "revoked_stream_bytes": 524288,
+      "checks": 4,
+      "cycles": 0
+    },
+    "external-lifecycle-installed": {
+      "state": "passed",
+      "seconds": 32.393,
+      "revoked_stream_bytes": 524288,
+      "checks": 4,
+      "cycles": 0
+    },
+    "network-service": {
+      "state": "stopped",
+      "daemon_generations": 2,
+      "source_sha256": "2112e374d0ab3d614adfe373bc91d6cb55ea8fc0bd94882234e51c6c1ceb4acb"
+    },
+    "installed-network-service": {
+      "state": "stopped",
+      "daemon_generations": 2,
+      "source_sha256": "2112e374d0ab3d614adfe373bc91d6cb55ea8fc0bd94882234e51c6c1ceb4acb"
+    }
+  },
+  "installed_audio": {
+    "state": "passed",
+    "module_source": "/usr/lib/python3/dist-packages/udeck/backend.py",
+    "read_only_query_count": 15,
+    "refreshes_before_queries": 0,
+    "refreshes_after_queries": 0,
+    "processes_remaining": 0
+  },
+  "final_shell_ui": {
+    "state": "passed",
+    "rounds": 3
+  },
+  "production_wayland": {
+    "before-audio": {
+      "mode": "production-wayland",
+      "sample_seconds": 60.0,
+      "idle_cpu_percent_one_core": 10.083,
+      "rss_mib_start": 264.66,
+      "rss_mib_end": 264.54,
+      "peak_sampled_rss_mib": 264.66,
+      "output_power_sampling": "DSI-1 on",
+      "output_power_after": "DSI-1 on",
+      "diagnostic_samples": 7,
+      "first_frame_seconds": 6.449,
+      "startup_frame_seconds": 3.817,
+      "services": {
+        "wifi": true,
+        "bluetooth": true,
+        "audio": true,
+        "brightness": true,
+        "battery": true
+      },
+      "service_errors": {},
+      "input_verified": true,
+      "shortcuts_applied": true
+    },
+    "after-audio": {
+      "mode": "production-wayland",
+      "sample_seconds": 120.0,
+      "idle_cpu_percent_one_core": 4.35,
+      "rss_mib_start": 241.99,
+      "rss_mib_end": 241.03,
+      "peak_sampled_rss_mib": 241.99,
+      "output_power_sampling": "DSI-1 on",
+      "output_power_after": "DSI-1 on",
+      "diagnostic_samples": 13,
+      "first_frame_seconds": 3.882,
+      "startup_frame_seconds": 2.98,
+      "services": {
+        "wifi": true,
+        "bluetooth": true,
+        "audio": true,
+        "brightness": true,
+        "battery": true
+      },
+      "service_errors": {},
+      "input_verified": true,
+      "shortcuts_applied": true
+    }
+  },
+  "health": {
+    "samples": 310,
+    "first_time": 1794455049.515295,
+    "last_time": 1794458175.1017027,
+    "diagnose_errors": [],
+    "service_error_samples": [],
+    "thermal_c_min": 32.128,
+    "thermal_c_max": 38.946,
+    "minimum_available_memory_kib": 2209276
+  },
+  "cleanup": {
+    "state": "passed",
+    "time": 1794458180.9182687,
+    "test_processes_remaining": [],
+    "health_sampler_stopped": true,
+    "network_test_port_8787_listening": false,
+    "protected_file_count": 11,
+    "protected_changed": [],
+    "source_verified_count": 413,
+    "source_mismatches": [],
+    "default_terminal": "/usr/bin/udeck-terminal",
+    "dpkg_verify": {
+      "exit_code": 0,
+      "output": ""
+    },
+    "shell_pid": 2661059,
+    "shell_alive": true,
+    "original_session_preserved": true,
+    "original_browser_preserved": true,
+    "recovery_package_retained": true
+  },
+  "static_checks": {
+    "ruff": {
+      "exit_code": 0,
+      "output": "All checks passed!\n"
+    },
+    "diff-check": {
+      "exit_code": 0,
+      "output": ""
+    }
+  },
+  "evidence_archive": {
+    "local_file": "artifacts/device-stability-2026-11-12/selected-evidence.tar.gz",
+    "files": 134,
+    "bytes": 4580708,
+    "sha256": "43589f6a0e5fa2870502c966650d959d7bac659763187a80bec7af64eac35c43",
+    "private_backups_exported": false
+  },
+  "manual_acceptance_pending": [
+    "Physical ABXY / directional / L / R keys and trackball short / long press",
+    "Real Chinese IME candidate window",
+    "Actual speaker / video output and sustained playback",
+    "Network / VPN switching, Bluetooth pairing, USB hotplug and whole-device reboot recovery"
+  ]
+}

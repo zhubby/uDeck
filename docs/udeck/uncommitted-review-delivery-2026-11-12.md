@@ -56,3 +56,5 @@ QT_QUICK_CONTROLS_STYLE=Basic PYTHONPATH=src \
 ## 验收边界
 
 本次完成本地软件审查、修复、自动化验证和构建。真实实体按键、Wayland / fcitx、硬件解码与音频、物理网卡 / VPN 切换、设备 systemd 集成、Debian 包安装和整机重启仍属于实机验收范围；本地通过结果不替代这些验收。既有 linked worktree 和参考档案保持原样。
+
+后续设备安装、真实 Wayland / XWayland 软件验证及新增 Linux 根目录刷新修复，见 [CM4 实机稳定性验证](device-stability-2026-11-12.md)。该记录独立保留基线失败与现场待验收范围。
