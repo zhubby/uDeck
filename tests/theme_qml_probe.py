@@ -19,6 +19,7 @@ from PySide6.QtWidgets import QApplication
 from shiboken6 import delete
 
 from udeck import main
+from udeck.apps.common.state import AppState
 from udeck.apps.main import make_controller
 from udeck.apps.media.engine import FrameImages
 from udeck.apps.reader.controller import PdfImages
@@ -234,12 +235,21 @@ def run():
                 entry["controller"].command("menu")
         terminal_before = [json.loads(e["controller"].snapshotJson) for e in coordinator.windows]
         for app in ("music", "video", "browser", "reader", "emulator"):
+            if app == "emulator":
+                # A visual theme test must not scan the host's ROM collection
+                # or race the inventory of its installed libretro cores.
+                state = AppState(app, path / app)
+                state.data["preferences"].update(romRoot=str(path / "Games"),
+                                                 coreDirectory=str(path / "cores"))
+                state.save()
             controller = make_controller(app, path / app, config_path)
             controller.isolated = True
             app_engine, app_window = engine_for(controller, root / "apps/common/qml/Main.qml")
             controller.window = app_window
             controller.start()
             apps.append((controller, app_engine, app_window))
+            if app == "emulator":
+                wait(lambda controller=controller: not controller.core_tasks and not controller.library.pending)
 
         app_before = {}
         for theme in ("classic", "dark"):

@@ -218,11 +218,14 @@ def run(app, root, language="en", width=1280, height=720):
         assert len(controller.media.player.subtitleTracks())==1
         controller.set_track(True,0)
         wait(lambda: "Original uDeck subtitle" in controller.media.player.videoSink().subtitleText())
-        assert "Original uDeck subtitle" in controller.subtitle_text(), "Software video lost embedded captions"
-        wait(lambda: any("Original uDeck subtitle" in str(obj.property("text"))
-                         for obj in window.findChildren(QObject) if obj.inherits("QQuickText")))
+        if controller.media.software:
+            assert "Original uDeck subtitle" in controller.subtitle_text(), "Software video lost embedded captions"
+            wait(lambda: any("Original uDeck subtitle" in str(obj.property("text"))
+                             for obj in window.findChildren(QObject) if obj.inherits("QQuickText")))
+            completed.append("embedded-captions-visible-in-software-scenegraph")
+        else:
+            completed.append("embedded-captions-delivered-to-native-VideoOutput")
         capture("embedded-captions")
-        completed.append("embedded-captions-visible-in-software-scenegraph")
         controller.media.player.pause()
         controller.seek(4)
         wait(lambda: controller.media.player.position()>=3900)

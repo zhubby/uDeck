@@ -5,8 +5,10 @@ import math
 import struct
 import subprocess
 import sys
+import threading
 import time
 import wave
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -348,34 +350,59 @@ def test_pointer_resize():
                           "pages.count > 0 && pages.itemAt(0).loadProgress === 100 && !pages.itemAt(0).loading")
     wait_for(lambda: ready.evaluate()[0], "The initial Browser page did not finish loading")
     assert not ready.hasError()
-    controller.active_tab().url = "https://layout.invalid/pointer"
-    controller.set_mode("pointer")
-    settle()
-    expression = QQmlExpression(QQmlEngine.contextForObject(surface), surface, "pointer")
-    pointer, undefined = expression.evaluate()
-    assert not expression.hasError() and pointer is not None
-    for _unused in range(50):
-        controller.dispatch("right")
-        controller.dispatch("down")
-    settle()
-    viewport = pointer.parentItem()
-    assert controller.active_tab().url == "https://layout.invalid/pointer"
-    assert pointer.x() == viewport.width() - pointer.width()
-    assert pointer.y() == viewport.height() - pointer.height()
-    assert_contained(pointer, viewport)
-    window.setWidth(800)
-    window.setHeight(500)
-    QTest.qWait(100)
-    assert window.grabWindow().save(str(directory / "pointer-resized.png"))
-    assert_contained(pointer, viewport)
-    controller.dispatch("left")
-    controller.dispatch("up")
-    settle()
-    assert_contained(pointer, viewport)
-    window.setWidth(1280)
-    window.setHeight(720)
-    settle()
-    assert_contained(pointer, viewport)
+    class Page(BaseHTTPRequestHandler):
+        def log_message(self, *_arguments):
+            pass
+
+        def do_GET(self):
+            body = b"<!doctype html><title>Pointer fixture</title><main>Pointer resize</main>"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+    # Keep the controller and WebEngine on the same real page. Assigning only
+    # tab.url races the initial page's deferred title/loading notifications.
+    with ThreadingHTTPServer(("127.0.0.1", 0), Page) as server:
+        worker = threading.Thread(target=server.serve_forever, daemon=True)
+        worker.start()
+        try:
+            url = f"http://127.0.0.1:{server.server_port}/pointer"
+            controller.navigate(url)
+            wait_for(lambda: controller.active_tab().url == url
+                     and controller.active_tab().title == "Pointer fixture"
+                     and ready.evaluate()[0], "The pointer fixture did not finish loading")
+            controller.set_mode("pointer")
+            settle()
+            expression = QQmlExpression(QQmlEngine.contextForObject(surface), surface, "pointer")
+            pointer, undefined = expression.evaluate()
+            assert not expression.hasError() and pointer is not None
+            for _unused in range(50):
+                controller.dispatch("right")
+                controller.dispatch("down")
+            settle()
+            viewport = pointer.parentItem()
+            assert controller.active_tab().url == url
+            assert pointer.x() == viewport.width() - pointer.width()
+            assert pointer.y() == viewport.height() - pointer.height()
+            assert_contained(pointer, viewport)
+            window.setWidth(800)
+            window.setHeight(500)
+            QTest.qWait(100)
+            assert window.grabWindow().save(str(directory / "pointer-resized.png"))
+            assert_contained(pointer, viewport)
+            controller.dispatch("left")
+            controller.dispatch("up")
+            settle()
+            assert_contained(pointer, viewport)
+            window.setWidth(1280)
+            window.setHeight(720)
+            settle()
+            assert_contained(pointer, viewport)
+        finally:
+            server.shutdown()
+            worker.join(timeout=5)
 
 
 def test_settings_repeat():
