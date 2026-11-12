@@ -213,6 +213,8 @@ def run(app, root, language="en", width=1280, height=720):
         item=controller.library.items[0]
         controller.open_item(item["id"])
         wait(lambda: controller.media.player.position()>300)
+        wait(lambda: controller.media.player.videoSink() is not None
+             and controller.media.player.videoSink().videoFrame().isValid())
         assert controller.media.player.videoSink().videoSize().width()==640
         assert controller.media.player.videoSink().videoFrame().isValid()
         assert len(controller.media.player.subtitleTracks())==1
@@ -255,6 +257,16 @@ def run(app, root, language="en", width=1280, height=720):
         completed.append("external-srt-survives-hidden-controls")
         completed.extend(["real-video-frames", "embedded-subtitle-track", "seek", "pause-and-save", "confirmed-resume"])
         theme_cycle()
+        controller.media.player.play()
+        controller.command("hide-controls")
+        controller.seek(11.6)
+        wait(lambda: controller.media.player.mediaStatus().name == "EndOfMedia")
+        assert controller.controls_visible, "Video ended without revealing playback controls"
+        assert controller.store.data["positions"][item["id"]] == 0
+        controller.command("play-pause")
+        wait(lambda: controller.media.snapshot()["playing"] and controller.media.player.position() > 200)
+        assert not controller.notice, "Playback finished message remains during replay"
+        completed.append("end-of-video-reveals-controls-and-replay-clears-message")
     elif app == "reader":
         pdf_item = next(i for i in controller.library.items if i["format"] == "PDF")
         txt_item = next(i for i in controller.library.items if i["format"] == "TXT")

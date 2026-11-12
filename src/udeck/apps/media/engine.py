@@ -1,5 +1,6 @@
 """QtMultimedia playback. UI state comes from observed player properties."""
 
+import math
 import os
 import time
 
@@ -98,7 +99,10 @@ class MediaEngine(QObject):
             self.player.play()
 
     def seek(self, seconds):
-        position = max(0, min(self.player.duration(), int(seconds * 1000)))
+        if not math.isfinite(seconds):
+            raise ValueError(tr(Msg.ENTER_A_FINITE_NUMBER))
+        seconds = max(0, min(self.player.duration() / 1000, seconds))
+        position = min(self.player.duration(), int(seconds * 1000))
         self.player.setPosition(position)
 
     def set_output(self, device_id):

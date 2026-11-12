@@ -1,0 +1,28 @@
+{
+  "version": "0.2.5",
+  "device": "uConsole CM4 / Debian 13.5 arm64",
+  "macosRegression": {"passed": 64},
+  "arm64Regression": {"passed": 71},
+  "installedDeviceRegression": {"passed": 10},
+  "nativeWaylandProbe": {"passed": true, "qmlErrors": []},
+  "candidateVideoFormats": ["H264 MP4 1280x720", "VP9 WebM", "MPEG4 MKV"],
+  "privateDbusMusicCoordination": {"passed": true},
+  "preserved": {"fileOrAbsentStates": 26, "originalProcessStartTimes": 8},
+  "package": {
+    "file": "udeck_0.2.5_arm64.deb",
+    "sha256": "381434b9e50e7d69657e34098ed69c4be3250995d5e71c524c008348d06b1c9b",
+    "installed": true,
+    "dpkgVerify": "passed",
+    "installedPreflight": "passed",
+    "trackedSourceFilesCompared": 423,
+    "buildOptions": "nocheck after targeted ARM64 regression",
+    "gitManifestFields": null,
+    "publishedRelease": false
+  },
+  "review": {
+    "reviewer": "correctness",
+    "findingsInChange": [],
+    "residualRisks": ["Qt 6.8 FFmpeg embedded captions can disappear when enabling a track late or seeking into an existing cue; reproduced without uDeck. External SRT works."],
+    "testingGaps": ["Full suite not rerun in this task", "No physical button or listener acceptance", "No sustained playback benchmark"]
+  }
+}

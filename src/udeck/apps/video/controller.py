@@ -78,6 +78,7 @@ class VideoController(MediaController):
         self.media.seek(target)
 
     def finished_playback(self):
+        self.controls_visible = True
         self.notice = tr(Msg.PLAYBACK_FINISHED)
         self.release_music()
 

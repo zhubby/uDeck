@@ -1,3 +1,11 @@
+udeck (0.2.5) unstable; urgency=medium
+
+  * Reveal playback controls when a video ends and clear stale playback messages.
+  * Reject non-finite seek input and clamp large values before conversion.
+  * Cover replay, error recovery and seek validation with native regressions.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Thu, 12 Nov 2026 22:00:00 +0800
+
 udeck (0.2.4) unstable; urgency=medium
 
   * Move Web file access into system Sharing settings and preserve saved state.

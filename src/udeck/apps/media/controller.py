@@ -48,6 +48,7 @@ class MediaController(AppController):
         item = self.library.require(item["id"])
         if not self.prepare_play(item, seconds, queued, music_confirmed):
             return
+        self.error, self.notice = "", ""
         self.save_position()
         self.current = dict(item)
         self.external_cues, self.external_name = [], ""
@@ -115,6 +116,8 @@ class MediaController(AppController):
         if command == "play-pause":
             self.feedback("accept")
             self.paused_by_video = ""
+            if self.media.player.mediaStatus() == QMediaPlayer.MediaStatus.EndOfMedia:
+                self.notice = ""
             self.media.toggle()
         elif command in ("previous", "next"):
             self.feedback("accept")
