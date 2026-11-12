@@ -14,7 +14,9 @@ Emulator uses Settings → ROM root and platform subfolders instead.
 L/R (PageUp/PageDown) switches
 collections; directions select; A/Enter opens; B/Esc returns; X/F2 opens actions;
 Y/F3 opens settings. Ordinary A/B/X/Y letters remain text. English is the default;
-Settings → Language shares the shell's persisted English/Chinese preference.
+language and theme follow the shell's persisted preferences. Application settings
+use one row per item, with an icon and label on the left and a switch or current
+value on the right. See the [settings layout and validation](../udeck/app-settings-rows-2026-11-12.md).
 
 Music uses QtMultimedia, with real queue/end-of-file behavior, seek and device
 selection. Returning to the library continues playback. Closing while playing

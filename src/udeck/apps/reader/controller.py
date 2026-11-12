@@ -377,19 +377,21 @@ class ReaderController(AppController):
         self.publish()
 
     def settings_options(self):
-        options = [(tr(Msg.NIGHT_COLORS), self.toggle_dark, "", "weather-clear-night"),
-                   (tr(Msg.READING_LAYOUT), self.layout_menu, "", "document-page-setup")]
+        options = [self.setting_option(tr(Msg.NIGHT_COLORS), self.toggle_dark, "weather-clear-night", checked=self.dark),
+                   self.setting_option(tr(Msg.READING_LAYOUT), self.layout_menu, "document-page-setup")]
         if self.current and self.current["format"] == "PDF" and self.page == "document":
-            options.append((tr(Msg.PDF_ZOOM), self.zoom_menu, "", "zoom-in"))
+            options.append(self.setting_option(tr(Msg.PDF_ZOOM), self.zoom_menu, "zoom-in",
+                                              tr(Msg.FIT_WIDTH) if self.pdf_fit else f"{self.pdf_zoom:.0%}"))
         else:
-            options.append((tr(Msg.TEXT_SIZE_SIZE, size=self.font_size), self.font_menu, "", "format-text-size"))
+            options.append(self.setting_option(tr(Msg.TEXT_SIZE), self.font_menu, "format-text-size", str(self.font_size)))
         return options
 
     def toggle_dark(self):
-        self.set_background("paper" if self.dark else "night")
+        self.set_background("paper" if self.dark else "night", dismiss=False)
 
     def font_menu(self):
-        self.menu(tr(Msg.TEXT_SIZE), [(str(size), lambda size=size: self.set_font(size))
+        self.menu(tr(Msg.TEXT_SIZE), [self.setting_option(str(size), lambda size=size: self.set_font(size),
+                                                        "format-text-size", navigate=False, current=size == self.font_size)
                                      for size in READER_FONT_SIZES])
 
     def set_font(self, size):
@@ -398,17 +400,23 @@ class ReaderController(AppController):
         self.pop_menu()
 
     def layout_menu(self):
+        self.menu(tr(Msg.READING_LAYOUT), self.layout_options)
+
+    def layout_options(self):
         options = []
         pdf_document = self.page == "document" and self.current and self.current.get("format") == "PDF"
         if not pdf_document:
-            options.extend([(tr(Msg.LINE_SPACING), self.line_height_menu, "", "format-line-spacing"),
-                            (tr(Msg.FONT), self.font_family_menu, "", "preferences-desktop-font"),
-                            (tr(Msg.CONTENT_WIDTH), self.content_width_menu, "", "zoom-fit-width")])
-        options.append((tr(Msg.BACKGROUND), self.background_menu, "", "preferences-desktop-wallpaper"))
-        self.menu(tr(Msg.READING_LAYOUT), options)
+            families = {"sans": Msg.SANS_SERIF, "serif": Msg.SERIF, "mono": Msg.MONOSPACE}
+            options.extend([self.setting_option(tr(Msg.LINE_SPACING), self.line_height_menu, "format-line-spacing", f"{self.line_height:.1f}×"),
+                            self.setting_option(tr(Msg.FONT), self.font_family_menu, "preferences-desktop-font", tr(families[self.font_family])),
+                            self.setting_option(tr(Msg.CONTENT_WIDTH), self.content_width_menu, "zoom-fit-width", str(self.content_width))])
+        backgrounds = {"paper": Msg.PAPER, "warm": Msg.WARM_PAPER, "gray": Msg.GRAY, "night": Msg.NIGHT}
+        options.append(self.setting_option(tr(Msg.BACKGROUND), self.background_menu, "preferences-desktop-wallpaper", tr(backgrounds[self.background])))
+        return options
 
     def line_height_menu(self):
-        self.menu(tr(Msg.LINE_SPACING), [(f"{value:.1f}×", lambda value=value: self.set_line_height(value))
+        self.menu(tr(Msg.LINE_SPACING), [self.setting_option(f"{value:.1f}×", lambda value=value: self.set_line_height(value),
+                                                           "format-line-spacing", navigate=False, current=value == self.line_height)
                                        for value in READER_LINE_HEIGHTS])
 
     def set_line_height(self, value):
@@ -419,9 +427,9 @@ class ReaderController(AppController):
         self.pop_menu()
 
     def font_family_menu(self):
-        self.menu(tr(Msg.FONT), [(tr(Msg.SANS_SERIF), lambda: self.set_font_family("sans")),
-                                (tr(Msg.SERIF), lambda: self.set_font_family("serif")),
-                                (tr(Msg.MONOSPACE), lambda: self.set_font_family("mono"))])
+        self.menu(tr(Msg.FONT), [self.setting_option(tr(label), lambda family=family: self.set_font_family(family),
+                                                  "preferences-desktop-font", navigate=False, current=family == self.font_family)
+                                for family, label in (("sans", Msg.SANS_SERIF), ("serif", Msg.SERIF), ("mono", Msg.MONOSPACE))])
 
     def set_font_family(self, family):
         if family not in READER_FONT_FAMILIES:
@@ -432,8 +440,9 @@ class ReaderController(AppController):
 
     def content_width_menu(self):
         labels = {720: Msg.NARROW_WIDTH_PX, 1000: Msg.STANDARD_WIDTH_PX, 1200: Msg.WIDE_WIDTH_PX}
-        self.menu(tr(Msg.CONTENT_WIDTH), [(tr(labels[width], width=width),
-                                         lambda width=width: self.set_content_width(width))
+        self.menu(tr(Msg.CONTENT_WIDTH), [self.setting_option(tr(labels[width], width=width),
+                                         lambda width=width: self.set_content_width(width), "zoom-fit-width",
+                                         navigate=False, current=width == self.content_width)
                                         for width in READER_CONTENT_WIDTHS])
 
     def set_content_width(self, width):
@@ -444,18 +453,21 @@ class ReaderController(AppController):
         self.pop_menu()
 
     def background_menu(self):
-        self.menu(tr(Msg.BACKGROUND), [(tr(Msg.PAPER), lambda: self.set_background("paper"), "", "weather-clear"),
-                                     (tr(Msg.WARM_PAPER), lambda: self.set_background("warm"), "", "weather-clear"),
-                                     (tr(Msg.GRAY), lambda: self.set_background("gray"), "", "preferences-desktop-wallpaper"),
-                                     (tr(Msg.NIGHT), lambda: self.set_background("night"), "", "weather-clear-night")])
+        self.menu(tr(Msg.BACKGROUND), [self.setting_option(tr(label), lambda background=background: self.set_background(background),
+                                                         icon, navigate=False, current=background == self.background)
+                                     for background, label, icon in (("paper", Msg.PAPER, "weather-clear"),
+                                         ("warm", Msg.WARM_PAPER, "weather-clear"),
+                                         ("gray", Msg.GRAY, "preferences-desktop-wallpaper"),
+                                         ("night", Msg.NIGHT, "weather-clear-night"))])
 
-    def set_background(self, background):
+    def set_background(self, background, *, dismiss=True):
         if background not in READER_BACKGROUNDS:
             return
         self.background = background
         self.dark = READER_BACKGROUNDS[background]["dark"]
         self.send_style()
-        self.pop_menu()
+        if dismiss:
+            self.pop_menu()
 
     def send_style(self):
         preferences = self.style_preferences()
@@ -464,8 +476,10 @@ class ReaderController(AppController):
         self.persist()
 
     def zoom_menu(self):
-        self.menu(tr(Msg.PDF_ZOOM), [(tr(Msg.FIT_WIDTH), lambda: self.set_zoom(1, True))] + [
-            (f"{z:.0%}", lambda z=z: self.set_zoom(z, False)) for z in (0.8, 1, 1.25, 1.5, 2)])
+        self.menu(tr(Msg.PDF_ZOOM), [self.setting_option(tr(Msg.FIT_WIDTH), lambda: self.set_zoom(1, True),
+                                                       "zoom-fit-width", navigate=False, current=self.pdf_fit)] + [
+            self.setting_option(f"{z:.0%}", lambda z=z: self.set_zoom(z, False), "zoom-in", navigate=False,
+                                current=not self.pdf_fit and z == self.pdf_zoom) for z in (0.8, 1, 1.25, 1.5, 2)])
 
     def set_zoom(self, zoom, fit):
         self.pdf_zoom, self.pdf_fit = zoom, fit

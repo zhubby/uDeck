@@ -12,17 +12,21 @@ from udeck.i18n import Msg, tr
 class EmulatorSettings:
     def settings(self):
         self.cancel_launch()
-        self.menu(tr(Msg.SETTINGS), [
-            (tr(Msg.ROM_ROOT), self.rom_picker, self.library.root_path, "folder"),
-            (tr(Msg.CREATE_PLATFORM_FOLDERS), self.confirm_platform_folders,
-             tr(Msg.CREATE_FOLDERS_FOR_ENABLED_PLATFORMS_EXISTING_FILES_ARE_KEPT), "folder-new"),
-            (tr(Msg.CORE_MANAGEMENT), self.core_management,
-             tr(Msg.COUNT_INSTALLED_CORES, count=len(self.catalog.cores)), "applications-system"),
-            (tr(Msg.ADD_ENGINE_ENTRY), self.engine_platform_menu, "", "list-add"),
-            (tr(Msg.CORE_FOLDER), lambda: self.folder_picker("coreDirectory", "/usr/lib/aarch64-linux-gnu/libretro"), "", "folder"),
-            (tr(Msg.FIRMWARE_FOLDER), lambda: self.folder_picker("firmwareDirectory", str(Path.home() / ".config/retroarch/system")), "", "folder"),
-            (tr(Msg.REFRESH_LIBRARY), self.refresh, "", "view-refresh"),
-            (tr(Msg.CLOSE_APPLICATION), self.requestClose, "", "window-close")], self.scan_description(), icon="preferences-system")
+        self.menu(tr(Msg.SETTINGS), self.settings_options, self.scan_description(), icon="preferences-system", settings=True)
+
+    def settings_options(self):
+        option = self.setting_option
+        core_folder = self.store.data["preferences"].get("coreDirectory", "/usr/lib/aarch64-linux-gnu/libretro")
+        firmware_folder = self.store.data["preferences"].get("firmwareDirectory", str(Path.home() / ".config/retroarch/system"))
+        return [
+            option(tr(Msg.ROM_ROOT), self.rom_picker, "folder", self.library.root_path, path=True),
+            option(tr(Msg.CREATE_PLATFORM_FOLDERS), self.confirm_platform_folders, "folder-new"),
+            option(tr(Msg.CORE_MANAGEMENT), self.core_management, "applications-system", tr(Msg.COUNT_INSTALLED_CORES, count=len(self.catalog.cores))),
+            option(tr(Msg.ADD_ENGINE_ENTRY), self.engine_platform_menu, "list-add"),
+            option(tr(Msg.CORE_FOLDER), lambda: self.folder_picker("coreDirectory", "/usr/lib/aarch64-linux-gnu/libretro"), "folder", core_folder, path=True),
+            option(tr(Msg.FIRMWARE_FOLDER), lambda: self.folder_picker("firmwareDirectory", str(Path.home() / ".config/retroarch/system")), "folder", firmware_folder, path=True),
+            option(tr(Msg.REFRESH_LIBRARY), self.refresh, "view-refresh"),
+            option(tr(Msg.CLOSE_APPLICATION), self.requestClose, "window-close")]
 
     def scan_description(self):
         return tr(Msg.SCANNING) if self.library.pending else (
@@ -79,7 +83,7 @@ class EmulatorSettings:
             if entry.is_symlink() or entry.name.startswith("."):
                 continue
             if entry.is_dir():
-                options.append(("▸ " + entry.name, lambda p=entry: navigate(p), "", "folder"))
+                options.append(self.setting_option(entry.name, lambda p=entry: navigate(p), "folder"))
             elif file_filter and file_filter(entry):
                 options.append((entry.name, lambda p=entry: callback(str(p)), "", "application-x-executable"))
         options.append((tr(Msg.CANCEL), self.pop_menu, "", "go-previous"))
@@ -164,9 +168,10 @@ class EmulatorSettings:
         if not core:
             raise ValueError(tr(Msg.SELECTED_CORE_IS_UNAVAILABLE_CORE, core=identifier))
         enable = not self.catalog.enabled(core, platform)
-        options = [(tr(Msg.ENABLE_CORE) if enable else tr(Msg.DISABLE_CORE),
+        options = [self.setting_option(tr(Msg.ENABLE_CORE),
                     (lambda: self.toggle_core(identifier, enable, platform))
-                    if not enable or core.status == "available" else None, "", "emblem-default" if enable else "process-stop")]
+                    if not enable or core.status == "available" else None,
+                    "emblem-default" if enable else "process-stop", checked=not enable)]
         if self.catalog.enabled(core, platform) and core.status == "available":
             if platform:
                 options.append((tr(Msg.USE_AS_PLATFORM_DEFAULT), lambda: self.set_default_core(platform, identifier), "", "emblem-default"))

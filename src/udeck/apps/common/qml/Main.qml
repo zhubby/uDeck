@@ -263,16 +263,27 @@ Window {
                     onCurrentIndexChanged: Qt.callLater(function(){options.positionViewAtIndex(options.currentIndex,ListView.Contain)})
                     ScrollBar.vertical: ScrollBar { palette: window.colors.controls;}
                     delegate: Rectangle {
+                        id: menuOption
                         required property var modelData
                         required property int index
-                        width: options.width; height: Math.max(60,optionContents.implicitHeight+22); radius: 8
+                        property bool singleLine: !!window.state.menu.settings
+                        width: options.width; height: singleLine ? settingsRow.implicitHeight : Math.max(60,optionContents.implicitHeight+22); radius: 8
                         color: index===options.currentIndex?window.colors.selected:"transparent"
                         border.width: 3; border.color: index===options.currentIndex?window.accent:"transparent"
-                        opacity: modelData.disabled?0.45:1
+                        opacity: !singleLine && modelData.disabled?0.45:1
+                        Shared.SettingsRow {
+                            id: settingsRow
+                            anchors.fill: parent; visible: menuOption.singleLine
+                            option: menuOption.modelData
+                            colors: window.colors; fontFamily: window.fontFamily
+                            selected: menuOption.index === options.currentIndex
+                            onLabel: window.tr(msg.ON); offLabel: window.tr(msg.OFF)
+                            onActivated: controller.choose(menuOption.index)
+                        }
                         Image {
                             id: appSettingIcon
                             objectName: "settingOptionIcon"
-                            visible: !!modelData.icon
+                            visible: !menuOption.singleLine && !!modelData.icon
                             x: 14; anchors.verticalCenter: parent.verticalCenter
                             height: optionContents.implicitHeight; width: height
                             source: visible ? "image://desktop/" + encodeURIComponent(modelData.icon) : ""
@@ -280,12 +291,13 @@ Window {
                         }
                         Column {
                             id: optionContents; anchors.verticalCenter: parent.verticalCenter
+                            visible: !menuOption.singleLine
                             x: modelData.icon ? appSettingIcon.x + appSettingIcon.width + 14 : 14
                             width: parent.width-x-14; spacing: 4
                             Text { font.family: window.fontFamily; width: parent.width; text: modelData.title; color: window.ink; wrapMode: Text.Wrap; font.pixelSize: 22 }
                             Text { font.family: window.fontFamily; width: parent.width; visible: !!modelData.subtitle; text: modelData.subtitle; color: window.muted; wrapMode: Text.Wrap; font.pixelSize: 17 }
                         }
-                        MouseArea { anchors.fill: parent; enabled: !parent.modelData.disabled; onClicked: controller.choose(parent.index) }
+                        MouseArea { anchors.fill: parent; enabled: !parent.singleLine && !parent.modelData.disabled; onClicked: controller.choose(parent.index) }
                     }
                 }
                 Shared.InputHints {

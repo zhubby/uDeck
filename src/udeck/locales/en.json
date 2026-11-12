@@ -804,6 +804,7 @@
   "restores_automatically_after_restart": "Restores automatically after restart",
   "restoring_wi_fi": "Restoring Wi-Fi…",
   "resume": "Resume",
+  "resume_music_after_video": "Resume music after video",
   "resume_music_after_video_value": "Resume music after video: {value}",
   "resume_uses_another_core": "Resume uses another core",
   "resume_video_prompt": "Resume video?",

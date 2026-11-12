@@ -243,31 +243,40 @@ Window {
                     currentIndex: window.state.index
                     onCurrentIndexChanged: Qt.callLater(function() { optionsList.positionViewAtIndex(optionsList.currentIndex, ListView.Contain) })
                     delegate: Rectangle {
+                        id: terminalOption
                         required property int index
                         required property string modelData
                         width: optionsList.width
-                        height: window.state.mode === "settings" ? Math.max(42, settingOptionLabel.implicitHeight + 16) : 42
+                        height: window.state.mode === "settings" ? terminalSettingsRow.implicitHeight : 42
                         radius: 6
                         color: index === window.state.index ? window.colors.menuSelected : "transparent"
                         border.color: index === window.state.index ? window.accent : "transparent"
-                        Image {
-                            id: terminalSettingIcon
-                            objectName: "settingOptionIcon"
-                            visible: window.state.mode === "settings"
-                            x: 12; anchors.verticalCenter: parent.verticalCenter
-                            height: settingOptionLabel.implicitHeight; width: height
-                            source: visible ? "image://desktop/" + encodeURIComponent(window.state.optionIcons[index] || "preferences-system") : ""
-                            sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
+                        Shared.SettingsRow {
+                            id: terminalSettingsRow
+                            anchors.fill: parent; visible: window.state.mode === "settings"
+                            option: ({title: terminalOption.modelData,
+                                      icon: window.state.optionIcons[terminalOption.index] || "preferences-system",
+                                      subtitle: terminalOption.index < 2 ? String(window.state.fontSize) : "",
+                                      navigate: terminalOption.index === 2})
+                            colors: window.colors; fontFamily: window.fontFamily
+                            fontSize: 18; minimumHeight: 52
+                            selected: terminalOption.index === window.state.index
+                            onActivated: {
+                                while (window.state.index < terminalOption.index) controller.dispatch("down")
+                                while (window.state.index > terminalOption.index) controller.dispatch("up")
+                                controller.dispatch("accept")
+                            }
                         }
                         Text {
                             id: settingOptionLabel; font.family: window.fontFamily
+                            visible: window.state.mode !== "settings"
                             anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left
-                            anchors.leftMargin: window.state.mode === "settings" ? terminalSettingIcon.x + terminalSettingIcon.width + 12 : 12
+                            anchors.leftMargin: 12
                             width: parent.width - anchors.leftMargin - 12
                             text: parent.modelData; color: window.ink; font.pixelSize: 18
                             wrapMode: window.state.mode === "settings" ? Text.Wrap : Text.NoWrap
                         }
-                        MouseArea { anchors.fill: parent; onClicked: { while (window.state.index < index) controller.dispatch("down"); while (window.state.index > index) controller.dispatch("up"); controller.dispatch("accept") } }
+                        MouseArea { anchors.fill: parent; enabled: window.state.mode !== "settings"; onClicked: { while (window.state.index < index) controller.dispatch("down"); while (window.state.index > index) controller.dispatch("up"); controller.dispatch("accept") } }
                     }
                 }
                 Shared.InputHints {

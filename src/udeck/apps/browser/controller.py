@@ -277,7 +277,8 @@ class BrowserController(AppController):
         self.saved_menu(history)
 
     def mode_menu(self):
-        self.menu(tr(Msg.INTERACTION_MODE), [(tr(key), lambda mode=mode: self.set_mode(mode), "", icon)
+        self.menu(tr(Msg.INTERACTION_MODE), [self.setting_option(tr(key), lambda mode=mode: self.set_mode(mode), icon,
+                                                               navigate=False, current=mode == self.web_mode)
                   for key, mode, icon in ((Msg.LINK_NAVIGATION, "navigation", "insert-link"),
                                          (Msg.READING, "reading", "accessories-ebook-reader"),
                                          (Msg.VIRTUAL_POINTER, "pointer", "input-mouse"),
@@ -334,11 +335,14 @@ class BrowserController(AppController):
         self.publish()
 
     def settings_options(self):
-        return [(tr(Msg.PAGE_ZOOM_VALUE, value=f"{self.zoom:.0%}"), self.zoom_menu, "", "zoom-in"),
-                (tr(Msg.INTERACTION_MODE), self.mode_menu, "", "input-mouse")]
+        modes = {"navigation": Msg.LINK_NAVIGATION, "reading": Msg.READING,
+                 "pointer": Msg.VIRTUAL_POINTER, "text": Msg.TEXT_INPUT}
+        return [self.setting_option(tr(Msg.PAGE_ZOOM), self.zoom_menu, "zoom-in", f"{self.zoom:.0%}"),
+                self.setting_option(tr(Msg.INTERACTION_MODE), self.mode_menu, "input-mouse", tr(modes[self.web_mode]))]
 
     def zoom_menu(self):
-        self.menu(tr(Msg.PAGE_ZOOM), [(f"{z:.0%}", lambda z=z: self.set_zoom(z))
+        self.menu(tr(Msg.PAGE_ZOOM), [self.setting_option(f"{z:.0%}", lambda z=z: self.set_zoom(z), "zoom-in",
+                                                        navigate=False, current=z == self.zoom)
                                     for z in (0.8, 1, 1.25, 1.5, 2)])
 
     def set_zoom(self, value):

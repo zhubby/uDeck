@@ -814,6 +814,7 @@ class Msg(StrEnum):
     RESTORE_TO_FOLDER = "restore_to_folder"
     RESTORING_WI_FI = "restoring_wi_fi"
     RESUME = "resume"
+    RESUME_MUSIC_AFTER_VIDEO = "resume_music_after_video"
     RESUME_MUSIC_AFTER_VIDEO_VALUE = "resume_music_after_video_value"
     RESUME_USES_ANOTHER_CORE = "resume_uses_another_core"
     RESUME_VIDEO_PROMPT = "resume_video_prompt"

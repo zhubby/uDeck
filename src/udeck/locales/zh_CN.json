@@ -804,6 +804,7 @@
   "restores_automatically_after_restart": "重启后自动恢复",
   "restoring_wi_fi": "正在恢复 Wi-Fi…",
   "resume": "继续",
+  "resume_music_after_video": "视频结束后恢复音乐",
   "resume_music_after_video_value": "视频结束后恢复音乐：{value}",
   "resume_uses_another_core": "续玩需要原核心",
   "resume_video_prompt": "继续观看？",

@@ -128,7 +128,7 @@ class AppController(SoundFeedback):
         return {"app": self.app, "language": self.language, "theme": self.theme, "page": self.page,
                 "tabs": self.tabs(), "tab": self.tab, **({} if compact else {"cards": rows}), "selected": self.selected,
                 "current": self.current or {}, "filter": self.filter, "folder": self.folder,
-                "menu": {k: v for k, v in self.menus[-1].items() if k not in ("submit", "pickerParent")} if self.menus else {}, "error": self.error,
+                "menu": {k: v for k, v in self.menus[-1].items() if k not in ("submit", "pickerParent", "refresh")} if self.menus else {}, "error": self.error,
                 "notice": self.notice, "scanning": bool(self.library and self.library.pending),
                 "sourceErrors": [value for value in self.library.errors.values() if value] if self.library else [],
                 "count": len(rows), **self.extra_state()}
@@ -166,6 +166,12 @@ class AppController(SoundFeedback):
         return translate_message(key, language)
 
     def publish(self):
+        for menu in self.menus:
+            if menu.get("refresh"):
+                menu["options"] = self._menu_rows(menu["refresh"](), menu["icon"], menu["settings"], menu["options"])
+                menu["index"] = min(menu["index"], len(menu["options"]) - 1)
+                if menu["options"][menu["index"]]["disabled"]:
+                    menu["index"] = next(i for i, row in enumerate(menu["options"]) if not row["disabled"])
         self._view_rows()
         selection = (self.selected, self.selectedIndex, self._card_key)
         if selection != self._published_selection:
@@ -192,29 +198,55 @@ class AppController(SoundFeedback):
         self.error = tr(Msg.OPERATION_FAILED_ERROR, error=error)
         self.publish()
 
-    def menu(self, title, options=(), body="", owner=None, quiet=False, icon=""):
+    @staticmethod
+    def setting_option(label, callback, icon, status="", *, checked=None, navigate=True,
+                       current=False, path=False):
+        metadata = {"navigate": navigate and checked is None, "current": current, "path": path}
+        if checked is not None:
+            metadata["checked"] = checked
+        return label, callback, status, icon, metadata
+
+    def _menu_rows(self, options, icon, settings, previous=()):
+        rows = []
+        for label, callback, *detail in options:
+            if len(rows) < len(previous):
+                key = previous[len(rows)]["id"]
+            else:
+                self._serial += 1
+                key = str(self._serial)
+            self._callbacks[key] = callback
+            rows.append({"id": key, "title": label, "subtitle": detail[0] if detail else "",
+                         "icon": (detail[1] if len(detail) > 1 else icon) or ("preferences-system" if settings else ""),
+                         "disabled": callback is None, "singleLine": settings,
+                         "navigate": settings and callback is not None,
+                         **(detail[2] if len(detail) > 2 else {})})
+        if not rows or all(r["disabled"] for r in rows):
+            if len(rows) < len(previous):
+                key = previous[len(rows)]["id"]
+            else:
+                self._serial += 1
+                key = str(self._serial)
+            self._callbacks[key] = self.pop_menu
+            rows.append({"id": key, "title": tr(Msg.BACK), "subtitle": "", "icon": "go-previous" if icon or settings else "",
+                         "disabled": False, "singleLine": settings, "navigate": settings})
+        for row in previous[len(rows):]:
+            self._callbacks.pop(row["id"], None)
+        return rows
+
+    def menu(self, title, options=(), body="", owner=None, quiet=False, icon="", *, settings=None):
         if not quiet:
             self.feedback("open")
         if not icon and self.menus:
             parent = self.menus[-1]
             icon = parent["options"][parent["index"]].get("icon", "")
-        rows = []
-        for label, callback, *detail in options:
-            self._serial += 1
-            key = str(self._serial)
-            self._callbacks[key] = callback
-            rows.append({"id": key, "title": label, "subtitle": detail[0] if detail else "",
-                         "icon": detail[1] if len(detail) > 1 else icon,
-                         "disabled": callback is None})
-        if not rows or all(r["disabled"] for r in rows):
-            self._serial += 1
-            key = str(self._serial)
-            self._callbacks[key] = self.pop_menu
-            rows.append({"id": key, "title": tr(Msg.BACK), "subtitle": "", "icon": "go-previous" if icon else "", "disabled": False})
+        if settings is None:
+            settings = bool(self.menus and self.menus[-1].get("settings"))
+        refresh = options if callable(options) else None
+        rows = self._menu_rows(refresh() if refresh else options, icon, settings)
         self.menus.append({"id": rows[0]["id"], "title": title, "body": body, "options": rows,
                            "index": next(i for i, r in enumerate(rows) if not r["disabled"]),
                            "owner": owner or (self.current or {}).get("sourceId", ""),
-                           "input": False, "draft": ""})
+                           "input": False, "draft": "", "icon": icon, "settings": settings, "refresh": refresh})
         self.publish()
 
     def prompt(self, title, callback, draft="", body="", owner=None):
@@ -403,11 +435,14 @@ class AppController(SoundFeedback):
         return []
 
     def settings(self):
+        self.menu(tr(Msg.SETTINGS), self._settings_options, icon="preferences-system", settings=True)
+
+    def _settings_options(self):
         options = self.settings_options()
         if self.library:
-            options.append((tr(Msg.SOURCES), self.sources_menu, "", "folder"))
-        options.append((tr(Msg.CLOSE_APPLICATION), self.requestClose, "", "window-close"))
-        self.menu(tr(Msg.SETTINGS), options, icon="preferences-system")
+            options.append(self.setting_option(tr(Msg.SOURCES), self.sources_menu, "folder", str(len(self.library.sources))))
+        options.append(self.setting_option(tr(Msg.CLOSE_APPLICATION), self.requestClose, "window-close"))
+        return options
 
     def language_menu(self):
         self.menu(tr(Msg.LANGUAGE), [("English", lambda: self.set_language("en")),

@@ -83,7 +83,8 @@ class VideoController(MediaController):
 
     def settings_options(self):
         return [*super().settings_options(),
-                (tr(Msg.RESUME_MUSIC_AFTER_VIDEO_VALUE, value=tr(Msg.ON) if self.store.data["preferences"].get("resumeMusic") else tr(Msg.OFF)), self.toggle_resume_music, "", "media-playlist-repeat")]
+                self.setting_option(tr(Msg.RESUME_MUSIC_AFTER_VIDEO), self.toggle_resume_music,
+                                    "media-playlist-repeat", checked=bool(self.store.data["preferences"].get("resumeMusic")))]
 
     def context(self):
         if self.page == "player":
@@ -116,7 +117,7 @@ class VideoController(MediaController):
         preferences = self.store.data["preferences"]
         preferences["resumeMusic"] = not preferences.get("resumeMusic", False)
         self.persist()
-        self.pop_menu()
+        self.publish()
 
     def track_menu(self, subtitles):
         player = self.media.player
