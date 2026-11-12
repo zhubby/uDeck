@@ -28,7 +28,13 @@
     "device": "Final 0.2.4 installed; native guest CRUD / byte comparison and connection closure passed; 8 UI cases / 64 captures passed; 11 protected files and 7 original processes unchanged; temporary state removed.",
     "package_lifecycle": "Passed in a clean Debian ARM64 environment: guarded initial install, full installer with recommendations, legacy split-package migration, upgrade, reconfigure, removal and reinstall; 423 installed source files checked; existing Samba configuration and enabled state preserved.",
     "final_arm64_suite": "1519 passed, 16 warnings, no skips in 783.30 seconds; release build exited 0.",
-    "source_snapshot": "503 production/build files match the build snapshot; all 14 installed sharing backend modules match the native lifecycle-tested version."
+    "source_snapshot": "503 production/build files match the build snapshot; all 14 installed sharing backend modules match the native lifecycle-tested version.",
+    "delivery": {
+      "branch": "main",
+      "implementationCommit": "fe3965c2d23cd744a0d38d3a0326b645a1645266",
+      "liveRemoteVerified": true,
+      "postMergeRegression": "51 passed; Ruff and diff checks passed"
+    }
   },
   "advisory": [
     "Device reboot and the interactive Polkit password prompt were not exercised; service cold start and a PID-scoped temporary test rule were used.",

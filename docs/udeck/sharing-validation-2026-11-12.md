@@ -62,3 +62,7 @@
 | `udeck_0.2.4.tar.xz` | `4f8087c105585e644299a8a3b2fc31a21ec6554a4a06c79441caa2dfe9e69b91` |
 
 原始构建、包生命周期和实机记录保留在本次工作树的 `artifacts/sharing-smb/`，验证包保留在 `dist/sharing-smb-final/`。这些本地产物不纳入 Git。
+
+## main 交付
+
+实现提交 `fe3965c2d23cd744a0d38d3a0326b645a1645266` 与独立 Qt 测试修复已快进合并到实际 `main` 并正常推送；本地、追踪分支及实时远端提交一致。合并后定向回归 51 项、Ruff 和差异检查通过。
