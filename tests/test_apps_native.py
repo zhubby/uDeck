@@ -7,6 +7,51 @@ import sys
 import pytest
 
 
+def test_native_probe_wait_services_python_workers_before_the_wait_finishes():
+    code = """
+import sys
+from threading import Event, Thread
+from PySide6.QtCore import QCoreApplication, QTimer
+from apps_native_probe import wait_events
+
+application = QCoreApplication([])
+released, completed = Event(), Event()
+observed = []
+
+def work():
+    released.wait()
+    completed.set()
+
+worker = Thread(target=work)
+worker.start()
+observer = QTimer()
+observer.setInterval(10)
+
+def observe():
+    if completed.is_set():
+        observed.append(True)
+        observer.stop()
+
+observer.timeout.connect(observe)
+observer.start()
+QTimer.singleShot(0, released.set)
+previous = sys.getswitchinterval()
+try:
+    sys.setswitchinterval(1000)
+    wait_events(1000)
+finally:
+    sys.setswitchinterval(previous)
+    observer.stop()
+    released.set()
+    worker.join(timeout=1)
+assert observed == [True], observed
+"""
+    result = subprocess.run([sys.executable, "-c", code],
+                            env={**os.environ, "PYTHONPATH": os.pathsep.join(("src", "tests"))},
+                            capture_output=True, text=True, timeout=15)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
 @pytest.mark.parametrize("app", ["music", "video", "reader", "browser"])
 def test_real_engines_with_original_content_and_qml_workflows(tmp_path, app):
     if not shutil.which("ffmpeg"):

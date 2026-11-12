@@ -3,9 +3,12 @@
 import argparse
 import json
 import tempfile
+import time
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
-from PySide6.QtCore import QEvent, Qt, QUrl
+from PySide6.QtCore import QDateTime, QEvent, Qt, QUrl
 from PySide6.QtGui import QGuiApplication, QKeyEvent
 from PySide6.QtQml import QQmlApplicationEngine, QQmlEngine, QQmlExpression
 from PySide6.QtTest import QTest
@@ -26,9 +29,15 @@ def run():
     parser.add_argument("--height", type=int, default=720)
     parser.add_argument("--language", default="en")
     parser.add_argument("--theme", default="classic")
+    parser.add_argument("--clock-rollover", action="store_true")
     options = parser.parse_args()
     options.output.mkdir(parents=True, exist_ok=True)
     application = QGuiApplication([])
+    clock_patch = None
+    if options.clock_rollover:
+        clock = SimpleNamespace(now=QDateTime.fromString("2026-11-12T00:00:59Z", Qt.DateFormat.ISODate))
+        clock_patch = patch("udeck.timezone.QDateTime", SimpleNamespace(currentDateTimeUtc=lambda: clock.now))
+        clock_patch.start()
     temporary = tempfile.TemporaryDirectory(prefix="udeck-settings-")
     controller = ShellController(MockBackend(), config=ConfigStore(Path(temporary.name) / "settings.json"), mock=True)
     controller.setLanguage(options.language)
@@ -114,7 +123,14 @@ def run():
         controller.dispatch("accept")
         controller.chooseModal(next(i for i, item in enumerate(controller.modal["options"]) if item["id"] == "Asia/Tokyo"))
         capture("timezone-cities")
-        assert window.property("clockText") == controller.currentTime()
+        if options.clock_rollover:
+            clock.now = clock.now.addSecs(1)
+        deadline = time.monotonic() + 3
+        while window.property("clockText") != controller.currentTime() and time.monotonic() < deadline:
+            application.processEvents()
+            time.sleep(0.01)
+        assert window.property("clockText") == controller.currentTime(), {
+            "displayed": window.property("clockText"), "expected": controller.currentTime()}
         controller._update({"timezone": {**controller.data["timezone"], "available": False, "error": "timedated: permission denied"}})
         capture("timezone-error")
         controller.dispatch("back")
@@ -189,7 +205,8 @@ def run():
         assert controller.backend.actions == ["timezone_set"]
         assert not errors, errors
         summary = {"language": options.language, "theme": options.theme,
-                   "viewport": [options.width, options.height], "captures": captures, "qmlErrors": errors}
+                   "viewport": [options.width, options.height], "captures": captures, "qmlErrors": errors,
+                   "clock": window.property("clockText")}
         (options.output / "report.json").write_text(json.dumps(summary))
         print(json.dumps(summary))
     finally:
@@ -199,6 +216,8 @@ def run():
         controller.close()
         application.processEvents()
         temporary.cleanup()
+        if clock_patch:
+            clock_patch.stop()
 
 
 if __name__ == "__main__":

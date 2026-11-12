@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import time
 from copy import deepcopy
 
 import pytest
@@ -18,6 +19,7 @@ class HotspotManager(ProfileManager):
     def __init__(self):
         super().__init__()
         self.auto_activate = True
+        self.hotspot_activation_states = {}
         self.deny = ""
         self.next_id = 10
         for index, path in enumerate((BUILTIN, USB), 1):
@@ -40,9 +42,12 @@ class HotspotManager(ProfileManager):
             active = NM_ROOT + f"/ActiveConnection/{self.next_id}"
             old = self.devices[device]["ActiveConnection"]
             self.active.pop(old, None)
-            self.active[active] = {"Connection": profile, "Devices": [device], "State": 2 if self.auto_activate else 1}
-            self.devices[device].update(ActiveConnection=active, State=100 if self.auto_activate else 50)
             ap = self.profiles[profile]["802-11-wireless"].get("mode") == "ap"
+            state = 100 if self.auto_activate else 50
+            if ap:
+                state = self.hotspot_activation_states.get(device, state)
+            self.active[active] = {"Connection": profile, "Devices": [device], "State": 2 if state == 100 else 1}
+            self.devices[device].update(ActiveConnection=active, State=state)
             self.wireless[device].update(Mode=3 if ap else 2, ActiveAccessPoint="/")
             return [active]
         if member == "DeactivateConnection":
@@ -284,8 +289,22 @@ def test_external_replacement_is_never_stopped_by_a_stale_hotspot_request(hotspo
     asyncio.run(scenario())
 
 
-def test_start_failure_restores_the_original_wifi_and_preserves_the_other_hotspot(hotspot_backend):
+@pytest.mark.parametrize(("activation_state", "poll_delay"), [(50, 0), (50, 0.06), (120, 0)])
+def test_start_failure_restores_the_original_wifi_and_preserves_the_other_hotspot(hotspot_backend, monkeypatch, activation_state, poll_delay):
     backend, manager = hotspot_backend
+    original_sleep = asyncio.sleep
+    delayed = False
+
+    async def delayed_poll(delay, result=None):
+        nonlocal delayed
+        await original_sleep(delay)
+        if (poll_delay and not delayed and delay == backend.hotspot_poll_interval
+                and manager.devices[BUILTIN]["State"] == 50 and manager.wireless[BUILTIN]["Mode"] == 3):
+            delayed = True
+            time.sleep(poll_delay)
+        return result
+
+    monkeypatch.setattr(asyncio, "sleep", delayed_poll)
 
     async def scenario():
         backend.hotspot_poll_interval = 0.005
@@ -294,16 +313,20 @@ def test_start_failure_restores_the_original_wifi_and_preserves_the_other_hotspo
         await start(backend)
         usb = manager.devices[USB]["ActiveConnection"]
         await configure(backend, BUILTIN)
-        manager.auto_activate = False
+        manager.hotspot_activation_states[BUILTIN] = activation_state
         await backend._execute("wifi_hotspot_start", {"deviceId": BUILTIN,
                               "revision": device(backend, BUILTIN)["hotspot"]["revision"], "expectedActive": ACTIVE})
-        await asyncio.sleep(0.01)
-        manager.auto_activate = True
         await settle(backend)
         assert device(backend, BUILTIN)["hotspot"]["status"] == "failed"
         assert manager.active[manager.devices[BUILTIN]["ActiveConnection"]]["Connection"] == PROFILE
+        assert device(backend, BUILTIN)["deviceState"] == 100
+        assert device(backend, BUILTIN)["mode"] == "infrastructure"
+        assert device(backend, BUILTIN)["activeProfileUuid"] == "known"
+        assert device(backend, BUILTIN)["connected"] == "Workshop"
         assert wifi_indicators(backend.state["wifi"])[0]["kind"] == "wifi"
         assert manager.devices[USB]["ActiveConnection"] == usb
+        assert device(backend, USB)["hotspot"]["status"] == "active"
+        assert not poll_delay or delayed
     asyncio.run(scenario())
 
 

@@ -16,7 +16,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from mobi_fixture import mobi_bytes
-from PySide6.QtCore import QObject, Qt, QTimer, QUrl
+from PySide6.QtCore import QEventLoop, QObject, Qt, QTimer, QUrl
 from PySide6.QtGui import QPageSize, QPainter, QPdfWriter
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtTest import QTest
@@ -29,6 +29,12 @@ from udeck.apps.reader.controller import PdfImages
 from udeck.core import ConfigStore
 from udeck.i18n import Msg, render, tr
 from udeck.icons import IconProvider
+
+
+def wait_events(milliseconds):
+    loop = QEventLoop()
+    QTimer.singleShot(milliseconds, loop.quit)
+    loop.exec()
 
 
 def fixtures(root):
@@ -101,11 +107,11 @@ def run(app, root, language="en", width=1280, height=720):
         deadline = time.monotonic()+seconds
         while not condition() and time.monotonic()<deadline:
             qt.processEvents()
-            QTest.qWait(15)
+            wait_events(15)
         assert condition(), {"timeout": str(condition), "state": controller.snapshotJson, "qml": errors, "readerLog": getattr(controller,"reader_log",[]), "click":getattr(controller,"last_click",{}), "views": [{"url":str(v.property("url")),"canGoBack":v.property("canGoBack")} for v in window.findChildren(QObject) if v.inherits("QQuickWebEngineView")]}
     def capture(name):
         qt.processEvents()
-        QTest.qWait(120)
+        wait_events(120)
         path = root / (name + ".png")
         assert window.grabWindow().save(str(path))
     completed = []
@@ -298,7 +304,7 @@ def run(app, root, language="en", width=1280, height=720):
                 assert style["fontFamily"] == "serif"
                 assert style["contentWidth"] == 720
                 assert style["background"] == "warm" and not style["dark"]
-                QTest.qWait(100)
+                wait_events(100)
                 controller.add_bookmark()
                 assert controller.store.data["bookmarks"][item["id"]]
                 if extension in ("EPUB", "MOBI"):
@@ -395,14 +401,14 @@ def run(app, root, language="en", width=1280, height=720):
         controller.dispatch("right")
         capture("pointer")
         controller.set_mode("navigation")
-        QTest.qWait(100)
+        wait_events(100)
         controller.dispatch("down")
-        QTest.qWait(60)
+        wait_events(60)
         controller.dispatch("down")
-        QTest.qWait(60)
+        wait_events(60)
         controller.dispatch("accept")
         wait(lambda: controller.web_mode == "text")
-        QTest.qWait(100)
+        wait_events(100)
         for key in (Qt.Key.Key_A, Qt.Key.Key_B, Qt.Key.Key_X, Qt.Key.Key_Y):
             QTest.keyClick(window, key)
         QTest.keyClick(window, Qt.Key.Key_Return)
@@ -426,7 +432,7 @@ def run(app, root, language="en", width=1280, height=720):
                 wait(lambda: len(decisions) > before)
                 timer.stop()
             download(False)
-            QTest.qWait(150)
+            wait_events(150)
             assert decisions == [[]] and not (root / "downloads").exists()
             download(True)
             downloaded = root / "downloads/original-udeck.txt"

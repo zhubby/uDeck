@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -134,7 +135,10 @@ text_path.write_text("<b>Plain text, never HTML</b>\n" + "中文 English · File
 text_item = {"path": str(text_path), "name": text_path.name, "directory": False}
 
 def show_preview(path, item):
-    controller._push({**preview(path), "item": item})
+    modal = {**preview(path), "item": item}
+    if modal.get("previewType") == "image" and len(sys.argv) > 6 and sys.argv[6]:
+        modal["previewImage"] = sys.argv[6]
+    controller._push(modal)
     QTest.qWait(80)
     content = window.findChild(QObject, "dialogContent")
     assert content.property("height") + 40 <= panel.property("height") + 1
@@ -158,7 +162,12 @@ image = QImage(640, 320, QImage.Format.Format_RGB32)
 image.fill(QColor("#EDB866"))
 assert image.save(str(image_path))
 show_preview(image_path, {"path": str(image_path), "name": image_path.name, "directory": False})
-assert window.findChild(QObject, "filePreviewImage").property("implicitWidth") > 0
+preview_image = window.findChild(QObject, "filePreviewImage")
+deadline = time.monotonic() + 5
+while preview_image.property("implicitWidth") <= 0 and time.monotonic() < deadline:
+    QTest.qWait(10)
+assert preview_image.property("implicitWidth") > 0, "Image preview did not load within 5 seconds"
+assert preview_image.property("implicitHeight") > 0
 hints = window.findChild(QObject, "modalFooter").property("hints").toVariant()
 assert controller.translate(controller.messageKeys["SCROLL"], language) not in [hint["label"] for hint in hints]
 assert window.grabWindow().save(str(output / "preview-image.png"))
