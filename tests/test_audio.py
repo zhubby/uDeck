@@ -86,6 +86,53 @@ def test_microphone_enumeration_excludes_monitors_and_marks_bluetooth(audio_serv
     assert audio["inputs"][0]["volume"] == pytest.approx(0.5)
 
 
+def test_audio_subscription_ignores_query_clients_but_keeps_device_changes(monkeypatch):
+    backend = SystemBackend()
+    refreshes, launches = [], []
+    backend.schedule_refresh = refreshes.append
+    monkeypatch.setenv("LC_ALL", "zh_CN.UTF-8")
+
+    async def exercise():
+        reader = asyncio.StreamReader()
+        reader.feed_data(b"Event 'new' on client #10\nEvent 'change' on client #10\n"
+                         b"Event 'remove' on client #10\nEvent 'change' on sink #1\n"
+                         b"Event 'new' on source #2\nEvent 'remove' on card #3\n"
+                         b"Event 'change' on server #4294967295\n"
+                         b"Event 'change' on sink-input #4\nEvent 'change' on source-output #5\n"
+                         b"Event 'new' on module #6\nEvent 'remove' on sample-cache #7\n")
+        reader.feed_eof()
+
+        class Process:
+            stdout = reader
+            returncode = None
+
+            def kill(self):
+                self.returncode = -9
+
+            async def wait(self):
+                return self.returncode
+
+        process = Process()
+
+        async def launch(*arguments, **options):
+            launches.append((arguments, options))
+            return process
+
+        monkeypatch.setattr(asyncio, "create_subprocess_exec", launch)
+        await backend._watch_audio()
+        assert process.returncode == -9 and not backend.processes
+
+    try:
+        asyncio.run(exercise())
+        assert refreshes == ["audio"] * 4, refreshes
+        arguments, options = launches[0]
+        assert arguments == ("pactl", "subscribe")
+        assert options["env"]["LC_ALL"] == "C"
+        assert os.environ["LC_ALL"] == "zh_CN.UTF-8"
+    finally:
+        backend.loop.close()
+
+
 def test_bluetooth_profiles_preserve_availability_and_microphone_capability(audio_server):
     backend, _, _ = audio_server
     asyncio.run(backend.refresh_audio())

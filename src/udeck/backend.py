@@ -430,11 +430,17 @@ class SystemBackend(WifiBackend, QObject):
 
     async def _watch_audio(self):
         try:
-            process = await asyncio.create_subprocess_exec("pactl", "subscribe", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
+            process = await asyncio.create_subprocess_exec("pactl", "subscribe", stdout=asyncio.subprocess.PIPE,
+                                                           stderr=asyncio.subprocess.DEVNULL,
+                                                           env={**os.environ, "LC_ALL": "C"})
             self.processes.add(process)
             try:
-                while await process.stdout.readline():
-                    self.schedule_refresh("audio")
+                while line := await process.stdout.readline():
+                    # Each read-only pactl query creates a client. Refreshing on
+                    # those events would make our own queries trigger forever.
+                    facility = line.rsplit(b" on ", 1)[-1].split(b" #", 1)[0]
+                    if facility in (b"sink", b"source", b"card", b"server"):
+                        self.schedule_refresh("audio")
             finally:
                 if process.returncode is None:
                     process.kill()
