@@ -1,6 +1,6 @@
 {
   "date": "2026-11-12",
-  "status": "automated_validation_passed_manual_acceptance_pending",
+  "status": "test_suites_passed_configuration_guard_and_manual_acceptance_pending",
   "product_revision": "c4c1602dd686efec7ccd44be711c667538caf137",
   "probe_revision": "94b7baba2b13ff0abd1317b32f88dcf6057bdd44",
   "package": {
@@ -33,6 +33,30 @@
     }
   },
   "suites": {
+    "cm4_fixed_complete": {
+      "git_reference": "7328b00dadade7d03c3608f18ac7d877622b1ed3",
+      "product_revision": "c4c1602dd686efec7ccd44be711c667538caf137",
+      "tests": 1482,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 1482,
+      "warnings": 13,
+      "pytest_exit_code": 0,
+      "pytest_seconds": 1482.66,
+      "junit_seconds": 1482.514,
+      "runner_seconds": 1486.187651802,
+      "failed_cases": [],
+      "execution_source_files_verified": 813,
+      "execution_source_mismatches": [],
+      "environment": "CM4 Debian / Qt; offscreen/software; private XDG and D-Bus; UDECK_SESSION removed",
+      "native_terminal_required": true,
+      "individual_probe_limits_unchanged": true,
+      "raw_runner_state": "failed",
+      "guard_failure": "settings.json changed during the run; only the recent top-level field differs from the private backup",
+      "log_sha256": "92654cf91bb444241796a1d03adf62ec946aae257b82ffeb96b8210f685f0872",
+      "junit_sha256": "2bd0cbe35fb3c75d2ac328ed61fff11dde31c28de42eb16df2fb1b69559d1b16"
+    },
     "cm4_unmodified_baseline": {
       "tests": 1479,
       "failures": 7,
@@ -453,6 +477,7 @@
     }
   },
   "health": {
+    "scope": "Earlier installation and graphical-verification stage; full-suite health is recorded separately",
     "samples": 310,
     "first_time": 1794455049.515295,
     "last_time": 1794458175.1017027,
@@ -462,7 +487,62 @@
     "thermal_c_max": 38.946,
     "minimum_available_memory_kib": 2209276
   },
+  "cm4_fixed_complete_audit": {
+    "raw_configuration_guard_passed": false,
+    "protected_file_count": 11,
+    "protected_changes": [
+      {
+        "path": ".config/udeck/settings.json",
+        "top_level_keys_changed": ["recent"]
+      }
+    ],
+    "change_origin": "Unconfirmed; real-session page switching and four app launches were observed",
+    "user_history_restored_or_windows_closed": false,
+    "control_observation": {
+      "seconds": 45.00441241264343,
+      "method_counts": {"NativeInputState": 225, "Diagnose": 3},
+      "control_writes": [],
+      "test_process_group_calls_to_production_shell": 0,
+      "scope": "Only this observation window; no method arguments or keyboard text recorded"
+    },
+    "health": {
+      "samples": 99,
+      "duration_seconds": 1474.921,
+      "diagnose_error_samples": 0,
+      "service_error_samples": 0,
+      "all_services_available": true,
+      "thermal_c_min": 32.615,
+      "thermal_c_max": 37.972,
+      "shell_rss_kib_start": 246816,
+      "shell_rss_kib_end": 291560,
+      "shell_rss_kib_max": 292568,
+      "after_600_seconds": {
+        "samples": 59,
+        "rss_kib_min": 291288,
+        "rss_kib_max": 292512,
+        "rss_kib_end": 291560
+      },
+      "idle_performance_sample": false,
+      "throttled": "0x0",
+      "kernel_diagnostic_matches": []
+    },
+    "cleanup": {
+      "execution_source_files_verified": 813,
+      "execution_source_mismatches": [],
+      "installed_source_files_verified": 413,
+      "installed_source_mismatches": [],
+      "dpkg_verify_exit_code": 0,
+      "dpkg_verify_output": "",
+      "default_terminal": "/usr/bin/udeck-terminal",
+      "original_shell_browser_session_identities_preserved": true,
+      "observed_live_apps_preserved": ["Music", "Video", "Reader", "Emulator"],
+      "test_processes_remaining": [],
+      "network_test_port_8787_listening": false,
+      "recovery_package_sha256": "40e16b0f563726252b65c66371e6b5cd2f307b7459bdd62a5ecc769443a64d46"
+    }
+  },
   "cleanup": {
+    "scope": "Earlier stage before the fixed complete CM4 suite; subsequent configuration changes are recorded in cm4_fixed_complete_audit",
     "state": "passed",
     "time": 1794458180.9182687,
     "test_processes_remaining": [],
@@ -498,6 +578,15 @@
     "files": 134,
     "bytes": 4580708,
     "sha256": "43589f6a0e5fa2870502c966650d959d7bac659763187a80bec7af64eac35c43",
+    "private_backups_exported": false
+  },
+  "cm4_fixed_complete_evidence_archive": {
+    "local_file": "artifacts/device-stability-2026-11-12/cm4-final-suite-evidence.tar.gz",
+    "files": 12,
+    "bytes": 82263,
+    "sha256": "870129c2015008678f1cdce0382220cb6ff8dc355d11e4f520ce6af5d9a98c95",
+    "all_member_hashes_verified": true,
+    "previous_archive_unchanged": true,
     "private_backups_exported": false
   },
   "manual_acceptance_pending": [
