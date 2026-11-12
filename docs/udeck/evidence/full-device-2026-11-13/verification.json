@@ -1,0 +1,66 @@
+{
+  "date": "2026-11-13",
+  "sourceBase": "c897d24",
+  "installedVersion": "0.2.6",
+  "device": "uConsole CM4 / Debian 13.5 arm64 / PySide6 6.8.2.1",
+  "deviceCaseGroups": 30,
+  "caseFailures": 0,
+  "nativeBackendCase": "system-verified-final",
+  "mockLayoutCases": [
+    "home",
+    "settings",
+    "files",
+    "sharing"
+  ],
+  "arm64FullSuite": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "1554",
+    "time": "808.640",
+    "timestamp": "2026-11-12T17:32:27.510219+00:00",
+    "hostname": "261e9dcd4ef1",
+    "logSha256": "67476c417e3dba4d4994ba718da294e8501fde1763b260884b28b0ea3b60ce7b"
+  },
+  "macosFocused": {
+    "filesAndSettings": 18,
+    "finalSettingsAfterViewportFix": 9
+  },
+  "newConfirmedProductDefects": 0,
+  "testProbeSha256": {
+    "tests/files_qml_probe.py": "a220d3ca5ffe7a18bb1453d34b80913634b1e9eba5d12877538cc23717fe9875",
+    "tests/settings_qml_probe.py": "648e07ba331e8ff5dd9e6fc13485151e15cea712904aa9126ffa76808fa70328",
+    "tests/native_terminal_probe.py": "263238acf57a9f5f36aeacea78cb7f0ead5bafc144b1219d28e9c542e969e2eb",
+    "tests/terminal_ipc_probe.py": "401ff002d0818fb82e57b39275724ca0d9af103d916f36c3ac333116891f9aed",
+    "tests/system_device_probe.py": "c09b2761bef945130d28658c37570ec427093b7e8fe35ad29efc0cc3db92c35c",
+    "tests/hotspot_device_probe.py": "7d22ea7dce362ec754da75a7d67864eae47ff4209c1ac4d7b2953bd32a576c06"
+  },
+  "harnessFixes": [
+    "timer-driven-event-loop",
+    "wait-for-wayland-focus-and-size",
+    "assert-real-capture-size",
+    "render-before-geometry-inspection",
+    "pin-cli-error-language",
+    "atomic-pty-fixture-json"
+  ],
+  "preservation": {
+    "files": true,
+    "processes": true,
+    "activeNetwork": true,
+    "networkProfiles": true,
+    "serviceState": true
+  },
+  "limitations": [
+    "physical-keyboard-trackball-gamepad",
+    "in-person-audio-and-microphone",
+    "bluetooth-pairing-and-audio-device",
+    "hotspot-client-association-dhcp-and-internet",
+    "real-wifi-client-association-and-switch",
+    "reboot-logout-suspend-and-poweroff",
+    "long-duration-load-and-battery-discharge",
+    "additional-emulator-platforms-and-powder-toy",
+    "all-ui-language-theme-resolution-cross-products",
+    "desktop-polkit-authentication-dialogs"
+  ]
+}

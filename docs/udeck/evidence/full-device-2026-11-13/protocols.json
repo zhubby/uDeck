@@ -1,0 +1,16 @@
+{
+  "host": "192.168.11.59",
+  "checks": [
+    "guest-smb-list-upload-download-byte-compare-rename-delete",
+    "smb-unix-permissions-and-outside-symlink-enforced",
+    "web-upload-download-rename-and-immediate-smb-visibility",
+    "web-trash-task-completes",
+    "web-stop-closes-established-http-and-preserves-smb",
+    "smb-stop-invalidates-established-connection-and-new-connections"
+  ],
+  "client": "/opt/homebrew/bin/smbclient",
+  "privateSettings": true,
+  "passed": true,
+  "payloadBytes": 65792,
+  "payloadSha256": "120c518a83325c66464701a6ee080302f332bc768ea3f60473b209f1bfb091df"
+}

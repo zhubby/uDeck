@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "mock": false,
+  "interface": "wlan0",
+  "checks": [
+    "temporary-device-bound-wpa2-profile-saved-without-activation",
+    "real-ap-activation-confirmed-by-nm-device-mode-state-and-address",
+    "real-ap-stop-leaves-selected-adapter-disconnected",
+    "temporary-profile-removed-existing-profiles-active-connections-and-ssh-preserved"
+  ],
+  "clientConnectivityTested": false,
+  "addressCount": 1,
+  "preserved": true
+}

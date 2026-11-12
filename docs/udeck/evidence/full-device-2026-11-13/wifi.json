@@ -1,0 +1,15 @@
+{
+  "interface": "wlan0",
+  "checks": [
+    "autoconnect_persisted_and_existing_secret_preserved",
+    "autoconnect_disabled_without_activation",
+    "password_persisted_without_reconnect_or_unrelated_changes",
+    "external_update_rejected_without_overwriting_secret",
+    "exact_temporary_profile_forgotten_and_existing_profiles_preserved",
+    "idle_adapter_scan_confirmed_by_last_scan",
+    "ssh_connection_routes_and_idle_adapter_preserved"
+  ],
+  "temporaryProfileRemoved": true,
+  "adapterCount": 2,
+  "scanNetworkCount": 0
+}

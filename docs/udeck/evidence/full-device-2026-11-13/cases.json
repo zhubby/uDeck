@@ -1,0 +1,2362 @@
+[
+  {
+    "name": "baseline-home-zh_CN-classic-960",
+    "returncode": 0,
+    "seconds": 6.55,
+    "script": "tests/home_qml_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-home-zh_CN-classic-960/process.log",
+    "logSha256": "2371353795368ebd53ac415298f2fbacb2a7559d0aea1e66057645b53cd57114",
+    "stdoutReport": {
+      "tabCount": 4,
+      "shortcutCount": 7,
+      "focusRestored": true,
+      "captures": [
+        "home",
+        "home-reader",
+        "home-browser",
+        "home-settings",
+        "settings",
+        "quick-settings"
+      ],
+      "qmlErrors": []
+    },
+    "screenshots": [
+      {
+        "name": "home-browser.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "9d68bb51bee42b8142efc8fcbea333ad673ce87ca870b6336b7af46979a5eb8a"
+      },
+      {
+        "name": "home-reader.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "3e4c05e6a391e4bb1a89fbc89170bab0d105973864902bc3583c5566d76ee2a7"
+      },
+      {
+        "name": "home-settings.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "e9a6538ee96729e409f245ca8de633ca3b78861c4176274fbaafa28092949888"
+      },
+      {
+        "name": "home.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "e22cfaf618167b1edfa9d3033c79dcdbeda7a9da8ed586497e1a576848e7f39b"
+      },
+      {
+        "name": "quick-settings.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "3f2bf275f82f63a3bd785ba499d4130b432202c122fdbf2730172b6a0436d435"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "0ec260f12f63b7e47ee07aebda0c0346e3d86a0c98aa3af4f2f7d0f9fa19e088"
+      }
+    ]
+  },
+  {
+    "name": "baseline-sharing-zh_CN-classic-960",
+    "returncode": 0,
+    "seconds": 6.07,
+    "script": "tests/sharing_qml_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-sharing-zh_CN-classic-960/process.log",
+    "report": {
+      "passed": true,
+      "language": "zh_CN",
+      "theme": "classic",
+      "size": [
+        960,
+        600
+      ],
+      "warnings": []
+    },
+    "captureCount": 8,
+    "logSha256": "a8e018ea1d692fe7c7c2f81c924bc21ff7db625628c3e478185486a75f3a5b6a",
+    "screenshots": [
+      {
+        "name": "networks-scroll-end.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "d24f1633fffdf2ec729039da3b2253f64d6b2be16c15bffc902ecf7e4744f1fb"
+      },
+      {
+        "name": "sharing-return.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "f8f08314f19a4c5a893dbd1891c43c25067466b087ad22b1667ed5b6c3fda3b6"
+      },
+      {
+        "name": "sharing.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "56f920619a02b2d78e298eeff7542b7803331105c251c6c3793a6d2cdbabb325"
+      },
+      {
+        "name": "smb-applying.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "5f76c3ee9624f9537cabf5fbc8bee80d53d597ade468f2a39692c5bd0d9b6b47"
+      },
+      {
+        "name": "smb-error.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "949043e5a9f2d33f0e9b200212f6065725105ffc157002349d1245957c79794b"
+      },
+      {
+        "name": "smb-off.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "c0e765e4d242e35ef637c95ec857db45c0d70d7fe097adb89131fa60ef307bf8"
+      },
+      {
+        "name": "smb-on.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "be241f99ef4999c547dfdb7f91eeb3162ced78e47764496778be305faec03d3e"
+      },
+      {
+        "name": "web-off.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "b7ffadc7d7cedc72d160996740eb6142352ff9782bf42241ddfe6f6d7ebec0d8"
+      }
+    ]
+  },
+  {
+    "name": "settings-exact-zh_CN",
+    "returncode": 0,
+    "seconds": 12.21,
+    "script": "tests/settings_qml_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/settings-exact-zh_CN/process.log",
+    "report": {
+      "language": "zh_CN",
+      "theme": "classic",
+      "viewport": [
+        960,
+        600
+      ],
+      "qmlErrors": [],
+      "clock": "02:48"
+    },
+    "captureCount": 11,
+    "logSha256": "a2d8febaac07e79535aab45f4cde43c4dd64218f2cd59f3323f8be4f869abbd2",
+    "screenshots": [
+      {
+        "name": "key-test-exit-hold.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "1dd4e2f5530e0986e7a0b1b089a10473a953cde468a7fc9bc9b331759aba43fe"
+      },
+      {
+        "name": "key-test-idle.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "ec3029ce0958d63f9361cf8ec958f11b9571d4743b04f9959244e7e7d9798212"
+      },
+      {
+        "name": "key-test-keyboard-coverage.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "b948f0217c8aca7ae56f7c646e07472c4b93f95d0a02da5c7c9faf15ce980f97"
+      },
+      {
+        "name": "key-test-long-message.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "2848a37e6ab68789bf0c3cb12afb690767fe01ca7e2c9527ff73f3576cd20c11"
+      },
+      {
+        "name": "key-test-pressed.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "a19cc6bac146c505f61b70b024aa39aad8b4f8ae4b09e8ab04332bb655dc0570"
+      },
+      {
+        "name": "key-test-released.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "924aee10281bad00eeb7598b73900e3686e56f7eb8590442d7457bee0b7e7c8e"
+      },
+      {
+        "name": "key-test-system-controls.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "7d3918f64d58451b8fa5eef7b95b56a9d253aa328363d37596b0e59daa3b99aa"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "87d554a60367a2ce68e14d4a9ad72927a0c8a65b511dad1fd5295d8a0bcbd311"
+      },
+      {
+        "name": "timezone-cities.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "2c33add55ae7de75608e4655081e955ab833cec0b97a36242b7a21bc53ca22b4"
+      },
+      {
+        "name": "timezone-error.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "4537d1eeb2208faa6b50608ad2e2c5ce0d27b8b3e01b906b7002f2b7bcd46282"
+      },
+      {
+        "name": "timezone-regions.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "004d0873910940834b25321d924cc71280f40406d7dc42ff96823ded310df67e"
+      }
+    ]
+  },
+  {
+    "name": "verified-files-zh",
+    "returncode": 0,
+    "seconds": 6.97,
+    "script": "tests/files_qml_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/verified-files-zh/process.log",
+    "logSha256": "d1372100e92dfe3b08955948b895503084852ed993cf347be0ad40a0948edf74",
+    "stdoutReport": {
+      "theme": "classic",
+      "language": "zh_CN",
+      "size": [
+        960,
+        600
+      ],
+      "count": 11,
+      "gridHeight": 240.0,
+      "columns": 4,
+      "selectionCount": 1,
+      "qmlErrors": []
+    },
+    "screenshots": [
+      {
+        "name": "files.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "1a6aa8b16060fc037444d200d82557dbb6a72cfce1d0a1d6511eb7103fbee53b"
+      },
+      {
+        "name": "locations.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "ba7edcc352cae2aaf45a38d3c7506da69161509e8d3aa44d2ed90724123061e8"
+      },
+      {
+        "name": "menu.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "df14d1b06fede88b4fd3dc3038f90dbaf514d2918a1f344a7d7140d2411bc5d6"
+      },
+      {
+        "name": "network-access.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "6e2638224e86ccbcfe8c883a6d8f57860f4168a8191f31addac0ba59d9d383a8"
+      },
+      {
+        "name": "preview-image.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "64dd479698f353b7f9a3d204a585cda2d435ecf34f72e7e97878842a1856667a"
+      },
+      {
+        "name": "preview-text.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "b783e9d733515c990db23da67a1933cfdf8f7de95a7826117fd87581e8a811cb"
+      },
+      {
+        "name": "preview.png",
+        "size": [
+          640,
+          320
+        ],
+        "sha256": "ad0ca7b79e73a543811047b82008813f6f20d98913666445505fc158ecd2ea3c"
+      },
+      {
+        "name": "selection.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "4a5482f6c0eae0fed95a17b569df440a8e3e6f09e4e36c92bad5ce3101aede32"
+      },
+      {
+        "name": "transfer.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "0fb38ccd0f3cf3a6e37843bbe5f6b773e3d94877247681b9814d09b1ed99597a"
+      }
+    ]
+  },
+  {
+    "name": "baseline-settings-music-zh_CN-classic-960",
+    "returncode": 0,
+    "seconds": 5.66,
+    "script": "tests/app_settings_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-settings-music-zh_CN-classic-960/process.log",
+    "report": {
+      "app": "music",
+      "language": "zh_CN",
+      "theme": "classic",
+      "platform": "wayland",
+      "viewport": [
+        960,
+        600
+      ],
+      "source": "/usr/lib/python3/dist-packages/udeck",
+      "isolatedState": true,
+      "mock": false,
+      "checks": [
+        "single-line-icons-status-alignment",
+        "real-audio-output-selection-and-parent-value",
+        "last-row-visible-keyboard-back-and-callback-cleanup"
+      ],
+      "qmlErrors": [],
+      "passed": true
+    },
+    "captureCount": 3,
+    "logSha256": "05933e557424dbaa9f46f2bba5fcd690215534606531b481a147f0bc6f1fed60",
+    "screenshots": [
+      {
+        "name": "audio-output.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "3b6cab28e4c022ba1832123ddc196f9ccfc8fdfedf939846a31c69897255369f"
+      },
+      {
+        "name": "last-setting.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "86a57956f043587acc53f9aaa6d34b83e075538cc6e3c1f14cca164fde016dfd"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "1492545095dcaa6763ec3204c3b460cb0a504432d09aee465ac88010352b4000"
+      }
+    ]
+  },
+  {
+    "name": "baseline-settings-video-zh_CN-classic-960",
+    "returncode": 0,
+    "seconds": 6.34,
+    "script": "tests/app_settings_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-settings-video-zh_CN-classic-960/process.log",
+    "report": {
+      "app": "video",
+      "language": "zh_CN",
+      "theme": "classic",
+      "platform": "wayland",
+      "viewport": [
+        960,
+        600
+      ],
+      "source": "/usr/lib/python3/dist-packages/udeck",
+      "isolatedState": true,
+      "mock": false,
+      "checks": [
+        "single-line-icons-status-alignment",
+        "mouse-and-enter-toggle-retain-menu-and-selection",
+        "real-audio-output-selection-and-parent-value",
+        "last-row-visible-keyboard-back-and-callback-cleanup"
+      ],
+      "qmlErrors": [],
+      "passed": true
+    },
+    "captureCount": 4,
+    "logSha256": "b692b9f5ee0f1d643b7ba058386f324e57c2595a63e9f735b65a201dfea9717a",
+    "screenshots": [
+      {
+        "name": "audio-output.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "bc83cf6b5bcb38cffa5154470d880e1881843d90ea0bbf6f4990aa2c5711dcf9"
+      },
+      {
+        "name": "last-setting.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "86f2d0a5b4575c283311ffce4cf11018bec01e58f0fd1c3259471211e2762677"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "46fa71a9ee74b9b3f31bb713b91d5d673caa8ef36582ac38d1282312136689e1"
+      },
+      {
+        "name": "toggle-changed.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "5222af1e02201631ab7034dd2b748df53957c3bd67d2ce46851bd387a5ee3279"
+      }
+    ]
+  },
+  {
+    "name": "baseline-settings-reader-zh_CN-classic-960",
+    "returncode": 0,
+    "seconds": 9.22,
+    "script": "tests/app_settings_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-settings-reader-zh_CN-classic-960/process.log",
+    "report": {
+      "app": "reader",
+      "language": "zh_CN",
+      "theme": "classic",
+      "platform": "wayland",
+      "viewport": [
+        960,
+        600
+      ],
+      "source": "/usr/lib/python3/dist-packages/udeck",
+      "isolatedState": true,
+      "mock": false,
+      "checks": [
+        "single-line-icons-status-alignment",
+        "mouse-and-enter-toggle-retain-menu-and-selection",
+        "real-book-context-layout-values-and-content-preserved",
+        "last-row-visible-keyboard-back-and-callback-cleanup"
+      ],
+      "qmlErrors": [],
+      "passed": true
+    },
+    "captureCount": 5,
+    "logSha256": "8aa23dece4308fb40e894e95140e74f04e87c12a973e67e8e9b4f0840b04f975",
+    "screenshots": [
+      {
+        "name": "context-layout.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "4db61c48e0ae77f410462d136506eeb049d5167018d2582f14a47e0bc4f2d06c"
+      },
+      {
+        "name": "last-setting.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "11f8d64c684d9daae21c07757954bbde4b8fd543e777480e43c53f4118bf3d38"
+      },
+      {
+        "name": "layout-parent.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "781725ce988d257e96d7913fe22aa6d38ead8c462b76f22ba607661893e45e5b"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "20dfb77ea7a4b15638103c629d9b60a898f75127a43904e9c48cc3db6b70494d"
+      },
+      {
+        "name": "toggle-changed.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "fdd77d29a2c51f0e95444b4f1134854edae733a9efcc40085651736e66979b63"
+      }
+    ]
+  },
+  {
+    "name": "baseline-settings-browser-zh_CN-classic-960",
+    "returncode": 0,
+    "seconds": 8.32,
+    "script": "tests/app_settings_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-settings-browser-zh_CN-classic-960/process.log",
+    "report": {
+      "app": "browser",
+      "language": "zh_CN",
+      "theme": "classic",
+      "platform": "wayland",
+      "viewport": [
+        960,
+        600
+      ],
+      "source": "/usr/lib/python3/dist-packages/udeck",
+      "isolatedState": true,
+      "mock": false,
+      "checks": [
+        "single-line-icons-status-alignment",
+        "native-webengine-zoom-and-context-mode-marker",
+        "last-row-visible-keyboard-back-and-callback-cleanup"
+      ],
+      "qmlErrors": [],
+      "passed": true
+    },
+    "captureCount": 4,
+    "logSha256": "8183489a556bc9a06a61bf8445f05ba625dc06f21307090ac8f67c7e86648612",
+    "screenshots": [
+      {
+        "name": "context-mode.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "7016d69afb0fe3793ebadcf86f34992bce1fe436463bf78a64f9daa4205d2852"
+      },
+      {
+        "name": "last-setting.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "2c31059bf9927606d1920fd9fb45e394a7d7b61c00ffa893d5677ebe51eadc42"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "19815bf62bc743fae04860b14c7ba4b8a76673828336647452ee5fe1221e8880"
+      },
+      {
+        "name": "zoom-parent.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "be53906ee64ecfa22f6c180f884d1dcbe5615e05435d06e2449341cbe6e04570"
+      }
+    ]
+  },
+  {
+    "name": "baseline-settings-emulator-zh_CN-classic-960",
+    "returncode": 0,
+    "seconds": 7.35,
+    "script": "tests/app_settings_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-settings-emulator-zh_CN-classic-960/process.log",
+    "report": {
+      "app": "emulator",
+      "language": "zh_CN",
+      "theme": "classic",
+      "platform": "wayland",
+      "viewport": [
+        960,
+        600
+      ],
+      "source": "/usr/lib/python3/dist-packages/udeck",
+      "isolatedState": true,
+      "mock": false,
+      "checks": [
+        "single-line-icons-status-alignment",
+        "installed-native-core-shortcut-switch-round-trip",
+        "last-row-visible-keyboard-back-and-callback-cleanup"
+      ],
+      "qmlErrors": [],
+      "passed": true
+    },
+    "captureCount": 4,
+    "logSha256": "0e970358f40ef4415f0e264f8b0e117ae34d452a29b0a0fc9266cd4d406f7ca5",
+    "screenshots": [
+      {
+        "name": "core-toggled.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "45721fefe1de358cb9445257db40eb225995700d910d1c25e37216f4ff996faa"
+      },
+      {
+        "name": "last-setting.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "b2e4af9008de5c3f01dd8704c49461e4a2e990cb2f2928a4c33fde313f8980c5"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "cc446b82843eaf778516cf6a70852788a219fee85ce3b1bd44a23d863079b9b6"
+      },
+      {
+        "name": "shortcut-core.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "5bcbbe7f8334e95d5ef65aea4da0a7bff7dffe69b533d00dd5bea334568be141"
+      }
+    ]
+  },
+  {
+    "name": "baseline-settings-terminal-zh_CN-classic-960",
+    "returncode": 0,
+    "seconds": 6.25,
+    "script": "tests/app_settings_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-settings-terminal-zh_CN-classic-960/process.log",
+    "report": {
+      "app": "terminal",
+      "language": "zh_CN",
+      "theme": "classic",
+      "platform": "wayland",
+      "viewport": [
+        960,
+        600
+      ],
+      "source": "/usr/lib/python3/dist-packages/udeck",
+      "isolatedState": true,
+      "mock": false,
+      "checks": [
+        "single-line-icons-status-alignment",
+        "native-pty-preserved-across-settings-and-font-changes"
+      ],
+      "ptyPid": 2921769,
+      "qmlErrors": [],
+      "passed": true
+    },
+    "captureCount": 2,
+    "logSha256": "069409563c190c9d50ace4539932233835565c3ab44729272adb7760006c3819",
+    "screenshots": [
+      {
+        "name": "font-increased.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "ffec226d4266a8441a8a2743fc62ad778eb82df19b4022b9712610f0ad122b07"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "52021f472ba1890016d9c6f40fecac1dfc6b4e9cf9e3dd176c2eed936761fd7e"
+      }
+    ]
+  },
+  {
+    "name": "baseline-home-en-dark-1280",
+    "returncode": 0,
+    "seconds": 7.12,
+    "script": "tests/home_qml_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-home-en-dark-1280/process.log",
+    "logSha256": "b4f45287a7fd92a69c9feeefe13c6f2b9b92d355617342027982042ecc3cef4c",
+    "stdoutReport": {
+      "tabCount": 4,
+      "shortcutCount": 7,
+      "focusRestored": true,
+      "captures": [
+        "home",
+        "home-reader",
+        "home-browser",
+        "home-settings",
+        "settings",
+        "quick-settings"
+      ],
+      "qmlErrors": []
+    },
+    "screenshots": [
+      {
+        "name": "home-browser.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "b16c57c97f5fbcb8b7b0a0613939c93b20e984589c61f3f18261ba86d5220dc4"
+      },
+      {
+        "name": "home-reader.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "492a8481799ce8b7d887d70c053636a44ea992330fe305abc0de1876ecdd2173"
+      },
+      {
+        "name": "home-settings.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "df33d4e87326bfd4b19c9329a6b8b6076b75dbff2a496fc671e6433231501f28"
+      },
+      {
+        "name": "home.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "5d7521bd3e4e6bd18b018d3ca42facbfe3f740fdfae428aa120d118b1e244498"
+      },
+      {
+        "name": "quick-settings.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "4a7fde93d28cc90682e01445ee073988003303ca7aca248037ec1c11b281fe26"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "358373ba94bbe9019d70d1b7bc15eb0ea25059ff3b74ddf130a05b42993211ce"
+      }
+    ]
+  },
+  {
+    "name": "baseline-sharing-en-dark-1280",
+    "returncode": 0,
+    "seconds": 6.41,
+    "script": "tests/sharing_qml_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-sharing-en-dark-1280/process.log",
+    "report": {
+      "passed": true,
+      "language": "en",
+      "theme": "dark",
+      "size": [
+        1280,
+        720
+      ],
+      "warnings": []
+    },
+    "captureCount": 8,
+    "logSha256": "b8e47fa86cb5b05fca713a38dabfce67a47e30f672b6bf5a1302f196a1dfee8f",
+    "screenshots": [
+      {
+        "name": "networks-scroll-end.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "a0a3a5db1ffb60e4f6c6b3aea095624d53380e2c7d69a6f70ed5891e0cb41e18"
+      },
+      {
+        "name": "sharing-return.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "20bedeced253d341c1eba7c71b2fd4854eef73bba218435b34cd37e5a6ef382c"
+      },
+      {
+        "name": "sharing.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "7633e19417948776caaaf0ca0d5b8d647c1e2e8aa0f59c10f06a50231dfd736f"
+      },
+      {
+        "name": "smb-applying.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "ee0a0ccecf463515ae276edf818f8dadda5896b5c8245a468c616bda08d0514a"
+      },
+      {
+        "name": "smb-error.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "b64f994f309bac97f341c446aac7ec3f636c4e74039eb0aaccd0000513121f19"
+      },
+      {
+        "name": "smb-off.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "99c2d927b58016ea7508e6dc64259c9529f5820647f60f4e5cda0917f4b8a299"
+      },
+      {
+        "name": "smb-on.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "3289d9e29e418773ca2438ed24d786da95009d5a3f1e0280ef54ea90e13f0f9b"
+      },
+      {
+        "name": "web-off.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "f649e9065db13f065ed1a970980c0893485a288c713c34c47753324c7491e278"
+      }
+    ]
+  },
+  {
+    "name": "settings-exact-en",
+    "returncode": 0,
+    "seconds": 12.88,
+    "script": "tests/settings_qml_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/settings-exact-en/process.log",
+    "report": {
+      "language": "en",
+      "theme": "dark",
+      "viewport": [
+        1280,
+        720
+      ],
+      "qmlErrors": [],
+      "clock": "02:49"
+    },
+    "captureCount": 11,
+    "logSha256": "01bd5d589894cdf0f6389b7832f6bcbffb72a50b6fb86ebd2b84f774ee543a3c",
+    "screenshots": [
+      {
+        "name": "key-test-exit-hold.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "e68e4d53d29fff1507ece3a519bd16ea3dc8a4935b24d9b6e27d2d21f2370c44"
+      },
+      {
+        "name": "key-test-idle.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "ad50f47f5c1fdcbcd5ffae70566e65069b70fc2080509d6cf7ffcb3f6252fe83"
+      },
+      {
+        "name": "key-test-keyboard-coverage.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "45b040b3de94c6b16d8e8de971a5f6c7061251279f165e59a9b0265e01538bec"
+      },
+      {
+        "name": "key-test-long-message.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "380f400a20e301ee3370c6148bdd581c5eee5037baaf39e2429d438220d4cdb3"
+      },
+      {
+        "name": "key-test-pressed.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "7a57ec8bbc676cf742428cddde4087cf7e36dc4cdec4e330c170d91ffdd24cf6"
+      },
+      {
+        "name": "key-test-released.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "a48d1f888b07eda79adbc4cbaf0f8391e907ee3d35a1710057e5b749ff17d6af"
+      },
+      {
+        "name": "key-test-system-controls.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "c5e0038ec6e819b6a63af2da6ddf9f941b92d6e6c6a427678153cc7714741c24"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "5326a4402f5f80d3ad1a261fb4566cb815bba5ef9a22be9a615d8ff76845b2c4"
+      },
+      {
+        "name": "timezone-cities.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "9826903e01223e13d22fb601d3caf00df4111c6193927d5bd189bb1ef4a56e50"
+      },
+      {
+        "name": "timezone-error.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "2f184e3cac029be18eaa3af876b415a05ed444583ecd35382f92baf2d2db7ab9"
+      },
+      {
+        "name": "timezone-regions.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "f00ecb138ca4e7ef38a13ea59a7889487f9fcbd9350d47f046c94063f0a3f758"
+      }
+    ]
+  },
+  {
+    "name": "verified-files-en",
+    "returncode": 0,
+    "seconds": 6.8,
+    "script": "tests/files_qml_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/verified-files-en/process.log",
+    "logSha256": "aed4eef15dc264ed619192ac113ae1a3c26c3c489a54f9f84cece9664d8960c7",
+    "stdoutReport": {
+      "theme": "dark",
+      "language": "en",
+      "size": [
+        1280,
+        720
+      ],
+      "count": 11,
+      "gridHeight": 328.0,
+      "columns": 5,
+      "selectionCount": 1,
+      "qmlErrors": []
+    },
+    "screenshots": [
+      {
+        "name": "files.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "655f6ca3cf996ead30b999f14203b9ebe776cf033647de36ba2ac030fa4da77e"
+      },
+      {
+        "name": "locations.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "432d16ebbb2f3d3b036705e7e05a353c71c62288620f381c7eaee208dff96eb0"
+      },
+      {
+        "name": "menu.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "eed2c1cfbb7de8abc4c8a598e8cd415630023daf7fced491a19bba52fdc01caa"
+      },
+      {
+        "name": "network-access.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "82ad67de21a689eddb892998b2e9fd1f8359b56df6cbd450b1f217d07904e532"
+      },
+      {
+        "name": "preview-image.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "c82b61b627dc5dca56b67b08a76a35036341e32086b4bdfea1adf092db26de6e"
+      },
+      {
+        "name": "preview-text.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "a868b73058c1813e3355ba8009bdd3032d1542c6204238cff243ae99e206a5eb"
+      },
+      {
+        "name": "preview.png",
+        "size": [
+          640,
+          320
+        ],
+        "sha256": "ad0ca7b79e73a543811047b82008813f6f20d98913666445505fc158ecd2ea3c"
+      },
+      {
+        "name": "selection.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "c6cda5cc5a1ab819bbebd9a6f3c6db121018e48825847fa3226685853bd1aff5"
+      },
+      {
+        "name": "transfer.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "307858e44297695d008aed44f7abebc14ed4bee3c344c8370e598a159ae2e9f1"
+      }
+    ]
+  },
+  {
+    "name": "baseline-settings-music-en-dark-1280",
+    "returncode": 0,
+    "seconds": 5.74,
+    "script": "tests/app_settings_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-settings-music-en-dark-1280/process.log",
+    "report": {
+      "app": "music",
+      "language": "en",
+      "theme": "dark",
+      "platform": "wayland",
+      "viewport": [
+        1280,
+        720
+      ],
+      "source": "/usr/lib/python3/dist-packages/udeck",
+      "isolatedState": true,
+      "mock": false,
+      "checks": [
+        "single-line-icons-status-alignment",
+        "real-audio-output-selection-and-parent-value",
+        "last-row-visible-keyboard-back-and-callback-cleanup"
+      ],
+      "qmlErrors": [],
+      "passed": true
+    },
+    "captureCount": 3,
+    "logSha256": "50f0fbbb90daf3eb056900c2eeb3c62ddef21f0e8a12ae03464aecfb0d6bd798",
+    "screenshots": [
+      {
+        "name": "audio-output.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "ab6046d8ae5c4631b075c15f7f524e5beda1d48082c30c85f38ead0058a4f555"
+      },
+      {
+        "name": "last-setting.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "93d0d909b46764959ddd3a7f29f748e9c711bda406ad9b82a711f01c6d80a608"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "120b6d143dedcdc51047f358a81fdd41bb8ae0bc05f1b98a8710d1d6d0f6e472"
+      }
+    ]
+  },
+  {
+    "name": "baseline-settings-video-en-dark-1280",
+    "returncode": 0,
+    "seconds": 6.44,
+    "script": "tests/app_settings_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-settings-video-en-dark-1280/process.log",
+    "report": {
+      "app": "video",
+      "language": "en",
+      "theme": "dark",
+      "platform": "wayland",
+      "viewport": [
+        1280,
+        720
+      ],
+      "source": "/usr/lib/python3/dist-packages/udeck",
+      "isolatedState": true,
+      "mock": false,
+      "checks": [
+        "single-line-icons-status-alignment",
+        "mouse-and-enter-toggle-retain-menu-and-selection",
+        "real-audio-output-selection-and-parent-value",
+        "last-row-visible-keyboard-back-and-callback-cleanup"
+      ],
+      "qmlErrors": [],
+      "passed": true
+    },
+    "captureCount": 4,
+    "logSha256": "0f2cd69073bc5d077f2d2cadb1f0955524d28f4b4a6eac0e36d7249342d01f46",
+    "screenshots": [
+      {
+        "name": "audio-output.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "3b1e7187b86b7ae6972755d9d8f98b9dc36cefffc02a5fd62ad6d789176cea8f"
+      },
+      {
+        "name": "last-setting.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "25e4c2e3d42f3e0d65a813e962d8fa2ff2116dc92e5ea0b69e063490314bb652"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "31d040b67d4428a3077db4c0036028306e3725e136fb1147fc6c3a5898dc00c2"
+      },
+      {
+        "name": "toggle-changed.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "87764f63608a6b648977d2b4423494246bea0d970ebfba01c3365db5acd7a609"
+      }
+    ]
+  },
+  {
+    "name": "baseline-settings-reader-en-dark-1280",
+    "returncode": 0,
+    "seconds": 9.8,
+    "script": "tests/app_settings_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-settings-reader-en-dark-1280/process.log",
+    "report": {
+      "app": "reader",
+      "language": "en",
+      "theme": "dark",
+      "platform": "wayland",
+      "viewport": [
+        1280,
+        720
+      ],
+      "source": "/usr/lib/python3/dist-packages/udeck",
+      "isolatedState": true,
+      "mock": false,
+      "checks": [
+        "single-line-icons-status-alignment",
+        "mouse-and-enter-toggle-retain-menu-and-selection",
+        "real-book-context-layout-values-and-content-preserved",
+        "last-row-visible-keyboard-back-and-callback-cleanup"
+      ],
+      "qmlErrors": [],
+      "passed": true
+    },
+    "captureCount": 5,
+    "logSha256": "6c4749bc6ac04202d9c426576a64af30a6c78e5aab3230ceaf81029186049988",
+    "screenshots": [
+      {
+        "name": "context-layout.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "7f17a0af087def19d88cf5f0a96b995fdd06f15e9c128e1484f0b8dba9032aea"
+      },
+      {
+        "name": "last-setting.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "61e8a7cc9105007a808a7449cefbe3e0c5687641c9c21a0c68c53a1248bfc7fc"
+      },
+      {
+        "name": "layout-parent.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "5659227fefc1cffcfcc84d43c40db6424e1012d48ddf2668b56166cc0947c192"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "e7dd49a2f3f3db6dcfeb3a45ec95d0dce7bf17d3a3beb4f6476e97e628cdb1bd"
+      },
+      {
+        "name": "toggle-changed.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "50e47eb3b9797b2c932bf05ae26c922ce19e01000683e4cf3f82e21bd3172991"
+      }
+    ]
+  },
+  {
+    "name": "baseline-settings-browser-en-dark-1280",
+    "returncode": 0,
+    "seconds": 8.25,
+    "script": "tests/app_settings_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-settings-browser-en-dark-1280/process.log",
+    "report": {
+      "app": "browser",
+      "language": "en",
+      "theme": "dark",
+      "platform": "wayland",
+      "viewport": [
+        1280,
+        720
+      ],
+      "source": "/usr/lib/python3/dist-packages/udeck",
+      "isolatedState": true,
+      "mock": false,
+      "checks": [
+        "single-line-icons-status-alignment",
+        "native-webengine-zoom-and-context-mode-marker",
+        "last-row-visible-keyboard-back-and-callback-cleanup"
+      ],
+      "qmlErrors": [],
+      "passed": true
+    },
+    "captureCount": 4,
+    "logSha256": "325ae28019ee6edcadb39903638a9d568bdc8e26419db32b93f4fd3c799cfd96",
+    "screenshots": [
+      {
+        "name": "context-mode.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "2a3d8cffd601bc89e7570e17f8c75cc9d427f760336934ab2c3e079131003954"
+      },
+      {
+        "name": "last-setting.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "b281506e7be99de83840aca4fba4e13993d600ef6ccfcb4fea1a725db99007e6"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "ce433b0cd1b7ce496954cadc8f0fc0eaa48d1950e3209b9ec0c5002f3af03c56"
+      },
+      {
+        "name": "zoom-parent.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "6eb803488c8128c32483ad383cac00e4e1a2542737b1654a8dfa329f3e2fb98e"
+      }
+    ]
+  },
+  {
+    "name": "baseline-settings-emulator-en-dark-1280",
+    "returncode": 0,
+    "seconds": 7.55,
+    "script": "tests/app_settings_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-settings-emulator-en-dark-1280/process.log",
+    "report": {
+      "app": "emulator",
+      "language": "en",
+      "theme": "dark",
+      "platform": "wayland",
+      "viewport": [
+        1280,
+        720
+      ],
+      "source": "/usr/lib/python3/dist-packages/udeck",
+      "isolatedState": true,
+      "mock": false,
+      "checks": [
+        "single-line-icons-status-alignment",
+        "installed-native-core-shortcut-switch-round-trip",
+        "last-row-visible-keyboard-back-and-callback-cleanup"
+      ],
+      "qmlErrors": [],
+      "passed": true
+    },
+    "captureCount": 4,
+    "logSha256": "51cc4a128c1cec2150c7a575eef3af9493e0006c69780044463d54fcd10114fe",
+    "screenshots": [
+      {
+        "name": "core-toggled.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "e960a4c30516326064b0251584150cf92d953d973b93dba0048bbfbec3ba0fa6"
+      },
+      {
+        "name": "last-setting.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "10eb8340020fbf91532512d6822ab95d480d420bcdb417991c4ba0886e5a31e0"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "80c1b8a1ccc82549033e7608cff0decb1b921e9c7a130bd8800ef67dd1d8cb2d"
+      },
+      {
+        "name": "shortcut-core.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "80cf7e3a7c59e2b1407c8dc84711083501af6bc171b6a5459616c6c96dd4bf57"
+      }
+    ]
+  },
+  {
+    "name": "baseline-settings-terminal-en-dark-1280",
+    "returncode": 0,
+    "seconds": 5.99,
+    "script": "tests/app_settings_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-settings-terminal-en-dark-1280/process.log",
+    "report": {
+      "app": "terminal",
+      "language": "en",
+      "theme": "dark",
+      "platform": "wayland",
+      "viewport": [
+        1280,
+        720
+      ],
+      "source": "/usr/lib/python3/dist-packages/udeck",
+      "isolatedState": true,
+      "mock": false,
+      "checks": [
+        "single-line-icons-status-alignment",
+        "native-pty-preserved-across-settings-and-font-changes"
+      ],
+      "ptyPid": 2922973,
+      "qmlErrors": [],
+      "passed": true
+    },
+    "captureCount": 2,
+    "logSha256": "e0bc91498ef73e0883ff2b19d3d95f77d56c7d44803771a0c70f25161f9d71fb",
+    "screenshots": [
+      {
+        "name": "font-increased.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "da2cd2f82e2c83494393c5fc5d48d8c206bf66010bcb6056bdda376c1e065e8c"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "eca843a0978419476dccd832fe5b53336879244cfea4d528536b446aefafd27f"
+      }
+    ]
+  },
+  {
+    "name": "baseline-native-music",
+    "returncode": 0,
+    "seconds": 13.18,
+    "script": "tests/apps_native_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-native-music/process.log",
+    "logSha256": "9c4d954b4bd364929ff79260cdf580654a56b8be9d0078fa346eac26e07243cc",
+    "stdoutReport": {
+      "app": "music",
+      "checks": [
+        "music-video-pause-ownership",
+        "real-flac-playback",
+        "seek",
+        "background-browsing",
+        "refresh-keeps-session",
+        "observed-audio-device-selection",
+        "real-end-of-file-queue-transition",
+        "real-mp3-aac-wav-playback",
+        "language-preserves-playback-and-draft",
+        "global-theme-preserves-native-content"
+      ],
+      "qmlErrors": []
+    },
+    "screenshots": [
+      {
+        "name": "final.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "6d430fbd472dbd9e63098b0c1170ffc4c34e4ea5f11ea0db84e58f710e4a68ed"
+      },
+      {
+        "name": "library.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "ee643aa39e89ff4f7909bcd7e6abea332824bca806615a8eab952373e2603f1a"
+      },
+      {
+        "name": "playing.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "fa3d075b11168a4302018f66c60c7940a20bd4b6a630723db5ee851c00baca93"
+      },
+      {
+        "name": "settings.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "2ffbe8ce03cc108b51b62c6aaeb2111cc067e3d23181785362188525f6b34ced"
+      },
+      {
+        "name": "theme-classic.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "760896c4cd2d80695d37a04e1a1f784200dc1cdc49736f7b0da1229a6bb99856"
+      },
+      {
+        "name": "theme-dark.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "cfe8dba17991726e84a315f6e69b7b9bbe69b6552a53f397c3815d98110f861a"
+      }
+    ]
+  },
+  {
+    "name": "baseline-native-reader",
+    "returncode": 0,
+    "seconds": 19.62,
+    "script": "tests/apps_native_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-native-reader/process.log",
+    "logSha256": "d7871235ac737871b66489078efbfee2beb6fc3273650be045c873a9046acfcc",
+    "stdoutReport": {
+      "app": "reader",
+      "checks": [
+        "direct-open-keeps-last-pdf-position-and-closes-old-menus",
+        "real-txt-read-search-position",
+        "real-epub-read-search-position",
+        "real-mobi-read-search-position",
+        "real-pdf-read-search-position",
+        "malformed-epub-is-recoverable-and-preserves-last-position",
+        "global-theme-preserves-native-content",
+        "source-removal-closes-document-and-owned-menu"
+      ],
+      "qmlErrors": []
+    },
+    "screenshots": [
+      {
+        "name": "epub-reading.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "bc5a3a8dbe9c7771501b6859f5deec2ca830bfbc7b5ad58d032445bc5bd5d79a"
+      },
+      {
+        "name": "epub-search.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "cd88fa74b3e69983d384665111d852449fa9f9ac7a8f90a5561d6bcd2e41e47c"
+      },
+      {
+        "name": "final.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "74f26e95578764a5da764869621e2fb89946c4c42507b98a376aa6314c664c35"
+      },
+      {
+        "name": "library.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "1c7227f06ee89c86eb42b5890c59da64274cf9d079f67c13247660835ceabb14"
+      },
+      {
+        "name": "mobi-reading.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "6006b2f7865ba4a4aad3fd26ea4a3c8bc7a59bec5802f136620857076123672e"
+      },
+      {
+        "name": "mobi-search.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "9ea1140b8a639d5c94f29b24c8f7c1df7c8a841095ffe64b42fb4642309ab981"
+      },
+      {
+        "name": "pdf-search-highlight.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "d6952f47350fb76038ecd8d295894dc89b461696a497ec63ae136a78825f809a"
+      },
+      {
+        "name": "pdf-zoom.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "b7533b01fa61c5973e04009ef3489125d49491280b2525b8fa9e6d9c61d7a0d6"
+      },
+      {
+        "name": "theme-classic.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "567d05b9542709aebdf4fe1aec023eb3c4e4a6a61ea51a1aa0a9f0bb73025a8a"
+      },
+      {
+        "name": "theme-dark.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "a4a06936491f7a1f03bcaa6dc53ea893a3044be49b101df3e16ac6a4e18b96e4"
+      },
+      {
+        "name": "txt-reading.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "b233b389a0b7ade275e44f7b188ee5bffae54ff2b391d3e2c61c4d70664dceaf"
+      },
+      {
+        "name": "txt-search.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "844bbffdeec5fa756df556633c7b2f98c0efc84c9a2c3eed0d5a0f84652341f6"
+      }
+    ]
+  },
+  {
+    "name": "baseline-native-browser",
+    "returncode": 0,
+    "seconds": 12.63,
+    "script": "tests/apps_native_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-native-browser/process.log",
+    "logSha256": "fae439d52c3c557ad4f23c21aebc49055e640cd2640c584c781a41ecabd122f2",
+    "stdoutReport": {
+      "app": "browser",
+      "checks": [
+        "real-form-text-keeps-ordinary-abxy-letters",
+        "real-download-cancel-writes-nothing",
+        "real-download-consent-and-original-bytes",
+        "repeated-download-preserves-existing-file",
+        "global-theme-preserves-native-content",
+        "real-http-page",
+        "link-navigation",
+        "tabs-retain-history",
+        "reading-extraction",
+        "virtual-pointer",
+        "last-tab-replacement",
+        "history-bookmarks"
+      ],
+      "qmlErrors": []
+    },
+    "screenshots": [
+      {
+        "name": "download-cancel.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "a94283663a41107911c85cc91b16e515217a9b2d1cf4b1d399426f9977570b6d"
+      },
+      {
+        "name": "download-confirm.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "fcfea4f9ce45123202d7eb17f4e2d77c1f45e8e185090e6f64e2541634d4d6dd"
+      },
+      {
+        "name": "final.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "14317912096d27326075ff9b19f1ccd495b6cf51d0669fce5ef6818aa1560105"
+      },
+      {
+        "name": "page.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "812d9660a454e41ab6b1997b47e5b2b763e2959959df173301761f826a279fbc"
+      },
+      {
+        "name": "pointer.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "d6f0fc9adc7693acbf64622c4c8055e4e77073c6c1b6a4966a1e52ea30f6f23c"
+      },
+      {
+        "name": "reading.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "87c0bf47f11c2f78ab24bfb9cadef779da34e5f00e6fbbe76ef6d9fef731a79c"
+      },
+      {
+        "name": "theme-classic.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "085b61e4c2651e166715277c887ec688e84a806ecb570bcb7ed3bc2f4fc03c29"
+      },
+      {
+        "name": "theme-dark.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "27c28b60befe62460578621f2c22e41dd1ac699ef0299ac46bd001c9022723da"
+      }
+    ]
+  },
+  {
+    "name": "baseline-native-video",
+    "returncode": 0,
+    "seconds": 13.22,
+    "script": "tests/apps_native_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-native-video/process.log",
+    "logSha256": "377e27f3e95ba5ef97edb4ab528fcfc46ce08395cb0b33af2013d36065a0eec3",
+    "stdoutReport": {
+      "app": "video",
+      "checks": [
+        "embedded-captions-visible-in-window",
+        "external-srt-survives-hidden-controls",
+        "real-video-frames",
+        "embedded-subtitle-track",
+        "seek",
+        "pause-and-save",
+        "confirmed-resume",
+        "global-theme-preserves-native-content",
+        "end-of-video-reveals-controls-and-replay-clears-message"
+      ],
+      "qmlErrors": []
+    },
+    "screenshots": [
+      {
+        "name": "embedded-captions.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "148480b3d237506fee32c6db1e4873746f1a0f7850ea8d69df856f44119fbdda"
+      },
+      {
+        "name": "external-captions.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "41c8ddaf8e74b9476ea2d930f119ea5522b11624b785d7f4d76af35c4f9a812b"
+      },
+      {
+        "name": "final.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "96c55de5e0cfea98a14d690bb12da972e034840e234aee4030b8387620125026"
+      },
+      {
+        "name": "library.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "37b5431c2a139fb730523fe2f82ce284ad72486e0ea27f510e56f0eeb18cb4b3"
+      },
+      {
+        "name": "playing.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "25df93412b2768a2b404bd18d042a2edbe05730712b6813b9dc5eee267fe7e20"
+      },
+      {
+        "name": "resume.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "0aae16091b0920075e80354542db9fa39ce54e7cc3d518cf228a4b4d21f5c080"
+      },
+      {
+        "name": "subtitles.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "382bd6b82df76dc301315675210fc2f826d88b90b6e8878049d4248dc8421a28"
+      },
+      {
+        "name": "theme-classic.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "41c8ddaf8e74b9476ea2d930f119ea5522b11624b785d7f4d76af35c4f9a812b"
+      },
+      {
+        "name": "theme-dark.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "41c8ddaf8e74b9476ea2d930f119ea5522b11624b785d7f4d76af35c4f9a812b"
+      }
+    ]
+  },
+  {
+    "name": "baseline-games",
+    "returncode": 0,
+    "seconds": 30.65,
+    "script": "tests/games_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-games/process.log",
+    "report": {
+      "reports": [
+        {
+          "platform": "gb",
+          "core": "gambatte",
+          "stateBytes": 26672,
+          "saveDirectory": "/var/tmp/udeck-full-validation-20261113/cases/baseline-games/state/emulator-saves/763f3b7b97bae83c70b80f24ebd00e3bfdcc040771fed4aeeab337835b613e38/cores/gambatte/c4cb6e98617dffcdc7ec275cb638052a96ab74e65188045d22f428a571df33b8",
+          "sramDirectory": "/var/tmp/udeck-full-validation-20261113/cases/baseline-games/state/emulator-saves/763f3b7b97bae83c70b80f24ebd00e3bfdcc040771fed4aeeab337835b613e38/cores/gambatte/sram",
+          "thumbnail": true,
+          "checks": [
+            "launch",
+            "settings-preserve-pid",
+            "pause",
+            "save",
+            "load",
+            "save-return",
+            "restore-disabled-core",
+            "resume-after-restart"
+          ]
+        },
+        {
+          "platform": "nes",
+          "core": "nestopia",
+          "stateBytes": 5096,
+          "saveDirectory": "/var/tmp/udeck-full-validation-20261113/cases/baseline-games/state/emulator-saves/80d55a0ca254f65e513ccd1a396023b1e4cc8855dca02e5db8f20d01acee1d39/cores/nestopia/250f0a134062aea0977b99861d20cba6e0a015835ef61ebf084566bcec92085f",
+          "sramDirectory": "/var/tmp/udeck-full-validation-20261113/cases/baseline-games/state/emulator-saves/80d55a0ca254f65e513ccd1a396023b1e4cc8855dca02e5db8f20d01acee1d39/cores/nestopia/sram",
+          "thumbnail": true,
+          "checks": [
+            "launch",
+            "settings-preserve-pid",
+            "pause",
+            "save",
+            "load",
+            "save-return",
+            "restore-disabled-core",
+            "resume-after-restart"
+          ]
+        },
+        {
+          "platform": "gba",
+          "core": "mgba",
+          "stateBytes": 528472,
+          "saveDirectory": "/var/tmp/udeck-full-validation-20261113/cases/baseline-games/state/emulator-saves/956ad8d930407627fb926fcd688bfcb5726b19bf195bed38232b88e1d65b850c/cores/mgba/196b8d10a7bf3b446641b6eb3cd5114868b7cf77490b346c41dc56735b4278e1",
+          "sramDirectory": "/var/tmp/udeck-full-validation-20261113/cases/baseline-games/state/emulator-saves/956ad8d930407627fb926fcd688bfcb5726b19bf195bed38232b88e1d65b850c/cores/mgba/sram",
+          "thumbnail": true,
+          "checks": [
+            "launch",
+            "settings-preserve-pid",
+            "pause",
+            "save",
+            "load",
+            "save-return",
+            "restore-disabled-core",
+            "resume-after-restart"
+          ]
+        },
+        {
+          "platform": "2048",
+          "core": "2048",
+          "libraryName": "2048",
+          "stateName": "2048.state",
+          "checks": [
+            "no-content-launch",
+            "pause",
+            "normal-exit",
+            "save",
+            "load",
+            "save-return",
+            "resume-after-restart"
+          ]
+        },
+        {
+          "platform": "bomberman",
+          "core": "mrboom",
+          "libraryName": "Mr.Boom",
+          "stateName": "Mr.Boom.state",
+          "checks": [
+            "no-content-launch",
+            "pause",
+            "normal-exit",
+            "save",
+            "load",
+            "save-return",
+            "resume-after-restart"
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "logSha256": "2338cef9dfc42d3d9e404d011b2398694b0c1b71c4df8bec53ba9003f70511c3",
+    "screenshots": [
+      {
+        "name": "gb-original.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "93a3c049973e876c3da5f884ff99760622039bb718bddb5e08d900649e966712"
+      },
+      {
+        "name": "gba-original.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "38d11c8bbc903454b900fd463dd69ceffdcfca6233099b8b06d7a0f2131ff33a"
+      },
+      {
+        "name": "nes-original.png",
+        "size": [
+          1280,
+          720
+        ],
+        "sha256": "d69835889f0c15bb2d8af26acda01a860dcda99903faa6ad3ae8f2e9a96f7f5c"
+      }
+    ]
+  },
+  {
+    "name": "baseline-browser-input-1.0",
+    "returncode": 0,
+    "seconds": 5.36,
+    "script": "tests/browser_interaction_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-browser-input-1.0/process.log",
+    "report": {
+      "zoom": 1.0,
+      "startButtons": true,
+      "linkActivated": true,
+      "formSubmitted": true,
+      "readingTabSwitch": true,
+      "qmlErrors": [],
+      "platform": "wayland"
+    },
+    "logSha256": "2e34cfc6b6ccca1bc2fa5631634b9ebd35abfcc6b13b23f1006985320691265c",
+    "screenshots": [
+      {
+        "name": "selected-link.png",
+        "size": [
+          1280,
+          694
+        ],
+        "sha256": "935aa89d6d81329b83f57ead8d51911e884924ea071129a5012a4a88c6fde96f"
+      }
+    ]
+  },
+  {
+    "name": "baseline-browser-input-1.5",
+    "returncode": 0,
+    "seconds": 5.16,
+    "script": "tests/browser_interaction_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/baseline-browser-input-1.5/process.log",
+    "report": {
+      "zoom": 1.5,
+      "startButtons": true,
+      "linkActivated": true,
+      "formSubmitted": true,
+      "readingTabSwitch": true,
+      "qmlErrors": [],
+      "platform": "wayland"
+    },
+    "logSha256": "d0f08bed9d5be393abd305180b415cc63f98b2830301615e87e694e901b86c01",
+    "screenshots": [
+      {
+        "name": "selected-link.png",
+        "size": [
+          1280,
+          694
+        ],
+        "sha256": "59a21495e1a472facdd44093271ffb281705f0742efb455537e8a6dd053ee2a0"
+      }
+    ]
+  },
+  {
+    "name": "native-pty-atomic",
+    "returncode": 0,
+    "seconds": 2.13,
+    "script": "tests/native_terminal_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/native-pty-atomic/process.log",
+    "logSha256": "d27a651b10d3f9486590f91b86e5fd7e14fd449d8b7591d283c974c63b544aef",
+    "stdoutReport": {
+      "native": "passed",
+      "argv": true,
+      "environment": true,
+      "cjkSelection": true,
+      "imeCommitAndCursorQuery": true,
+      "bracketedPaste": true,
+      "resize": true,
+      "processGroupsReaped": true
+    },
+    "screenshots": []
+  },
+  {
+    "name": "harness-fixed-terminal-ipc",
+    "returncode": 0,
+    "seconds": 14.02,
+    "script": "tests/terminal_ipc_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/harness-fixed-terminal-ipc/process.log",
+    "report": {
+      "result": "passed",
+      "activation": true,
+      "secondaryWindow": true,
+      "fileDirectoryCreatesWindowWhilePrimaryExists": true,
+      "unicodeSpaceQuoteEmptyArgv": true,
+      "callerCwdEnvironment": true,
+      "invalidCwdProgramErrors": true,
+      "buildId": "97adc3f7479478e9d1288913cefec50e98a28563b06e9c555f0d33e8e85f219c"
+    },
+    "logSha256": "03b3d073780f4e9e98613eebaaf1414c704143ff335d6f5156dc9070311ce0c4",
+    "screenshots": []
+  },
+  {
+    "name": "system-verified-final",
+    "returncode": 0,
+    "seconds": 18.91,
+    "script": "tests/system_device_probe.py",
+    "platform": "wayland",
+    "installed": true,
+    "privateSessionBus": true,
+    "log": "/var/tmp/udeck-full-validation-20261113/cases/system-verified-final/process.log",
+    "report": {
+      "platform": "wayland",
+      "mock": false,
+      "checks": [
+        "real-wifi-bluetooth-pipewire-backlight-timezone-battery-and-wayland-state",
+        "real-desktop-catalog-and-search",
+        "real-running-window-titles-and-icons",
+        "real-settings-open-cancel-focus-preserved-12-sections",
+        "session-power-confirmations-cancelled",
+        "volume-preview-cancel-keeps-real-output-unchanged",
+        "isolated-language-theme-round-trip",
+        "real-unicode-rename-focus-copy-conflict-keep-both-byte-check",
+        "real-cut-paste-clears-clipboard-and-keeps-existing-files",
+        "real-gio-trash-list-and-restore-original-bytes",
+        "real-filesystem-watcher-create-and-remove",
+        "file-job-failure-preserves-source-and-next-job-recovers"
+      ],
+      "viewport": [
+        960,
+        600
+      ],
+      "systemState": {
+        "wifiAdapterCount": 2,
+        "bluetoothAvailable": true,
+        "audioOutputCount": 1,
+        "audioInputCount": 0,
+        "brightnessAvailable": true,
+        "battery": {
+          "available": true,
+          "capacity": 100,
+          "charging": true,
+          "status": "Charging",
+          "voltage": 4.206,
+          "current": 0.011,
+          "power": 0.046266
+        },
+        "timezone": "Asia/Shanghai",
+        "windowCount": 5
+      },
+      "runningNativeIcons": [
+        "io.github.zhubby.uDeck.Emulator",
+        "io.github.zhubby.uDeck.Browser",
+        "io.github.zhubby.uDeck.Reader",
+        "io.github.zhubby.uDeck.Video",
+        "io.github.zhubby.uDeck.Music"
+      ],
+      "passed": true,
+      "qmlErrors": [],
+      "backendErrors": [],
+      "payloadSha256": "b0063d6a04f1ee15e81f307155b706d7f6bc660af48c5bc1264aa3399edba4b6",
+      "catalogCount": 64
+    },
+    "logSha256": "40998fd5a8b994aaf4550003bfe152a769f84674722cf05f58ad0f967c1250dc",
+    "screenshots": [
+      {
+        "name": "apps-search.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "73047d06bce71f6b78b9f46e7d214f6244778203503a1734f07e883c530128b8"
+      },
+      {
+        "name": "files-copied.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "3ff04e236fe01fc235fb8a2b9a66556b74012d73229199fc4d8616f12f9b9679"
+      },
+      {
+        "name": "files-final.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "ed493497bd3ce95d5d6f988cebeb83bdf7781da21fed676077749d3524c68202"
+      },
+      {
+        "name": "files-preview.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "1ce60ca434950f3026737222ab04f3390c9d92aed854a0e2005e3010d53e7fae"
+      },
+      {
+        "name": "running.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "6ae87f8dc7a9f7920baa10ace9895c1dc85b226a08b8ef0d9ecc8273583a249b"
+      },
+      {
+        "name": "system-battery.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "00b0b9fbbe234b07bd2a6c4f19ce1cef30dacac5d20f6ce9b62e3f8c654ab924"
+      },
+      {
+        "name": "system-bluetooth.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "f2180fd239642c696fefab3e73973f1df9e74ad28536f0bff886c93b34098911"
+      },
+      {
+        "name": "system-brightness.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "82317f9d284c6d17aad861a2b7ce7bf3017be85f6297749dd196883130f6dcb1"
+      },
+      {
+        "name": "system-en-dark.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "b35b9425e12049df7f08cd1f749228a4fe45aac92baa7b48c742ae4e37008e02"
+      },
+      {
+        "name": "system-hotspot.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "9401b2ac6a50114a4cf1f671aca33cb646e9b0bdd9251cc92af1f56ad619d0f0"
+      },
+      {
+        "name": "system-language.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "5072e379aa17bf90b2df9ac9b14f05f1d62d1d9039a74a469ae30dd7f64b0987"
+      },
+      {
+        "name": "system-microphone.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "bd14b6fb2d80eb27a0915db7599ae6369fe444ad79b7a1183ae8f51b5e3471ae"
+      },
+      {
+        "name": "system-output.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "ca33f1ceb9e5f1edad8f33fa46834c691644133f34f3938f9aadbe67936d37db"
+      },
+      {
+        "name": "system-settings.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "54d53d3adf076089f38d27f2903abae0a54898eff27de6860ec6dd2e15638021"
+      },
+      {
+        "name": "system-sharing.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "c5e3487971f48c3b836326b6a664ce1d33b61483005a601a2aa35a5bef9bb036"
+      },
+      {
+        "name": "system-theme.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "74850eae6e055600462036ea4db479550a8bedbbcff0ad1192c60e0b7fa038f4"
+      },
+      {
+        "name": "system-timezone.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "51171b913e74dad86346fc6f10ea9d7cc73e18b46ed5526d060684e7c35b2f3e"
+      },
+      {
+        "name": "system-volume.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "f1ab2722f506cc4325d8dbfec99a5038f7a2af1b532808325201025039e3a1df"
+      },
+      {
+        "name": "system-wifi.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "90201282d2197f1d8c02e7b056c17e570f43d98885dcb698b23deb0beda8ea9e"
+      },
+      {
+        "name": "system-zh_CN-classic.png",
+        "size": [
+          960,
+          600
+        ],
+        "sha256": "00dcdbe0de4ddda31b7ca85e7266707f826a84d159439d7a78eee9d95a04607b"
+      }
+    ]
+  }
+]

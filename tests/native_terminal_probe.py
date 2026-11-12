@@ -63,19 +63,24 @@ def until(condition, timeout=5):
 child = directory / "中文 程序.py"
 child.write_text('''import json, os, signal, sys, time, tty, subprocess
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 directory = Path(sys.argv[1])
+def write_json(name, value):
+    with NamedTemporaryFile("w", dir=directory, delete=False) as pending:
+        json.dump(value, pending)
+    os.replace(pending.name, directory / name)
 def size(*args):
-    (directory / "size.json").write_text(json.dumps(list(os.get_terminal_size(0))))
+    write_json("size.json", list(os.get_terminal_size(0)))
 signal.signal(signal.SIGWINCH, size)
 tty.setraw(0)
 size()
 p = subprocess.Popen(["/bin/sh", "-c", "trap '' HUP; exec sleep 600"], start_new_session=False, process_group=0 if sys.platform == "linux" else None)
-(directory / "launch.json").write_text(json.dumps({"argv": sys.argv[2:], "cwd": os.getcwd(), "env": os.environ.get("CALLER_VALUE"), "leak": os.environ.get("PRIVATE_PRIMARY_MARKER"), "child": p.pid}))
+write_json("launch.json", {"argv": sys.argv[2:], "cwd": os.getcwd(), "env": os.environ.get("CALLER_VALUE"), "leak": os.environ.get("PRIVATE_PRIMARY_MARKER"), "child": p.pid})
 os.write(1, "\\x1b[2J\\x1b[HA中e\\u0301B [a.*]\\r\\nREADY\\r\\n\\x1b[?2004h\\x1b[1;4H".encode())
 data = b""
 while not data.endswith(b"\\x1b[201~"):
     data += os.read(0, 4096)
-(directory / "paste.json").write_text(json.dumps(data.hex()))
+write_json("paste.json", data.hex())
 time.sleep(600)
 ''')
 argv = ["", "  ", "$HOME", "$(literal)", "中文 空格", '引"号']

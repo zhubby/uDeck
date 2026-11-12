@@ -10,6 +10,7 @@ import tempfile
 import time
 from pathlib import Path
 
+from udeck.core import ConfigStore
 from udeck.desktop import open_terminal
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -40,6 +41,11 @@ with tempfile.TemporaryDirectory(prefix="udeck-terminal-ipc-") as temporary:
     config.mkdir()
     (config / "xdg-terminals.list").write_text("io.github.zhubby.uDeck.Terminal.desktop\n")
     os.environ.update(XDG_CONFIG_HOME=str(config), XDG_CONFIG_DIRS=str(directory / "system-config"))
+    # The error assertions below deliberately exercise the Chinese CLI strings.
+    # Do not inherit their language from the user's settings or a prior run.
+    preferences = ConfigStore()
+    preferences.data["preferences"]["language"] = "zh_CN"
+    preferences.save()
     holder = directory / "holder.py"
     holder.write_text("import time\nfrom pathlib import Path\nPath('ready').touch()\nwhile not Path('finish').exists(): time.sleep(0.1)\n")
     child = directory / "argv.py"

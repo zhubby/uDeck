@@ -50,6 +50,7 @@ def run():
     context = engine.rootContext()
     for name, value in (("controller", controller), ("windowedPreview", True), ("headlessPreview", True)):
         context.setContextProperty(name, value)
+    engine.setInitialProperties({"width": options.width, "height": options.height})
     engine.load(QUrl.fromLocalFile(str(Path(main.__file__).parent / "qml/Main.qml")))
     assert engine.rootObjects(), errors
     window = engine.rootObjects()[0]
@@ -85,6 +86,10 @@ def run():
 
     def capture(name):
         QTest.qWait(150)
+        # Wayland may defer a positioner's polish until the next rendered frame.
+        # Grab that frame before inspecting geometry so both describe the same UI.
+        image = window.grabWindow()
+        assert image.size().toTuple() == (options.width, options.height), image.size()
         report = inspect()
         if controller.modal:
             panel, content = report["panel"], report["content"]
@@ -97,7 +102,7 @@ def run():
                 assert cap["x"] >= content["x"] and cap["x"] + cap["width"] <= content["x"] + content["width"], report
                 assert cap["y"] >= content["y"] and cap["y"] + cap["height"] <= panel["y"] + panel["height"], report
         assert all(icon["status"] == 1 for icon in report["icons"]), report
-        assert window.grabWindow().save(str(options.output / f"{name}.png"))
+        assert image.save(str(options.output / f"{name}.png"))
         captures.append({"name": name, **report})
         return report
 
