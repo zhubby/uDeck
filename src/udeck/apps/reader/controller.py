@@ -400,7 +400,7 @@ class ReaderController(AppController):
         self.pop_menu()
 
     def layout_menu(self):
-        self.menu(tr(Msg.READING_LAYOUT), self.layout_options)
+        self.menu(tr(Msg.READING_LAYOUT), self.layout_options, settings=True)
 
     def layout_options(self):
         options = []

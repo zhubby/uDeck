@@ -68,7 +68,7 @@ def test_reader_layout_menu_hides_reflow_controls_for_pdf(reader_controller):
     captured = {}
     controller.current = {"format": "PDF"}
     controller.page = "document"
-    controller.menu = lambda title, options: captured.update(title=str(title), options=options() if callable(options) else options)
+    controller.menu = lambda title, options, **kwargs: captured.update(title=str(title), options=options() if callable(options) else options)
 
     controller.layout_menu()
 
@@ -81,7 +81,7 @@ def test_reader_layout_menu_exposes_reflow_controls_for_epub(reader_controller):
     captured = {}
     controller.current = {"format": "EPUB"}
     controller.page = "document"
-    controller.menu = lambda title, options: captured.update(title=str(title), options=options() if callable(options) else options)
+    controller.menu = lambda title, options, **kwargs: captured.update(title=str(title), options=options() if callable(options) else options)
 
     controller.layout_menu()
 

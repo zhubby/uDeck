@@ -1,0 +1,107 @@
+{
+  "scope": "6b477e3..c04a2ad",
+  "reviewers": [
+    "correctness",
+    "project-standards",
+    "maintainability",
+    "testing",
+    "menu state and callback consistency"
+  ],
+  "findings": [
+    {
+      "priority": "P2",
+      "confidence": 1.0,
+      "file": "src/udeck/apps/emulator/settings.py",
+      "line": 136,
+      "issue": "Standalone settings entry points do not enable the settings delegate; enabled cores show an Enable core action without their switch. Browser context modes and Reader context layout have the same gap.",
+      "evidence": [
+        "Four targeted regression tests fail on c04a2ad, while Settings-root entry passes.",
+        "Common QML gates SettingsRow on menu.settings, ignoring checked/current metadata outside that layout."
+      ],
+      "fix": "Enable settings layout explicitly for independently reachable settings menus.",
+      "requires_verification": true,
+      "status": "fixed",
+      "autofix_class": "gated_auto",
+      "owner": "downstream-resolver",
+      "authorization": "User explicitly requested review, device testing, bug fixes, main delivery and push",
+      "related_locations": [
+        "src/udeck/apps/emulator/settings.py:189",
+        "src/udeck/apps/browser/controller.py:285",
+        "src/udeck/apps/reader/controller.py:403"
+      ]
+    }
+  ],
+  "applied_fixes": [
+    "Explicit settings layout for Browser interaction mode",
+    "Explicit settings layout for Reader reading layout",
+    "Explicit settings layout for Emulator core management and details"
+  ],
+  "residual_actionable": [],
+  "advisory": [],
+  "execution": "Sequential self-review; no delegated or independent reviewer",
+  "verification": {
+    "before_regression": {
+      "failed": 4,
+      "passed": 2
+    },
+    "after_regression": {
+      "passed": 171,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 15.26
+    },
+    "device": {
+      "verified_at": 1794469805.1013944,
+      "original_processes_preserved": true,
+      "missing_original_pids": [],
+      "protected_files": 11,
+      "changed_protected_files": [],
+      "services": {
+        "wifi": true,
+        "bluetooth": true,
+        "audio": true,
+        "brightness": true,
+        "battery": true
+      },
+      "service_errors": {},
+      "mock": false,
+      "window_protocol": true,
+      "remote_access": "active",
+      "matrix_passed": 12,
+      "matrix_total": 12,
+      "installed_files_modified": false,
+      "desktop_restarted": false
+    },
+    "packages": {
+      "source_files": [
+        "src/udeck/apps/browser/controller.py",
+        "src/udeck/apps/common/controller.py",
+        "src/udeck/apps/common/qml/Main.qml",
+        "src/udeck/apps/emulator/settings.py",
+        "src/udeck/apps/media/controller.py",
+        "src/udeck/apps/reader/controller.py",
+        "src/udeck/apps/video/controller.py",
+        "src/udeck/locales/en.json",
+        "src/udeck/locales/zh_CN.json",
+        "src/udeck/messages.py",
+        "src/udeck/qml/SettingsRow.qml",
+        "src/udeck/terminal/qml/Main.qml"
+      ],
+      "byte_match": true,
+      "artifacts": {
+        "udeck-0.2.3-py3-none-any.whl": "7835b59e83312ee00118133553c03368423b2bc03f1e4e30692215cb236e7834",
+        "udeck-0.2.3.tar.gz": "d184317108a2b81bc357eab5ca50308f3f101794ca993d6ad5105ea3be22c7e1"
+      }
+    },
+    "source": {
+      "files": 415,
+      "mismatches": []
+    }
+  },
+  "residual_risks": [
+    "No physical input or reboot acceptance performed",
+    "Isolated candidate source tested on actual hardware; installed Debian files unchanged"
+  ],
+  "verdict": "Ready with fixes; targeted local and real-device verification passed",
+  "probe_notes": "Initial native web traversal in Python crashed PySide; QML-side traversal replaced it and both browser variants passed. Original failed logs retained."
+}

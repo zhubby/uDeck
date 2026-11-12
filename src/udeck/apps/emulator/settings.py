@@ -133,7 +133,7 @@ class EmulatorSettings:
             options.append((tr(Msg.NO_INSTALLED_CORES_FOUND), None))
         self.menu(tr(Msg.CORE_MANAGEMENT), options,
                   tr(Msg.COUNT_INSTALLED_CORES_PENDING_CHECKING_LOADING_CHECKS_DO_NOT_VERIFY_GAMEPLAY,
-                     count=len(self.catalog.cores), pending=self.cores_pending), quiet=quiet, icon="applications-system")
+                     count=len(self.catalog.cores), pending=self.cores_pending), quiet=quiet, icon="applications-system", settings=True)
         self.menus[-1].update(coreView="catalog")
 
     def core_search(self, text):
@@ -186,7 +186,7 @@ class EmulatorSettings:
             core.id + (" · " + core.version if core.version else ""), self.core_status(core, platform),
             " / ".join(self.catalog.platforms[p].directory + "/" for p in core.platforms),
             tr(Msg.FORMATS_FORMATS, formats=formats),
-            tr(Msg.SAVE_STATES_SUPPORTED) if core.savestate else tr(Msg.THIS_CORE_DOES_NOT_SUPPORT_SAVE_STATES)]), quiet=quiet)
+            tr(Msg.SAVE_STATES_SUPPORTED) if core.savestate else tr(Msg.THIS_CORE_DOES_NOT_SUPPORT_SAVE_STATES)]), quiet=quiet, settings=True)
         self.menus[-1].update(coreView="detail", coreId=identifier, platformId=platform)
 
     def refresh_core_menu(self, identifier=None):

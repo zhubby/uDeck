@@ -282,7 +282,7 @@ class BrowserController(AppController):
                   for key, mode, icon in ((Msg.LINK_NAVIGATION, "navigation", "insert-link"),
                                          (Msg.READING, "reading", "accessories-ebook-reader"),
                                          (Msg.VIRTUAL_POINTER, "pointer", "input-mouse"),
-                                         (Msg.TEXT_INPUT, "text", "input-keyboard"))])
+                                         (Msg.TEXT_INPUT, "text", "input-keyboard"))], settings=True)
 
     def set_mode(self, mode):
         self.invalidate_web_actions()
