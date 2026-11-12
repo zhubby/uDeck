@@ -1,6 +1,6 @@
 {
   "date": "2026-11-12",
-  "status": "test_suites_passed_configuration_guard_and_manual_acceptance_pending",
+  "status": "test_suites_passed_configuration_change_explained_manual_acceptance_pending",
   "product_revision": "c4c1602dd686efec7ccd44be711c667538caf137",
   "probe_revision": "94b7baba2b13ff0abd1317b32f88dcf6057bdd44",
   "package": {
@@ -496,7 +496,8 @@
         "top_level_keys_changed": ["recent"]
       }
     ],
-    "change_origin": "Unconfirmed; real-session page switching and four app launches were observed",
+    "change_origin": "User confirmed Raspberry Pi Connect or VNC operation during the queried 12:55-12:58 window",
+    "change_origin_evidence": "User confirmation; original raw failed guard is retained",
     "user_history_restored_or_windows_closed": false,
     "control_observation": {
       "seconds": 45.00441241264343,
@@ -594,5 +595,110 @@
     "Real Chinese IME candidate window",
     "Actual speaker / video output and sustained playback",
     "Network / VPN switching, Bluetooth pairing, USB hotplug and whole-device reboot recovery"
-  ]
+  ],
+  "remote_operation_follow_up": {
+    "queried_window_local": "2026-11-12 12:55-12:58 Asia/Shanghai",
+    "user_confirmation": "曾通过 Raspberry Pi Connect 或 VNC 操作",
+    "original_guard_reclassified_as_passed": false,
+    "product_change_required": false,
+    "subset": {
+      "state": "passed",
+      "exit_code": 0,
+      "seconds": 143.996,
+      "junit": {
+        "tests": 85,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "guard_violations": [],
+      "configuration_changed": [],
+      "real_wayland_connections": [],
+      "real_user_bus_connections": []
+    },
+    "additional_full_trace": {
+      "complete_suite": false,
+      "raw_runner_state": "failed",
+      "raw_error": "KeyboardInterrupt()",
+      "conclusion": "Intentionally interrupted after user confirmation; not a complete suite pass",
+      "seconds": 626.938,
+      "completed_progress_markers": 576,
+      "failure_markers": 0,
+      "guard_violations": [],
+      "production_method_counts": {
+        "Diagnose": 206,
+        "NativeInputState": 3135
+      },
+      "production_control_writes": [],
+      "production_wayland_connection_attempts": 0,
+      "production_user_bus_connection_attempts": 0,
+      "health_samples": 206,
+      "pages": [
+        "windows"
+      ],
+      "window_counts": [
+        6
+      ],
+      "all_services_available": true,
+      "service_error_samples": 0
+    },
+    "passive_input_observation": {
+      "seconds": 412.548,
+      "start_offset_seconds": 214.68,
+      "physical_event_totals": {},
+      "errors": [],
+      "limitation": "Exclusive device grabs may hide events from this passive reader",
+      "key_codes_or_text_recorded": false,
+      "vnc_samples": 137,
+      "vnc_samples_with_unknown_count": 0,
+      "vnc_client_peak": 0
+    },
+    "cleanup": {
+      "execution_files_verified": 813,
+      "execution_source_mismatches": [],
+      "installed_files_verified": 413,
+      "installed_source_mismatches": [],
+      "protected_file_count": 11,
+      "changes_since_original_backup": [
+        {
+          "file": "settings.json",
+          "top_level_keys_changed": [
+            "recent"
+          ]
+        }
+      ],
+      "original_processes_preserved": true,
+      "trace_runner_alive": false,
+      "test_runner_alive": false,
+      "dbus_monitor_alive": false,
+      "test_processes_remaining": [],
+      "network_test_port_8787_listening": false,
+      "default_terminal": "/usr/bin/udeck-terminal",
+      "dpkg_verify": {
+        "exit_code": 0,
+        "output": ""
+      },
+      "recovery_package_sha256": "40e16b0f563726252b65c66371e6b5cd2f307b7459bdd62a5ecc769443a64d46",
+      "production": {
+        "page": "windows",
+        "windowCount": 6,
+        "services": {
+          "wifi": true,
+          "bluetooth": true,
+          "audio": true,
+          "brightness": true,
+          "battery": true
+        },
+        "serviceErrors": {}
+      }
+    },
+    "evidence_archive": {
+      "archive": "artifacts/device-stability-2026-11-12/unattended-investigation-evidence.tar.gz",
+      "bytes": 185453,
+      "sha256": "dbb70779836acce8a7356773df9704b6f136781d4778ef45da9b8ad5dd355873",
+      "files_verified": 22,
+      "previous_archives_unchanged": true,
+      "private_backups_exported": false
+    }
+  }
 }
