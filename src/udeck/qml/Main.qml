@@ -334,7 +334,7 @@ Window {
                     color: selected ? window.colors.selected : window.colors.panel
                     border.width: selected ? 3 : 1
                     border.color: selected ? window.accent : window.colors.border
-                    Image { x: 18; y: 17; width: 56; height: 56; source: "image://desktop/" + encodeURIComponent(modelData.icon || "application-x-executable"); sourceSize.width: 80; sourceSize.height: 80 }
+                    ApplicationIcon { objectName: "applicationIcon"; x: 18; y: 17; width: 56; height: 56; iconName: modelData.icon || "application-x-executable"; colors: window.colors; sourceSize.width: 80; sourceSize.height: 80 }
                     Text { textFormat: Text.PlainText; anchors.right: parent.right; anchors.rightMargin: 18; y: 21; text: viewState.favorites.indexOf(modelData.id) >= 0 ? "★" : ""; font.family: window.fontFamily; font.pixelSize: 24; color: window.accent }
                     Text { textFormat: Text.PlainText; x: 18; y: 84; width: parent.width - 36; text: modelData.name; elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 24; font.weight: Font.Medium; color: window.ink }
                     Text { textFormat: Text.PlainText; x: 18; y: 120; width: parent.width - 36; text: modelData.subtitle || viewState.categoryNames[modelData.category] || window.tr(msg.APPS); elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 24; color: selected ? window.colors.selectedText : window.muted }
@@ -359,11 +359,12 @@ Window {
                     color: selected ? window.colors.selected : window.colors.panel
                     border.width: selected ? 3 : 1
                     border.color: selected ? window.accent : window.colors.rowBorder
-                    Image {
+                    ApplicationIcon {
                         id: systemSettingIcon; objectName: "systemSettingIcon"
                         x: 18; anchors.verticalCenter: parent.verticalCenter
                         height: systemSettingText.implicitHeight; width: height
-                        source: window.desktopIconSource(modelData.icon)
+                        iconName: modelData.icon || "application-x-executable"
+                        colors: window.colors
                         sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
                     }
                     Column {
