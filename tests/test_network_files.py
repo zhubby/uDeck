@@ -46,6 +46,30 @@ def test_confined_files_and_upload_commit(tmp_path):
         fs.close()
 
 
+@pytest.mark.parametrize("path", ["", "nested"])
+def test_directory_refresh_observes_committed_changes(tmp_path, path):
+    from udeck.network_files.filesystem import SharedRoot
+
+    root = tmp_path / "share"
+    folder = root / path
+    folder.mkdir(parents=True)
+    (folder / "original.txt").write_text("original")
+    fs = SharedRoot(root)
+    try:
+        def names():
+            return {row["name"] for row in fs.listing(path)["entries"]}
+
+        assert names() == {"original.txt"}
+        fs.mkdir("/".join(filter(None, [path, "new-folder"])))
+        assert names() == {"original.txt", "new-folder"}
+        fs.rename("/".join(filter(None, [path, "original.txt"])), "renamed.txt")
+        assert names() == {"renamed.txt", "new-folder"}
+        (folder / "renamed.txt").unlink()
+        assert names() == {"new-folder"}
+    finally:
+        fs.close()
+
+
 def test_real_http_file_workflow(tmp_path):
     async def scenario():
         from udeck.network_files.server import create_app

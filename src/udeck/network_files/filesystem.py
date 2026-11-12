@@ -129,7 +129,8 @@ class SharedRoot:
 
     @contextlib.contextmanager
     def directory(self, path="", *, parents=False):
-        fd = os.dup(self.fd)
+        # A fresh open gives each reader an independent directory stream and snapshot.
+        fd = os.open(".", DIRECTORY, dir_fd=self.fd)
         try:
             # Detect removal/replacement of the configured root rather than serving stale storage.
             self.check_root()

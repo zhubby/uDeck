@@ -240,7 +240,12 @@ def loaded(ok):
     """ + readiness + SCENARIOS[sys.argv[2]] + """
                 console.log('UDECK_WEB_RESULT:' + JSON.stringify({ok: true}));
             } catch (error) {
-                console.log('UDECK_WEB_RESULT:' + JSON.stringify({ok: false, error: error.stack || String(error)}));
+                console.log('UDECK_WEB_RESULT:' + JSON.stringify({ok: false, error: error.stack || String(error),
+                    diagnostics: {path: state.path, entries: state.entries.map(row => row.path),
+                        generation: state.generation, connection: document.getElementById('connection').className,
+                        loadError: document.getElementById('load-error-message').textContent,
+                        toast: document.getElementById('toast').textContent,
+                        tasks: state.tasks.map(task => ({name: task.name, state: task.state, detail: task.detail}))}}));
             }
         })();
     """)
