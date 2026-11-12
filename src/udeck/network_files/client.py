@@ -112,15 +112,19 @@ def start(value):
 
 def stop():
     try:
-        result = asyncio.run(remote("Stop"))
-    except (ServiceUnavailable, OSError):
-        from .lifecycle import ShareSettings
-        settings = ShareSettings()
-        value = settings.load()
-        value["enabled"] = False
-        settings.save(value)
-        result = status()
-    if systemd_installed():
-        command(["systemctl", "--user", "disable", UNIT])
-        command(["systemctl", "--user", "stop", UNIT])
-    return result
+        try:
+            result = asyncio.run(remote("Stop"))
+        except (ServiceUnavailable, OSError):
+            from .lifecycle import ShareSettings
+            settings = ShareSettings()
+            value = settings.load()
+            value["enabled"] = False
+            settings.save(value)
+            result = status()
+        return result
+    finally:
+        if systemd_installed():
+            try:
+                command(["systemctl", "--user", "disable", UNIT])
+            finally:
+                command(["systemctl", "--user", "stop", UNIT])

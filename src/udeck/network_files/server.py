@@ -61,7 +61,13 @@ class Workspace:
         for cancelled in self.stream_cancellations:
             cancelled.set()
         for value in list(self.uploads.values()):
-            value["cancel"].set()
+            self.cancel_upload(value)
+
+    def cancel_upload(self, value):
+        value["cancel"].set()
+        receiver = value.get("receiver")
+        if receiver and not receiver.cancelling():
+            receiver.cancel()
 
     async def close(self):
         self.shutdown()
@@ -113,7 +119,10 @@ async def boundary(request, handler):
     if workspace.closing:
         raise web.HTTPServiceUnavailable(reason="Network access has stopped")
     # Hostname-based rebinding and cross-origin browser writes are rejected.
-    host = urlsplit("http://" + request.host).hostname
+    try:
+        host = urlsplit("http://" + request.host).hostname
+    except ValueError:
+        host = None
     local = request.transport.get_extra_info("sockname")[0]
     if host not in {local, "localhost" if local in ("127.0.0.1", "::1") else local}:
         return web.json_response({"error": "Invalid server address"}, status=403)
@@ -230,15 +239,23 @@ async def upload_write(request):
     try:
         if request.content_length != upload.size:
             raise ValueError("Upload size does not match")
-        async with workspace.upload_limit:
-            async for chunk in request.content.iter_chunked(256 * 1024):
+        async def receive():
+            async with workspace.upload_limit:
+                async for chunk in request.content.iter_chunked(256 * 1024):
+                    if value["cancel"].is_set():
+                        raise ValueError("Upload cancelled")
+                    await workspace.run(upload.write, chunk)
                 if value["cancel"].is_set():
                     raise ValueError("Upload cancelled")
-                await workspace.run(upload.write, chunk)
-            if value["cancel"].is_set():
-                raise ValueError("Upload cancelled")
-            async with workspace.mutation_lock:
-                name = await workspace.run(upload.commit)
+                async with workspace.mutation_lock:
+                    return await workspace.run(upload.commit, value["cancel"])
+        receiver = value["receiver"] = asyncio.create_task(receive())
+        try:
+            name = await receiver
+        except asyncio.CancelledError:
+            if not value["cancel"].is_set():
+                raise
+            raise ValueError("Upload cancelled") from None
         return web.json_response({"ok": True, "name": name})
     finally:
         upload.abort()
@@ -249,7 +266,7 @@ async def upload_cancel(request):
     workspace = request.app[STATE]
     value = workspace.uploads.get(request.match_info["id"])
     if value:
-        value["cancel"].set()
+        workspace.cancel_upload(value)
         if not value["active"]:
             value["upload"].abort()
             workspace.uploads.pop(request.match_info["id"], None)

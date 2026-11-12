@@ -65,7 +65,7 @@ class Upload:
             view = view[count:]
             self.written += count
 
-    def commit(self):
+    def commit(self, cancelled=None):
         if self.closed or self.written != self.size:
             raise ValueError("Upload is incomplete")
         os.fsync(self.fd)
@@ -73,6 +73,8 @@ class Upload:
         self.fd = -1
         try:
             self.verify()
+            if cancelled is not None and cancelled.is_set():
+                raise ValueError("Upload cancelled")
             if self.policy == "replace":
                 existing = SharedRoot.information(self.directory, self.name)
                 if existing and not stat.S_ISREG(existing.st_mode):

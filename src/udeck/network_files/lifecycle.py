@@ -85,11 +85,12 @@ class ShareManager:
         if not set(networks).issubset({row["key"] for row in candidates} | set(self.value["networks"])):
             raise ValueError("A selected network is no longer connected")
         async with self.lock:
+            configured = {"enabled": True, "root": str(root.resolve()), "duration": duration, "networks": list(dict.fromkeys(networks))}
+            self.settings.save(configured)
             await self._close()
-            self.value = {"enabled": True, "root": str(root.resolve()), "duration": duration, "networks": list(dict.fromkeys(networks))}
+            self.value = configured
             self.owner = value.get("owner", "")
             self.deadline = time.monotonic() + duration if duration else None
-            self.settings.save(self.value)
             await self._reconcile(candidates)
         return self.status()
 
@@ -108,8 +109,10 @@ class ShareManager:
             except OSError:
                 self.value["enabled"] = False
                 self.deadline = None
-                self.settings.save(self.value)
-                await self._close()
+                try:
+                    self.settings.save(self.value)
+                finally:
+                    await self._close()
                 self.errors = ["Shared folder is no longer available. Choose the folder again to resume access."]
                 return
         wanted = {address for row in candidates if row["key"] in self.value["networks"] for address in row["addresses"]}
@@ -143,10 +146,12 @@ class ShareManager:
     async def stop(self):
         async with self.lock:
             self.value["enabled"] = False
-            self.settings.save(self.value)
             self.deadline = None
             self.errors = []
-            await self._close()
+            try:
+                self.settings.save(self.value)
+            finally:
+                await self._close()
         return self.status()
 
     async def _close(self):

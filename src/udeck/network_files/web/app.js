@@ -36,7 +36,7 @@ function toast(message) { $('toast').textContent=t(message); $('toast').hidden=f
 async function api(path, value, method='POST') {
   const response=await fetch('/api/'+path, value === undefined ? {} : {method,headers:{'Content-Type':'application/json','X-UDeck-Request':state.token},body:method==='DELETE'?undefined:JSON.stringify(value)});
   const result=await response.json();
-  if(!response.ok){const error=new Error(t(result.error||'Failed')); error.code=result.code; throw error;}
+  if(!response.ok){const error=new Error(t(result.error||'Failed')); error.code=result.code; error.status=response.status; throw error;}
   return result;
 }
 function translate() {
@@ -56,12 +56,13 @@ async function config() {
   const data=await api('config');
   const changed=state.language!==data.language||state.rootName!==data.name;
   const restarted=!!state.token&&state.token!==data.requestToken;
+  const reconnecting=$('connection').classList.contains('offline');
   state.language=data.language; state.rootName=data.name; state.token=data.requestToken;
   document.documentElement.dataset.theme=data.theme;
   if(changed || !$('subtitle').textContent)translate();
   $('connection').classList.remove('offline');
   $('connection').lastElementChild.textContent=t('Connected to your device');
-  if(restarted)await load();
+  if(restarted||reconnecting)await load();
 }
 function offline(){ $('connection').classList.add('offline');$('connection').lastElementChild.textContent=t('Connection lost'); }
 async function load({more=false}={}) {
@@ -80,17 +81,21 @@ async function load({more=false}={}) {
   } catch(error) {
     if(generation!==state.generation)return;
     $('load-error').hidden=false;$('load-error-message').textContent=error.message;
+    state.entries=[];state.selected.clear();
+    $('files').replaceChildren();$('files').hidden=true;$('list-heading').hidden=true;$('load-more').hidden=true;
+    $('item-count').textContent='';$('space').textContent='';selection();
     $('empty').hidden=true;
-    offline();
+    if(!error.status||error.status>=500)offline();
   } finally {
     if(generation===state.generation){$('loading').hidden=true;$('load-more').disabled=false;}
   }
 }
-function navigate(path) {
+function navigate(path, updateHash=true) {
+  clearTimeout(searchTimer);
   state.path=path;state.selected.clear();$('search').value='';
   state.entries=[];$('files').replaceChildren();$('files').hidden=true;$('empty').hidden=true;$('list-heading').hidden=true;
   $('loading').hidden=false;renderBreadcrumbs();selection();
-  location.hash=encodeURIComponent(path);load();
+  if(updateHash)location.hash=encodeURIComponent(path);load();
 }
 function renderBreadcrumbs(container=$('breadcrumbs'), path=state.path, handler=navigate) {
   container.replaceChildren();
@@ -159,7 +164,7 @@ function dialog(title, description, content, buttons) {
     for(const item of buttons){const button=element('button',item.primary?'primary':'',t(item.label));button.type='button';button.onclick=()=>done(item.value);$('dialog-actions').append(button);}
     panel.oncancel=event=>{event.preventDefault();done(null);};
     $('dialog-close').onclick=()=>done(null);
-    $('dialog-form').onsubmit=event=>{event.preventDefault();const primary=buttons.find(item=>item.primary);if(primary)done(primary.value);};
+    $('dialog-form').onsubmit=event=>{event.preventDefault();const primary=$('dialog-actions').querySelector('.primary');if(primary&&!primary.disabled)primary.click();};
     panel.showModal();
     if(content?.tagName==='INPUT'){content.focus();content.select();}
   });
@@ -179,13 +184,24 @@ async function conflict(path, folder=false) {
   return policy;
 }
 async function destination(action) {
-  let current=state.path;
+  let current=state.path,generation=0,loaded=0;
   const container=element('div');const nav=element('div','picker-path');const folders=element('div','folder-picker');container.append(nav,folders);
-  async function show(path){
-    const data=await api('files?'+new URLSearchParams({path,limit:500}));current=path;nav.textContent=(state.rootName||t('Home'))+(path?' / '+path.replaceAll('/',' / '):'');folders.replaceChildren();
-    if(path){const up=element('button','', '↑  '+t('Parent folder'));up.type='button';up.onclick=()=>show(path.split('/').slice(0,-1).join('/')).catch(error=>toast(error.message));folders.append(up);}
+  function ready(value){const confirm=container.closest('dialog')?.querySelector('.primary');if(confirm)confirm.disabled=!value;}
+  async function show(path,{more=false}={}){
+    const request=++generation;ready(false);
+    let data;
+    try{data=await api('files?'+new URLSearchParams({path,offset:more?loaded:0,limit:500,hidden:$('hidden').checked?'1':'0'}));}
+    catch(error){if(request===generation)throw error;return;}
+    if(request!==generation)return;
+    current=path;nav.textContent=(state.rootName||t('Home'))+(path?' / '+path.replaceAll('/',' / '):'');
+    if(!more){
+      loaded=0;folders.replaceChildren();
+      if(path){const up=element('button','', '↑  '+t('Parent folder'));up.type='button';up.onclick=()=>show(path.split('/').slice(0,-1).join('/')).catch(error=>toast(error.message));folders.append(up);}
+    }else folders.querySelector('.picker-more')?.remove();
     for(const row of data.entries.filter(row=>row.directory)){const button=element('button');button.type='button';const img=element('img');img.src='/assets/icon/folder';img.alt='';button.append(img,element('span','',row.name));button.onclick=()=>show(row.path).catch(error=>toast(error.message));folders.append(button);}
-    if(data.total>data.entries.length)folders.append(element('p','',state.language==='zh_CN'?'仅显示前 500 项，请进入子文件夹。':'Showing the first 500 items. Open a subfolder.'));
+    loaded+=data.entries.length;
+    if(loaded<data.total&&data.entries.at(-1)?.directory){const button=element('button','picker-more',t('Load more'));button.type='button';button.onclick=()=>show(path,{more:true}).catch(error=>toast(error.message));folders.append(button);}
+    ready(true);
   }
   await show(current);
   return await dialog('Choose destination',t(action),container,[{label:'Cancel',value:null},{label:'Use this folder',value:true,primary:true}])?{path:current}:null;
@@ -323,5 +339,5 @@ document.addEventListener('keydown',event=>{
   if((event.ctrlKey||event.metaKey)&&event.key==='a'){event.preventDefault();$('select-all').click();}
   if(event.key==='Escape'){state.selected.clear();selection();}
 });
-window.addEventListener('hashchange',()=>{let path;try{path=decodeURIComponent(location.hash.slice(1));}catch{return;}if(path!==state.path){state.path=path;state.selected.clear();load();}});
-(async()=>{try{await config();state.path=decodeURIComponent(location.hash.slice(1));await load();}catch(error){offline();$('load-error').hidden=false;$('load-error-message').textContent=error.message;}setInterval(()=>config().catch(offline),5000);})();
+window.addEventListener('hashchange',()=>{let path;try{path=decodeURIComponent(location.hash.slice(1));}catch{return;}if(path!==state.path)navigate(path,false);});
+(async()=>{try{state.path=decodeURIComponent(location.hash.slice(1));await config();await load();}catch(error){offline();$('load-error').hidden=false;$('load-error-message').textContent=error.message;}setInterval(()=>config().catch(offline),5000);})();

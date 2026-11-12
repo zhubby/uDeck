@@ -1,5 +1,7 @@
 import asyncio
 
+import pytest
+
 
 def test_duration_defaults_and_persistence(tmp_path):
     from udeck.network_files.lifecycle import ShareSettings
@@ -103,3 +105,103 @@ def test_invalid_persistent_settings_never_enable_access(tmp_path):
                   {"enabled": True, "root": str(tmp_path), "duration": False, "networks": ["home"]}):
         settings.path.write_text(json.dumps(value))
         assert not settings.load()["enabled"]
+
+
+def test_stop_closes_listeners_even_when_settings_cannot_be_saved(tmp_path, monkeypatch):
+    from udeck.network_files.lifecycle import ShareManager
+
+    async def scenario():
+        manager = ShareManager(tmp_path / "config.json", port=0)
+        row = {"key": "home", "addresses": ["127.0.0.1"]}
+        await manager.configure({"root": str(tmp_path), "duration": 0, "networks": ["home"]}, candidates=[row])
+
+        def fail_save(value):
+            raise OSError("No space left on device")
+
+        monkeypatch.setattr(manager.settings, "save", fail_save)
+        try:
+            with pytest.raises(OSError, match="No space left"):
+                await manager.stop()
+            assert not manager.listeners, "A failed settings write left the shared files accessible"
+            assert manager.runner is None
+            assert not manager.status()["enabled"]
+        finally:
+            await manager.close()
+    asyncio.run(scenario())
+
+
+def test_failed_configuration_save_never_starts_the_unsaved_share(tmp_path, monkeypatch):
+    from udeck.network_files.lifecycle import ShareManager
+
+    async def scenario():
+        manager = ShareManager(tmp_path / "config.json", port=0)
+        row = {"key": "home", "addresses": ["127.0.0.1"]}
+
+        def fail_save(value):
+            raise OSError("No space left on device")
+
+        monkeypatch.setattr(manager.settings, "save", fail_save)
+        try:
+            with pytest.raises(OSError, match="No space left"):
+                await manager.configure({"root": str(tmp_path), "duration": 0, "networks": ["home"]}, candidates=[row])
+            await manager.tick(candidates=[row])
+            assert not manager.listeners, "A failed configuration was activated by the next network tick"
+            assert not manager.status()["enabled"]
+        finally:
+            await manager.close()
+    asyncio.run(scenario())
+
+
+def test_failed_reconfiguration_preserves_the_previously_saved_share(tmp_path, monkeypatch):
+    from udeck.network_files.lifecycle import ShareManager
+
+    async def scenario():
+        original = tmp_path / "original"
+        replacement = tmp_path / "replacement"
+        original.mkdir()
+        replacement.mkdir()
+        manager = ShareManager(tmp_path / "config.json", port=0)
+        row = {"key": "home", "addresses": ["127.0.0.1"]}
+        await manager.configure({"root": str(original), "duration": 0, "networks": ["home"]}, candidates=[row])
+        runner, urls = manager.runner, manager.status()["urls"]
+
+        def fail_save(value):
+            raise OSError("No space left on device")
+
+        monkeypatch.setattr(manager.settings, "save", fail_save)
+        try:
+            with pytest.raises(OSError, match="No space left"):
+                await manager.configure({"root": str(replacement), "duration": 0, "networks": ["home"]}, candidates=[row])
+            assert manager.status()["root"] == str(original)
+            assert manager.runner is runner and manager.status()["urls"] == urls
+            await manager.tick(candidates=[row])
+            assert manager.status()["root"] == str(original)
+        finally:
+            await manager.close()
+    asyncio.run(scenario())
+
+
+def test_replaced_root_is_revoked_even_if_persistence_fails(tmp_path, monkeypatch):
+    from udeck.network_files.lifecycle import ShareManager
+
+    async def scenario():
+        root = tmp_path / "share"
+        root.mkdir()
+        manager = ShareManager(tmp_path / "config.json", port=0)
+        row = {"key": "home", "addresses": ["127.0.0.1"]}
+        await manager.configure({"root": str(root), "duration": 0, "networks": ["home"]}, candidates=[row])
+        root.rename(tmp_path / "previous")
+        root.mkdir()
+
+        def fail_save(value):
+            raise OSError("No space left on device")
+
+        monkeypatch.setattr(manager.settings, "save", fail_save)
+        try:
+            with pytest.raises(OSError, match="No space left"):
+                await manager.reconcile([row])
+            assert not manager.listeners and manager.runner is None
+            assert not manager.status()["enabled"]
+        finally:
+            await manager.close()
+    asyncio.run(scenario())

@@ -69,6 +69,200 @@ def test_conflicts_batch_move_trash_and_partial_failure(tmp_path):
     asyncio.run(scenario())
 
 
+@pytest.mark.parametrize("host", ["[", "[invalid]"])
+def test_malformed_host_is_rejected_without_server_error(tmp_path, host):
+    async def scenario():
+        root = tmp_path / "share"
+        root.mkdir()
+        async with workspace(root, tmp_path / "state") as (_, client, url, _):
+            response = await client.get(url + "/api/files", headers={"Host": host})
+            assert response.status == 403, await response.text()
+            assert (await response.json())["error"] == "Invalid server address"
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("policy", ["error", "keep", "replace"])
+def test_upload_cancelled_while_waiting_to_commit_does_not_publish(tmp_path, policy):
+    from udeck.network_files.server import STATE
+
+    async def scenario():
+        root = tmp_path / "share"
+        root.mkdir()
+        if policy == "replace":
+            (root / "late.txt").write_bytes(b"original")
+        async with workspace(root, tmp_path / "state") as (app, client, url, headers):
+            response = await client.post(url + "/api/uploads", headers=headers,
+                                         json={"path": "late.txt", "size": 3, "policy": policy})
+            assert response.status == 200, await response.text()
+            ticket = (await response.json())["id"]
+            lock = app[STATE].mutation_lock
+            await lock.acquire()
+            pending = asyncio.create_task(client.put(url + "/api/uploads/" + ticket, data=b"new", headers=headers))
+            try:
+                async with asyncio.timeout(5):
+                    while not lock._waiters:
+                        await asyncio.sleep(.01)
+                response = await client.delete(url + "/api/uploads/" + ticket, headers=headers)
+                assert response.status == 200
+            finally:
+                lock.release()
+            response = await asyncio.wait_for(pending, 5)
+            assert response.status == 400, await response.text()
+            assert (await response.json())["error"] == "Upload cancelled"
+            assert not list(root.glob(".udeck-web-*"))
+            assert ticket not in app[STATE].uploads
+            if policy == "replace":
+                assert (root / "late.txt").read_bytes() == b"original"
+            else:
+                assert not (root / "late.txt").exists()
+    asyncio.run(scenario())
+
+
+def test_upload_cancelled_during_sync_preserves_existing_file(tmp_path, monkeypatch):
+    from udeck.network_files.filesystem import SharedRoot
+
+    (tmp_path / "existing.txt").write_bytes(b"original")
+    root = SharedRoot(tmp_path)
+    cancelled = threading.Event()
+    original_sync = os.fsync
+
+    def cancel_after_sync(descriptor):
+        original_sync(descriptor)
+        cancelled.set()
+
+    monkeypatch.setattr(os, "fsync", cancel_after_sync)
+    upload = root.begin_upload("existing.txt", 3, "replace")
+    try:
+        upload.write(b"new")
+        with pytest.raises(ValueError, match="Upload cancelled"):
+            upload.commit(cancelled)
+        assert upload.closed
+        assert (tmp_path / "existing.txt").read_bytes() == b"original"
+        assert not list(tmp_path.glob(".udeck-web-*"))
+    finally:
+        upload.abort()
+        root.close()
+
+
+@pytest.mark.parametrize(("sent", "policy"), [(0, "error"), (1, "error"), (1, "replace")])
+def test_cancelling_stalled_upload_releases_session_and_temporary_file(tmp_path, sent, policy):
+    from urllib.parse import urlsplit
+
+    from udeck.network_files.server import STATE
+
+    async def scenario():
+        root = tmp_path / "share"
+        root.mkdir()
+        if policy == "replace":
+            (root / "stalled.txt").write_bytes(b"original")
+        async with workspace(root, tmp_path / "state") as (app, client, url, headers):
+            response = await client.post(url + "/api/uploads", headers=headers,
+                                         json={"path": "stalled.txt", "size": 3, "policy": policy})
+            assert response.status == 200, await response.text()
+            ticket = (await response.json())["id"]
+            address = urlsplit(url)
+            reader, writer = await asyncio.open_connection(address.hostname, address.port)
+            try:
+                request = (f"PUT /api/uploads/{ticket} HTTP/1.1\r\nHost: {address.netloc}\r\n"
+                           f"X-UDeck-Request: {headers['X-UDeck-Request']}\r\nContent-Length: 3\r\n\r\n")
+                writer.write(request.encode() + b"a" * sent)
+                await writer.drain()
+                async with asyncio.timeout(3):
+                    while not app[STATE].uploads[ticket]["active"] or app[STATE].uploads[ticket]["upload"].written != sent:
+                        await asyncio.sleep(.01)
+                response = await client.delete(url + "/api/uploads/" + ticket, headers=headers)
+                assert response.status == 200
+                async with asyncio.timeout(3):
+                    while ticket in app[STATE].uploads:
+                        await asyncio.sleep(.01)
+                header = await asyncio.wait_for(reader.readuntil(b"\r\n\r\n"), 3)
+                assert header.startswith(b"HTTP/1.1 400"), header
+                assert not list(root.glob(".udeck-web-*"))
+                if policy == "replace":
+                    assert (root / "stalled.txt").read_bytes() == b"original"
+                else:
+                    assert not (root / "stalled.txt").exists()
+            finally:
+                writer.close()
+                await writer.wait_closed()
+    asyncio.run(scenario())
+
+
+def test_cancelled_upload_waiting_for_a_transfer_slot_is_released(tmp_path):
+    from urllib.parse import urlsplit
+
+    from udeck.network_files.server import STATE
+
+    async def scenario():
+        root = tmp_path / "share"
+        root.mkdir()
+        async with workspace(root, tmp_path / "state") as (app, client, url, headers):
+            response = await client.post(url + "/api/uploads", headers=headers, json={"path": "queued.txt", "size": 3})
+            ticket = (await response.json())["id"]
+            limit = app[STATE].upload_limit
+            await limit.acquire()
+            await limit.acquire()
+            address = urlsplit(url)
+            reader, writer = await asyncio.open_connection(address.hostname, address.port)
+            try:
+                request = (f"PUT /api/uploads/{ticket} HTTP/1.1\r\nHost: {address.netloc}\r\n"
+                           f"X-UDeck-Request: {headers['X-UDeck-Request']}\r\nContent-Length: 3\r\n\r\nabc")
+                writer.write(request.encode())
+                await writer.drain()
+                async with asyncio.timeout(3):
+                    while not app[STATE].uploads[ticket]["active"]:
+                        await asyncio.sleep(.01)
+                response = await client.delete(url + "/api/uploads/" + ticket, headers=headers)
+                assert response.status == 200
+                async with asyncio.timeout(3):
+                    while ticket in app[STATE].uploads:
+                        await asyncio.sleep(.01)
+                header = await asyncio.wait_for(reader.readuntil(b"\r\n\r\n"), 3)
+                assert header.startswith(b"HTTP/1.1 400"), header
+                assert not list(root.iterdir())
+            finally:
+                limit.release()
+                limit.release()
+                writer.close()
+                await writer.wait_closed()
+    asyncio.run(scenario())
+
+
+def test_repeated_upload_cancellation_waits_for_the_file_worker(tmp_path, monkeypatch):
+    from udeck.network_files.server import STATE
+
+    async def scenario():
+        root = tmp_path / "share"
+        root.mkdir()
+        async with workspace(root, tmp_path / "state") as (app, client, url, headers):
+            response = await client.post(url + "/api/uploads", headers=headers, json={"path": "writing.txt", "size": 3})
+            ticket = (await response.json())["id"]
+            upload = app[STATE].uploads[ticket]["upload"]
+            started, release = threading.Event(), threading.Event()
+            original_write = upload.write
+
+            def slow_write(data):
+                started.set()
+                assert release.wait(5)
+                original_write(data)
+
+            monkeypatch.setattr(upload, "write", slow_write)
+            pending = asyncio.create_task(client.put(url + "/api/uploads/" + ticket, data=b"abc", headers=headers))
+            try:
+                assert await asyncio.to_thread(started.wait, 3)
+                for _attempt in range(2):
+                    response = await client.delete(url + "/api/uploads/" + ticket, headers=headers)
+                    assert response.status == 200
+                assert not upload.closed, "Cancellation closed a file descriptor still owned by the worker"
+            finally:
+                release.set()
+                response = await asyncio.wait_for(pending, 5)
+            assert response.status == 400, await response.text()
+            assert upload.closed and not app[STATE].workers
+            assert not list(root.iterdir())
+    asyncio.run(scenario())
+
+
 def test_directory_upload_policy_and_rename_are_non_destructive(tmp_path):
     async def scenario():
         root = tmp_path / "share"
