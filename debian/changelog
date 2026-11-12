@@ -1,3 +1,12 @@
+udeck (0.2.6) unstable; urgency=medium
+
+  * Display selected embedded text subtitles at the current playback position.
+  * Keep captions visible when enabling late, seeking or resuming playback.
+  * Bound and cancel background subtitle loading across track and source changes.
+  * Bind the video output before playback to prevent a Qt/PySide startup lock wait.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Thu, 12 Nov 2026 23:59:00 +0800
+
 udeck (0.2.5) unstable; urgency=medium
 
   * Reveal playback controls when a video ends and clear stale playback messages.

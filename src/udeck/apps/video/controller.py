@@ -1,6 +1,5 @@
 """Video resume, chapters, subtitles and music coordination."""
 
-import re
 import uuid
 from pathlib import Path
 
@@ -12,11 +11,18 @@ from udeck.app_routing import APP_IDS, object_path, service_name
 from udeck.apps.media.controller import MediaController, time_label
 from udeck.i18n import Msg, tr
 
+from .subtitles import EmbeddedSubtitles, parse_srt
+
 
 class VideoController(MediaController):
     def __init__(self, directory=None, language_path=None):
         super().__init__("video", directory, language_path)
         self.pointer_pressed = False
+        self.subtitle_error = ""
+        self.embedded_subtitles = EmbeddedSubtitles(self)
+        self.embedded_subtitles.ready.connect(self.subtitles_ready)
+        self.embedded_subtitles.failed.connect(self.subtitles_failed)
+        self.media.player.sourceChanged.connect(self.clear_subtitles)
 
     def tabs(self):
         return [tr(Msg.CONTINUE_WATCHING), tr(Msg.ALL_VIDEOS), tr(Msg.FOLDERS)]
@@ -48,6 +54,7 @@ class VideoController(MediaController):
             if not self.music_call("PauseForVideo", token):
                 raise RuntimeError(tr(Msg.MUSIC_COULD_NOT_BE_PAUSED_TRY_AGAIN))
             self.music_token = token
+        self.clear_subtitles()
         return True
 
     def update_controls(self):
@@ -133,11 +140,43 @@ class VideoController(MediaController):
 
     def set_track(self, subtitles, index):
         if subtitles:
-            self.external_cues, self.external_name = [], ""
-            self.media.player.setActiveSubtitleTrack(index)
+            if index >= 0:
+                item = self.library.require(self.current["id"])
+            self.clear_subtitles()
+            # The native renderer loses a cue after seeking into its middle.
+            # Read text tracks once and use the position-driven QML overlay.
+            self.media.player.setActiveSubtitleTrack(-1)
+            if index >= 0:
+                self.notice = tr(Msg.LOADING_SUBTITLES)
+                self.embedded_subtitles.load(item["path"], index)
         else:
             self.media.player.setActiveAudioTrack(index)
         self.pop_menu()
+
+    def clear_subtitles(self):
+        self.embedded_subtitles.clear()
+        self.external_cues, self.external_name = [], ""
+        if self.error == self.subtitle_error:
+            self.error = ""
+        self.subtitle_error = ""
+        if self.notice == tr(Msg.LOADING_SUBTITLES):
+            self.notice = ""
+
+    def subtitles_ready(self):
+        try:
+            self.library.require(self.current["id"])
+        except (OSError, ValueError) as error:
+            self.subtitles_failed(str(error))
+            return
+        if self.notice == tr(Msg.LOADING_SUBTITLES):
+            self.notice = ""
+        self.publish()
+
+    def subtitles_failed(self, error):
+        self.clear_subtitles()
+        self.subtitle_error = tr(Msg.SUBTITLE_LOADING_FAILED_ERROR, error=error)
+        self.error = self.subtitle_error
+        self.publish()
 
     def chapter_menu(self):
         chapters = self.current.get("metadata", {}).get("chapters", []) if self.current else []
@@ -182,16 +221,10 @@ class VideoController(MediaController):
         self.library.require(self.current["id"])
         if path.stat().st_size > 4 * 1024 * 1024:
             raise ValueError(tr(Msg.SUBTITLE_FILE_EXCEEDS_4_MIB))
-        text = path.read_text(encoding="utf-8-sig")
-        cues = []
-        pattern = r"(?m)(\d\d):(\d\d):(\d\d)[,.](\d\d\d)\s*-->\s*(\d\d):(\d\d):(\d\d)[,.](\d\d\d)[^\n]*\n([\s\S]*?)(?=\n\s*\n|\Z)"
-        def seconds(a):
-            return a[0] * 3600 + a[1] * 60 + a[2] + a[3] / 1000
-        for match in re.finditer(pattern, text):
-            values = [int(v) for v in match.groups()[:8]]
-            cues.append((seconds(values[:4]), seconds(values[4:]), re.sub(r"<[^>]+>", "", match.group(9)).strip()))
+        cues = parse_srt(path.read_text(encoding="utf-8-sig"))
         if not cues:
             raise ValueError(tr(Msg.NO_VALID_SRT_CAPTIONS_FOUND))
+        self.clear_subtitles()
         self.media.player.setActiveSubtitleTrack(-1)
         self.external_cues, self.external_name = cues, str(path)
         self.pop_menu()
@@ -202,4 +235,10 @@ class VideoController(MediaController):
                 and self.media.player.activeSubtitleTrack() >= 0):
             return sink.subtitleText()
         position = self.media.player.position() / 1000
-        return "\n".join(text for start, end, text in self.external_cues if start <= position < end)
+        cues = self.external_cues or self.embedded_subtitles.cues or []
+        return "\n".join(text for start, end, text in cues if start <= position < end)
+
+    def close(self):
+        self.clear_subtitles()
+        self.embedded_subtitles.close()
+        super().close()

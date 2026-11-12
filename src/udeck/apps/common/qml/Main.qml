@@ -42,7 +42,8 @@ Window {
         ensureSurface()
     }
     function ensureSurface() {
-        if (surface.source.toString() === "" && (state.app === "browser" || ["library", "album"].indexOf(state.page) < 0))
+        // Bind the video sink before playback can start.
+        if (surface.source.toString() === "" && (state.app === "browser" || state.app === "video" || ["library", "album"].indexOf(state.page) < 0))
             surface.setSource("../../" + state.app + "/qml/" + ({music:"Music", video:"Video", browser:"Browser", reader:"Reader", emulator:"Emulator"})[state.app] + "Surface.qml", {host: window, colors: window.colors})
     }
     function focusInput() {
@@ -181,7 +182,7 @@ Window {
             Loader {
                 id: surface; anchors.fill: parent
                 objectName: "appSurface"
-                asynchronous: window.state.app !== "browser"
+                asynchronous: window.state.app !== "browser" && window.state.app !== "video"
                 onLoaded: Qt.callLater(window.focusInput)
                 visible: ["library","album"].indexOf(window.state.page)<0
             }

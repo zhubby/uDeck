@@ -1,0 +1,338 @@
+{
+  "version": "0.2.6",
+  "device": "uConsole CM4 / Debian 13.5 arm64 / PySide6 6.8.2.1",
+  "regression": {
+    "arm64FullSuite": 1554,
+    "macosFocused": 138,
+    "installedDeviceFocused": 35
+  },
+  "nativeWaylandMatrix": {
+    "passed": true,
+    "cases": [
+      {
+        "width": 960,
+        "height": 600,
+        "theme": "classic",
+        "language": "en",
+        "returncode": 0,
+        "passed": true,
+        "checks": [
+          "enable-embedded-track-while-paused-in-middle-of-cue",
+          "forward-and-backward-seek-retains-current-embedded-cue",
+          "cue-gap-clears-text-and-seek-selects-next-cue",
+          "switch-embedded-languages-and-hide-controls",
+          "off-removes-embedded-text",
+          "external-and-embedded-selection-replaces-the-other",
+          "captions-follow-playback-position-at-double-speed",
+          "resume-then-enable-current-embedded-cue"
+        ],
+        "qmlErrors": [],
+        "rendering": "native"
+      },
+      {
+        "width": 960,
+        "height": 600,
+        "theme": "classic",
+        "language": "zh_CN",
+        "returncode": 0,
+        "passed": true,
+        "checks": [
+          "enable-embedded-track-while-paused-in-middle-of-cue",
+          "forward-and-backward-seek-retains-current-embedded-cue",
+          "cue-gap-clears-text-and-seek-selects-next-cue",
+          "switch-embedded-languages-and-hide-controls",
+          "off-removes-embedded-text",
+          "external-and-embedded-selection-replaces-the-other",
+          "captions-follow-playback-position-at-double-speed",
+          "resume-then-enable-current-embedded-cue"
+        ],
+        "qmlErrors": [],
+        "rendering": "native"
+      },
+      {
+        "width": 960,
+        "height": 600,
+        "theme": "dark",
+        "language": "en",
+        "returncode": 0,
+        "passed": true,
+        "checks": [
+          "enable-embedded-track-while-paused-in-middle-of-cue",
+          "forward-and-backward-seek-retains-current-embedded-cue",
+          "cue-gap-clears-text-and-seek-selects-next-cue",
+          "switch-embedded-languages-and-hide-controls",
+          "off-removes-embedded-text",
+          "external-and-embedded-selection-replaces-the-other",
+          "captions-follow-playback-position-at-double-speed",
+          "resume-then-enable-current-embedded-cue"
+        ],
+        "qmlErrors": [],
+        "rendering": "native"
+      },
+      {
+        "width": 960,
+        "height": 600,
+        "theme": "dark",
+        "language": "zh_CN",
+        "returncode": 0,
+        "passed": true,
+        "checks": [
+          "enable-embedded-track-while-paused-in-middle-of-cue",
+          "forward-and-backward-seek-retains-current-embedded-cue",
+          "cue-gap-clears-text-and-seek-selects-next-cue",
+          "switch-embedded-languages-and-hide-controls",
+          "off-removes-embedded-text",
+          "external-and-embedded-selection-replaces-the-other",
+          "captions-follow-playback-position-at-double-speed",
+          "resume-then-enable-current-embedded-cue"
+        ],
+        "qmlErrors": [],
+        "rendering": "native"
+      },
+      {
+        "width": 1280,
+        "height": 720,
+        "theme": "classic",
+        "language": "en",
+        "returncode": 0,
+        "passed": true,
+        "checks": [
+          "enable-embedded-track-while-paused-in-middle-of-cue",
+          "forward-and-backward-seek-retains-current-embedded-cue",
+          "cue-gap-clears-text-and-seek-selects-next-cue",
+          "switch-embedded-languages-and-hide-controls",
+          "off-removes-embedded-text",
+          "external-and-embedded-selection-replaces-the-other",
+          "captions-follow-playback-position-at-double-speed",
+          "resume-then-enable-current-embedded-cue"
+        ],
+        "qmlErrors": [],
+        "rendering": "native"
+      },
+      {
+        "width": 1280,
+        "height": 720,
+        "theme": "classic",
+        "language": "zh_CN",
+        "returncode": 0,
+        "passed": true,
+        "checks": [
+          "enable-embedded-track-while-paused-in-middle-of-cue",
+          "forward-and-backward-seek-retains-current-embedded-cue",
+          "cue-gap-clears-text-and-seek-selects-next-cue",
+          "switch-embedded-languages-and-hide-controls",
+          "off-removes-embedded-text",
+          "external-and-embedded-selection-replaces-the-other",
+          "captions-follow-playback-position-at-double-speed",
+          "resume-then-enable-current-embedded-cue"
+        ],
+        "qmlErrors": [],
+        "rendering": "native"
+      },
+      {
+        "width": 1280,
+        "height": 720,
+        "theme": "dark",
+        "language": "en",
+        "returncode": 0,
+        "passed": true,
+        "checks": [
+          "enable-embedded-track-while-paused-in-middle-of-cue",
+          "forward-and-backward-seek-retains-current-embedded-cue",
+          "cue-gap-clears-text-and-seek-selects-next-cue",
+          "switch-embedded-languages-and-hide-controls",
+          "off-removes-embedded-text",
+          "external-and-embedded-selection-replaces-the-other",
+          "captions-follow-playback-position-at-double-speed",
+          "resume-then-enable-current-embedded-cue"
+        ],
+        "qmlErrors": [],
+        "rendering": "native"
+      },
+      {
+        "width": 1280,
+        "height": 720,
+        "theme": "dark",
+        "language": "zh_CN",
+        "returncode": 0,
+        "passed": true,
+        "checks": [
+          "enable-embedded-track-while-paused-in-middle-of-cue",
+          "forward-and-backward-seek-retains-current-embedded-cue",
+          "cue-gap-clears-text-and-seek-selects-next-cue",
+          "switch-embedded-languages-and-hide-controls",
+          "off-removes-embedded-text",
+          "external-and-embedded-selection-replaces-the-other",
+          "captions-follow-playback-position-at-double-speed",
+          "resume-then-enable-current-embedded-cue"
+        ],
+        "qmlErrors": [],
+        "rendering": "native"
+      }
+    ]
+  },
+  "extendedPlayback": {
+    "results": [
+      {
+        "case": "format-H264.mp4",
+        "passed": true
+      },
+      {
+        "case": "format-WebM.webm",
+        "passed": true
+      },
+      {
+        "case": "format-Subtitles.mkv",
+        "passed": true
+      },
+      {
+        "case": "audio-tracks-chapters-speed",
+        "passed": true
+      },
+      {
+        "case": "mouse-seek-and-play",
+        "passed": true
+      },
+      {
+        "case": "end-replay",
+        "passed": true
+      },
+      {
+        "case": "error-recovery",
+        "passed": true
+      },
+      {
+        "case": "resume-or-start-over",
+        "passed": true
+      },
+      {
+        "case": "non-finite-seek",
+        "passed": true
+      },
+      {
+        "case": "hidden-controls-input",
+        "passed": true
+      },
+      {
+        "case": "source-loss",
+        "passed": true
+      }
+    ],
+    "qmlErrors": [],
+    "passed": true
+  },
+  "nativePlayerWorkflow": {
+    "app": "video",
+    "checks": [
+      "embedded-captions-visible-in-window",
+      "external-srt-survives-hidden-controls",
+      "real-video-frames",
+      "embedded-subtitle-track",
+      "seek",
+      "pause-and-save",
+      "confirmed-resume",
+      "global-theme-preserves-native-content",
+      "end-of-video-reveals-controls-and-replay-clears-message"
+    ],
+    "qmlErrors": []
+  },
+  "privateDbusMusic": {
+    "passed": true,
+    "checks": [
+      "real-private-dbus-music-playing-detection",
+      "confirmation-pauses-real-music-process",
+      "video-back-resumes-only-owned-music",
+      "cancel-keeps-music-playing"
+    ]
+  },
+  "additionalEmbeddedFormats": [
+    {
+      "passed": true,
+      "checks": [
+        "enable-embedded-track-while-paused-in-middle-of-cue",
+        "forward-and-backward-seek-retains-current-embedded-cue",
+        "cue-gap-clears-text-and-seek-selects-next-cue",
+        "switch-embedded-languages-and-hide-controls",
+        "off-removes-embedded-text",
+        "external-and-embedded-selection-replaces-the-other",
+        "captions-follow-playback-position-at-double-speed",
+        "resume-then-enable-current-embedded-cue"
+      ],
+      "qmlErrors": [],
+      "rendering": "native",
+      "codec": "mov_text",
+      "timestampOffsetSeconds": 5.0
+    },
+    {
+      "passed": true,
+      "checks": [
+        "enable-embedded-track-while-paused-in-middle-of-cue",
+        "forward-and-backward-seek-retains-current-embedded-cue",
+        "cue-gap-clears-text-and-seek-selects-next-cue",
+        "switch-embedded-languages-and-hide-controls",
+        "off-removes-embedded-text",
+        "external-and-embedded-selection-replaces-the-other",
+        "captions-follow-playback-position-at-double-speed",
+        "resume-then-enable-current-embedded-cue"
+      ],
+      "qmlErrors": [],
+      "rendering": "native",
+      "codec": "ass",
+      "timestampOffsetSeconds": 0.0
+    }
+  ],
+  "videoOutput": {
+    "boundBeforePlayback": true,
+    "stableAcrossPlayAndResume": true,
+    "beforeFix": "Qt object mutex and Python GIL lock wait while attaching the sink after decoding began"
+  },
+  "preserved": {
+    "fileOrAbsentStates": 26,
+    "originalProcessStartTimes": 8,
+    "allMatched": true,
+    "systemState": {
+      "smbSettingsAbsent": true,
+      "smbService": "inactive",
+      "smbManager": "active",
+      "listeners445or8787": "",
+      "installedVersion": "0.2.6",
+      "dpkgVerifyReturncode": 0
+    }
+  },
+  "package": {
+    "file": "udeck_0.2.6_arm64.deb",
+    "sha256": "4be7901725fb7d839012d77adf2a6918eb08f192979ce5d1e7b9bf6497231570",
+    "installed": true,
+    "productionSourceFilesCompared": 424,
+    "installedProductionFilesCompared": 424,
+    "dpkgVerify": "passed",
+    "installedPreflight": "passed",
+    "fullTestSuite": true,
+    "buildManifestGitRevision": null,
+    "publishedRelease": false,
+    "rollbackPackage": "/var/backups/udeck-video-0.2.6-20261113/udeck_0.2.5_arm64.deb"
+  },
+  "screenshots": [
+    {
+      "file": "video-embedded-seek-zh-960x600.png",
+      "width": 960,
+      "height": 600,
+      "installedPackage": true
+    },
+    {
+      "file": "video-embedded-dark-en-1280x720.png",
+      "width": 1280,
+      "height": 720,
+      "installedPackage": true
+    }
+  ],
+  "review": {
+    "reviewer": "correctness",
+    "findings": [],
+    "residual_risks": [],
+    "testing_gaps": [
+      "No physical button or speaker listening acceptance",
+      "No Bluetooth audio routing or sustained playback benchmark"
+    ]
+  }
+}

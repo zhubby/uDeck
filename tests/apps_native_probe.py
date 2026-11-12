@@ -219,18 +219,18 @@ def run(app, root, language="en", width=1280, height=720):
         assert controller.media.player.videoSink().videoFrame().isValid()
         assert len(controller.media.player.subtitleTracks())==1
         controller.set_track(True,0)
-        wait(lambda: "Original uDeck subtitle" in controller.media.player.videoSink().subtitleText())
-        if controller.media.software:
-            assert "Original uDeck subtitle" in controller.subtitle_text(), "Software video lost embedded captions"
-            wait(lambda: any("Original uDeck subtitle" in str(obj.property("text"))
-                             for obj in window.findChildren(QObject) if obj.inherits("QQuickText")))
-            completed.append("embedded-captions-visible-in-software-scenegraph")
-        else:
-            completed.append("embedded-captions-delivered-to-native-VideoOutput")
+        def visible_embedded_caption():
+            return ("Original uDeck subtitle" in controller.subtitle_text()
+                    and any("Original uDeck subtitle" in str(obj.property("text"))
+                            and obj.property("visible")
+                            for obj in window.findChildren(QObject) if obj.inherits("QQuickText")))
+        wait(visible_embedded_caption)
+        completed.append("embedded-captions-visible-in-window")
         capture("embedded-captions")
         controller.media.player.pause()
         controller.seek(4)
         wait(lambda: controller.media.player.position()>=3900)
+        wait(visible_embedded_caption)
         capture("playing")
         frame = window.grabWindow()
         colored = sum(frame.pixelColor(x, y).saturation() > 80 and frame.pixelColor(x, y).value() > 80
