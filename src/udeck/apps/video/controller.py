@@ -16,6 +16,7 @@ from udeck.i18n import Msg, tr
 class VideoController(MediaController):
     def __init__(self, directory=None, language_path=None):
         super().__init__("video", directory, language_path)
+        self.pointer_pressed = False
 
     def tabs(self):
         return [tr(Msg.CONTINUE_WATCHING), tr(Msg.ALL_VIDEOS), tr(Msg.FOLDERS)]
@@ -51,8 +52,22 @@ class VideoController(MediaController):
 
     def update_controls(self):
         if (self.page == "player" and self.inactive >= 5
-                and self.media.snapshot()["playing"] and not self.menus):
+                and self.media.snapshot()["playing"] and not self.menus and not self.pointer_pressed):
             self.controls_visible = False
+
+    @Slot(bool)
+    def pointerPressed(self, pressed):
+        self.pointer_pressed = pressed
+        self.pointerActivity()
+
+    @Slot()
+    def pointerActivity(self):
+        if self.page != "player" or self.menus:
+            return
+        self.inactive = 0
+        if not self.controls_visible:
+            self.controls_visible = True
+            self.publish()
 
     def next_track(self, delta=1):
         chapters = self.current.get("metadata", {}).get("chapters", []) if self.current else []

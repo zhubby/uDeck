@@ -13,6 +13,7 @@ from udeck.core import ConfigStore, move_index
 from udeck.i18n import Msg, language_code, render, tr
 from udeck.i18n import translate as translate_message
 from udeck.sounds import SoundFeedback, interaction
+from udeck.text_input import composing_action_blocked
 
 
 class AppController(SoundFeedback):
@@ -210,7 +211,7 @@ class AppController(SoundFeedback):
             key = str(self._serial)
             self._callbacks[key] = self.pop_menu
             rows.append({"id": key, "title": tr(Msg.BACK), "subtitle": "", "icon": "go-previous" if icon else "", "disabled": False})
-        self.menus.append({"title": title, "body": body, "options": rows,
+        self.menus.append({"id": rows[0]["id"], "title": title, "body": body, "options": rows,
                            "index": next(i for i, r in enumerate(rows) if not r["disabled"]),
                            "owner": owner or (self.current or {}).get("sourceId", ""),
                            "input": False, "draft": ""})
@@ -312,6 +313,8 @@ class AppController(SoundFeedback):
     @Slot(str)
     @interaction
     def dispatch(self, action):
+        if composing_action_blocked(self, action):
+            return
         self.error = ""
         if self.menus:
             menu = self.menus[-1]

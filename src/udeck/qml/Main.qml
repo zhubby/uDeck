@@ -596,6 +596,7 @@ Window {
 
                     TextField { palette: window.colors.controls;
                         id: editor
+                        property QtObject inputController: controller
                         visible: dialog.kind === "text"
                         width: parent.width; height: 66
                         font.family: window.fontFamily; font.pixelSize: 28; color: window.ink
@@ -605,11 +606,22 @@ Window {
                         inputMethodHints: dialog.secret ? Qt.ImhSensitiveData | Qt.ImhNoPredictiveText : (dialog.numeric ? Qt.ImhDigitsOnly : Qt.ImhNone)
                         background: Rectangle { radius: 8; color: window.colors.input; border.width: 2; border.color: window.accent }
                         onTextEdited: controller.editText(text)
-                        onAccepted: controller.dispatch("accept")
-                        Keys.priority: Keys.AfterItem
-                        Keys.onReturnPressed: function(event) { event.accepted = true }
-                        Keys.onEnterPressed: function(event) { event.accepted = true }
-                        Keys.onEscapePressed: function(event) { if (!inputMethodComposing) { controller.dispatch("back"); event.accepted = true } }
+                        Keys.priority: Keys.BeforeItem
+                        Keys.onPressed: function(event) {
+                            if (inputMethodComposing) {
+                                event.accepted = [Qt.Key_Return, Qt.Key_Enter, Qt.Key_Escape, Qt.Key_Up,
+                                                  Qt.Key_Down, Qt.Key_Left, Qt.Key_Right, Qt.Key_PageUp,
+                                                  Qt.Key_PageDown].indexOf(event.key) >= 0
+                                return
+                            }
+                            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                if (!event.isAutoRepeat) controller.dispatch("accept")
+                                event.accepted = true
+                            } else if (event.key === Qt.Key_Escape) {
+                                if (!event.isAutoRepeat) controller.dispatch("back")
+                                event.accepted = true
+                            }
+                        }
                     }
 
                     Column {

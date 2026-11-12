@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from pathlib import Path
 
-from PySide6.QtCore import QFileSystemWatcher, QTimer
+from PySide6.QtCore import QFileSystemWatcher, Qt, QTimer
 
 from .core import move_index
 from .file_jobs import FileJob, distinct_sources
@@ -58,8 +58,8 @@ class FileControls(NetworkAccessControls):
         self._file_location_timer = QTimer(self)
         self._file_location_timer.setInterval(10000)
         self._file_location_timer.timeout.connect(self._request_files_refresh)
-        self.fileJobProgress.connect(self._file_job_progress)
-        self.fileJobFinished.connect(self._file_job_finished)
+        self.fileJobProgress.connect(self._file_job_progress, Qt.ConnectionType.QueuedConnection)
+        self.fileJobFinished.connect(self._file_job_finished, Qt.ConnectionType.QueuedConnection)
 
     def _file_sync(self):
         if self._file_view_entries is not self.data["files"]:

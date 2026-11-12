@@ -25,6 +25,7 @@ Window {
     property var menuModel: []
     property string tabsStamp: ""
     property string menuStamp: ""
+    property string focusedInputId: ""
     property bool allowClose: false
     property bool videoFull: state.app === "video" && state.page === "player"
     property color ink: window.colors.text
@@ -46,10 +47,18 @@ Window {
     }
     function focusInput() {
         if (state.menu.input) {
-            if (!draft.activeFocus) { draft.text = state.menu.draft; draft.forceActiveFocus(); draft.cursorPosition=draft.length }
-        } else if (state.app === "browser" && state.webMode === "text" && !state.menu.title) {
-            if (surface.item) surface.item.focusWeb()
-        } else keys.forceActiveFocus()
+            if (focusedInputId !== state.menu.id) {
+                focusedInputId = state.menu.id
+                draft.text = state.menu.draft
+                draft.cursorPosition = draft.length
+            }
+            draft.forceActiveFocus()
+        } else {
+            focusedInputId = ""
+            if (state.app === "browser" && state.webMode === "text" && !state.menu.title) {
+                if (surface.item) surface.item.focusWeb()
+            } else keys.forceActiveFocus()
+        }
     }
     Connections {
         target: controller
@@ -57,18 +66,18 @@ Window {
             const previous=window.state.menu
             window.state=JSON.parse(controller.viewSnapshotJson)
             window.syncModels()
-            if (!window.state.menu.input || !previous.input || previous.title!==window.state.menu.title) Qt.callLater(window.focusInput)
+            if (!window.state.menu.input || !previous.input || previous.id!==window.state.menu.id) Qt.callLater(window.focusInput)
         }
         function onClosed() { window.allowClose=true; window.close() }
     }
     onClosing: function(event) { event.accepted=allowClose; if(!allowClose) controller.requestClose() }
     onActiveChanged: if(active) Qt.callLater(focusInput)
-    Shortcut { sequence: "Ctrl+L"; enabled: window.state.app === "browser"; onActivated: controller.command("address") }
-    Shortcut { sequence: "Ctrl+T"; enabled: window.state.app === "browser"; onActivated: controller.command("new-tab") }
-    Shortcut { sequence: "Escape"; enabled: window.state.app === "browser" && window.state.webMode === "text" && !window.state.menu.title; onActivated: controller.dispatch("back") }
-    Shortcut { sequence: "Ctrl+Shift+M"; onActivated: controller.dispatch("context") }
-    Shortcut { sequence: "Ctrl+,"; onActivated: controller.dispatch("quick-settings") }
-    Shortcut { sequence: "Ctrl+Alt+M"; enabled: window.state.app === "emulator"; onActivated: controller.command("pause-game") }
+    Shortcut { sequence: "Ctrl+L"; autoRepeat: false; enabled: window.state.app === "browser"; onActivated: { controller.command("address"); Qt.callLater(window.focusInput) } }
+    Shortcut { sequence: "Ctrl+T"; autoRepeat: false; enabled: window.state.app === "browser"; onActivated: controller.command("new-tab") }
+    Shortcut { sequence: "Escape"; autoRepeat: false; enabled: window.state.app === "browser" && window.state.webMode === "text" && !window.state.menu.title; onActivated: controller.dispatch("back") }
+    Shortcut { sequence: "Ctrl+Shift+M"; autoRepeat: false; onActivated: controller.dispatch("context") }
+    Shortcut { sequence: "Ctrl+,"; autoRepeat: false; onActivated: controller.dispatch("quick-settings") }
+    Shortcut { sequence: "Ctrl+Alt+M"; autoRepeat: false; enabled: window.state.app === "emulator"; onActivated: controller.command("pause-game") }
     ColumnLayout {
         anchors.fill: parent; spacing: 0
         Rectangle {
@@ -207,7 +216,11 @@ Window {
         id: keys; objectName: "appKeys"; anchors.fill: parent; focus: true
         Keys.onPressed: function(event) {
             const map={};map[Qt.Key_Up]="up";map[Qt.Key_Down]="down";map[Qt.Key_Left]="left";map[Qt.Key_Right]="right";map[Qt.Key_Return]="accept";map[Qt.Key_Enter]="accept";map[Qt.Key_Escape]="back";map[Qt.Key_PageUp]="previous-tab";map[Qt.Key_PageDown]="next-tab";map[Qt.Key_F2]="context";map[Qt.Key_F3]="quick-settings"
-            if(map[event.key]) {controller.dispatch(map[event.key]);event.accepted=true}
+            if(map[event.key]) {
+                if (!event.isAutoRepeat || ["up", "down", "left", "right"].indexOf(map[event.key]) >= 0)
+                    controller.dispatch(map[event.key])
+                event.accepted=true
+            }
         }
     }
     Rectangle {
@@ -223,15 +236,23 @@ Window {
                 Text { font.family: window.fontFamily; Layout.fillWidth: true; visible: !!window.state.menu.body; text: window.state.menu.body||""; font.pixelSize: 21; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: 5; elide: Text.ElideRight }
                 TextField { font.family: window.fontFamily; palette: window.colors.controls;
                     id: draft; objectName: "menuDraft"; visible: !!window.state.menu.input; Layout.fillWidth: true
+                    property QtObject inputController: controller
                     font.pixelSize: 23; color: window.ink; selectByMouse: true
                     background: Rectangle { color: window.colors.input; radius: 8; border.width: 2; border.color: window.accent }
                     onTextEdited: controller.setDraft(text)
                     Keys.priority: Keys.BeforeItem
                     Keys.onPressed: function(event) {
+                        if (inputMethodComposing) {
+                            event.accepted = [Qt.Key_Return, Qt.Key_Enter, Qt.Key_Escape,
+                                              Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right].indexOf(event.key) >= 0
+                            return
+                        }
                         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                            controller.submit(text); event.accepted = true
+                            if (!event.isAutoRepeat) controller.submit(text)
+                            event.accepted = true
                         } else if (event.key === Qt.Key_Escape) {
-                            controller.dispatch("back"); event.accepted = true
+                            if (!event.isAutoRepeat) controller.dispatch("back")
+                            event.accepted = true
                         }
                     }
                 }

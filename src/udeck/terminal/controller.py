@@ -23,6 +23,7 @@ from ..core import ConfigStore
 from ..i18n import LANGUAGES, Msg, render, tr
 from ..i18n import translate as translate_message
 from ..sounds import SoundFeedback, interaction
+from ..text_input import composing_action_blocked
 from .core import LaunchRequest
 
 
@@ -306,6 +307,8 @@ class TerminalController(SoundFeedback):
     @Slot(str)
     @interaction
     def dispatch(self, action):
+        if composing_action_blocked(self, action):
+            return
         if self.closing_window:
             return
         if self.mode == "input":

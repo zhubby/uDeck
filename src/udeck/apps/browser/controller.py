@@ -320,8 +320,9 @@ class BrowserController(AppController):
     @interaction
     def command(self, command):
         if command == "address":
-            self.prompt(tr(Msg.ADDRESS_OR_SEARCH), self.navigate,
-                        "" if self.active_tab().url == "about:blank" else self.active_tab().url)
+            if not self.menus or self.menus[-1].get("submit") != self.navigate:
+                self.prompt(tr(Msg.ADDRESS_OR_SEARCH), self.navigate,
+                            "" if self.active_tab().url == "about:blank" else self.active_tab().url)
         elif command in ("reload", "stop", "forward", "back"):
             self.send(command)
         elif command == "bookmarks":

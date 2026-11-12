@@ -113,7 +113,7 @@ Item {
                                     if(d.action==="accept"){
                                         const pos=pointer.mapToItem(null,pointer.width/2,pointer.height/2)
                                         controller.webClick(web.identifier,pos.x,pos.y)
-                                    }else{pointer.x=Math.max(0,Math.min(viewport.width-pointer.width,pointer.x+(d.action==="left"?-26:d.action==="right"?26:0)));pointer.y=Math.max(0,Math.min(viewport.height-pointer.height,pointer.y+(d.action==="up"?-26:d.action==="down"?26:0)))}
+                                    }else{pointer.location=Qt.point(Math.max(0,Math.min(viewport.width-pointer.width,pointer.x+(d.action==="left"?-26:d.action==="right"?26:0))),Math.max(0,Math.min(viewport.height-pointer.height,pointer.y+(d.action==="up"?-26:d.action==="down"?26:0))))}
                                 } else if(d.mode==="text")controller.webKey(d.action)
                                 else web.runJavaScript(controller.navigationScript(d.action),function(result){
                                     if(d.action==="accept"&&result&&controller.acceptsWebResult(web.identifier,d.generation)){
@@ -142,7 +142,10 @@ Item {
                 TextArea{readOnly:true;text:appState.readingText||"";color:"#282722";font.pixelSize:Math.round(24*(appState.zoom||1));wrapMode:TextEdit.Wrap;leftPadding:50;rightPadding:50;topPadding:30;bottomPadding:40;background:null}
             }
             Rectangle {
-                id:pointer;visible:appState.webMode==="pointer";x:viewport.width/2;y:viewport.height/2;width:22;height:22;radius:11;color:"#40edb866";border.color:surface.colors.accent;border.width:3;z:4
+                id:pointer;visible:appState.webMode==="pointer";width:22;height:22;radius:11;color:"#40edb866";border.color:surface.colors.accent;border.width:3;z:4
+                property point location: Qt.point(viewport.width / 2, viewport.height / 2)
+                x: Math.max(0, Math.min(viewport.width - width, location.x))
+                y: Math.max(0, Math.min(viewport.height - height, location.y))
                 Rectangle{anchors.centerIn:parent;width:4;height:4;radius:2;color:"white"}
             }
             Rectangle {

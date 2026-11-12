@@ -14,6 +14,27 @@ Item {
     property var appState: host ? host.state : ({current:{},media:{}})
     function tr(s){return host?host.tr(s):s}
     Rectangle { anchors.fill: parent; color: "black" }
+    Loader {
+        anchors.fill: parent; z: 1
+        active: surface.visible
+        onActiveChanged: if (!active) controller.pointerPressed(false)
+        sourceComponent: Item {
+            HoverHandler {
+                property point previousPosition: Qt.point(-1, -1)
+                onPointChanged: {
+                    if (point.position.x !== previousPosition.x || point.position.y !== previousPosition.y) {
+                        previousPosition = point.position
+                        if (hovered) controller.pointerActivity()
+                    }
+                }
+            }
+            PointHandler {
+                acceptedButtons: Qt.AllButtons
+                onActiveChanged: controller.pointerPressed(active)
+                onPointChanged: if (active) controller.pointerActivity()
+            }
+        }
+    }
     VideoOutput {
         anchors.fill: parent
         visible: !controller.softwareRendering

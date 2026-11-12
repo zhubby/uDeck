@@ -57,12 +57,12 @@ Window {
         function onClosed() { window.allowClose = true; window.close() }
     }
     onActiveChanged: if (active) Qt.callLater(focusInput)
-    Shortcut { sequence: "Ctrl+Shift+T"; onActivated: controller.command("new-tab") }
-    Shortcut { sequence: "Ctrl+Shift+W"; onActivated: controller.command("close-tab") }
-    Shortcut { sequence: "Ctrl+Shift+C"; onActivated: controller.command("copy") }
-    Shortcut { sequence: "Ctrl+Shift+V"; onActivated: controller.command("paste") }
-    Shortcut { sequence: "Ctrl+Shift+F"; onActivated: controller.command("search") }
-    Shortcut { sequence: "Ctrl+Shift+M"; onActivated: controller.command("menu") }
+    Shortcut { sequence: "Ctrl+Shift+T"; autoRepeat: false; onActivated: controller.command("new-tab") }
+    Shortcut { sequence: "Ctrl+Shift+W"; autoRepeat: false; onActivated: controller.command("close-tab") }
+    Shortcut { sequence: "Ctrl+Shift+C"; autoRepeat: false; onActivated: controller.command("copy") }
+    Shortcut { sequence: "Ctrl+Shift+V"; autoRepeat: false; onActivated: controller.command("paste") }
+    Shortcut { sequence: "Ctrl+Shift+F"; autoRepeat: false; onActivated: controller.command("search") }
+    Shortcut { sequence: "Ctrl+Shift+M"; autoRepeat: false; onActivated: controller.command("menu") }
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
@@ -171,7 +171,11 @@ Window {
             actions[Qt.Key_Left] = "left"; actions[Qt.Key_Right] = "right"
             actions[Qt.Key_Return] = "accept"; actions[Qt.Key_Enter] = "accept"
             actions[Qt.Key_Escape] = "back"
-            if (actions[event.key]) { controller.dispatch(actions[event.key]); event.accepted = true }
+            if (actions[event.key]) {
+                if (!event.isAutoRepeat || ["up", "down", "left", "right"].indexOf(actions[event.key]) >= 0)
+                    controller.dispatch(actions[event.key])
+                event.accepted = true
+            }
             else event.accepted = window.state.mode !== "search"
         }
         Rectangle { anchors.fill: parent; color: window.colors.scrim }
@@ -207,6 +211,7 @@ Window {
                 }
                 TextField { font.family: window.fontFamily; palette: window.colors.controls;
                     id: searchBox
+                    property QtObject inputController: controller
                     visible: window.state.mode === "search"
                     Layout.fillWidth: true
                     text: window.state.query
@@ -214,6 +219,11 @@ Window {
                     font.pixelSize: 20
                     onTextEdited: controller.setQuery(text)
                     Keys.onPressed: function(event) {
+                        if (inputMethodComposing) {
+                            event.accepted = [Qt.Key_Return, Qt.Key_Enter, Qt.Key_Escape,
+                                              Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right].indexOf(event.key) >= 0
+                            return
+                        }
                         if (event.key === Qt.Key_Escape) { controller.dispatch("back"); event.accepted = true }
                         else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) { controller.search(true); event.accepted = true }
                         else if (event.key === Qt.Key_Up || event.key === Qt.Key_Down) { controller.search(event.key === Qt.Key_Down); event.accepted = true }
@@ -279,7 +289,9 @@ Window {
             mapping[Qt.Key_Up] = "up"; mapping[Qt.Key_Down] = "down"; mapping[Qt.Key_Left] = "left"; mapping[Qt.Key_Right] = "right"
             mapping[Qt.Key_PageUp] = "page-up"; mapping[Qt.Key_PageDown] = "page-down"
             mapping[Qt.Key_Return] = "accept"; mapping[Qt.Key_Enter] = "accept"; mapping[Qt.Key_Escape] = "back"
-            if (mapping[event.key]) controller.dispatch(mapping[event.key])
+            if (mapping[event.key] && (!event.isAutoRepeat ||
+                    ["up", "down", "left", "right", "page-up", "page-down"].indexOf(mapping[event.key]) >= 0))
+                controller.dispatch(mapping[event.key])
             event.accepted = true
         }
         onVisibleChanged: if (visible) forceActiveFocus()

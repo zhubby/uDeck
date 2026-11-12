@@ -151,7 +151,10 @@ def test_completed_task_ignores_progress_queued_by_an_eager_worker(controller):
     destination.mkdir()
     instance.setPage('home')
     instance._file_start_job('copy', [str(directory / 'a.txt')], str(destination))
+    assert instance._file_active()
+    wait_until(application, lambda: not instance._file_active())
     assert instance.file_task['state'] == 'completed'
+    instance.fileJobProgress.emit((instance.file_task['id'], {'state': 'running', 'doneBytes': 0}))
     application.processEvents()
     assert instance.file_task['state'] == 'completed'
     assert (destination / 'a.txt').read_text() == 'a.txt'
@@ -432,3 +435,29 @@ def test_user_requested_file_jobs_report_their_actual_completion_sound(controlle
     wait_until(application, lambda: not instance._file_active())
     assert instance.file_task["state"] == "completed"
     assert events[-1] == "success"
+
+
+def test_immediately_completed_file_job_publishes_after_the_starting_interaction(controller, monkeypatch):
+    instance, application, directory = controller
+    destination = directory / "destination"
+    destination.mkdir()
+    source = str(directory / "a.txt")
+    instance.clipboard = {"path": source, "paths": [source], "move": False}
+    instance._browse(destination)
+    wait_until(application, lambda: not instance.busy)
+
+    def completed_submit(work):
+        future = Future()
+        future.set_result(work())
+        return future
+
+    monkeypatch.setattr(instance._file_job_executor, "submit", completed_submit)
+    events = []
+    instance.soundRequested.connect(events.append)
+    instance.fileAction("paste", "")
+    assert instance._file_active(), "The completed future bypassed the GUI completion queue"
+    assert events == ["open"]
+    wait_until(application, lambda: not instance._file_active())
+    assert instance.file_task["state"] == "completed"
+    assert events == ["open", "success"]
+    assert (destination / "a.txt").read_text() == "a.txt"

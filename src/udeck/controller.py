@@ -25,6 +25,7 @@ from .mock import mock_apps
 from .shortcut_controller import ShortcutControls
 from .shortcuts import binding_label
 from .sounds import SoundFeedback, interaction
+from .text_input import composing_action_blocked
 from .timezone import REGIONS, local_clock, region, zone_label, zone_summary
 from .wifi import wifi_indicators, wifi_label, wifi_status, wifi_summary
 from .wifi_controller import WifiControls
@@ -515,6 +516,8 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     @Slot(str)
     @interaction
     def dispatch(self, action):
+        if composing_action_blocked(self, action):
+            return
         if self.shortcut_recorder and self.shortcut_recorder.window:
             if action == 'accept':
                 self.shortcut_recorder.confirm()
