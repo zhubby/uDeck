@@ -114,21 +114,20 @@ controller.network_access.update(enabled=True, state="running", networks=["home"
 controller.network_draft["networks"] = ["home"]
 controller._network_menu()
 QTest.qWait(60)
-assert controller.modal["source"] == "network-access"
+assert controller.modal["source"] == "sharing-web"
 assert panel.property("height") <= height - 60
 network_row = window.findChild(QObject, "menuList").property("currentItem")
 network_icon = network_row.findChild(QObject, "settingOptionIcon")
 network_label = network_row.findChild(QObject, "settingOptionLabel")
-assert network_icon.property("height") > network_label.property("implicitHeight")
-assert abs(network_icon.property("height") - network_label.parent().property("implicitHeight")) < 1
+assert abs(network_icon.property("height") - network_label.property("implicitHeight")) < 1
 assert window.grabWindow().save(str(output / "network-access.png"))
-controller.chooseModal(2)
+controller.chooseModal(3)
 QTest.qWait(30)
 assert [row["value"] for row in controller.modal["options"]] == [0, 3600, 21600, 43200]
 QTest.keyClick(window, Qt.Key.Key_Down)
 QTest.keyClick(window, Qt.Key.Key_Return)
 assert controller.network_draft["duration"] == 3600
-assert controller.modal["source"] == "network-access"
+assert controller.modal["source"] == "sharing-web"
 controller.dispatch("back")
 text_path = output / "preview.txt"
 text_path.write_text("<b>Plain text, never HTML</b>\n" + "中文 English · Files preview\n" * 2500)

@@ -1187,5 +1187,16 @@
   "wireless_headset_microphone": "蓝牙耳机麦克风",
   "wpa2_requires_8_63_bytes_or_a_64_digit_hexadecimal_psk": "WPA2 密码需为 8–63 字节，或 64 位十六进制 PSK",
   "x_filter_and_actions_suffix": " · X 筛选与操作",
-  "x_opens_file_actions_search_and_sorting": "按 X 打开文件操作、搜索和排序。"
+  "x_opens_file_actions_search_and_sorting": "按 X 打开文件操作、搜索和排序。",
+  "sharing": "共享",
+  "web_file_access": "网页文件访问",
+  "smb_file_sharing": "SMB 文件共享",
+  "web_and_smb_file_sharing": "网页与 SMB 文件共享",
+  "allowed_networks": "允许的网络",
+  "not_selected": "未选择",
+  "none": "无",
+  "smb_guest_description": "免密码来宾读写；客户端需允许来宾访问。",
+  "select_shared_folder_and_network": "请先选择共享目录和至少一个网络。",
+  "enter_shared_folder": "输入要共享目录的绝对路径。",
+  "enable_sharing": "启用共享"
 }

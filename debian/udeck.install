@@ -1,5 +1,11 @@
 src/udeck/apps usr/lib/python3/dist-packages/udeck
 src/udeck/network_files usr/lib/python3/dist-packages/udeck
+src/udeck/smb_files usr/lib/python3/dist-packages/udeck
+packaging/udeck-smb-manager.service usr/lib/systemd/system
+packaging/udeck-smb.service usr/lib/systemd/system
+packaging/io.github.zhubby.uDeck.Smb.conf usr/share/dbus-1/system.d
+packaging/io.github.zhubby.uDeck.Smb.service usr/share/dbus-1/system-services
+packaging/io.github.zhubby.uDeck.Smb.policy usr/share/polkit-1/actions
 packaging/bin/udeck-network-files usr/bin
 packaging/udeck-network-files.service usr/lib/systemd/user
 packaging/bin/udeck-app usr/bin

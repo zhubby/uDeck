@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN" "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>uDeck</vendor>
+  <action id="io.github.zhubby.uDeck.Smb.manage">
+    <description>Manage uDeck SMB file sharing</description>
+    <description xml:lang="zh_CN">管理 uDeck SMB 文件共享</description>
+    <message>Authentication is required to manage passwordless SMB file sharing.</message>
+    <message xml:lang="zh_CN">需要认证才能管理免密码 SMB 文件共享。</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_self_keep</allow_active>
+    </defaults>
+  </action>
+</policyconfig>

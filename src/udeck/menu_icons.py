@@ -26,6 +26,7 @@ SETTING_ARTWORK = {
     "list-add": "plus-circle-fill",
     "edit-delete": "trash3-fill",
     "network-connect": "link-45deg",
+    "folder": "folder-fill",
     "network-disconnect": "x-circle-fill",
     "document-open-recent": "clock-history",
     "dialog-information": "info-circle-fill",
@@ -48,6 +49,7 @@ SETTING_ICONS = {
     "shortcuts": "udeck-setting:command",
     "language": "preferences-desktop-locale", "theme": "preferences-desktop-theme",
     "ui-sounds": "audio-volume-high", "timezone": "preferences-system-time",
+    "sharing": "network-connect",
     "lock": "system-lock-screen", "blank": "video-display",
     "logout": "system-log-out", "reboot": "system-reboot", "poweroff": "system-shutdown",
 }
@@ -92,7 +94,7 @@ def system_menu_icons(options, source=""):
         "wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details",
         "hotspot", "hotspot-device", "bluetooth", "volume", "audio-input", "audio-output", "audio-cards", "audio-profiles",
         "shortcuts", "shortcuts-group", "shortcut-action",
-    } or any(option.get("action") in ACTION_ICONS or option.get("action") == "setting"
+    } or source.startswith("sharing") or any(option.get("action") in ACTION_ICONS or option.get("action") == "setting"
              or option.get("action") == "system" and option.get("systemAction") in SYSTEM_ICONS
              for option in options)
     if not settings_menu:
@@ -103,7 +105,7 @@ def system_menu_icons(options, source=""):
         action = row.get("action")
         if source != "settings":
             row["singleLine"] = True
-            row["navigate"] = action in NAVIGATION_ACTIONS and not isinstance(row.get("checked"), bool)
+            row["navigate"] = (row.get("navigate", False) or action in NAVIGATION_ACTIONS) and not isinstance(row.get("checked"), bool)
         if not row.get("icon"):
             if action == "setting":
                 icon = SETTING_ICONS.get(row.get("idSetting", row.get("id")), "preferences-system")

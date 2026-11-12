@@ -1,3 +1,12 @@
+udeck (0.2.4) unstable; urgency=medium
+
+  * Move Web file access into system Sharing settings and preserve saved state.
+  * Add independent guest SMB2/3 sharing with Polkit and dedicated Samba units.
+  * Revoke connections on network, directory and session lifetime changes.
+  * Guard newly installed standard Samba services throughout dependency setup.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Thu, 12 Nov 2026 18:00:00 +0800
+
 udeck (0.2.3) unstable; urgency=medium
 
   * Organize the five applications into explicit source and resource modules.

@@ -15,7 +15,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 apt-get update
 set --
-for package in udeck udeck-shell udeck-terminal udeck-apps; do
+for package in udeck-shell udeck-terminal udeck-apps; do
     if [ "$(dpkg-query -W -f='${db:Status-Status}' "$package" 2>/dev/null || true)" = installed ]; then
         set -- "$@" "$package"
     fi
@@ -23,5 +23,5 @@ done
 if [ "$#" -gt 0 ]; then
     apt-get remove "$@"
 fi
-apt-get install "$archive"
+python3 ./samba-install-guard -- apt-get install "$archive"
 printf '%s\n' 'Installed uDeck and selected uDeck Terminal as the system default terminal. Select uDeck at the next graphical login.'

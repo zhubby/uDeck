@@ -87,6 +87,8 @@ def main():
 
     def unchanged():
         assert all(path.read_bytes() == data for path, data in preserved.items())
+        if Path("/etc/samba/smb.conf") in preserved:
+            assert Path("/etc/systemd/system/multi-user.target.wants/smbd.service").is_symlink()
 
     def defaults_enabled():
         assert terminal_selection() == ["Status: manual", "Value: /usr/bin/udeck-terminal"]
@@ -113,7 +115,18 @@ def main():
         version = subprocess.check_output(["dpkg-deb", "--field", str(packages["udeck"]), "Version"], text=True).strip()
         run(["apt-get", "update"])
         # Ask for only udeck, with no recommendations masking required dependencies.
-        run(["apt-get", "install", "-y", "--no-install-recommends", "udeck=" + version])
+        run(["python3", str(release / "samba-install-guard"), "--", "apt-get", "install", "-y", "--no-install-recommends", "udeck=" + version])
+        for unit in ("smbd", "nmbd"):
+            assert not Path("/etc/systemd/system/multi-user.target.wants/" + unit + ".service").exists()
+        for path in ("/usr/lib/systemd/system/udeck-smb.service", "/usr/lib/systemd/system/udeck-smb-manager.service",
+                     "/usr/share/dbus-1/system.d/io.github.zhubby.uDeck.Smb.conf", "/usr/share/polkit-1/actions/io.github.zhubby.uDeck.Smb.policy"):
+            assert Path(path).is_file(), path
+        # Later install/upgrade operations must preserve an existing Samba setup,
+        # including an administrator's enabled service and custom configuration.
+        samba_config = Path("/etc/samba/smb.conf")
+        preserved[samba_config] = samba_config.read_bytes() + b"\n# preserve-existing-samba-sentinel\n"
+        samba_config.write_bytes(preserved[samba_config])
+        run(["systemctl", "enable", "smbd.service"])
         unchanged()
         defaults_enabled()
         for name in packages:

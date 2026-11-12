@@ -9,6 +9,7 @@ from pathlib import Path
 
 from aiohttp import web
 
+from ..share_settings import configuration_transaction
 from . import DURATIONS, PORT
 from .networks import discover
 from .server import STATE, create_app
@@ -86,12 +87,23 @@ class ShareManager:
             raise ValueError("A selected network is no longer connected")
         async with self.lock:
             configured = {"enabled": True, "root": str(root.resolve()), "duration": duration, "networks": list(dict.fromkeys(networks))}
-            self.settings.save(configured)
-            await self._close()
-            self.value = configured
-            self.owner = value.get("owner", "")
-            self.deadline = time.monotonic() + duration if duration else None
-            await self._reconcile(candidates)
+            previous, owner, deadline = self.value, self.owner, self.deadline
+            try:
+                with configuration_transaction(self.settings, configured):
+                    await self._close()
+                    self.value = configured
+                    self.owner = value.get("owner", "")
+                    self.deadline = time.monotonic() + duration if duration else None
+                    await self._reconcile(candidates)
+                    if self.errors:
+                        raise OSError("; ".join(self.errors))
+            except Exception:
+                if self.value is previous:
+                    raise
+                await self._close()
+                self.value, self.owner, self.deadline = previous, owner, deadline
+                await self._reconcile(candidates)
+                raise
         return self.status()
 
     async def reconcile(self, candidates):

@@ -178,6 +178,11 @@
       "source": "package/LICENSE",
       "bytes": 1093,
       "sha256": "0fb3e11bd57e896c5a512afd64864d28a37de45d19835016c87ca1ad19ead969"
+    },
+    "folder-fill.svg": {
+      "source": "package/icons/folder-fill.svg",
+      "bytes": 428,
+      "sha256": "2004fd9a5116e2b5ac3652a6b345d3ff7a7979edab0c5e79403b8003cb9c021d"
     }
   }
 }

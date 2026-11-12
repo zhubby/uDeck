@@ -14,16 +14,14 @@ from .file_preview import preview
 from .file_trash import TrashStore
 from .files import FileOperations, query_entries
 from .i18n import Msg, tr
-from .network_files.controls import NetworkAccessControls
 
 SORT_LABELS = {"name": tr(Msg.NAME), "modified": tr(Msg.MODIFIED), "size": tr(Msg.SIZE)}
 KIND_LABELS = {"all": tr(Msg.ALL_FILES), "audio": tr(Msg.AUDIO), "video": tr(Msg.VIDEO), "image": tr(Msg.IMAGES),
                "book": tr(Msg.BOOKS), "text": tr(Msg.TEXT), "archive": tr(Msg.ARCHIVES), "other": tr(Msg.OTHER_FILES)}
 
 
-class FileControls(NetworkAccessControls):
+class FileControls:
     def _init_file_controls(self):
-        self._init_network_access()
         self._file_model = FileListModel(self)
         self._file_entries = []
         self._file_view_entries = self.data["files"]
@@ -296,7 +294,6 @@ class FileControls(NetworkAccessControls):
         def option(label, command, **values):
             return {"label": label, "action": "files", "command": command, **values}
         options = [option(tr(Msg.LOCATIONS), "locations")]
-        options.append(option(tr(Msg.NETWORK_ACCESS), "network-access", icon="udeck-setting:wifi"))
         trash = self.data["directory"] == "trash:///"
         if item:
             if trash:
@@ -444,14 +441,8 @@ class FileControls(NetworkAccessControls):
 
     def _file_submit(self, modal, text):
         purpose = modal.get("purpose")
-        if purpose == "network-share-root":
-            path = Path(text).expanduser()
-            if not path.is_absolute() or not path.is_dir():
-                self.notify(tr(Msg.CHOOSE_AN_EXISTING_FOLDER))
-            else:
-                self.network_draft["root"] = str(path.resolve())
-                self._network_dirty = True
-                self._network_menu()
+        if purpose == "network-share-root" or purpose in ("sharing-web-root", "sharing-smb-root"):
+            self._sharing_submit("smb" if purpose == "sharing-smb-root" else "web", text)
         elif purpose == "file-search":
             self.file_query = text.strip()
             self.navigation.select(0)
@@ -669,7 +660,6 @@ class FileControls(NetworkAccessControls):
         self._run(tr(Msg.SAFELY_UNMOUNT), lambda: unmount(place), lambda result: self._browse(self.data["directory"]))
 
     def _close_files(self):
-        self._close_network_access()
         self._files_closing = True
         self._file_job_cancel.set()
         self._file_refresh_timer.stop()

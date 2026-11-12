@@ -50,6 +50,7 @@ def assemble(root, built, output, version):
     (output / "udeck-preflight").chmod(0o755)
     shutil.copy2(root / "packaging/install-release", output / "install.sh")
     (output / "install.sh").chmod(0o755)
+    shutil.copy2(root / "packaging/samba-install-guard", output / "samba-install-guard")
     shutil.copy2(root / "docs/udeck/debian-distribution.md", output / "INSTALL.md")
     shutil.copy2(root / "debian/control", output / "DEPENDENCIES.debian-control")
     git_arguments = ["git", "-c", f"safe.directory={root}"]
@@ -68,7 +69,7 @@ def assemble(root, built, output, version):
     with tempfile.TemporaryDirectory(prefix="udeck-bundle-") as temporary:
         bundle = Path(temporary) / f"udeck_{version}_arm64"
         bundle.mkdir()
-        for name in [*binaries, "udeck-preflight", "install.sh", "INSTALL.md", "DEPENDENCIES.debian-control", "build-manifest.json"]:
+        for name in [*binaries, "udeck-preflight", "install.sh", "samba-install-guard", "INSTALL.md", "DEPENDENCIES.debian-control", "build-manifest.json"]:
             shutil.copy2(output / name, bundle / name)
         sha256sums(bundle)
         archive = output / (bundle.name + ".tar.xz")

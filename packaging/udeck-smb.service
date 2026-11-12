@@ -1,0 +1,21 @@
+[Unit]
+Description=uDeck dedicated Samba file sharing
+BindsTo=udeck-smb-manager.service
+After=udeck-smb-manager.service network.target
+
+[Service]
+Type=notify
+NotifyAccess=all
+ExecStart=/usr/bin/python3 -I -m udeck.smb_files.runtime
+KillMode=control-group
+TimeoutStartSec=15
+TimeoutStopSec=5
+SendSIGKILL=yes
+PrivateMounts=yes
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=full
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK

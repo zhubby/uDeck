@@ -1187,5 +1187,16 @@
   "wireless_headset_microphone": "Wireless headset microphone",
   "wpa2_requires_8_63_bytes_or_a_64_digit_hexadecimal_psk": "WPA2 requires 8–63 bytes or a 64-digit hexadecimal PSK",
   "x_filter_and_actions_suffix": " · X Filter and actions",
-  "x_opens_file_actions_search_and_sorting": "X opens file actions, search and sorting."
+  "x_opens_file_actions_search_and_sorting": "X opens file actions, search and sorting.",
+  "sharing": "Sharing",
+  "web_file_access": "Web file access",
+  "smb_file_sharing": "SMB file sharing",
+  "web_and_smb_file_sharing": "Web and SMB file sharing",
+  "allowed_networks": "Allowed networks",
+  "not_selected": "Not selected",
+  "none": "None",
+  "smb_guest_description": "Passwordless guest read/write. Your client must allow guest access.",
+  "select_shared_folder_and_network": "Choose a shared folder and at least one network first.",
+  "enter_shared_folder": "Enter the absolute path of the folder to share.",
+  "enable_sharing": "Enable sharing"
 }

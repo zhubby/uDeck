@@ -205,3 +205,37 @@ def test_replaced_root_is_revoked_even_if_persistence_fails(tmp_path, monkeypatc
         finally:
             await manager.close()
     asyncio.run(scenario())
+
+
+def test_start_failure_restores_previous_web_configuration(tmp_path, monkeypatch):
+    from aiohttp import web
+
+    from udeck.network_files.lifecycle import ShareManager
+
+    async def scenario():
+        first, second = tmp_path / "first", tmp_path / "second"
+        first.mkdir()
+        second.mkdir()
+        manager = ShareManager(tmp_path / "config.json", port=0)
+        row = {"key": "home", "addresses": ["127.0.0.1"]}
+        await manager.configure({"root": str(first), "networks": ["home"]}, candidates=[row])
+        start = web.TCPSite.start
+        fail = True
+
+        async def fail_once(site):
+            nonlocal fail
+            if fail:
+                fail = False
+                raise OSError("port already in use")
+            await start(site)
+
+        monkeypatch.setattr(web.TCPSite, "start", fail_once)
+        try:
+            with pytest.raises(OSError, match="port already in use"):
+                await manager.configure({"root": str(second), "networks": ["home"]}, candidates=[row])
+            assert manager.status()["root"] == str(first)
+            assert manager.status()["state"] == "running"
+            assert manager.settings.load()["root"] == str(first)
+        finally:
+            await manager.close()
+    asyncio.run(scenario())

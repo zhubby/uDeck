@@ -1,0 +1,128 @@
+#!/usr/bin/python3
+"""Suppress first-install distro Samba startup around the complete APT transaction.
+
+A dependency can be configured before udeck.preinst runs. The release installer
+therefore installs this guard before invoking APT, rather than relying on a late
+maintainer script. Existing units, their configuration and policy-rc.d are untouched.
+"""
+
+import argparse
+import contextlib
+import os
+import signal
+import subprocess
+from pathlib import Path
+
+UNITS = ("smbd", "nmbd", "samba-ad-dc")
+GUARD = "# Owned by uDeck Samba install guard\n[Unit]\nConditionPathExists=/run/udeck-samba-install-guard/allow-start\n"
+
+
+class Guard:
+    def __init__(self, root=Path("/"), run=subprocess.run):
+        self.root, self.run = Path(root), run
+        self.created = []
+
+    def guard_path(self, unit):
+        return self.root / "etc/systemd/system" / (unit + ".service.d/90-udeck-install-guard.conf")
+
+    def existing(self, unit):
+        return any((self.root / path / (unit + ".service")).exists()
+                   or (self.root / path / (unit + ".service")).is_symlink()
+                   or (self.root / path / (unit + ".service.d")).exists()
+                   for path in ("etc/systemd/system", "run/systemd/system", "usr/lib/systemd/system", "lib/systemd/system")) or (self.root / "etc/init.d" / unit).exists()
+
+    def execute(self, arguments, *, check=True):
+        return self.run(arguments, check=check, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    def reload(self):
+        if (self.root / "run/systemd/system").exists():
+            self.execute(["systemctl", "daemon-reload"], check=False)
+
+    def __enter__(self):
+        try:
+            for unit in UNITS:
+                path = self.guard_path(unit)
+                # Recover only our own guard after an interrupted installation.
+                if path.is_file() and not path.is_symlink() and path.read_text() == GUARD:
+                    self.created.append((unit, path))
+                    continue
+                if self.existing(unit):
+                    continue
+                path.parent.mkdir(parents=True, exist_ok=True)
+                with path.open("x") as stream:
+                    stream.write(GUARD)
+                self.created.append((unit, path))
+            self.reload()
+        except BaseException:
+            self.__exit__(None, None, None)
+            raise
+        return self
+
+    def __exit__(self, *error):
+        failures = []
+        for unit, path in self.created:
+            try:
+                if self.existing_installed(unit):
+                    # Record the disabled state for future Debian upgrades too.
+                    self.execute(["systemctl", "disable", unit + ".service"], check=False)
+                    self.execute(["env", "DPKG_MAINTSCRIPT_PACKAGE=udeck", "deb-systemd-helper", "disable", unit + ".service"])
+                if (self.root / "etc/init.d" / unit).exists():
+                    self.execute(["update-rc.d", unit, "disable"])
+            except (OSError, subprocess.CalledProcessError) as failure:
+                failures.append(str(failure))
+            else:
+                if error and error[0] in (KeyboardInterrupt, SystemExit):
+                    continue
+                path.unlink(missing_ok=True)
+                with contextlib.suppress(OSError):
+                    path.parent.rmdir()
+        self.reload()
+        if failures:
+            raise RuntimeError("Could not disable newly installed Samba services: " + "; ".join(failures))
+
+    def existing_installed(self, unit):
+        return any((self.root / path / (unit + ".service")).exists() for path in ("lib/systemd/system", "usr/lib/systemd/system"))
+
+
+def install(command):
+    # Reap APT and its children before removing the startup guards on interruption.
+    process = subprocess.Popen(command, start_new_session=True)
+    try:
+        result = process.wait()
+    except BaseException:
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(process.pid, signal.SIGTERM)
+        try:
+            process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            with contextlib.suppress(ProcessLookupError):
+                os.killpg(process.pid, signal.SIGKILL)
+            process.wait()
+        finally:
+            with contextlib.suppress(ProcessLookupError):
+                os.killpg(process.pid, signal.SIGKILL)
+        raise
+    if result:
+        raise subprocess.CalledProcessError(result, command)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("command", nargs=argparse.REMAINDER)
+    args = parser.parse_args()
+    command = args.command[1:] if args.command[:1] == ["--"] else args.command
+    if os.geteuid() != 0 or not command:
+        parser.error("Run as root with -- apt-get install <udeck package>")
+    import fcntl
+    with Path("/run/udeck-samba-install.lock").open("w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+
+        def interrupted(signum, frame):
+            raise KeyboardInterrupt
+        signal.signal(signal.SIGTERM, interrupted)
+        with Guard():
+            install(command)
+
+
+if __name__ == "__main__":
+    main()

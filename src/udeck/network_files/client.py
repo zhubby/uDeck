@@ -28,6 +28,11 @@ def command(arguments):
         raise RuntimeError(result.stderr.strip() or result.stdout.strip() or "Could not manage the file service")
 
 
+def unit_enabled():
+    result = subprocess.run(["systemctl", "--user", "is-enabled", UNIT], capture_output=True, text=True, timeout=10)
+    return result.stdout.strip() in ("enabled", "enabled-runtime", "linked", "linked-runtime")
+
+
 async def remote(member, value=None):
     from dbus_next import Message
     from dbus_next.aio import MessageBus
@@ -76,7 +81,9 @@ def status():
 def start(value):
     if value["duration"] == 0 and not systemd_installed():
         raise RuntimeError("Install the uDeck systemd user service to keep network access on after restart")
-    if systemd_installed():
+    installed = systemd_installed()
+    previously_enabled = unit_enabled() if installed else False
+    if installed:
         command(["systemctl", "--user", "start", UNIT])
     else:
         try:
@@ -95,19 +102,21 @@ def start(value):
                     break
                 except ServiceUnavailable:
                     await asyncio.sleep(.1)
-        return await remote("Configure", value)
-    result = asyncio.run(configure())
-    if systemd_installed():
-        try:
+        # Configure persistence before replacing a working share. Failure must not
+        # call Stop on the old configuration or expose an unsaved replacement.
+        if installed:
             if value["duration"] == 0:
                 command(["loginctl", "enable-linger", getpass.getuser()])
                 command(["systemctl", "--user", "enable", UNIT])
             else:
                 command(["systemctl", "--user", "disable", UNIT])
-        except Exception:
-            asyncio.run(remote("Stop"))
-            raise
-    return result
+        return await remote("Configure", value)
+    try:
+        return asyncio.run(configure())
+    except Exception:
+        if installed:
+            command(["systemctl", "--user", "enable" if previously_enabled else "disable", UNIT])
+        raise
 
 
 def stop():

@@ -1,0 +1,26 @@
+[Unit]
+Description=uDeck SMB sharing controller
+After=dbus.service NetworkManager.service
+Wants=NetworkManager.service
+
+[Service]
+Type=dbus
+BusName=io.github.zhubby.uDeck.Smb
+ExecStart=/usr/bin/python3 -I -m udeck.smb_files.daemon
+StateDirectory=udeck-smb
+StateDirectoryMode=0755
+RuntimeDirectory=udeck-smb
+RuntimeDirectoryMode=0755
+UMask=0077
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=15
+ProtectSystem=full
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+NoNewPrivileges=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+
+[Install]
+WantedBy=multi-user.target

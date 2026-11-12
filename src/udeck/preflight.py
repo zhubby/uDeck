@@ -20,7 +20,7 @@ REQUIRED_PACKAGES = (
     "qml6-module-qtquick-layouts", "qml6-module-qtquick-window", "qml6-module-qtqml-workerscript",
     "qml6-module-qtquick-templates", "qt6-svg-plugins", "qt6-wayland", "labwc", "xwayland",
     "wlr-randr", "grim", "libwayland-client0", "libxkbcommon0", "xkb-data", "procps", "network-manager", "wpasupplicant",
-    "dnsmasq-base", "nftables", "bluez", "systemd", "libpam-systemd", "tzdata", "pipewire-audio",
+    "dnsmasq-base", "nftables", "bluez", "systemd", "samba", "samba-common-bin", "polkitd", "libpam-systemd", "tzdata", "pipewire-audio",
     "pulseaudio-utils", "libglib2.0-bin", "gvfs", "udisks2", "swayidle", "swaylock", "wlopm",
     "fcitx5", "fcitx5-frontend-qt6", "fcitx5-pinyin", "lxpolkit", "dbus-user-session",
     "xdg-desktop-portal-wlr", "xdg-desktop-portal-gtk", "fonts-noto-cjk", "xdg-terminal-exec",

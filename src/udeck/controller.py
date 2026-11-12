@@ -22,6 +22,7 @@ from .key_test import KeyTestControls
 from .launch_controller import LaunchControls
 from .menu_icons import system_menu_icons
 from .mock import mock_apps
+from .sharing import SharingControls
 from .shortcut_controller import ShortcutControls
 from .shortcuts import binding_label
 from .sounds import SoundFeedback, interaction
@@ -34,7 +35,7 @@ CATEGORY_NAMES = {"All": tr(Msg.ALL_APPS), "Development": tr(Msg.DEVELOPMENT), "
                   "Utility": tr(Msg.UTILITIES), "Game": tr(Msg.GAMES), "Graphics": tr(Msg.GRAPHICS), "Office": tr(Msg.OFFICE), "AudioVideo": tr(Msg.MULTIMEDIA), "Other": tr(Msg.OTHER)}
 
 
-class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControls, ShortcutControls, SoundFeedback):
+class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControls, ShortcutControls, SharingControls, SoundFeedback):
     changed = Signal()
     present = Signal()
     calibrationRequested = Signal()
@@ -49,6 +50,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     fileJobProgress = Signal(object)
     fileJobFinished = Signal(object)
     networkAccessFinished = Signal(object)
+    sharingFinished = Signal(object)
     filePreviewScroll = Signal(int)
     screenshotFinished = Signal(object)
 
@@ -83,6 +85,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="udeck-files")
         self.cancelled = threading.Event()
         self._init_file_controls()
+        self._init_sharing()
         self.taskFinished.connect(self._finish_task)
         self.backend.updated.connect(self._update)
         self.backend.failed.connect(self._failure)
@@ -143,6 +146,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             {"id": "wifi", "name": "Wi-Fi", "subtitle": wifi_summary(wifi), "icon": "network-wireless", "disabled": not wifi.get("available")},
             {"id": "hotspot", "name": tr(Msg.HOTSPOT), "subtitle": hotspot_summary(wifi), "icon": "network-wireless", "disabled": not wifi.get("available")},
             {"id": "bluetooth", "name": tr(Msg.BLUETOOTH), "subtitle": tr(Msg.ENABLED) if bluetooth.get("powered") else tr(Msg.DISABLED), "icon": "bluetooth", "disabled": not bluetooth.get("available")},
+            {"id": "sharing", "name": tr(Msg.SHARING), "subtitle": tr(Msg.WEB_AND_SMB_FILE_SHARING), "icon": "network-connect"},
             {"id": "battery", "name": tr(Msg.BATTERY), "subtitle": battery_summary(battery), "icon": "battery"},
             {"id": "input", "name": tr(Msg.BUTTONS_AND_CONTROLLERS), "subtitle": tr(Msg.ABXY_CALIBRATED) if self.data["input"].get("verified") else (tr(Msg.ABXY_FIRMWARE_MAPPING_RECALIBRATE_AVAILABLE) if self.data["input"].get("mapped") else tr(Msg.CALIBRATE_PHYSICAL_ABXY_KEYBOARD_LETTERS_STAY_AVAILABLE)), "icon": "udeck-setting:controller"},
             {"id": "key-test", "name": tr(Msg.KEY_TEST), "subtitle": tr(Msg.FULL_KEYBOARD_CONTROLS_AND_TRACKBALL), "icon": "udeck-setting:keyboard-fill"},
@@ -242,7 +246,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         return True
 
     def _quick_options(self):
-        controls = {"volume", "brightness", "output", "microphone", "wifi", "hotspot", "bluetooth", "battery", "input", "key-test", "language", "theme", "timezone", "ui-sounds"}
+        controls = {"volume", "brightness", "output", "microphone", "wifi", "hotspot", "bluetooth", "sharing", "battery", "input", "key-test", "language", "theme", "timezone", "ui-sounds"}
         return [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"],
                  "icon": entry["icon"], "checked": entry.get("checked"), "disabled": entry.get("disabled", False)} for entry in self._settings() if entry["id"] in controls] + [
             {"label": tr(Msg.POWER_AND_SESSION), "action": "power-menu"}, {"label": tr(Msg.RUNNING_APPLICATIONS), "action": "switcher"}]
@@ -327,6 +331,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         self._publish()
 
     def _refresh_open_menu(self):
+        self._sharing_refresh()
         devices = {device["id"]: device for device in self.data["wifi"].get("devices", [])}
         cards = {card["id"]: card for card in self.data["audio"].get("cards", [])}
         inputs = {source["id"] for source in self.data["audio"].get("inputs", [])}
@@ -660,7 +665,9 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     @Slot(str)
     @interaction
     def activateSetting(self, identifier):
-        if identifier == "shortcuts":
+        if identifier == "sharing":
+            self._sharing_menu()
+        elif identifier == "shortcuts":
             self._open_shortcuts()
         elif identifier == "ui-sounds":
             previous = ConfigStore(self.config.path).data["preferences"]["uiSounds"]
@@ -911,7 +918,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                     self.feedback("error")
                     self.notify(option.get("reason") or tr(Msg.THIS_ITEM_IS_CURRENTLY_UNAVAILABLE))
                     return
-                keep_parent = modal.get('source') in ('console', 'shortcuts', 'shortcuts-group', 'shortcut-action') or (modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot", "shortcuts"))
+                keep_parent = modal.get('source', '').startswith('sharing') or modal.get('source') in ('console', 'shortcuts', 'shortcuts-group', 'shortcut-action') or (modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot", "shortcuts", "sharing"))
                 if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "hotspot", "hotspot-device", "bluetooth", "volume", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
                     self._pop()
                 self._execute_option(option)
@@ -998,7 +1005,9 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     def _apply_option(self, option):
         action = option["action"]
         item = option.get("item", {})
-        if action == "files":
+        if action == "sharing":
+            self._sharing_command(option["protocol"], option["command"], option.get("value", ""))
+        elif action == "files":
             self._file_command(option["command"], option.get("value", ""), option)
         elif action == "open-home":
             self._activate(item)
@@ -1268,6 +1277,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         self._publish()
 
     def close(self):
+        self._close_sharing()
         self._close_shortcuts()
         self._close_loading()
         self._close_files()

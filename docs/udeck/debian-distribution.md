@@ -65,6 +65,10 @@ sh ./install.sh
 
 安装器先核对压缩包内的校验值、执行兼容检测，再运行 APT 更新索引和安装单个 `udeck` 包；APT 展示实际依赖变更供用户确认。不执行整机 `upgrade`、`autoremove`、固件刷写或显示管理器重启。
 
+共享功能依赖标准 Debian `samba`、`samba-common-bin` 和 `polkitd`。使用套件中的 `install.sh` 安装：它会在整个 APT 事务开始前运行 `samba-install-guard`，阻止新引入的 `smbd`、`nmbd`、`samba-ad-dc` 单元自动启动，并在安装结束后禁用这些新单元。已有单元、启用状态、Samba 配置和 `policy-rc.d` 保留。仅靠 `udeck.preinst` 无法保证这一点，因为 APT 可能先配置依赖；直接运行 `apt install ./udeck.deb` 不经过此保护。uDeck 使用自己的 Samba 单元，首次安装共享默认关闭。
+
+启动保护使用独立的 systemd drop-in。安装中断或禁用失败时保留保护，避免重启后启动新引入的标准服务；下次运行安装器会识别并清理自己的保护文件。收到终止信号时，安装器先终止并回收 APT 进程组，再进行清理。
+
 安装后：
 
 ```sh
@@ -81,7 +85,7 @@ udeckctl doctor --json
 
 ## 升级、卸载与旧版迁移
 
-开发阶段更新时解压新套件，执行其中的 `install.sh`。安装器先卸载已安装的四个旧包名，再安装一个完整 `udeck` 包；不执行旧包接管或状态迁移。安装前保存并关闭正在运行的应用。
+开发阶段更新时解压新套件，执行其中的 `install.sh`。现有单包 `udeck` 直接升级；历史拆分包 `udeck-shell`、`udeck-terminal`、`udeck-apps` 会先卸载再安装完整包。安装器不会重启桌面会话，新的界面代码在下次启动桌面时加载。
 
 卸载完整套件：
 

@@ -1,0 +1,39 @@
+{
+  "scope": "Uncommitted Sharing implementation based on 5bd1c86c62bcbce9d040fc54dbd611eb5a009e3c",
+  "execution": "Sequential main-thread review, as required by AGENTS.md",
+  "perspectives": [
+    "correctness",
+    "security",
+    "api-contract",
+    "reliability",
+    "testing",
+    "maintainability",
+    "project-standards"
+  ],
+  "findings": [],
+  "applied_fixes": [
+    "Transactional Web activation and persistence preparation preserve effective shares on failure.",
+    "Configuration rollback retains the previous inode instead of depending on a second write.",
+    "Full APT transaction guards only newly introduced Samba units; interruption keeps durable guards.",
+    "Canonical root validation and fixed bind mount identity reject replacement and configuration injection.",
+    "D-Bus Polkit structs use lists; BindPaths quotes only the source component.",
+    "Translated messages, query recovery and actual state after stop failure remain visible.",
+    "Queued mutations immediately show Applying and disable controls while retaining focus.",
+    "Session Qt application and between-test collection avoid invalid socket notifiers without skipping tests.",
+    "Current Web documentation points to Settings and quick settings after entry migration."
+  ],
+  "residual_actionable_work": [],
+  "verification": {
+    "queued_progress_regression": "Failed before the fix, then all 7 sharing control tests passed.",
+    "device": "Final 0.2.4 installed; native guest CRUD / byte comparison and connection closure passed; 8 UI cases / 64 captures passed; 11 protected files and 7 original processes unchanged; temporary state removed.",
+    "package_lifecycle": "Passed in a clean Debian ARM64 environment: guarded initial install, full installer with recommendations, legacy split-package migration, upgrade, reconfigure, removal and reinstall; 423 installed source files checked; existing Samba configuration and enabled state preserved.",
+    "final_arm64_suite": "1519 passed, 16 warnings, no skips in 783.30 seconds; release build exited 0.",
+    "source_snapshot": "503 production/build files match the build snapshot; all 14 installed sharing backend modules match the native lifecycle-tested version."
+  },
+  "advisory": [
+    "Device reboot and the interactive Polkit password prompt were not exercised; service cold start and a PID-scoped temporary test rule were used.",
+    "Expiry on the device was exercised by advancing the test deadline, not by waiting one hour.",
+    "The original desktop remains running its loaded code; the new UI loads on its next normal startup."
+  ],
+  "verdict": "approved"
+}

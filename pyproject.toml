@@ -21,6 +21,7 @@ dev = ["pytest>=8", "ruff>=0.9", "build>=1", "dbus-next>=0.2.3"]
 udeck = "udeck.main:main"
 udeckctl = "udeck.cli:main"
 udeck-network-files = "udeck.network_files.daemon:main"
+udeck-smb-manager = "udeck.smb_files.daemon:main"
 udeck-preflight = "udeck.preflight:main"
 udeck-terminal = "udeck.terminal.main:main"
 udeck-terminal-default = "udeck.terminal.defaults:main"
