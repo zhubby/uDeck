@@ -29,6 +29,110 @@ def wait_for(predicate, seconds=3):
     assert predicate()
 
 
+@pytest.mark.parametrize("ignores_quit", [False, True])
+@pytest.mark.parametrize("close", [False, True])
+def test_paused_frontend_quits_without_focus_or_spurious_pipe_errors(application, tmp_path, ignores_quit, close):
+    frontend = tmp_path / "frontend.py"
+    commands, cleanup = tmp_path / "commands", tmp_path / "cleanup"
+    frontend.write_text('''import os, signal, sys
+from pathlib import Path
+commands, cleanup = map(Path, sys.argv[1:3])
+def terminate(signum, frame):
+    cleanup.write_text("terminated")
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
+    os.kill(os.getpid(), signal.SIGTERM)
+signal.signal(signal.SIGTERM, terminate)
+print("GET_STATUS PAUSED", flush=True)
+for command in sys.stdin:
+    with commands.open("a") as log: log.write(command)
+    if command.strip() == "QUIT" and sys.argv[3] == "False":
+        cleanup.write_text("quit")
+        break
+    if command.strip() == "GET_STATUS":
+        print("GET_STATUS PAUSED", flush=True)
+''')
+    engine = RetroEngine()
+    engine.resume_on_start = False
+    failures = []
+    engine.failed.connect(lambda error: failures.append(str(error)))
+    engine.process.setProgram(sys.executable)
+    engine.process.setArguments([str(frontend), str(commands), str(cleanup), str(ignores_quit)])
+    engine.process.start()
+    engine.timer.start()
+    try:
+        wait_for(lambda: engine.status == "paused")
+        if close:
+            engine.close()
+        else:
+            engine.quit()
+        wait_for(lambda: not engine.running(), seconds=3)
+        assert engine.status == "idle" and not failures
+        assert cleanup.read_text() == ("terminated" if ignores_quit else "quit")
+        lines = commands.read_text().splitlines()
+        assert lines[lines.index("QUIT"):] == ["QUIT"]
+    finally:
+        if engine.running():
+            engine.process.kill()
+            engine.process.waitForFinished(1000)
+        engine.close()
+
+
+def test_requested_quit_still_reports_an_unexpected_exit(application, tmp_path):
+    frontend = tmp_path / "frontend.py"
+    frontend.write_text('''import os, sys
+print("GET_STATUS PAUSED", flush=True)
+for command in sys.stdin:
+    if command.strip() == "QUIT": os._exit(7)
+''')
+    engine = RetroEngine()
+    engine.resume_on_start = False
+    failures = []
+    engine.failed.connect(lambda error: failures.append(str(error)))
+    engine.process.setProgram(sys.executable)
+    engine.process.setArguments([str(frontend)])
+    engine.process.start()
+    try:
+        wait_for(lambda: engine.status == "paused")
+        engine.quit()
+        wait_for(lambda: not engine.running())
+        assert failures and "7" in failures[-1]
+    finally:
+        engine.close()
+
+
+def test_quit_actions_uncover_frontend_and_return_to_details(application, tmp_path, monkeypatch):
+    controller = EmulatorController(tmp_path / "state", tmp_path / "settings.json")
+    events = []
+
+    class Window:
+        def showMinimized(self):
+            events.append("uncover")
+
+    controller.window = Window()
+    monkeypatch.setattr(controller.engine, "quit", lambda: events.append("quit"))
+    monkeypatch.setattr(controller.engine, "running", lambda: True)
+    controller.present.connect(lambda: events.append("present"))
+    try:
+        controller.confirm_quit()
+        controller.dispatch("accept")
+        assert events == ["quit", "uncover"]
+        controller.game_exited(0)
+        assert events[-1] == "present" and controller.page == "game-details" and not controller.menus
+        events.clear()
+        controller.exit_after_save = True
+        controller.save_done("auto")
+        assert events == ["quit", "uncover"]
+        events.clear()
+        controller.engine.metadata["savestate"] = False
+        controller.pause_menu()
+        controller.choose(1)
+        assert events[-2:] == ["quit", "uncover"]
+    finally:
+        monkeypatch.undo()
+        controller.window = None
+        controller.close()
+
+
 @pytest.mark.parametrize("library_name", ["Original Core", "Mr.Boom"])
 def test_no_content_state_uses_native_library_name_through_save_and_load(application, tmp_path, library_name):
     catalog = installed(tmp_path, {"original_core": {"supports_no_game": "true"}})

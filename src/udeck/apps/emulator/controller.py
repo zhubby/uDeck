@@ -6,6 +6,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import tempfile
 import threading
 import time
@@ -236,10 +237,15 @@ class RetroEngine(QObject):
         self.process.readyReadStandardOutput.connect(self.read_stdout)
         self.process.readyReadStandardError.connect(self.read_stderr)
         self.process.finished.connect(self.exited)
-        self.process.errorOccurred.connect(lambda error: self.failed.emit(self.process.errorString()))
+        self.process.errorOccurred.connect(self.process_error)
         self.timer = QTimer(self)
         self.timer.setInterval(150)
         self.timer.timeout.connect(self.poll)
+        self.quit_timer = QTimer(self)
+        self.quit_timer.setSingleShot(True)
+        self.quit_timer.setInterval(1000)
+        self.quit_timer.timeout.connect(self.terminate)
+        self.quitting = self.terminating = False
         self.status, self.log, self.stdout = "idle", "", ""
         self.stderr = ""
         self.pending = None
@@ -253,6 +259,8 @@ class RetroEngine(QObject):
     def start(self, item, checks, save_store, resume=False):
         if self.running():
             raise RuntimeError(tr(Msg.A_GAME_IS_ALREADY_RUNNING))
+        self.quit_timer.stop()
+        self.quitting = self.terminating = False
         self.store = save_store
         core_hash = checks.get("coreHash") or file_hash(checks["core"])
         self.metadata = {"contentHash": checks.get("contentHash") or content_hash(item), "coreHash": core_hash,
@@ -311,6 +319,8 @@ class RetroEngine(QObject):
         self.stdout += bytes(self.process.readAllStandardOutput()).decode(errors="replace")
         while "\n" in self.stdout:
             line, self.stdout = self.stdout.split("\n", 1)
+            if self.quitting:
+                continue
             if (self.pending and self.pending["kind"] == "load" and self.load_observed
                     and re.fullmatch(r"\d+\.\d+\.\d+[^\s]*", line.strip())):
                 self.pending["barrier"] = True
@@ -374,7 +384,7 @@ class RetroEngine(QObject):
             return False
 
     def poll(self):
-        if not self.running():
+        if not self.running() or self.quitting:
             return
         if not self.pending or self.pending["kind"] != "load":
             self.send("GET_STATUS")
@@ -438,12 +448,37 @@ class RetroEngine(QObject):
             self.failed.emit(error_text(error))
 
     def quit(self):
-        self.send("QUIT")
+        if self.quitting or not self.running():
+            return
+        self.quitting = True
+        self.pending = None
+        self.timer.stop()
+        self.quit_timer.start()
+        try:
+            self.send("QUIT")
+        except OSError:
+            self.terminate()
+
+    def terminate(self):
+        # Give the frontend a bounded chance to handle QUIT before SIGTERM.
+        if self.quitting and self.running():
+            self.terminating = True
+            self.process.terminate()
+
+    def process_error(self, error):
+        if self.quitting and error == QProcess.ProcessError.WriteError:
+            return
+        if self.terminating and error == QProcess.ProcessError.Crashed:
+            return  # exited() still reports unexpected exit codes/signals.
+        self.failed.emit(self.process.errorString())
 
     def exited(self, code, status):
         self.timer.stop()
+        self.quit_timer.stop()
         self.status, self.pending = "idle", None
-        if code != 0:
+        expected_signal = self.terminating and status == QProcess.ExitStatus.CrashExit and code == signal.SIGTERM
+        self.quitting = self.terminating = False
+        if code != 0 and not expected_signal:
             self.failed.emit(self.log[-1800:] or f"RetroArch exited with code {code}")
         self.finished.emit(code)
         self.changed.emit()
@@ -451,8 +486,11 @@ class RetroEngine(QObject):
     def close(self):
         self.timer.stop()
         if self.running():
-            self.send("QUIT")
-            self.process.waitForFinished(3000)
+            self.quit()
+            if not self.process.waitForFinished(1000):
+                self.terminate()
+                self.process.waitForFinished(2000)
+        self.quit_timer.stop()
         if self.runtime and not self.running():
             self.runtime.cleanup()
 
@@ -734,7 +772,7 @@ class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
             (tr(Msg.SAVE_AND_RETURN_TO_LIBRARY), self.save_exit if not self.source_missing else None),
             (tr(Msg.RETURN_WITHOUT_SAVING), self.confirm_quit)])
         else:
-            options.append((tr(Msg.RETURN_TO_LIBRARY), self.engine.quit))
+            options.append((tr(Msg.RETURN_TO_LIBRARY), self.quit_game))
         options.extend([(tr(Msg.CONTROLS), self.controls_menu), (tr(Msg.SETTINGS), self.settings)])
         self.menu(tr(Msg.GAME_PAUSED), options)
 
@@ -744,6 +782,13 @@ class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
         self.engine.resume()
         self.clear_menus()
         self.desktop("Home") if not self.window else self.window.showMinimized()
+
+    def quit_game(self):
+        self.engine.quit()
+        # Wayland may suspend frame delivery to a fully covered RetroArch window,
+        # blocking its command loop. Uncover it until game_exited presents us again.
+        if self.window:
+            self.window.showMinimized()
 
     def slots_menu(self, load):
         slots = self.save_store().manifest()
@@ -769,7 +814,7 @@ class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
         self.notice = tr(Msg.STATE_SAVED)
         if self.exit_after_save:
             self.exit_after_save = False
-            self.engine.quit()
+            self.quit_game()
         else:
             self.pause_menu()
 
@@ -786,7 +831,7 @@ class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
         self.exit_after_save = True
 
     def confirm_quit(self):
-        self.menu(tr(Msg.RETURN_WITHOUT_SAVING_PROMPT), [(tr(Msg.CONFIRM), self.engine.quit), (tr(Msg.CANCEL), self.pop_menu)])
+        self.menu(tr(Msg.RETURN_WITHOUT_SAVING_PROMPT), [(tr(Msg.CONFIRM), self.quit_game), (tr(Msg.CANCEL), self.pop_menu)])
 
     def controls_menu(self):
         self.menu(tr(Msg.CONTROLS), [(tr(Msg.BACK), self.pop_menu)],

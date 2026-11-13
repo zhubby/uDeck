@@ -1,3 +1,11 @@
+udeck (0.2.13) unstable; urgency=medium
+
+  * Uncover the paused RetroArch frontend while quitting under Wayland.
+  * Stop status polling during shutdown and bound graceful process termination.
+  * Preserve unexpected exit errors and cover quit and close lifecycle regressions.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Fri, 13 Nov 2026 21:00:00 +0800
+
 udeck (0.2.12) unstable; urgency=medium
 
   * Browse enabled emulator platforms before opening each platform's games.
