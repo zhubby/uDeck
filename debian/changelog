@@ -1,3 +1,10 @@
+udeck (0.2.10) unstable; urgency=medium
+
+  * Keep an empty player's play command from interrupting active media.
+  * Cover empty-player arbitration and playback ownership failure recovery.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Fri, 13 Nov 2026 15:00:00 +0800
+
 udeck (0.2.9) unstable; urgency=medium
 
   * Let music and video preempt each other when starting or resuming playback.

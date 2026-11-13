@@ -9,10 +9,11 @@ import wave
 from pathlib import Path
 
 from PySide6.QtCore import QCoreApplication, QEventLoop, QTimer
-from PySide6.QtDBus import QDBusConnection, QDBusInterface, QDBusMessage
+from PySide6.QtDBus import QDBusConnection, QDBusConnectionInterface, QDBusInterface, QDBusMessage
 
 from udeck.app_routing import APP_IDS, object_path, service_name
 from udeck.apps.common.state import AppState
+from udeck.apps.media.controller import PLAYBACK_SERVICE
 
 
 def run(root):
@@ -31,6 +32,8 @@ def run(root):
                     "-f", "lavfi", "-i", "anullsrc=r=16000:cl=mono", "-t", "12",
                     "-c:v", "libx264", "-preset", "ultrafast", "-c:a", "aac", str(video)],
                    check=True, capture_output=True, timeout=30)
+    initial_video = content / "Empty-player check.mp4"
+    initial_video.write_bytes(video.read_bytes())
     # An old enabled preference must not restore music or reintroduce the switch.
     state = AppState("video", root / "video")
     state.data["preferences"]["resumeMusic"] = True
@@ -97,6 +100,14 @@ def run(root):
                                           app_id + ".Control", bus)
             wait(controls[app].isValid, app + " object startup")
 
+        # A play command with no media must not interrupt a healthy peer.
+        open_file("video", initial_video)
+        exclusive("video", "video starts before music has a source")
+        toggle("music")
+        exclusive("video", "empty music play command leaves video playing")
+        assert diagnose("music")["state"]["media"]["status"] == "NoMedia"
+        checks.append("empty-player-does-not-preempt-playback")
+
         open_file("music", music)
         exclusive("music", "music starts")
         wait(lambda: position("music") > 0.3, "music progress")
@@ -158,6 +169,21 @@ def run(root):
         pump(400)
         assert not playing("music")
         checks.append("winner-exit-does-not-resume-music-with-legacy-preference")
+
+        # A failed claim must leave playback paused, and a later request can recover.
+        reply = bus.interface().registerService(
+            PLAYBACK_SERVICE, QDBusConnectionInterface.ServiceQueueOptions.ReplaceExistingService,
+            QDBusConnectionInterface.ServiceReplacementOptions.DontAllowReplacement)
+        assert reply.isValid() and reply.value() == QDBusConnectionInterface.RegisterServiceReply.ServiceRegistered.value
+        open_file("music", music)
+        wait(lambda: bool(diagnose("music")["state"]["error"]), "unavailable playback reports an error")
+        assert not playing("music")
+        checks.append("failed-playback-claim-does-not-start-audio")
+        assert bus.unregisterService(PLAYBACK_SERVICE)
+        open_file("music", music)
+        wait(lambda: playing("music"), "playback recovers after the owner is released")
+        assert not diagnose("music")["state"]["error"]
+        checks.append("explicit-playback-recovers-after-claim-failure")
         assert not diagnose("music")["qmlErrors"]
         report = {"checks": checks, "music": diagnose("music"), "passed": True}
         (root / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")

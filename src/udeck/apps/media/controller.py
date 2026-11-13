@@ -146,6 +146,8 @@ class MediaController(AppController):
     @interaction
     def command(self, command):
         if command == "play-pause":
+            if self.media.player.source().isEmpty():
+                return
             self.feedback("accept")
             if self.media.player.mediaStatus() == QMediaPlayer.MediaStatus.EndOfMedia:
                 self.notice = ""
