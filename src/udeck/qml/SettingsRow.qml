@@ -35,7 +35,7 @@ Rectangle {
         visible: !!row.option.icon
         x: 14; anchors.verticalCenter: parent.verticalCenter
         width: height; height: label.implicitHeight
-        source: visible ? "image://desktop/" + encodeURIComponent(row.option.icon) : ""
+        source: visible ? "image://desktop/" + encodeURIComponent("udeck-app-menu:" + row.option.icon) : ""
         sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
     }
     Text {

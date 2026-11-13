@@ -1,3 +1,10 @@
+udeck (0.2.7) unstable; urgency=medium
+
+  * Keep application settings icons in the built-in rounded tile style.
+  * Make application menu artwork independent of the desktop icon theme.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Fri, 13 Nov 2026 12:00:00 +0800
+
 udeck (0.2.6) unstable; urgency=medium
 
   * Display selected embedded text subtitles at the current playback position.

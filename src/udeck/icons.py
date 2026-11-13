@@ -14,6 +14,7 @@ from .menu_icons import SETTING_ARTWORK, SETTING_ICON_PREFIX
 
 SETTING_ICON_ROOT = Path(__file__).with_name("assets") / "settings-icons"
 SETTING_ICON_ASSETS = set(SETTING_ARTWORK.values())
+APP_MENU_ICON_PREFIX = "udeck-app-menu:"
 
 
 class IconProvider(QQuickImageProvider):
@@ -27,6 +28,8 @@ class IconProvider(QQuickImageProvider):
             image = self._draw_file(name, dimension)
         elif name.startswith(SETTING_ICON_PREFIX):
             image = self._draw_bundled_setting(name, dimension)
+        elif name.startswith(APP_MENU_ICON_PREFIX):
+            image = self._draw(name.removeprefix(APP_MENU_ICON_PREFIX), dimension)
         else:
             icon = QIcon(name) if name.startswith("/") else QIcon.fromTheme(name)
             image = icon.pixmap(QSize(dimension, dimension)).toImage() if not icon.isNull() else self._draw(name, dimension)
