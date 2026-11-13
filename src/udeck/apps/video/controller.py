@@ -1,13 +1,10 @@
-"""Video resume, chapters, subtitles and music coordination."""
+"""Video resume, chapters and subtitles."""
 
-import uuid
 from pathlib import Path
 
 from PySide6.QtCore import QObject, Slot
-from PySide6.QtDBus import QDBusConnection, QDBusInterface, QDBusMessage
 from PySide6.QtMultimedia import QMediaMetaData
 
-from udeck.app_routing import APP_IDS, object_path, service_name
 from udeck.apps.media.controller import MediaController, time_label
 from udeck.i18n import Msg, tr
 
@@ -43,19 +40,8 @@ class VideoController(MediaController):
         else:
             self.play(item)
 
-    def prepare_play(self, item, seconds, queued, music_confirmed):
-        if not music_confirmed and self.music_call("IsPlaying"):
-            self.menu(tr(Msg.MUSIC_IS_PLAYING), [
-                (tr(Msg.PAUSE_MUSIC_AND_PLAY_VIDEO), lambda: self.play(item, seconds, music_confirmed=True)),
-                (tr(Msg.CANCEL), self.pop_menu)], item["title"], item["sourceId"])
-            return False
-        if music_confirmed:
-            token = uuid.uuid4().hex
-            if not self.music_call("PauseForVideo", token):
-                raise RuntimeError(tr(Msg.MUSIC_COULD_NOT_BE_PAUSED_TRY_AGAIN))
-            self.music_token = token
+    def prepare_play(self, item, seconds, queued):
         self.clear_subtitles()
-        return True
 
     def update_controls(self):
         if (self.page == "player" and self.inactive >= 5
@@ -87,12 +73,6 @@ class VideoController(MediaController):
     def finished_playback(self):
         self.controls_visible = True
         self.notice = tr(Msg.PLAYBACK_FINISHED)
-        self.release_music()
-
-    def settings_options(self):
-        return [*super().settings_options(),
-                self.setting_option(tr(Msg.RESUME_MUSIC_AFTER_VIDEO), self.toggle_resume_music,
-                                    "media-playlist-repeat", checked=bool(self.store.data["preferences"].get("resumeMusic")))]
 
     def context(self):
         if self.page == "player":
@@ -118,14 +98,7 @@ class VideoController(MediaController):
             self.media.player.pause()
             self.save_position()
             self.persist()
-            self.release_music()
         super().back()
-
-    def toggle_resume_music(self):
-        preferences = self.store.data["preferences"]
-        preferences["resumeMusic"] = not preferences.get("resumeMusic", False)
-        self.persist()
-        self.publish()
 
     def track_menu(self, subtitles):
         player = self.media.player
@@ -194,21 +167,6 @@ class VideoController(MediaController):
     def set_speed(self, rate):
         self.media.player.setPlaybackRate(rate)
         self.pop_menu()
-
-    def music_call(self, method, *args):
-        if self.isolated:
-            return False
-        identifier = APP_IDS["music"]
-        remote = QDBusInterface(service_name(identifier), object_path(identifier), identifier + ".Control", QDBusConnection.sessionBus())
-        if not remote.isValid():
-            return False
-        reply = remote.call(method, *args)
-        return reply.arguments()[0] if reply.type() != QDBusMessage.MessageType.ErrorMessage and reply.arguments() else False
-
-    def release_music(self):
-        if self.music_token:
-            self.music_call("ResumeAfterVideo" if self.store.data["preferences"].get("resumeMusic") else "ReleaseVideo", self.music_token)
-            self.music_token = ""
 
     def external_subtitles(self):
         if not self.current:

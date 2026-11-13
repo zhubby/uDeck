@@ -24,6 +24,9 @@ offers background playback, stop and exit, or cancel. Video uses the same engine
 and a composited VideoOutput, with confirmed resume, seek, embedded audio/subtitle
 tracks, companion UTF-8 SRT captions, chapters from ffprobe, speed and fading controls.
 Hardware decoding and supported codecs depend on the installed Qt/FFmpeg build.
+Starting or resuming music or video pauses the other player immediately, retaining
+its position and queue. No confirmation is needed. Pausing, finishing or closing
+the active player does not automatically resume the other one.
 With `QT_QUICK_BACKEND=software`, a decoded-frame image provider replaces the
 scenegraph VideoOutput and limits presentation to 15 frames/second. This fallback
 is for compatibility; it does not establish hardware decoding or playback performance.

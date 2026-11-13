@@ -23,7 +23,7 @@ from PySide6.QtTest import QTest
 from PySide6.QtWebEngineQuick import QtWebEngineQuick
 from PySide6.QtWidgets import QApplication
 
-from udeck.apps.main import AppControl, make_controller
+from udeck.apps.main import make_controller
 from udeck.apps.media.engine import FrameImages
 from udeck.apps.reader.controller import PdfImages
 from udeck.core import ConfigStore
@@ -152,20 +152,6 @@ def run(app, root, language="en", width=1280, height=720):
         assert controller.media.player.duration()>10000
         capture("playing")
         controller.media.player.pause()
-        control = AppControl(controller, lambda: None, errors, time.monotonic())
-        controller.media.player.play()
-        assert control.PauseForVideo("video-one")
-        assert not control.IsPlaying()
-        control.ResumeAfterVideo("stale-token")
-        assert not control.IsPlaying()
-        control.ResumeAfterVideo("video-one")
-        wait(control.IsPlaying)
-        assert control.PauseForVideo("video-two")
-        controller.command("play-pause")
-        controller.media.player.pause()
-        control.ResumeAfterVideo("video-two")
-        assert not control.IsPlaying()
-        completed.append("music-video-pause-ownership")
         controller.seek(4)
         wait(lambda: controller.media.player.position()>=3900)
         position = controller.media.player.position()

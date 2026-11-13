@@ -137,29 +137,6 @@ class AppControl(QObject):
         self.controller.command(action)
         return ""
 
-    @Slot(result=bool)
-    def IsPlaying(self):
-        return bool(self.controller.app == "music" and self.controller.media.snapshot()["playing"])
-
-    @Slot(str, result=bool)
-    def PauseForVideo(self, token):
-        if not self.IsPlaying():
-            return True
-        self.controller.media.player.pause()
-        self.controller.paused_by_video = token
-        return not self.controller.media.snapshot()["playing"]
-
-    @Slot(str)
-    def ResumeAfterVideo(self, token):
-        if self.controller.app == "music" and self.controller.paused_by_video == token:
-            self.controller.paused_by_video = ""
-            self.controller.media.player.play()
-
-    @Slot(str)
-    def ReleaseVideo(self, token):
-        if self.controller.app == "music" and self.controller.paused_by_video == token:
-            self.controller.paused_by_video = ""
-
 
 def main(argv=None, *, options=None, trace=None):
     from .main import parse_options

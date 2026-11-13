@@ -2,6 +2,7 @@
 
 
 from PySide6.QtCore import Property, QObject, Slot
+from PySide6.QtDBus import QDBusConnection, QDBusConnectionInterface, QDBusServiceWatcher
 from PySide6.QtMultimedia import QMediaPlayer
 
 from udeck.apps.common.controller import AppController
@@ -10,6 +11,8 @@ from udeck.i18n import Msg, tr
 from udeck.sounds import interaction
 
 from .engine import MediaEngine
+
+PLAYBACK_SERVICE = "io.github.zhubby.uDeck.MediaPlayback"
 
 
 class MediaController(AppController):
@@ -29,8 +32,7 @@ class MediaController(AppController):
         self.inactive = 0
         self.external_cues = []
         self.external_name = ""
-        self.paused_by_video = ""
-        self.music_token = ""
+        self.playback_watcher = None
 
     @Property(QObject, constant=True)
     def player(self):
@@ -44,10 +46,11 @@ class MediaController(AppController):
     def seek(self, seconds):
         self.media.seek(seconds)
 
-    def play(self, item, seconds=0, queued=False, music_confirmed=False):
+    def play(self, item, seconds=0, queued=False):
         item = self.library.require(item["id"])
-        if not self.prepare_play(item, seconds, queued, music_confirmed):
+        if not self.claim_playback():
             return
+        self.prepare_play(item, seconds, queued)
         self.error, self.notice = "", ""
         self.save_position()
         self.current = dict(item)
@@ -60,6 +63,35 @@ class MediaController(AppController):
         self.media.load(item, seconds * 1000)
         self.store.remember(item["id"])
         self.persist()
+        self.publish()
+
+    def claim_playback(self):
+        bus = QDBusConnection.sessionBus()
+        if self.isolated or not bus.isConnected():
+            return True
+        if self.playback_watcher is None:
+            self.playback_watcher = QDBusServiceWatcher(PLAYBACK_SERVICE, bus, parent=self)
+            self.playback_watcher.serviceOwnerChanged.connect(self.playback_owner_changed)
+        # The bus serializes requests, so simultaneous starts cannot both own playback.
+        reply = bus.interface().registerService(
+            PLAYBACK_SERVICE, QDBusConnectionInterface.ServiceQueueOptions.ReplaceExistingService,
+            QDBusConnectionInterface.ServiceReplacementOptions.AllowReplacement)
+        if (reply.isValid()
+                and reply.value() == QDBusConnectionInterface.RegisterServiceReply.ServiceRegistered.value):
+            return True
+        self.playback_failed(tr(Msg.AUDIO_PLAYBACK_UNAVAILABLE))
+        return False
+
+    def playback_owner_changed(self, service, old_owner, new_owner):
+        bus = QDBusConnection.sessionBus()
+        # A delayed notification must not pause a newer playback request of our own.
+        owner = bus.interface().serviceOwner(PLAYBACK_SERVICE)
+        if owner.isValid() and owner.value() == bus.baseService():
+            return
+        self.media.player.pause()
+        self.controls_visible = True
+        self.save_position()
+        self.attempt(self.persist)
         self.publish()
 
     def save_position(self):
@@ -115,10 +147,10 @@ class MediaController(AppController):
     def command(self, command):
         if command == "play-pause":
             self.feedback("accept")
-            self.paused_by_video = ""
             if self.media.player.mediaStatus() == QMediaPlayer.MediaStatus.EndOfMedia:
                 self.notice = ""
-            self.media.toggle()
+            if self.media.snapshot()["playing"] or self.claim_playback():
+                self.media.toggle()
         elif command in ("previous", "next"):
             self.feedback("accept")
             self.attempt(lambda: self.next_track(-1 if command == "previous" else 1))
@@ -142,7 +174,6 @@ class MediaController(AppController):
     def playback_failed(self, text):
         self.error = tr(Msg.PLAYBACK_FAILED_ERROR, error=text)
         self.controls_visible = True
-        self.release_music()
         self.publish()
 
     def output_menu(self):
@@ -162,7 +193,6 @@ class MediaController(AppController):
         self.save_position()
         self.attempt(self.persist)
         self.media.close()
-        self.release_music()
 
     def persist(self):
         self.store.data["queue"] = self.queue.items
@@ -170,10 +200,15 @@ class MediaController(AppController):
         super().persist()
 
     def close(self):
+        if self._closed:
+            return
         self.save_position()
         super().close()
         self.media.close()
-        self.release_music()
+        if self.playback_watcher is not None:
+            self.playback_watcher.serviceOwnerChanged.disconnect(self.playback_owner_changed)
+            self.playback_watcher.setWatchedServices([])
+            QDBusConnection.sessionBus().unregisterService(PLAYBACK_SERVICE)
 
     def open_item(self, identifier):
         self.play(self.library.require(identifier))
@@ -181,7 +216,7 @@ class MediaController(AppController):
     def update_controls(self):
         pass
 
-    def release_music(self):
+    def prepare_play(self, item, seconds, queued):
         pass
 
     def subtitle_text(self):

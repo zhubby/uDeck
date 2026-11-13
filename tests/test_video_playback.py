@@ -33,6 +33,16 @@ def test_video_end_reveals_controls_for_replay(video):
     assert video.store.data["positions"]["finished-video"] == 0
 
 
+def test_video_settings_ignore_the_legacy_music_resume_preference(video):
+    video.store.data["preferences"]["resumeMusic"] = True
+
+    video.settings()
+
+    options = video.snapshot()["menu"]["options"]
+    assert len(options) == 3
+    assert all("checked" not in row for row in options)
+
+
 @pytest.mark.parametrize("value", ["nan", "inf", "-inf", "1e309", "-1e309"])
 def test_seek_rejects_nonfinite_input_and_keeps_the_prompt(video, value):
     video.command("seek")

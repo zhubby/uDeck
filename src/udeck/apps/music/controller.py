@@ -34,12 +34,10 @@ class MusicController(MediaController):
             return [by_id[i] for i in self.queue.items if i in by_id]
         return rows
 
-    def prepare_play(self, item, seconds, queued, music_confirmed):
-        self.paused_by_video = ""
+    def prepare_play(self, item, seconds, queued):
         if not queued:
             ids = [r["id"] for r in self.rows() if r.get("kind") == "item"]
             self.queue.replace(ids or [item["id"]], item["id"])
-        return True
 
     def next_track(self, delta=1):
         identifier = self.queue.advance(delta)

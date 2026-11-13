@@ -201,7 +201,7 @@ def test_controller_cancels_pending_subtitles(video, fake_ffmpeg, tmp_path, acti
     elif action == "source":
         video.media.player.sourceChanged.emit(video.media.player.source())
     elif action == "file":
-        assert video.prepare_play(video.current, 0, False, False)
+        video.prepare_play(video.current, 0, False)
     else:
         video.close()
     events(350)
