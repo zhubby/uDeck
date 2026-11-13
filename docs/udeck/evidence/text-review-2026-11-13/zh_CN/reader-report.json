@@ -1,0 +1,55 @@
+{
+  "app": "reader",
+  "version": "0.2.11",
+  "installed_source": "/usr/lib/python3/dist-packages/udeck",
+  "platform": "wayland",
+  "qt_platform_theme": "qt5ct",
+  "icon_theme": "PiXtrix",
+  "language": "zh_CN",
+  "theme": "classic",
+  "independent_window": true,
+  "mock": false,
+  "screenshots": [
+    {
+      "file": "reader-y-menu.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "4b33ed0fda93f01ec901615d3f132b125e24592d4e9a7d6a90c962b6dd3f199f",
+      "icons": [
+        {
+          "source": "image://desktop/udeck-app-menu%3Aweather-clear-night",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Adocument-page-setup",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Aformat-text-size",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Afolder",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Awindow-close",
+          "ready": true
+        }
+      ]
+    }
+  ],
+  "menu_title": "设置",
+  "rows": [
+    "夜间配色",
+    "阅读排版",
+    "字号",
+    "来源",
+    "关闭应用"
+  ],
+  "y_route": "application-settings",
+  "qml_errors": [],
+  "passed": true
+}

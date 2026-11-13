@@ -1,0 +1,717 @@
+{
+  "passed": true,
+  "version": "0.2.11",
+  "source": "/usr/lib/python3/dist-packages/udeck/__init__.py",
+  "input_verified": true,
+  "shortcuts_applied": true,
+  "configuration_unchanged": true,
+  "languages": [
+    "zh_CN",
+    "en"
+  ],
+  "app_reports": [
+    {
+      "app": "music",
+      "version": "0.2.11",
+      "installed_source": "/usr/lib/python3/dist-packages/udeck",
+      "platform": "wayland",
+      "qt_platform_theme": "qt5ct",
+      "icon_theme": "PiXtrix",
+      "language": "zh_CN",
+      "theme": "classic",
+      "independent_window": true,
+      "mock": false,
+      "screenshots": [
+        {
+          "file": "music-y-menu.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "df7a8c6d20ae9cda2354e480ff1955d61c777aad362acf957ab4a45539d231f5",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Aaudio-card",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Awindow-close",
+              "ready": true
+            }
+          ]
+        }
+      ],
+      "menu_title": "设置",
+      "rows": [
+        "音频输出",
+        "来源",
+        "关闭应用"
+      ],
+      "y_route": "application-settings",
+      "qml_errors": [],
+      "passed": true
+    },
+    {
+      "app": "video",
+      "version": "0.2.11",
+      "installed_source": "/usr/lib/python3/dist-packages/udeck",
+      "platform": "wayland",
+      "qt_platform_theme": "qt5ct",
+      "icon_theme": "PiXtrix",
+      "language": "zh_CN",
+      "theme": "classic",
+      "independent_window": true,
+      "mock": false,
+      "screenshots": [
+        {
+          "file": "video-y-menu.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "b09b18f0ca439b49087ee823411604b3eaa347a3f6fefb80be3e8c48f0e8cb9a",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Aaudio-card",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Awindow-close",
+              "ready": true
+            }
+          ]
+        }
+      ],
+      "menu_title": "设置",
+      "rows": [
+        "音频输出",
+        "来源",
+        "关闭应用"
+      ],
+      "y_route": "application-settings",
+      "qml_errors": [],
+      "passed": true
+    },
+    {
+      "app": "browser",
+      "version": "0.2.11",
+      "installed_source": "/usr/lib/python3/dist-packages/udeck",
+      "platform": "wayland",
+      "qt_platform_theme": "qt5ct",
+      "icon_theme": "PiXtrix",
+      "language": "zh_CN",
+      "theme": "classic",
+      "independent_window": true,
+      "mock": false,
+      "screenshots": [
+        {
+          "file": "browser-y-menu.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "9726261c53be6cb21a390bba76c6e7db322391e47e66215fd8b9c439b1e8ff74",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Azoom-in",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Ainput-mouse",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Awindow-close",
+              "ready": true
+            }
+          ]
+        }
+      ],
+      "menu_title": "设置",
+      "rows": [
+        "网页缩放",
+        "操作模式",
+        "关闭应用"
+      ],
+      "y_route": "application-settings",
+      "qml_errors": [],
+      "passed": true
+    },
+    {
+      "app": "reader",
+      "version": "0.2.11",
+      "installed_source": "/usr/lib/python3/dist-packages/udeck",
+      "platform": "wayland",
+      "qt_platform_theme": "qt5ct",
+      "icon_theme": "PiXtrix",
+      "language": "zh_CN",
+      "theme": "classic",
+      "independent_window": true,
+      "mock": false,
+      "screenshots": [
+        {
+          "file": "reader-y-menu.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "4b33ed0fda93f01ec901615d3f132b125e24592d4e9a7d6a90c962b6dd3f199f",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Aweather-clear-night",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Adocument-page-setup",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Aformat-text-size",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Awindow-close",
+              "ready": true
+            }
+          ]
+        }
+      ],
+      "menu_title": "设置",
+      "rows": [
+        "夜间配色",
+        "阅读排版",
+        "字号",
+        "来源",
+        "关闭应用"
+      ],
+      "y_route": "application-settings",
+      "qml_errors": [],
+      "passed": true
+    },
+    {
+      "app": "emulator",
+      "version": "0.2.11",
+      "installed_source": "/usr/lib/python3/dist-packages/udeck",
+      "platform": "wayland",
+      "qt_platform_theme": "qt5ct",
+      "icon_theme": "PiXtrix",
+      "language": "zh_CN",
+      "theme": "classic",
+      "independent_window": true,
+      "mock": false,
+      "screenshots": [
+        {
+          "file": "emulator-y-menu.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "7f190903a2dc12b391f55fc81529ef7052b87251b985ffea75167aa8e9ce9db6",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder-new",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Aapplications-system",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Alist-add",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Aview-refresh",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Awindow-close",
+              "ready": true
+            }
+          ]
+        },
+        {
+          "file": "emulator-y-menu-bottom.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "e63ecd0aef3968fc2b359d7aa29de727cb647c6c18e0d3d9b67ac1e0fb0a6aa8",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder-new",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Aapplications-system",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Alist-add",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Aview-refresh",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Awindow-close",
+              "ready": true
+            }
+          ]
+        }
+      ],
+      "menu_title": "设置",
+      "rows": [
+        "ROM 根目录",
+        "创建平台目录",
+        "核心管理",
+        "添加引擎入口",
+        "核心文件夹",
+        "固件文件夹",
+        "刷新内容库",
+        "关闭应用"
+      ],
+      "y_route": "application-settings",
+      "qml_errors": [],
+      "passed": true
+    },
+    {
+      "app": "terminal",
+      "version": "0.2.11",
+      "installed_source": "/usr/lib/python3/dist-packages/udeck",
+      "platform": "wayland",
+      "qt_platform_theme": "qt5ct",
+      "icon_theme": "PiXtrix",
+      "language": "zh_CN",
+      "theme": "classic",
+      "independent_window": true,
+      "mock": false,
+      "screenshots": [
+        {
+          "file": "terminal-settings.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "5f06022545cdf830761e102ee373785d00bc388d50316d93f8e3bd62c8249090",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Azoom-out",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Azoom-in",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Ago-previous",
+              "ready": true
+            }
+          ]
+        },
+        {
+          "file": "terminal-y-menu.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "9d748ad76c4b0fcfd61a5be7553ce35577d5b184b33fb69e32ffbdb5de4bb4fd",
+          "icons": []
+        }
+      ],
+      "y_route": "system-quick-settings",
+      "native_pty": true,
+      "qml_errors": [],
+      "passed": true
+    },
+    {
+      "app": "music",
+      "version": "0.2.11",
+      "installed_source": "/usr/lib/python3/dist-packages/udeck",
+      "platform": "wayland",
+      "qt_platform_theme": "qt5ct",
+      "icon_theme": "PiXtrix",
+      "language": "en",
+      "theme": "classic",
+      "independent_window": true,
+      "mock": false,
+      "screenshots": [
+        {
+          "file": "music-y-menu.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "33c470dcc0b684b676c3b39e8cb6acf4afe01170b42057a59ebcdcc651ee33b2",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Aaudio-card",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Awindow-close",
+              "ready": true
+            }
+          ]
+        }
+      ],
+      "menu_title": "Settings",
+      "rows": [
+        "Audio output",
+        "Sources",
+        "Close application"
+      ],
+      "y_route": "application-settings",
+      "qml_errors": [],
+      "passed": true
+    },
+    {
+      "app": "video",
+      "version": "0.2.11",
+      "installed_source": "/usr/lib/python3/dist-packages/udeck",
+      "platform": "wayland",
+      "qt_platform_theme": "qt5ct",
+      "icon_theme": "PiXtrix",
+      "language": "en",
+      "theme": "classic",
+      "independent_window": true,
+      "mock": false,
+      "screenshots": [
+        {
+          "file": "video-y-menu.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "fe35054bc2a67a0f942e688ee66e3e33e207817881d3de2a19eb4cf774ba0d05",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Aaudio-card",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Awindow-close",
+              "ready": true
+            }
+          ]
+        }
+      ],
+      "menu_title": "Settings",
+      "rows": [
+        "Audio output",
+        "Sources",
+        "Close application"
+      ],
+      "y_route": "application-settings",
+      "qml_errors": [],
+      "passed": true
+    },
+    {
+      "app": "browser",
+      "version": "0.2.11",
+      "installed_source": "/usr/lib/python3/dist-packages/udeck",
+      "platform": "wayland",
+      "qt_platform_theme": "qt5ct",
+      "icon_theme": "PiXtrix",
+      "language": "en",
+      "theme": "classic",
+      "independent_window": true,
+      "mock": false,
+      "screenshots": [
+        {
+          "file": "browser-y-menu.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "34d9739a7a73870c602596edd01bc167eaed5ace575673920e0f7884f9efa5b9",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Azoom-in",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Ainput-mouse",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Awindow-close",
+              "ready": true
+            }
+          ]
+        }
+      ],
+      "menu_title": "Settings",
+      "rows": [
+        "Page zoom",
+        "Interaction mode",
+        "Close application"
+      ],
+      "y_route": "application-settings",
+      "qml_errors": [],
+      "passed": true
+    },
+    {
+      "app": "reader",
+      "version": "0.2.11",
+      "installed_source": "/usr/lib/python3/dist-packages/udeck",
+      "platform": "wayland",
+      "qt_platform_theme": "qt5ct",
+      "icon_theme": "PiXtrix",
+      "language": "en",
+      "theme": "classic",
+      "independent_window": true,
+      "mock": false,
+      "screenshots": [
+        {
+          "file": "reader-y-menu.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "06e4fc27156b07e3a42bcc649506da93647dcde240b31352677fbe97ae4055ec",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Aweather-clear-night",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Adocument-page-setup",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Aformat-text-size",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Awindow-close",
+              "ready": true
+            }
+          ]
+        }
+      ],
+      "menu_title": "Settings",
+      "rows": [
+        "Night colors",
+        "Reading layout",
+        "Text size",
+        "Sources",
+        "Close application"
+      ],
+      "y_route": "application-settings",
+      "qml_errors": [],
+      "passed": true
+    },
+    {
+      "app": "emulator",
+      "version": "0.2.11",
+      "installed_source": "/usr/lib/python3/dist-packages/udeck",
+      "platform": "wayland",
+      "qt_platform_theme": "qt5ct",
+      "icon_theme": "PiXtrix",
+      "language": "en",
+      "theme": "classic",
+      "independent_window": true,
+      "mock": false,
+      "screenshots": [
+        {
+          "file": "emulator-y-menu.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "205d5d796dd27c436ed90d1729739593ab78b5d7767ae2e80a4024fc7f007194",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder-new",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Aapplications-system",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Alist-add",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Aview-refresh",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Awindow-close",
+              "ready": true
+            }
+          ]
+        },
+        {
+          "file": "emulator-y-menu-bottom.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "b6d499135b7699092e2aa586e7ea74dfb3c9301209159f832450880f27b773d0",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder-new",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Aapplications-system",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Alist-add",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Afolder",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Aview-refresh",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Awindow-close",
+              "ready": true
+            }
+          ]
+        }
+      ],
+      "menu_title": "Settings",
+      "rows": [
+        "ROM root",
+        "Create platform folders",
+        "Core management",
+        "Add engine entry",
+        "Core folder",
+        "Firmware folder",
+        "Refresh library",
+        "Close application"
+      ],
+      "y_route": "application-settings",
+      "qml_errors": [],
+      "passed": true
+    },
+    {
+      "app": "terminal",
+      "version": "0.2.11",
+      "installed_source": "/usr/lib/python3/dist-packages/udeck",
+      "platform": "wayland",
+      "qt_platform_theme": "qt5ct",
+      "icon_theme": "PiXtrix",
+      "language": "en",
+      "theme": "classic",
+      "independent_window": true,
+      "mock": false,
+      "screenshots": [
+        {
+          "file": "terminal-settings.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "871a6d664b888bbdeb4b81332f02fecdf7e2c3d4c9be3c2a1f7b2f0f1234143e",
+          "icons": [
+            {
+              "source": "image://desktop/udeck-app-menu%3Azoom-out",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Azoom-in",
+              "ready": true
+            },
+            {
+              "source": "image://desktop/udeck-app-menu%3Ago-previous",
+              "ready": true
+            }
+          ]
+        },
+        {
+          "file": "terminal-y-menu.png",
+          "size": [
+            1280,
+            720
+          ],
+          "sha256": "c17e45ed6d8b4d5ecb085ca5fb8b4a75187254972cf09af1835622d8a2afd1d7",
+          "icons": []
+        }
+      ],
+      "y_route": "system-quick-settings",
+      "native_pty": true,
+      "qml_errors": [],
+      "passed": true
+    }
+  ],
+  "limits": "Native installed Qt/QML on the hardware display with virtual keyboard events; no human physical key acceptance."
+}

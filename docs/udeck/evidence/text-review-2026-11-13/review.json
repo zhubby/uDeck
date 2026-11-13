@@ -1,0 +1,89 @@
+{
+  "base": "bf802c11fbddf8e0caf939d32e398493234ec139",
+  "mode": "interactive",
+  "execution": "sequential in main thread as required by user AGENTS instructions",
+  "intent": "Audit and fix all owned English and Chinese UI wording; preserve stable IDs, literal user content and existing file-operation behavior.",
+  "review_lenses": [
+    "correctness",
+    "testing",
+    "maintainability",
+    "project-standards",
+    "agent-native",
+    "learnings",
+    "api-contract",
+    "reliability",
+    "adversarial",
+    "python",
+    "frontend-async"
+  ],
+  "findings": [],
+  "applied_fixes": [
+    {
+      "priority": "P2",
+      "issue": "Conflict dialog translated arbitrary filenames using the UI dictionary",
+      "fix": "Keep dynamic descriptions literal and translate fixed descriptions explicitly",
+      "verification": "Real browser translations scenario covers a path named Files and folder replacement guard"
+    },
+    {
+      "priority": "P2",
+      "issue": "Service and reader errors lost translation identity",
+      "fix": "Mark known service errors only at the UI boundary; reader reports stable error codes and literal details",
+      "verification": "Worker, status, language-change and reader-session regressions"
+    }
+  ],
+  "residual_risks": [
+    "Unknown external system and third-party diagnostics intentionally remain literal.",
+    "Physical human button handling is outside the text review."
+  ],
+  "learnings": [
+    "docs/udeck/i18n-2026-11-06.md: messages remain marked until serialization; user content stays literal"
+  ],
+  "verdict": "Ready after fixes and validation; no unresolved actionable findings. Six environment-dependent tests remain skipped on macOS.",
+  "reviewed_source_revision": "de17127975b3d540c4cb61ea6dc766992704e9b1",
+  "validation": {
+    "initial_full_run": {
+      "collected": 1571,
+      "passed": 1555,
+      "failed": 10,
+      "skipped": 6,
+      "warnings": 16,
+      "seconds": 1833.35,
+      "exit_code": 1,
+      "failed_tests": [
+        "tests/test_launch_qml.py::test_loading_layers_render_and_release_keyboard_focus[False-classic-en-1280-720]",
+        "tests/test_sharing_controls.py::test_open_sharing_body_tracks_language_changes",
+        "tests/test_shortcuts_qml.py::test_shortcut_menus_and_real_recorder_events[en-classic-1280-720]",
+        "tests/test_shortcuts_qml.py::test_shortcut_menus_and_real_recorder_events[en-classic-960-600]",
+        "tests/test_shortcuts_qml.py::test_shortcut_menus_and_real_recorder_events[en-dark-1280-720]",
+        "tests/test_shortcuts_qml.py::test_shortcut_menus_and_real_recorder_events[en-dark-960-600]",
+        "tests/test_shortcuts_qml.py::test_shortcut_menus_and_real_recorder_events[zh_CN-classic-1280-720]",
+        "tests/test_shortcuts_qml.py::test_shortcut_menus_and_real_recorder_events[zh_CN-classic-960-600]",
+        "tests/test_shortcuts_qml.py::test_shortcut_menus_and_real_recorder_events[zh_CN-dark-1280-720]",
+        "tests/test_shortcuts_qml.py::test_shortcut_menus_and_real_recorder_events[zh_CN-dark-960-600]"
+      ]
+    },
+    "final_failure_recheck": {
+      "files": [
+        "tests/test_sharing_controls.py",
+        "tests/test_shortcuts_qml.py",
+        "tests/test_launch_qml.py"
+      ],
+      "passed": 32,
+      "failed": 0,
+      "seconds": 125.72,
+      "covers_all_initial_failures": true,
+      "log": "corrected-probe-rechecks.log"
+    },
+    "installed_device": {
+      "version": "0.2.11",
+      "source_files_matched": 425,
+      "bilingual_app_reports": 12,
+      "screenshots": 24,
+      "qml_errors": [],
+      "configuration_unchanged": true,
+      "input_verified": true,
+      "shortcuts_applied": true
+    },
+    "visual_review": "All 24 real-device screenshots inspected in four contact sheets."
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "app": "reader",
+  "version": "0.2.11",
+  "installed_source": "/usr/lib/python3/dist-packages/udeck",
+  "platform": "wayland",
+  "qt_platform_theme": "qt5ct",
+  "icon_theme": "PiXtrix",
+  "language": "en",
+  "theme": "classic",
+  "independent_window": true,
+  "mock": false,
+  "screenshots": [
+    {
+      "file": "reader-y-menu.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "06e4fc27156b07e3a42bcc649506da93647dcde240b31352677fbe97ae4055ec",
+      "icons": [
+        {
+          "source": "image://desktop/udeck-app-menu%3Aweather-clear-night",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Adocument-page-setup",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Aformat-text-size",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Afolder",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Awindow-close",
+          "ready": true
+        }
+      ]
+    }
+  ],
+  "menu_title": "Settings",
+  "rows": [
+    "Night colors",
+    "Reading layout",
+    "Text size",
+    "Sources",
+    "Close application"
+  ],
+  "y_route": "application-settings",
+  "qml_errors": [],
+  "passed": true
+}

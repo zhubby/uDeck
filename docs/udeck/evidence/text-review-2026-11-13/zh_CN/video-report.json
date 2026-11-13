@@ -1,0 +1,45 @@
+{
+  "app": "video",
+  "version": "0.2.11",
+  "installed_source": "/usr/lib/python3/dist-packages/udeck",
+  "platform": "wayland",
+  "qt_platform_theme": "qt5ct",
+  "icon_theme": "PiXtrix",
+  "language": "zh_CN",
+  "theme": "classic",
+  "independent_window": true,
+  "mock": false,
+  "screenshots": [
+    {
+      "file": "video-y-menu.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "b09b18f0ca439b49087ee823411604b3eaa347a3f6fefb80be3e8c48f0e8cb9a",
+      "icons": [
+        {
+          "source": "image://desktop/udeck-app-menu%3Aaudio-card",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Afolder",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Awindow-close",
+          "ready": true
+        }
+      ]
+    }
+  ],
+  "menu_title": "设置",
+  "rows": [
+    "音频输出",
+    "来源",
+    "关闭应用"
+  ],
+  "y_route": "application-settings",
+  "qml_errors": [],
+  "passed": true
+}

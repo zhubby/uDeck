@@ -1,0 +1,49 @@
+{
+  "app": "terminal",
+  "version": "0.2.11",
+  "installed_source": "/usr/lib/python3/dist-packages/udeck",
+  "platform": "wayland",
+  "qt_platform_theme": "qt5ct",
+  "icon_theme": "PiXtrix",
+  "language": "en",
+  "theme": "classic",
+  "independent_window": true,
+  "mock": false,
+  "screenshots": [
+    {
+      "file": "terminal-settings.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "871a6d664b888bbdeb4b81332f02fecdf7e2c3d4c9be3c2a1f7b2f0f1234143e",
+      "icons": [
+        {
+          "source": "image://desktop/udeck-app-menu%3Azoom-out",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Azoom-in",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Ago-previous",
+          "ready": true
+        }
+      ]
+    },
+    {
+      "file": "terminal-y-menu.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "c17e45ed6d8b4d5ecb085ca5fb8b4a75187254972cf09af1835622d8a2afd1d7",
+      "icons": []
+    }
+  ],
+  "y_route": "system-quick-settings",
+  "native_pty": true,
+  "qml_errors": [],
+  "passed": true
+}

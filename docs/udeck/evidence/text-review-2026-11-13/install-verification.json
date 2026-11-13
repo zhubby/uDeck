@@ -1,0 +1,38 @@
+{
+  "version": "0.2.11",
+  "revision": "de17127975b3d540c4cb61ea6dc766992704e9b1",
+  "package_sha256": "3646f77154e83941dab9d24eba66b0a1a307f0e47c5fc9a24e5834b2ed230ffb",
+  "configuration_before": {
+    "/home/zhubby/.config/udeck/shortcuts.json": "83588e83dab58561b11eb65a919dd2ef6caf358cb2053d0cf21a57648d5be9c4",
+    "/home/zhubby/.config/udeck/settings.json": "d0992dca04ebc4e52fc27d4c78b3aad46cba28bb76b05eb2d70c937d22e4c8e6",
+    "/home/zhubby/.config/labwc/rc.xml": "7296d4aa005e0bf34dbfccfd3cc027d71e7dd6a0434d4cfbf8f9ed8862190f41",
+    "/home/zhubby/.config/labwc/environment": "f9ed2b9465062959ce26d3247fd52d3a42c2d1e1e342a5a5c0572fbc1fd35499",
+    "/home/zhubby/.config/labwc/themerc-override": "6e3b7c39e9b353106a2f9a6121a8fa839b385405b7458fbabb3a85dff212e33c",
+    "/home/zhubby/.config/labwc/autostart": "5e40c3a5c12675fe659232b065bed382a750ac3eaed3a269f3468740eb8f9ea2",
+    "/home/zhubby/.dmrc": "8036d6454054ebc7c092544cebd4eaf84ff0e34effe0091e563e13e1dc366452",
+    "/etc/lightdm/lightdm.conf": "5ceddf09955d3339a40b779d424a2e00776c8464859d62d5aef09f0e229bc8ce",
+    "/etc/xdg/xdg-terminals.list": "f1184ca614f91ccd2a7de1801c0df7a1ddb247d19d87f5b41c3f7a79c1c3903b",
+    "/etc/xdg/udeck-xdg-terminals.list": "f1184ca614f91ccd2a7de1801c0df7a1ddb247d19d87f5b41c3f7a79c1c3903b",
+    "/etc/xdg/labwc-xdg-terminals.list": "f1184ca614f91ccd2a7de1801c0df7a1ddb247d19d87f5b41c3f7a79c1c3903b",
+    "/etc/xdg/labwc/rc.xml": "a9d9bb1ebdd8902361b2dcde0707772e18ddababd3d32b58ccea5bfc55613cb0"
+  },
+  "configuration_after": {
+    "/home/zhubby/.config/udeck/shortcuts.json": "83588e83dab58561b11eb65a919dd2ef6caf358cb2053d0cf21a57648d5be9c4",
+    "/home/zhubby/.config/udeck/settings.json": "d0992dca04ebc4e52fc27d4c78b3aad46cba28bb76b05eb2d70c937d22e4c8e6",
+    "/home/zhubby/.config/labwc/rc.xml": "7296d4aa005e0bf34dbfccfd3cc027d71e7dd6a0434d4cfbf8f9ed8862190f41",
+    "/home/zhubby/.config/labwc/environment": "f9ed2b9465062959ce26d3247fd52d3a42c2d1e1e342a5a5c0572fbc1fd35499",
+    "/home/zhubby/.config/labwc/themerc-override": "6e3b7c39e9b353106a2f9a6121a8fa839b385405b7458fbabb3a85dff212e33c",
+    "/home/zhubby/.config/labwc/autostart": "5e40c3a5c12675fe659232b065bed382a750ac3eaed3a269f3468740eb8f9ea2",
+    "/home/zhubby/.dmrc": "8036d6454054ebc7c092544cebd4eaf84ff0e34effe0091e563e13e1dc366452",
+    "/etc/lightdm/lightdm.conf": "5ceddf09955d3339a40b779d424a2e00776c8464859d62d5aef09f0e229bc8ce",
+    "/etc/xdg/xdg-terminals.list": "f1184ca614f91ccd2a7de1801c0df7a1ddb247d19d87f5b41c3f7a79c1c3903b",
+    "/etc/xdg/udeck-xdg-terminals.list": "f1184ca614f91ccd2a7de1801c0df7a1ddb247d19d87f5b41c3f7a79c1c3903b",
+    "/etc/xdg/labwc-xdg-terminals.list": "f1184ca614f91ccd2a7de1801c0df7a1ddb247d19d87f5b41c3f7a79c1c3903b",
+    "/etc/xdg/labwc/rc.xml": "a9d9bb1ebdd8902361b2dcde0707772e18ddababd3d32b58ccea5bfc55613cb0"
+  },
+  "configuration_unchanged": true,
+  "verified_source_files": 425,
+  "source_mismatches": [],
+  "dpkg_verify": 0,
+  "backup": "/var/backups/udeck-text-review-0.2.11-20261113"
+}

@@ -1,0 +1,112 @@
+{
+  "app": "emulator",
+  "version": "0.2.11",
+  "installed_source": "/usr/lib/python3/dist-packages/udeck",
+  "platform": "wayland",
+  "qt_platform_theme": "qt5ct",
+  "icon_theme": "PiXtrix",
+  "language": "en",
+  "theme": "classic",
+  "independent_window": true,
+  "mock": false,
+  "screenshots": [
+    {
+      "file": "emulator-y-menu.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "205d5d796dd27c436ed90d1729739593ab78b5d7767ae2e80a4024fc7f007194",
+      "icons": [
+        {
+          "source": "image://desktop/udeck-app-menu%3Afolder",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Afolder-new",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Aapplications-system",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Alist-add",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Afolder",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Afolder",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Aview-refresh",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Awindow-close",
+          "ready": true
+        }
+      ]
+    },
+    {
+      "file": "emulator-y-menu-bottom.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "b6d499135b7699092e2aa586e7ea74dfb3c9301209159f832450880f27b773d0",
+      "icons": [
+        {
+          "source": "image://desktop/udeck-app-menu%3Afolder",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Afolder-new",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Aapplications-system",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Alist-add",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Afolder",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Afolder",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Aview-refresh",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Awindow-close",
+          "ready": true
+        }
+      ]
+    }
+  ],
+  "menu_title": "Settings",
+  "rows": [
+    "ROM root",
+    "Create platform folders",
+    "Core management",
+    "Add engine entry",
+    "Core folder",
+    "Firmware folder",
+    "Refresh library",
+    "Close application"
+  ],
+  "y_route": "application-settings",
+  "qml_errors": [],
+  "passed": true
+}

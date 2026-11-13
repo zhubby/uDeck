@@ -1,0 +1,45 @@
+{
+  "app": "music",
+  "version": "0.2.11",
+  "installed_source": "/usr/lib/python3/dist-packages/udeck",
+  "platform": "wayland",
+  "qt_platform_theme": "qt5ct",
+  "icon_theme": "PiXtrix",
+  "language": "zh_CN",
+  "theme": "classic",
+  "independent_window": true,
+  "mock": false,
+  "screenshots": [
+    {
+      "file": "music-y-menu.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "df7a8c6d20ae9cda2354e480ff1955d61c777aad362acf957ab4a45539d231f5",
+      "icons": [
+        {
+          "source": "image://desktop/udeck-app-menu%3Aaudio-card",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Afolder",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Awindow-close",
+          "ready": true
+        }
+      ]
+    }
+  ],
+  "menu_title": "设置",
+  "rows": [
+    "音频输出",
+    "来源",
+    "关闭应用"
+  ],
+  "y_route": "application-settings",
+  "qml_errors": [],
+  "passed": true
+}

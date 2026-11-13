@@ -1,0 +1,45 @@
+{
+  "app": "browser",
+  "version": "0.2.11",
+  "installed_source": "/usr/lib/python3/dist-packages/udeck",
+  "platform": "wayland",
+  "qt_platform_theme": "qt5ct",
+  "icon_theme": "PiXtrix",
+  "language": "en",
+  "theme": "classic",
+  "independent_window": true,
+  "mock": false,
+  "screenshots": [
+    {
+      "file": "browser-y-menu.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "34d9739a7a73870c602596edd01bc167eaed5ace575673920e0f7884f9efa5b9",
+      "icons": [
+        {
+          "source": "image://desktop/udeck-app-menu%3Azoom-in",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Ainput-mouse",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Awindow-close",
+          "ready": true
+        }
+      ]
+    }
+  ],
+  "menu_title": "Settings",
+  "rows": [
+    "Page zoom",
+    "Interaction mode",
+    "Close application"
+  ],
+  "y_route": "application-settings",
+  "qml_errors": [],
+  "passed": true
+}

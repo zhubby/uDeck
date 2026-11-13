@@ -1,0 +1,132 @@
+{
+  "capture": "grim on the installed CM4 Wayland display",
+  "original_screenshots": [
+    {
+      "file": "en/browser-y-menu.png",
+      "sha256": "34d9739a7a73870c602596edd01bc167eaed5ace575673920e0f7884f9efa5b9",
+      "bytes": 46337
+    },
+    {
+      "file": "en/emulator-y-menu-bottom.png",
+      "sha256": "b6d499135b7699092e2aa586e7ea74dfb3c9301209159f832450880f27b773d0",
+      "bytes": 76982
+    },
+    {
+      "file": "en/emulator-y-menu.png",
+      "sha256": "205d5d796dd27c436ed90d1729739593ab78b5d7767ae2e80a4024fc7f007194",
+      "bytes": 79185
+    },
+    {
+      "file": "en/home.png",
+      "sha256": "7f00632e1caf8e13a8830c03d73a9015d4da5a9d4ec5f86b413ad28676b34c19",
+      "bytes": 83178
+    },
+    {
+      "file": "en/music-y-menu.png",
+      "sha256": "33c470dcc0b684b676c3b39e8cb6acf4afe01170b42057a59ebcdcc651ee33b2",
+      "bytes": 47602
+    },
+    {
+      "file": "en/reader-y-menu.png",
+      "sha256": "06e4fc27156b07e3a42bcc649506da93647dcde240b31352677fbe97ae4055ec",
+      "bytes": 48519
+    },
+    {
+      "file": "en/sharing-menu.png",
+      "sha256": "14aa3755daa7bd7fbc8efaa573b67f53305878a13909936631ff75501182e139",
+      "bytes": 63088
+    },
+    {
+      "file": "en/system-settings.png",
+      "sha256": "ea70ef5fc8353566ec07b8de644745d4d8c8ef3d0fb54fcdf0997316f8805bac",
+      "bytes": 73401
+    },
+    {
+      "file": "en/terminal-settings.png",
+      "sha256": "871a6d664b888bbdeb4b81332f02fecdf7e2c3d4c9be3c2a1f7b2f0f1234143e",
+      "bytes": 37844
+    },
+    {
+      "file": "en/terminal-y-menu.png",
+      "sha256": "c17e45ed6d8b4d5ecb085ca5fb8b4a75187254972cf09af1835622d8a2afd1d7",
+      "bytes": 85244
+    },
+    {
+      "file": "en/theme-menu.png",
+      "sha256": "f952ddaab5ebe258ba41ad1940e6716cbfc284373d56acdc12507d0281ab1fb0",
+      "bytes": 61273
+    },
+    {
+      "file": "en/video-y-menu.png",
+      "sha256": "fe35054bc2a67a0f942e688ee66e3e33e207817881d3de2a19eb4cf774ba0d05",
+      "bytes": 44009
+    },
+    {
+      "file": "zh_CN/browser-y-menu.png",
+      "sha256": "9726261c53be6cb21a390bba76c6e7db322391e47e66215fd8b9c439b1e8ff74",
+      "bytes": 51350
+    },
+    {
+      "file": "zh_CN/emulator-y-menu-bottom.png",
+      "sha256": "e63ecd0aef3968fc2b359d7aa29de727cb647c6c18e0d3d9b67ac1e0fb0a6aa8",
+      "bytes": 90188
+    },
+    {
+      "file": "zh_CN/emulator-y-menu.png",
+      "sha256": "7f190903a2dc12b391f55fc81529ef7052b87251b985ffea75167aa8e9ce9db6",
+      "bytes": 95394
+    },
+    {
+      "file": "zh_CN/home.png",
+      "sha256": "c5fb3803b6b4b3d4128a57571afd17635b9c008c8c9429e9444c4718657ad322",
+      "bytes": 100852
+    },
+    {
+      "file": "zh_CN/music-y-menu.png",
+      "sha256": "df7a8c6d20ae9cda2354e480ff1955d61c777aad362acf957ab4a45539d231f5",
+      "bytes": 52041
+    },
+    {
+      "file": "zh_CN/reader-y-menu.png",
+      "sha256": "4b33ed0fda93f01ec901615d3f132b125e24592d4e9a7d6a90c962b6dd3f199f",
+      "bytes": 53299
+    },
+    {
+      "file": "zh_CN/sharing-menu.png",
+      "sha256": "3c9ec608d59758c73ff64989010fc5fbecbbb2bc52915dc18ba5ce2290cfbd2f",
+      "bytes": 78178
+    },
+    {
+      "file": "zh_CN/system-settings.png",
+      "sha256": "4eb6c909ccdb0ffe981f4f93fe816aca589a4fdcd887453f1333c642be09d209",
+      "bytes": 91286
+    },
+    {
+      "file": "zh_CN/terminal-settings.png",
+      "sha256": "5f06022545cdf830761e102ee373785d00bc388d50316d93f8e3bd62c8249090",
+      "bytes": 40781
+    },
+    {
+      "file": "zh_CN/terminal-y-menu.png",
+      "sha256": "9d748ad76c4b0fcfd61a5be7553ce35577d5b184b33fb69e32ffbdb5de4bb4fd",
+      "bytes": 110026
+    },
+    {
+      "file": "zh_CN/theme-menu.png",
+      "sha256": "60a5be6097a1670ca290d1d8d058e8d046dd4a18298c3a0e69fcc3207f080d97",
+      "bytes": 75323
+    },
+    {
+      "file": "zh_CN/video-y-menu.png",
+      "sha256": "b09b18f0ca439b49087ee823411604b3eaa347a3f6fefb80be3e8c48f0e8cb9a",
+      "bytes": 48858
+    }
+  ],
+  "derived_contact_sheets": [
+    "app-menus-zh_CN.png",
+    "app-menus-en.png",
+    "system-and-extra-zh_CN.png",
+    "system-and-extra-en.png"
+  ],
+  "derived_processing": "Scale to 640 by 360, add application/language/version labels and arrange in a grid; original screenshots are also retained."
+}

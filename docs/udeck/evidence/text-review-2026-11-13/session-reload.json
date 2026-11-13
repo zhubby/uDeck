@@ -1,0 +1,39 @@
+{
+  "before": {
+    "udeck": 3178505,
+    "udeck-browser": 3178674,
+    "udeck-emulator": 3178753,
+    "udeck-music": 3179765,
+    "udeck-video": 3179805
+  },
+  "after": {
+    "udeck": 3195081,
+    "udeck-browser": 3195209,
+    "udeck-emulator": 3195291,
+    "udeck-music": 3195352,
+    "udeck-video": 3195378
+  },
+  "shell_version": "0.2.11",
+  "input_available": true,
+  "input_verified": true,
+  "session_id": "187",
+  "platform_theme": "qt5ct",
+  "apps": {
+    "udeck-browser": {
+      "version": "0.2.11",
+      "qml_errors": []
+    },
+    "udeck-emulator": {
+      "version": "0.2.11",
+      "qml_errors": []
+    },
+    "udeck-music": {
+      "version": "0.2.11",
+      "qml_errors": []
+    },
+    "udeck-video": {
+      "version": "0.2.11",
+      "qml_errors": []
+    }
+  }
+}

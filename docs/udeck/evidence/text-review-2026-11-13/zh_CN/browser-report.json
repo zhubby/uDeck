@@ -1,0 +1,45 @@
+{
+  "app": "browser",
+  "version": "0.2.11",
+  "installed_source": "/usr/lib/python3/dist-packages/udeck",
+  "platform": "wayland",
+  "qt_platform_theme": "qt5ct",
+  "icon_theme": "PiXtrix",
+  "language": "zh_CN",
+  "theme": "classic",
+  "independent_window": true,
+  "mock": false,
+  "screenshots": [
+    {
+      "file": "browser-y-menu.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "9726261c53be6cb21a390bba76c6e7db322391e47e66215fd8b9c439b1e8ff74",
+      "icons": [
+        {
+          "source": "image://desktop/udeck-app-menu%3Azoom-in",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Ainput-mouse",
+          "ready": true
+        },
+        {
+          "source": "image://desktop/udeck-app-menu%3Awindow-close",
+          "ready": true
+        }
+      ]
+    }
+  ],
+  "menu_title": "设置",
+  "rows": [
+    "网页缩放",
+    "操作模式",
+    "关闭应用"
+  ],
+  "y_route": "application-settings",
+  "qml_errors": [],
+  "passed": true
+}

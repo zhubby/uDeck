@@ -1,0 +1,1333 @@
+{
+  "counts": {
+    "original_message_ids_reviewed": 1200,
+    "changed_message_ids": 107,
+    "changed_translations": 135,
+    "added_message_ids": 31,
+    "catalog_message_ids": 1231,
+    "web_dictionary_before": 77,
+    "web_dictionary_after": 107,
+    "web_dictionary_changed_or_added": 39
+  },
+  "changed": [
+    {
+      "id": "auto_join",
+      "language": "en",
+      "before": "Auto-join",
+      "after": "Auto-connect"
+    },
+    {
+      "id": "auto_join_off",
+      "language": "en",
+      "before": "Auto-join off",
+      "after": "Auto-connect off"
+    },
+    {
+      "id": "auto_join_on",
+      "language": "en",
+      "before": "Auto-join on",
+      "after": "Auto-connect on"
+    },
+    {
+      "id": "auto_join_preference_saved",
+      "language": "en",
+      "before": "Auto-join preference saved",
+      "after": "Auto-connect preference saved"
+    },
+    {
+      "id": "back_to_home",
+      "language": "en",
+      "before": "Back to Home",
+      "after": "Back to home"
+    },
+    {
+      "id": "book_closed",
+      "language": "en",
+      "before": "Book closed",
+      "after": "Document closed"
+    },
+    {
+      "id": "built_in_keyboard_direction_interface_not_found",
+      "language": "en",
+      "before": "Built-in Keyboard direction interface not found",
+      "after": "Built-in direction keys not found"
+    },
+    {
+      "id": "cancel_joining",
+      "language": "en",
+      "before": "Cancel joining",
+      "after": "Cancel connection"
+    },
+    {
+      "id": "cancelled_count_completed_item_s_were_kept",
+      "language": "en",
+      "before": "Cancelled. {count} completed item(s) were kept.",
+      "after": "Cancelled. Completed items kept: {count}."
+    },
+    {
+      "id": "choose_a_destination_with_left_right",
+      "language": "en",
+      "before": "Choose a destination with Left / Right",
+      "after": "Press Left / Right to choose"
+    },
+    {
+      "id": "clipboard_count_item_s",
+      "language": "en",
+      "before": "Clipboard: {count} item(s)",
+      "after": "Items in clipboard: {count}"
+    },
+    {
+      "id": "control_panel",
+      "language": "en",
+      "before": "Control Panel",
+      "after": "Control panel"
+    },
+    {
+      "id": "count_conflict_s_folders_are_never_merged_or_overwritten",
+      "language": "en",
+      "before": "{count} conflict(s). Folders are never merged or overwritten.",
+      "after": "Name conflicts: {count}. Folders are never merged or overwritten."
+    },
+    {
+      "id": "count_item_s_no_permanent_deletion_will_be_performed",
+      "language": "en",
+      "before": "{count} item(s). No permanent deletion will be performed.",
+      "after": "Items: {count}. No permanent deletion will be performed."
+    },
+    {
+      "id": "disable_auto_join",
+      "language": "en",
+      "before": "Disable auto-join",
+      "after": "Disable auto-connect"
+    },
+    {
+      "id": "done_total_file_s",
+      "language": "en",
+      "before": "{done} / {total} file(s)",
+      "after": "Files: {done} / {total}"
+    },
+    {
+      "id": "download_canceled",
+      "language": "en",
+      "before": "Download canceled",
+      "after": "Download cancelled"
+    },
+    {
+      "id": "enable_auto_join",
+      "language": "en",
+      "before": "Enable auto-join",
+      "after": "Enable auto-connect"
+    },
+    {
+      "id": "everyday_controls_within_reach",
+      "language": "en",
+      "before": "Everyday controls, within reach",
+      "after": "Common controls, within reach"
+    },
+    {
+      "id": "full_screen_screenshot",
+      "language": "en",
+      "before": "Full screen screenshot",
+      "after": "Full-screen screenshot"
+    },
+    {
+      "id": "join_name_prompt",
+      "language": "en",
+      "before": "Join {name}?",
+      "after": "Connect to {name}?"
+    },
+    {
+      "id": "join_network",
+      "language": "en",
+      "before": "Join network",
+      "after": "Connect to network"
+    },
+    {
+      "id": "joined_network",
+      "language": "en",
+      "before": "Joined network",
+      "after": "Connected to network"
+    },
+    {
+      "id": "joining_cancelled",
+      "language": "en",
+      "before": "Joining cancelled",
+      "after": "Connection cancelled"
+    },
+    {
+      "id": "joining_network",
+      "language": "en",
+      "before": "Joining network",
+      "after": "Connecting to network"
+    },
+    {
+      "id": "keep_holding_to_exit",
+      "language": "en",
+      "before": "Keep holding to exit…",
+      "after": "Keep holding to return…"
+    },
+    {
+      "id": "middle_click",
+      "language": "en",
+      "before": "Middle click",
+      "after": "Trackball press"
+    },
+    {
+      "id": "mute_sound",
+      "language": "en",
+      "before": "Mute sound",
+      "after": "Toggle mute"
+    },
+    {
+      "id": "native_terminal_component_load_failed",
+      "language": "en",
+      "before": "Could not load the native terminal component. Check the udeck-terminal installation and Qt version.",
+      "after": "Could not load the native terminal component. Check the udeck package installation and Qt version."
+    },
+    {
+      "id": "native_terminal_plugin_missing",
+      "language": "en",
+      "before": "QMLTermWidget native plugin is missing. Install the full udeck-terminal package or run tools/build-terminal-plugin.",
+      "after": "QMLTermWidget native plugin is missing. Install the full udeck package or run tools/build-terminal-plugin."
+    },
+    {
+      "id": "password_saved_it_will_be_used_the_next_time_you_join",
+      "language": "en",
+      "before": "Password saved. It will be used the next time you join.",
+      "after": "Password saved. It will be used the next time you connect."
+    },
+    {
+      "id": "plain_text_enter_next_previous",
+      "language": "en",
+      "before": "Plain text · Enter Next · ↑ Previous",
+      "after": "Plain-text search · Enter Next · ↑ Previous"
+    },
+    {
+      "id": "power_off",
+      "language": "en",
+      "before": "Power Off",
+      "after": "Shut down"
+    },
+    {
+      "id": "preparing_to_join",
+      "language": "en",
+      "before": "Preparing to join",
+      "after": "Preparing to connect"
+    },
+    {
+      "id": "rejoin_network",
+      "language": "en",
+      "before": "Rejoin network",
+      "after": "Reconnect"
+    },
+    {
+      "id": "retry_joining",
+      "language": "en",
+      "before": "Retry joining",
+      "after": "Retry connection"
+    },
+    {
+      "id": "save_the_new_password_then_choose_when_to_rejoin",
+      "language": "en",
+      "before": "Save the new password, then choose when to rejoin.",
+      "after": "Save the new password, then choose when to reconnect."
+    },
+    {
+      "id": "still_waiting_you_can_cancel_joining_or_keep_waiting",
+      "language": "en",
+      "before": "Still waiting. You can cancel joining or keep waiting.",
+      "after": "Still waiting. You can cancel the connection or keep waiting."
+    },
+    {
+      "id": "this_adapter_cannot_join_this_network_right_now",
+      "language": "en",
+      "before": "This adapter cannot join this network right now",
+      "after": "This adapter cannot connect to this network right now"
+    },
+    {
+      "id": "this_adapter_is_already_joining_a_network",
+      "language": "en",
+      "before": "This adapter is already joining a network",
+      "after": "This adapter is already connecting to a network"
+    },
+    {
+      "id": "this_app_is_not_installed",
+      "language": "en",
+      "before": "This app is not installed.",
+      "after": "This app is not installed. Install the full udeck package."
+    },
+    {
+      "id": "this_join_request_is_no_longer_active",
+      "language": "en",
+      "before": "This join request is no longer active",
+      "after": "This connection request is no longer active"
+    },
+    {
+      "id": "a_enter_b_esc_x_actions_y_settings_ctrl_shift_t_new_tab",
+      "language": "zh_CN",
+      "before": "A 回车    B Esc    X 操作    Y 设置    Ctrl+Shift+T 新建",
+      "after": "A 回车    B Esc    X 操作    Y 设置    Ctrl+Shift+T 新建标签页"
+    },
+    {
+      "id": "a_window_supports_up_to_32_sessions_close_a_tab_or_open_another_window",
+      "language": "zh_CN",
+      "before": "每个窗口最多 32 个会话，请关闭部分标签或新建窗口",
+      "after": "每个窗口最多 32 个会话，请关闭部分标签页或新建窗口。"
+    },
+    {
+      "id": "auto_join",
+      "language": "zh_CN",
+      "before": "自动加入",
+      "after": "自动连接"
+    },
+    {
+      "id": "back_to_home",
+      "language": "zh_CN",
+      "before": "回到主界面",
+      "after": "返回主页"
+    },
+    {
+      "id": "built_in_keyboard_direction_interface_not_found",
+      "language": "zh_CN",
+      "before": "未找到内置 Keyboard 方向键接口",
+      "after": "未检测到内置方向键"
+    },
+    {
+      "id": "calibrate_physical_abxy_keyboard_letters_stay_available",
+      "language": "zh_CN",
+      "before": "校准物理 ABXY；不占用普通键盘字母",
+      "after": "校准实体 ABXY 按键；普通键盘字母仍可使用"
+    },
+    {
+      "id": "cancel_joining",
+      "language": "zh_CN",
+      "before": "取消加入",
+      "after": "取消连接"
+    },
+    {
+      "id": "cannot_copy_to_the_same_location_or_a_subfolder_of_itself",
+      "language": "zh_CN",
+      "before": "不能复制到原位置或自己的子目录",
+      "after": "不能复制到原位置或自身的子文件夹"
+    },
+    {
+      "id": "changes_apply_immediately",
+      "language": "zh_CN",
+      "before": "确认后立即生效",
+      "after": "更改后立即生效"
+    },
+    {
+      "id": "choose_a_destination_with_left_right",
+      "language": "zh_CN",
+      "before": "左右选择，打开你的掌机生活",
+      "after": "按左／右方向键选择"
+    },
+    {
+      "id": "choose_a_folder_without_symbolic_links",
+      "language": "zh_CN",
+      "before": "请选择不含符号链接的目录",
+      "after": "请选择不含符号链接的文件夹"
+    },
+    {
+      "id": "choose_an_app_to_get_started",
+      "language": "zh_CN",
+      "before": "选择应用，开始使用你的掌机",
+      "after": "选择应用以开始使用"
+    },
+    {
+      "id": "choose_an_existing_folder",
+      "language": "zh_CN",
+      "before": "请选择已存在的目录",
+      "after": "请选择已存在的文件夹"
+    },
+    {
+      "id": "clipboard_count_item_s",
+      "language": "zh_CN",
+      "before": "已放入剪贴板：{count} 个项目",
+      "after": "剪贴板中有 {count} 个项目"
+    },
+    {
+      "id": "close_tab",
+      "language": "zh_CN",
+      "before": "关闭标签",
+      "after": "关闭标签页"
+    },
+    {
+      "id": "confirmation_required",
+      "language": "zh_CN",
+      "before": "需要二次确认",
+      "after": "需要确认"
+    },
+    {
+      "id": "copied_choose_a_destination_folder_and_paste",
+      "language": "zh_CN",
+      "before": "已复制，选择目标目录后粘贴",
+      "after": "已复制，选择目标文件夹后粘贴"
+    },
+    {
+      "id": "could_not_save_input_mode_prefix",
+      "language": "zh_CN",
+      "before": "输入模式保存失败：",
+      "after": "操作模式保存失败："
+    },
+    {
+      "id": "cut_choose_a_destination_folder_and_paste",
+      "language": "zh_CN",
+      "before": "已剪切，选择目标目录后粘贴",
+      "after": "已剪切，选择目标文件夹后粘贴"
+    },
+    {
+      "id": "dark",
+      "language": "zh_CN",
+      "before": "黑暗",
+      "after": "深色"
+    },
+    {
+      "id": "done_total_file_s",
+      "language": "zh_CN",
+      "before": "文件 {done} / {total}",
+      "after": "文件：{done} / {total}"
+    },
+    {
+      "id": "enter_a_finite_number",
+      "language": "zh_CN",
+      "before": "请输入有效的有限数字",
+      "after": "请输入有限数值"
+    },
+    {
+      "id": "enter_the_folder_to_share_the_web_page_can_only_access_this_folder_and_its_contents",
+      "language": "zh_CN",
+      "before": "输入要共享的目录，网页仅可访问此目录及其内容。",
+      "after": "请输入要共享的文件夹，网页仅可访问此文件夹及其内容。"
+    },
+    {
+      "id": "everyday_controls_within_reach",
+      "language": "zh_CN",
+      "before": "常用控制，直接完成",
+      "after": "常用操作，随时可用"
+    },
+    {
+      "id": "external_subtitles_srt",
+      "language": "zh_CN",
+      "before": "外挂字幕（SRT）",
+      "after": "外部字幕（SRT）"
+    },
+    {
+      "id": "forward",
+      "language": "zh_CN",
+      "before": "下一页",
+      "after": "前进"
+    },
+    {
+      "id": "from_path",
+      "language": "zh_CN",
+      "before": "来源：{path}",
+      "after": "源位置：{path}"
+    },
+    {
+      "id": "full_screen_screenshot",
+      "language": "zh_CN",
+      "before": "全屏截屏",
+      "after": "全屏截图"
+    },
+    {
+      "id": "held_keys",
+      "language": "zh_CN",
+      "before": "当前按键",
+      "after": "按住的按键"
+    },
+    {
+      "id": "hide_hidden_files",
+      "language": "zh_CN",
+      "before": "隐藏点文件",
+      "after": "不显示隐藏文件"
+    },
+    {
+      "id": "interaction_mode",
+      "language": "zh_CN",
+      "before": "交互模式",
+      "after": "操作模式"
+    },
+    {
+      "id": "join_name_prompt",
+      "language": "zh_CN",
+      "before": "加入 {name}？",
+      "after": "连接 {name}？"
+    },
+    {
+      "id": "join_network",
+      "language": "zh_CN",
+      "before": "加入网络",
+      "after": "连接网络"
+    },
+    {
+      "id": "joined_network",
+      "language": "zh_CN",
+      "before": "已加入网络",
+      "after": "已连接网络"
+    },
+    {
+      "id": "joining_cancelled",
+      "language": "zh_CN",
+      "before": "已取消加入",
+      "after": "已取消连接"
+    },
+    {
+      "id": "joining_network",
+      "language": "zh_CN",
+      "before": "正在加入网络",
+      "after": "正在连接网络"
+    },
+    {
+      "id": "keep_holding_to_exit",
+      "language": "zh_CN",
+      "before": "继续长按以返回…",
+      "after": "继续按住以返回…"
+    },
+    {
+      "id": "key_lock",
+      "language": "zh_CN",
+      "before": "锁键",
+      "after": "按键锁"
+    },
+    {
+      "id": "local_shell",
+      "language": "zh_CN",
+      "before": "本地 shell",
+      "after": "本地 Shell"
+    },
+    {
+      "id": "native_terminal_component_load_failed",
+      "language": "zh_CN",
+      "before": "终端原生组件加载失败，请检查 udeck-terminal 安装和 Qt 版本。",
+      "after": "终端原生组件加载失败，请检查 udeck 软件包安装和 Qt 版本。"
+    },
+    {
+      "id": "native_terminal_plugin_missing",
+      "language": "zh_CN",
+      "before": "缺少 QMLTermWidget 原生插件。请安装完整的 udeck-terminal 软件包，或运行 tools/build-terminal-plugin。",
+      "after": "缺少 QMLTermWidget 原生插件。请安装完整的 udeck 软件包，或运行 tools/build-terminal-plugin。"
+    },
+    {
+      "id": "networks",
+      "language": "zh_CN",
+      "before": "开放的网络",
+      "after": "网络"
+    },
+    {
+      "id": "new_browser_tab",
+      "language": "zh_CN",
+      "before": "新标签页",
+      "after": "新建标签页"
+    },
+    {
+      "id": "new_session",
+      "language": "zh_CN",
+      "before": "新建标签",
+      "after": "新建标签页"
+    },
+    {
+      "id": "new_tab",
+      "language": "zh_CN",
+      "before": "新标签",
+      "after": "新建标签页"
+    },
+    {
+      "id": "open_a_website_or_search_the_web_your_tabs_bookmarks_and_history_stay_on_this_device",
+      "language": "zh_CN",
+      "before": "打开网站或搜索网页。标签、书签和历史保存在此设备。",
+      "after": "打开网站或搜索网页。标签页、书签和历史记录保存在此设备。"
+    },
+    {
+      "id": "parent_folder",
+      "language": "zh_CN",
+      "before": "上级目录",
+      "after": "上级文件夹"
+    },
+    {
+      "id": "password_saved_it_will_be_used_the_next_time_you_join",
+      "language": "zh_CN",
+      "before": "新密码已保存，将在下次加入时使用。",
+      "after": "密码已保存，将在下次连接时使用。"
+    },
+    {
+      "id": "paste_into_current_folder",
+      "language": "zh_CN",
+      "before": "粘贴到当前目录",
+      "after": "粘贴到当前文件夹"
+    },
+    {
+      "id": "physical_abxy_calibration_instructions",
+      "language": "zh_CN",
+      "before": "请在 uConsole 实机上逐个按下 A、B、X、Y。预览不会将键盘字母当作手柄。",
+      "after": "请在 uConsole 上逐个按下实体 A、B、X、Y 按键。预览不会将键盘字母当作手柄按键。"
+    },
+    {
+      "id": "physical_button_calibration",
+      "language": "zh_CN",
+      "before": "物理按键校准",
+      "after": "实体按键校准"
+    },
+    {
+      "id": "physical_direction_calibration_instructions",
+      "language": "zh_CN",
+      "before": "请按下物理方向键「上」并松开。\n方向键支持原生键盘事件；ABXY 仅接收独立手柄事件。Esc 取消。",
+      "after": "请按下实体方向键「上」并松开。\n方向键支持原生键盘事件；ABXY 仅接收独立手柄事件。Esc 取消。"
+    },
+    {
+      "id": "plain_text_enter_next_previous",
+      "language": "zh_CN",
+      "before": "普通文字匹配 · Enter 下一处 · ↑ 上一处",
+      "after": "按文字查找 · Enter 下一处 · ↑ 上一处"
+    },
+    {
+      "id": "preparing_to_join",
+      "language": "zh_CN",
+      "before": "正在准备加入",
+      "after": "正在准备连接"
+    },
+    {
+      "id": "press_an_abxy_button_for_this_step_not_a_direction_key",
+      "language": "zh_CN",
+      "before": "此步骤请按下 ABXY 按钮，而非方向键",
+      "after": "此步骤请按下 ABXY 按键，而非方向键"
+    },
+    {
+      "id": "press_physical",
+      "language": "zh_CN",
+      "before": "请按下物理「",
+      "after": "请按下实体按键「"
+    },
+    {
+      "id": "press_the_indicated_button_esc_cancel",
+      "language": "zh_CN",
+      "before": "按指定物理按钮 · Esc 取消",
+      "after": "按指定实体按键 · Esc 取消"
+    },
+    {
+      "id": "previous_folder",
+      "language": "zh_CN",
+      "before": "上一目录",
+      "after": "上一个文件夹"
+    },
+    {
+      "id": "previous_page",
+      "language": "zh_CN",
+      "before": "上一页",
+      "after": "后退"
+    },
+    {
+      "id": "rejoin_network",
+      "language": "zh_CN",
+      "before": "重新加入",
+      "after": "重新连接"
+    },
+    {
+      "id": "restart_system",
+      "language": "zh_CN",
+      "before": "重新启动",
+      "after": "重启"
+    },
+    {
+      "id": "restart_system_prompt",
+      "language": "zh_CN",
+      "before": "重新启动？",
+      "after": "重启？"
+    },
+    {
+      "id": "retry_joining",
+      "language": "zh_CN",
+      "before": "重试加入",
+      "after": "重试连接"
+    },
+    {
+      "id": "reverse_order",
+      "language": "zh_CN",
+      "before": "反向排序",
+      "after": "倒序排列"
+    },
+    {
+      "id": "save_the_new_password_then_choose_when_to_rejoin",
+      "language": "zh_CN",
+      "before": "保存新密码后，可自行选择何时重新加入。",
+      "after": "保存新密码后，可自行选择何时重新连接。"
+    },
+    {
+      "id": "screenshots",
+      "language": "zh_CN",
+      "before": "截屏",
+      "after": "截图"
+    },
+    {
+      "id": "session_navigation_hint",
+      "language": "zh_CN",
+      "before": "L / R  会话",
+      "after": "L / R 标签页"
+    },
+    {
+      "id": "sessions",
+      "language": "zh_CN",
+      "before": "会话",
+      "after": "标签页"
+    },
+    {
+      "id": "shared_folder",
+      "language": "zh_CN",
+      "before": "共享目录",
+      "after": "共享文件夹"
+    },
+    {
+      "id": "show_hidden_files",
+      "language": "zh_CN",
+      "before": "显示点文件",
+      "after": "显示隐藏文件"
+    },
+    {
+      "id": "shut_down",
+      "language": "zh_CN",
+      "before": "关闭设备",
+      "after": "关机"
+    },
+    {
+      "id": "shut_down_prompt",
+      "language": "zh_CN",
+      "before": "关闭设备？",
+      "after": "关机？"
+    },
+    {
+      "id": "sound",
+      "language": "zh_CN",
+      "before": "音量",
+      "after": "声音"
+    },
+    {
+      "id": "still_waiting_you_can_cancel_joining_or_keep_waiting",
+      "language": "zh_CN",
+      "before": "等待已超时，可取消加入或继续等待。",
+      "after": "仍在等待，可取消连接或继续等待。"
+    },
+    {
+      "id": "tab_navigation_hint",
+      "language": "zh_CN",
+      "before": "L／R 分类",
+      "after": "L / R 标签页"
+    },
+    {
+      "id": "tabs",
+      "language": "zh_CN",
+      "before": "分类",
+      "after": "标签页"
+    },
+    {
+      "id": "text_size",
+      "language": "zh_CN",
+      "before": "文字大小",
+      "after": "字号"
+    },
+    {
+      "id": "text_size_size",
+      "language": "zh_CN",
+      "before": "文字大小：{size}",
+      "after": "字号：{size}"
+    },
+    {
+      "id": "the_screenshot_did_not_contain_a_valid_png_image",
+      "language": "zh_CN",
+      "before": "截屏结果不是有效的 PNG 图片",
+      "after": "截图结果不是有效的 PNG 图片"
+    },
+    {
+      "id": "this_adapter_cannot_join_this_network_right_now",
+      "language": "zh_CN",
+      "before": "此网卡暂时无法加入该网络",
+      "after": "此网卡暂时无法连接该网络"
+    },
+    {
+      "id": "this_adapter_is_already_joining_a_network",
+      "language": "zh_CN",
+      "before": "此网卡正在加入网络",
+      "after": "此网卡正在连接网络"
+    },
+    {
+      "id": "this_app_is_not_installed",
+      "language": "zh_CN",
+      "before": "尚未安装此应用，请安装对应的 uDeck 应用包。",
+      "after": "尚未安装此应用，请安装完整的 udeck 软件包。"
+    },
+    {
+      "id": "this_button_is_already_recorded_press_the_other_indicated_button",
+      "language": "zh_CN",
+      "before": "此按钮已记录，请按屏幕指定的另一个按钮",
+      "after": "此按键已记录，请按屏幕指定的另一个按键"
+    },
+    {
+      "id": "this_join_request_is_no_longer_active",
+      "language": "zh_CN",
+      "before": "此次加入请求已结束",
+      "after": "此次连接请求已结束"
+    },
+    {
+      "id": "to_path",
+      "language": "zh_CN",
+      "before": "目标：{path}",
+      "after": "目标位置：{path}"
+    },
+    {
+      "id": "unavailable_network",
+      "language": "zh_CN",
+      "before": "未连接的网络",
+      "after": "不可用的网络"
+    },
+    {
+      "id": "unknown_input_mode",
+      "language": "zh_CN",
+      "before": "未知的输入模式",
+      "after": "未知的操作模式"
+    },
+    {
+      "id": "use_this_folder",
+      "language": "zh_CN",
+      "before": "使用此目录",
+      "after": "使用此文件夹"
+    },
+    {
+      "id": "watch_your_local_video_library",
+      "language": "zh_CN",
+      "before": "浏览视频库，继续你的观影时光",
+      "after": "浏览和播放本地视频"
+    },
+    {
+      "id": "wi_fi_adapters",
+      "language": "zh_CN",
+      "before": "Wi-Fi 网卡",
+      "after": "无线网卡"
+    },
+    {
+      "id": "smb_guest_description",
+      "language": "zh_CN",
+      "before": "免密码来宾读写；客户端需允许来宾访问。",
+      "after": "无需密码，来宾可读写。客户端需允许来宾访问。"
+    },
+    {
+      "id": "select_shared_folder_and_network",
+      "language": "zh_CN",
+      "before": "请先选择共享目录和至少一个网络。",
+      "after": "请先选择共享文件夹和至少一个网络。"
+    },
+    {
+      "id": "enter_shared_folder",
+      "language": "zh_CN",
+      "before": "输入要共享目录的绝对路径。",
+      "after": "请输入要共享文件夹的绝对路径。"
+    }
+  ],
+  "added": [
+    {
+      "id": "sharing_invalid_configuration",
+      "language": "en",
+      "text": "Invalid sharing configuration"
+    },
+    {
+      "id": "sharing_choose_folder_and_duration",
+      "language": "en",
+      "text": "Choose an existing shared folder and a supported duration"
+    },
+    {
+      "id": "sharing_select_connected_network",
+      "language": "en",
+      "text": "Select at least one connected network"
+    },
+    {
+      "id": "sharing_temporary_session_required",
+      "language": "en",
+      "text": "Temporary access needs an active uDeck session"
+    },
+    {
+      "id": "sharing_network_disconnected",
+      "language": "en",
+      "text": "A selected network is no longer connected"
+    },
+    {
+      "id": "sharing_other_user",
+      "language": "en",
+      "text": "This SMB share belongs to another local user"
+    },
+    {
+      "id": "sharing_non_root_user_required",
+      "language": "en",
+      "text": "Use a non-root local account for guest file access"
+    },
+    {
+      "id": "sharing_unsupported_path",
+      "language": "en",
+      "text": "The shared folder path contains unsupported characters"
+    },
+    {
+      "id": "sharing_folder_changed",
+      "language": "en",
+      "text": "The shared folder changed. Choose it again."
+    },
+    {
+      "id": "sharing_account_unavailable",
+      "language": "en",
+      "text": "The local sharing account is no longer available"
+    },
+    {
+      "id": "sharing_invalid_account",
+      "language": "en",
+      "text": "Invalid local sharing account"
+    },
+    {
+      "id": "sharing_no_addresses",
+      "language": "en",
+      "text": "No selected network addresses are available"
+    },
+    {
+      "id": "sharing_samba_missing",
+      "language": "en",
+      "text": "Samba is not installed. Reinstall the full udeck package using its installer."
+    },
+    {
+      "id": "sharing_samba_start_failed",
+      "language": "en",
+      "text": "Could not start SMB sharing. Check the udeck-smb service log."
+    },
+    {
+      "id": "sharing_port_unavailable",
+      "language": "en",
+      "text": "TCP port 445 is in use or unavailable: {error}"
+    },
+    {
+      "id": "sharing_command_timed_out",
+      "language": "en",
+      "text": "Sharing command timed out: {command}"
+    },
+    {
+      "id": "sharing_not_authorized",
+      "language": "en",
+      "text": "Not authorized to manage SMB file sharing"
+    },
+    {
+      "id": "sharing_configuration_too_large",
+      "language": "en",
+      "text": "Sharing configuration is too large"
+    },
+    {
+      "id": "sharing_service_failed",
+      "language": "en",
+      "text": "Could not manage the file sharing service"
+    },
+    {
+      "id": "sharing_persistence_service_required",
+      "language": "en",
+      "text": "Install the full udeck package to keep network access on after restart"
+    },
+    {
+      "id": "sharing_folder_unavailable",
+      "language": "en",
+      "text": "The shared folder is no longer available. Choose it again."
+    },
+    {
+      "id": "sharing_service_exited",
+      "language": "en",
+      "text": "SMB sharing stopped unexpectedly. Enable sharing again to retry."
+    },
+    {
+      "id": "sharing_restore_failed",
+      "language": "en",
+      "text": "Could not restore previous SMB access: {error}"
+    },
+    {
+      "id": "reader_epub_resource_failed",
+      "language": "en",
+      "text": "Cannot read EPUB resource: {name}"
+    },
+    {
+      "id": "reader_mobi_record_failed",
+      "language": "en",
+      "text": "Cannot read MOBI record"
+    },
+    {
+      "id": "reader_process_ended",
+      "language": "en",
+      "text": "Reading process ended ({code})"
+    },
+    {
+      "id": "shortcut_user_config_required",
+      "language": "en",
+      "text": "An existing labwc rc.xml file owned by your user is required"
+    },
+    {
+      "id": "shortcut_invalid_xml",
+      "language": "en",
+      "text": "Invalid labwc XML: {error}"
+    },
+    {
+      "id": "shortcut_unsafe_backup_directory",
+      "language": "en",
+      "text": "Unsafe shortcut backup folder"
+    },
+    {
+      "id": "shortcut_unsafe_backup_file",
+      "language": "en",
+      "text": "Unsafe shortcut backup file"
+    },
+    {
+      "id": "shortcut_invalid_generation",
+      "language": "en",
+      "text": "Invalid shortcut configuration generation"
+    },
+    {
+      "id": "sharing_invalid_configuration",
+      "language": "zh_CN",
+      "text": "共享配置无效"
+    },
+    {
+      "id": "sharing_choose_folder_and_duration",
+      "language": "zh_CN",
+      "text": "请选择已存在的共享文件夹和支持的访问时长"
+    },
+    {
+      "id": "sharing_select_connected_network",
+      "language": "zh_CN",
+      "text": "请至少选择一个已连接的网络"
+    },
+    {
+      "id": "sharing_temporary_session_required",
+      "language": "zh_CN",
+      "text": "临时访问需要保持 uDeck 会话运行"
+    },
+    {
+      "id": "sharing_network_disconnected",
+      "language": "zh_CN",
+      "text": "所选网络已断开连接"
+    },
+    {
+      "id": "sharing_other_user",
+      "language": "zh_CN",
+      "text": "此 SMB 共享由另一位本地用户管理"
+    },
+    {
+      "id": "sharing_non_root_user_required",
+      "language": "zh_CN",
+      "text": "请使用非 root 本地账户开启来宾文件访问"
+    },
+    {
+      "id": "sharing_unsupported_path",
+      "language": "zh_CN",
+      "text": "共享文件夹路径含有不支持的字符"
+    },
+    {
+      "id": "sharing_folder_changed",
+      "language": "zh_CN",
+      "text": "共享文件夹已更改，请重新选择。"
+    },
+    {
+      "id": "sharing_account_unavailable",
+      "language": "zh_CN",
+      "text": "用于共享的本地账户已不可用"
+    },
+    {
+      "id": "sharing_invalid_account",
+      "language": "zh_CN",
+      "text": "用于共享的本地账户无效"
+    },
+    {
+      "id": "sharing_no_addresses",
+      "language": "zh_CN",
+      "text": "所选网络没有可用的地址"
+    },
+    {
+      "id": "sharing_samba_missing",
+      "language": "zh_CN",
+      "text": "尚未安装 Samba。请使用安装器重新安装完整的 udeck 软件包。"
+    },
+    {
+      "id": "sharing_samba_start_failed",
+      "language": "zh_CN",
+      "text": "SMB 共享启动失败，请检查 udeck-smb 服务日志。"
+    },
+    {
+      "id": "sharing_port_unavailable",
+      "language": "zh_CN",
+      "text": "TCP 445 端口已被占用或不可用：{error}"
+    },
+    {
+      "id": "sharing_command_timed_out",
+      "language": "zh_CN",
+      "text": "共享命令执行超时：{command}"
+    },
+    {
+      "id": "sharing_not_authorized",
+      "language": "zh_CN",
+      "text": "没有管理 SMB 文件共享的权限"
+    },
+    {
+      "id": "sharing_configuration_too_large",
+      "language": "zh_CN",
+      "text": "共享配置过大"
+    },
+    {
+      "id": "sharing_service_failed",
+      "language": "zh_CN",
+      "text": "文件共享服务操作失败"
+    },
+    {
+      "id": "sharing_persistence_service_required",
+      "language": "zh_CN",
+      "text": "请安装完整的 udeck 软件包，以便在重启后恢复网络访问"
+    },
+    {
+      "id": "sharing_folder_unavailable",
+      "language": "zh_CN",
+      "text": "共享文件夹已不可用，请重新选择。"
+    },
+    {
+      "id": "sharing_service_exited",
+      "language": "zh_CN",
+      "text": "SMB 共享意外停止，请重新开启共享后重试。"
+    },
+    {
+      "id": "sharing_restore_failed",
+      "language": "zh_CN",
+      "text": "恢复原有 SMB 共享失败：{error}"
+    },
+    {
+      "id": "reader_epub_resource_failed",
+      "language": "zh_CN",
+      "text": "无法读取 EPUB 资源：{name}"
+    },
+    {
+      "id": "reader_mobi_record_failed",
+      "language": "zh_CN",
+      "text": "无法读取 MOBI 数据记录"
+    },
+    {
+      "id": "reader_process_ended",
+      "language": "zh_CN",
+      "text": "阅读进程已退出（{code}）"
+    },
+    {
+      "id": "shortcut_user_config_required",
+      "language": "zh_CN",
+      "text": "需要当前用户拥有的现有 labwc rc.xml 配置文件"
+    },
+    {
+      "id": "shortcut_invalid_xml",
+      "language": "zh_CN",
+      "text": "labwc XML 配置无效：{error}"
+    },
+    {
+      "id": "shortcut_unsafe_backup_directory",
+      "language": "zh_CN",
+      "text": "快捷键备份文件夹不安全"
+    },
+    {
+      "id": "shortcut_unsafe_backup_file",
+      "language": "zh_CN",
+      "text": "快捷键备份文件不安全"
+    },
+    {
+      "id": "shortcut_invalid_generation",
+      "language": "zh_CN",
+      "text": "快捷键配置代次无效"
+    }
+  ],
+  "web_changed": [
+    {
+      "english": "Move to trash",
+      "before": null,
+      "after": "移入回收站"
+    },
+    {
+      "english": "Try again",
+      "before": "重新尝试",
+      "after": "重试"
+    },
+    {
+      "english": "Create",
+      "before": "新建",
+      "after": "创建"
+    },
+    {
+      "english": "Folder path",
+      "before": null,
+      "after": "文件夹路径"
+    },
+    {
+      "english": "uDeck Files",
+      "before": null,
+      "after": "uDeck 文件"
+    },
+    {
+      "english": "No matching files",
+      "before": "没有找到匹配的文件",
+      "after": "没有匹配的文件"
+    },
+    {
+      "english": "Failed",
+      "before": "未完成",
+      "after": "失败"
+    },
+    {
+      "english": "Use this folder",
+      "before": "选择此文件夹",
+      "after": "使用此文件夹"
+    },
+    {
+      "english": "Home",
+      "before": "共享目录",
+      "after": "共享文件夹"
+    },
+    {
+      "english": "An item with this name already exists",
+      "before": null,
+      "after": "已存在同名项目"
+    },
+    {
+      "english": "Only regular files can be replaced. Folders are never merged or overwritten.",
+      "before": null,
+      "after": "只替换普通文件，不合并或覆盖文件夹。"
+    },
+    {
+      "english": "Folder created",
+      "before": "文件夹已新建",
+      "after": "文件夹已创建"
+    },
+    {
+      "english": "Network access has stopped",
+      "before": null,
+      "after": "网络访问已停止"
+    },
+    {
+      "english": "Expected an object",
+      "before": null,
+      "after": "请求格式无效"
+    },
+    {
+      "english": "Wait for the current uploads",
+      "before": null,
+      "after": "请等待当前上传完成"
+    },
+    {
+      "english": "Upload is already running",
+      "before": null,
+      "after": "上传正在进行中"
+    },
+    {
+      "english": "Unsupported operation",
+      "before": null,
+      "after": "不支持此操作"
+    },
+    {
+      "english": "Wait for the current file tasks",
+      "before": null,
+      "after": "请等待当前文件任务完成"
+    },
+    {
+      "english": "Wait for the current downloads",
+      "before": null,
+      "after": "请等待当前下载完成"
+    },
+    {
+      "english": "Download cancelled",
+      "before": null,
+      "after": "下载已取消"
+    },
+    {
+      "english": "Invalid server address",
+      "before": null,
+      "after": "服务器地址无效"
+    },
+    {
+      "english": "Choose fewer files for one download",
+      "before": null,
+      "after": "请减少单次下载的文件数量"
+    },
+    {
+      "english": "Archive interrupted",
+      "before": null,
+      "after": "打包已中断"
+    },
+    {
+      "english": "File changed during download",
+      "before": null,
+      "after": "下载期间文件已更改"
+    },
+    {
+      "english": "Download interrupted",
+      "before": null,
+      "after": "下载已中断"
+    },
+    {
+      "english": "Atomic no-replace rename is not available",
+      "before": null,
+      "after": "当前环境不支持安全重命名"
+    },
+    {
+      "english": "The name cannot be empty or contain path separators",
+      "before": null,
+      "after": "名称不能为空，也不能包含路径分隔符"
+    },
+    {
+      "english": "Shared folder is no longer available",
+      "before": null,
+      "after": "共享文件夹已不可用"
+    },
+    {
+      "english": "Choose a regular file",
+      "before": null,
+      "after": "请选择普通文件"
+    },
+    {
+      "english": "Folders are never merged or replaced",
+      "before": null,
+      "after": "不会合并或替换文件夹"
+    },
+    {
+      "english": "Invalid upload",
+      "before": null,
+      "after": "上传请求无效"
+    },
+    {
+      "english": "Choose between 1 and 2000 items",
+      "before": null,
+      "after": "请选择 1 至 2000 个项目"
+    },
+    {
+      "english": "Cannot copy a folder into itself",
+      "before": null,
+      "after": "不能将文件夹复制到自身"
+    },
+    {
+      "english": "Unsafe trash directory; no files were changed",
+      "before": null,
+      "after": "回收站文件夹不安全，未改动任何文件"
+    },
+    {
+      "english": "Destination changed during the operation",
+      "before": null,
+      "after": "操作期间目标位置已更改"
+    },
+    {
+      "english": "Only regular files can be replaced",
+      "before": null,
+      "after": "只能替换普通文件"
+    },
+    {
+      "english": "Source changed",
+      "before": null,
+      "after": "源文件或文件夹已更改"
+    },
+    {
+      "english": "Source changed during copy",
+      "before": null,
+      "after": "复制期间源文件或文件夹已更改"
+    },
+    {
+      "english": "The shared volume cannot use this trash; no file was deleted",
+      "before": null,
+      "after": "共享卷无法使用此回收站，未删除任何文件"
+    }
+  ]
+}
