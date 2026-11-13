@@ -49,7 +49,7 @@ udeck = ["qml/*.qml", "locales/*.json", "fonts/*.ttf", "fonts/*.txt", "fonts/*.j
 "udeck.apps.video" = ["qml/*.qml"]
 "udeck.apps.browser" = ["qml/*.qml", "navigation.js"]
 "udeck.apps.reader" = ["qml/*.qml", "web/*", "web/foliate/*"]
-"udeck.apps.emulator" = ["qml/*.qml", "resources/*.json"]
+"udeck.apps.emulator" = ["qml/*.qml", "resources/*.json", "resources/platform-icons/*"]
 "udeck.network_files" = ["web/*"]
 
 [tool.uv]

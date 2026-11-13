@@ -1,3 +1,11 @@
+udeck (0.2.12) unstable; urgency=medium
+
+  * Browse enabled emulator platforms before opening each platform's games.
+  * Keep empty enabled platforms visible and preserve navigation focus and search.
+  * Bundle fixed warm-gold RetroArch Monochrome platform icons and attribution.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Fri, 13 Nov 2026 20:00:00 +0800
+
 udeck (0.2.11) unstable; urgency=medium
 
   * Unify English and Chinese interface terminology and correct misleading copy.

@@ -39,7 +39,7 @@ class EmulatorSettings:
     def set_rom_root(self, path):
         self.library.configure_root(path)
         self.cancel_launch()
-        self.tab, self.page = 1, "library"
+        self.setTab(1)
         self.clear_menus()
         self.notice = tr(Msg.ROM_ROOT_UPDATED)
 
@@ -282,7 +282,7 @@ class EmulatorSettings:
             self.persist()
             self.library.refresh()
             self.clear_menus()
-            self.page, self.tab = "library", 1
+            self.setTab(1)
         self.path_picker(directories[0], chosen, boundary=directories[0], file_filter=lambda p:
                          any(c.supports(p.suffix) for c in self.catalog.candidates(platform)))
 
@@ -291,5 +291,5 @@ class EmulatorSettings:
 
     def show_rom_root(self):
         self.cancel_launch()
-        self.page, self.tab = "library", 1
-        self.clear_menus()
+        self.setTab(1)
+        self.search("")

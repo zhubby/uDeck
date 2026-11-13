@@ -1,0 +1,370 @@
+{
+  "upstream": "https://github.com/libretro/retroarch-assets",
+  "commit": "8c918e2872482139273374ef4cc6c7aff34d7585",
+  "license": "CC-BY-4.0",
+  "foreground": "#e8cc9f",
+  "platforms": {
+    "gb": "gb",
+    "gba": "gba",
+    "nes": "nes",
+    "snes": "snes",
+    "n64": "n64",
+    "nds": "nds",
+    "3ds": "3ds",
+    "virtualboy": "virtualboy",
+    "gamecube": "gamecube",
+    "psx": "psx",
+    "psp": "psp",
+    "ps2": "ps2",
+    "megadrive": "megadrive",
+    "mastersystem": "mastersystem",
+    "gamegear": "gamegear",
+    "sg1000": "sg1000",
+    "sega32x": "sega32x",
+    "segacd": "segacd",
+    "saturn": "saturn",
+    "dreamcast": "dreamcast",
+    "arcade": "arcade",
+    "neogeo": "neogeo",
+    "neogeocd": "neogeocd",
+    "ngp": "ngp",
+    "pce": "pce",
+    "pcecd": "pcecd",
+    "pcfx": "pcfx",
+    "wonderswan": "wonderswan",
+    "atari2600": "atari2600",
+    "atari5200": "atari5200",
+    "atari7800": "atari7800",
+    "lynx": "lynx",
+    "jaguar": "jaguar",
+    "coleco": "coleco",
+    "msx": "msx",
+    "dos": "dos",
+    "scummvm": "scummvm",
+    "quake": "quake",
+    "quake2": "quake2",
+    "quake3": "quake3",
+    "doom": "doom",
+    "amiga": "amiga",
+    "c64": "c64",
+    "c128": "c64",
+    "vic20": "vic20",
+    "plus4": "plus4",
+    "pet": "pet",
+    "atarist": "atarist",
+    "atari800": "atari800",
+    "zxspectrum": "zxspectrum",
+    "amstradcpc": "amstradcpc",
+    "x68000": "x68000",
+    "pc98": "pc98",
+    "3do": "3do",
+    "intellivision": "intellivision",
+    "vectrex": "vectrex",
+    "channelf": "channelf",
+    "odyssey2": "odyssey2",
+    "pokemini": "pokemini",
+    "gameandwatch": "gameandwatch"
+  },
+  "assets": {
+    "gb": {
+      "upstreamPath": "src/xmb/monochrome/Nintendo - Game Boy.svg",
+      "upstreamSha256": "39435c861c33defc9dcd59b6f406b2db67bbd9f31cedb0a155a1723f0dc7fa16",
+      "sha256": "bdc63b7046b0a9c1cbbbec46794e41d192774c1c824d8e1dfa87e80dfd73a05f"
+    },
+    "gba": {
+      "upstreamPath": "src/xmb/monochrome/Nintendo - Game Boy Advance.svg",
+      "upstreamSha256": "a4a91a1c15a947482dc2311eddb85b0d8356a364a199ecedecd0322152868188",
+      "sha256": "8cde0ecd8238c6fa4eb9fd4234e0c23e6d10b82750acd3619a7d52f387b64587"
+    },
+    "nes": {
+      "upstreamPath": "src/xmb/monochrome/Nintendo - Family Computer.svg",
+      "upstreamSha256": "8ea1ef1cbd2564746448762e30e0abd5fac4b5428cd9acaf047d519aa30b5dee",
+      "sha256": "2061aacbe5f10ea93e428bd8730a84c9248fe91308405e2e7a24ecac5108438a"
+    },
+    "snes": {
+      "upstreamPath": "src/xmb/monochrome/Nintendo - Super Nintendo Entertainment System.svg",
+      "upstreamSha256": "ce183526f75b6e4ef6f07e9b39932597a199c35a2c49ee9d9b84df87c6ec7ff8",
+      "sha256": "40e9fa5598da2a743395b1fb9ef978eaf7c625acc508649818a7024aaff3f505"
+    },
+    "n64": {
+      "upstreamPath": "src/xmb/monochrome/Nintendo - Nintendo 64.svg",
+      "upstreamSha256": "21fde90d4c5bd4351b1d391962319f54bcffd57263db3c39b73fe135ec0ccc2e",
+      "sha256": "62481b822c5bb81e8a980c338a877c414762af9950e33b5dfe9b8fc4d7df610a"
+    },
+    "nds": {
+      "upstreamPath": "src/xmb/monochrome/Nintendo - Nintendo DS.svg",
+      "upstreamSha256": "b013699eb1d12960359d69ecd1d98837b0104e03d7f1e63d07fe233d7845e68f",
+      "sha256": "afee86689a5b526b529e26a6b22f9dd8c06d5120f4b1fb1dd13be2a789c2e703"
+    },
+    "3ds": {
+      "upstreamPath": "src/xmb/monochrome/Nintendo - Nintendo 3DS.svg",
+      "upstreamSha256": "57f0e6b759be041da75c0212e9f976a53394f1b1638049f9d37404db8b21de6a",
+      "sha256": "6cac912d689861963ea948ba0e5f66986c0adfe9ab5a21f297c377df138fdd8f"
+    },
+    "virtualboy": {
+      "upstreamPath": "src/xmb/monochrome/Nintendo - Virtual Boy.svg",
+      "upstreamSha256": "073e3b42ca6bef2435496ca262dea7e34be47b778450cdce55c8c2e3564d1068",
+      "sha256": "26bdeb49e883ba3ea526d2885361e00bbb57daf66518a62e5ee125753bd03b95"
+    },
+    "gamecube": {
+      "upstreamPath": "src/xmb/monochrome/Nintendo - GameCube.svg",
+      "upstreamSha256": "bdb92468faea624be0d42477015d4ef51305abf6d70377c747f637642bf8f784",
+      "sha256": "4f90e227c3e54ee5032f8c1c418301b0292db98a8f3ffd74df91a87fadb0c601"
+    },
+    "psx": {
+      "upstreamPath": "src/xmb/monochrome/Sony - PlayStation.svg",
+      "upstreamSha256": "b1f964b8f95ab268f52c789f8fb21fb17975afabef0e8bd92336662eb8611e8f",
+      "sha256": "5c92a3ff6a7d7feb8e2a400e8bd668726c012e6a7d84c2737aef39bebc260824"
+    },
+    "psp": {
+      "upstreamPath": "src/xmb/monochrome/Sony - PlayStation Portable.svg",
+      "upstreamSha256": "072cb3e5fc95b7b056c42013ca78d7e2984270ce76cc00f7a9740952b37f4988",
+      "sha256": "3b9873425fa663af9dff5f9f0d2b8255718123401d8c6b8a2000c135bc9e57cc"
+    },
+    "ps2": {
+      "upstreamPath": "src/xmb/monochrome/Sony - PlayStation 2.svg",
+      "upstreamSha256": "68510b2580a07183ab4175ab28fc107afa7a5f9e0b8ba82b15a0d79a97cf106a",
+      "sha256": "71d43a39be1061d551a94548a9f9e28001412add24c3f1e9909534b8ab13930c"
+    },
+    "megadrive": {
+      "upstreamPath": "src/xmb/monochrome/Sega - Mega Drive - Genesis.svg",
+      "upstreamSha256": "d4a3d9f5ea97f3b543ce63abb4d450d3f0763c0da44a983e10bb34603824e8cf",
+      "sha256": "ffd9f58b82a41ff1eb3437a858272c7792f89e14045e17d13a857dff8aaf6cce"
+    },
+    "mastersystem": {
+      "upstreamPath": "src/xmb/monochrome/Sega - Master System - Mark III.svg",
+      "upstreamSha256": "1b314742fdb2e9cd7318072d8c94d095bd0b0ee0fd9c120d9478d3e894ed81e6",
+      "sha256": "ec015ad899d4614ea534198a67bea904c5287ad1914b24d4c37dbe521e0accb7"
+    },
+    "gamegear": {
+      "upstreamPath": "src/xmb/monochrome/Sega - Game Gear.svg",
+      "upstreamSha256": "5de75c5c1f25242d31e9097eb9f0f5da49107a8419c82d103e14bb37cff0b088",
+      "sha256": "ba0bce68594f931f0d4992e7bbcf023c778dcd098d56dc2ab0d9b3909af51b85"
+    },
+    "sg1000": {
+      "upstreamPath": "src/xmb/monochrome/Sega - SG-1000.svg",
+      "upstreamSha256": "96f72181c2f7fc9de32999969a267ac59cebdc1f365d143d9034504556580bd0",
+      "sha256": "69c52320d9089c9963f5aac7d43bff1348e798a2e6811bbabaac4caabdabd3ad"
+    },
+    "sega32x": {
+      "upstreamPath": "src/xmb/monochrome/Sega - 32X.svg",
+      "upstreamSha256": "d4a3d9f5ea97f3b543ce63abb4d450d3f0763c0da44a983e10bb34603824e8cf",
+      "sha256": "ffd9f58b82a41ff1eb3437a858272c7792f89e14045e17d13a857dff8aaf6cce"
+    },
+    "segacd": {
+      "upstreamPath": "src/xmb/monochrome/Sega - Mega-CD - Sega CD.svg",
+      "upstreamSha256": "d4a3d9f5ea97f3b543ce63abb4d450d3f0763c0da44a983e10bb34603824e8cf",
+      "sha256": "ffd9f58b82a41ff1eb3437a858272c7792f89e14045e17d13a857dff8aaf6cce"
+    },
+    "saturn": {
+      "upstreamPath": "src/xmb/monochrome/Sega - Saturn.svg",
+      "upstreamSha256": "37559645982097900cc12c791a346211450b0332880570cdf03fb33745ff187e",
+      "sha256": "a2e9a3989a4d10bc6e2ed5ef744b9294bb0b2dd31e73083ec6f4449c6bc11db8"
+    },
+    "dreamcast": {
+      "upstreamPath": "src/xmb/monochrome/Sega - Dreamcast.svg",
+      "upstreamSha256": "284e7f243fa05c1a772f2fea1b173b2ec6c72db5e66138f0dca45c47d1f82a48",
+      "sha256": "7f6d34d58031323cc9617a09dc767c91657ed1b947d87cefeb7b13972315f87a"
+    },
+    "arcade": {
+      "upstreamPath": "src/xmb/monochrome/Arcade Controller.svg",
+      "upstreamSha256": "295ffcbf6cab7fff5483953d34da6b4bb2969a7f76bdf44d7eb58f603525ff79",
+      "sha256": "5c6814e53b06c2be3b5b168cc8d03b5cb79951cf110ba98ab654f3d4d7272e18"
+    },
+    "neogeo": {
+      "upstreamPath": "src/xmb/monochrome/SNK - Neo Geo.svg",
+      "upstreamSha256": "87671dc6c42a5c2fefd1885d13c98726e4215b426e26f7b1412a075496a12a75",
+      "sha256": "88c4413637146d6753ddd590f080cb72195d7649cba3726740951a594f326fc6"
+    },
+    "neogeocd": {
+      "upstreamPath": "src/xmb/monochrome/SNK - Neo Geo CD.svg",
+      "upstreamSha256": "2275657050aa6704f948dff1adee0317a674b8d38da1b7f4eee7199c563b0157",
+      "sha256": "f36badc69e8650086d6f018e155803b1ac7f4a07ff974ebd41d76ac367e5eabf"
+    },
+    "ngp": {
+      "upstreamPath": "src/xmb/monochrome/SNK - Neo Geo Pocket.svg",
+      "upstreamSha256": "b64b5908b37773732e50c02bf8132769d65949680ec67e99432ac82c7055d27b",
+      "sha256": "6abfb7a5737c02c5e273fb80aa767b9933c31530b4e74e8166d6f618f86cde86"
+    },
+    "pce": {
+      "upstreamPath": "src/xmb/monochrome/NEC - PC Engine - TurboGrafx 16.svg",
+      "upstreamSha256": "25a2b32040c26c6d2aff17e985e87821605d8d370f47f33382762fa6c651f87e",
+      "sha256": "d33cb9e170789ddf54331542e46fa08634f3113226d335965800620adf7062e2"
+    },
+    "pcecd": {
+      "upstreamPath": "src/xmb/monochrome/NEC - PC Engine CD - TurboGrafx-CD.svg",
+      "upstreamSha256": "25a2b32040c26c6d2aff17e985e87821605d8d370f47f33382762fa6c651f87e",
+      "sha256": "d33cb9e170789ddf54331542e46fa08634f3113226d335965800620adf7062e2"
+    },
+    "pcfx": {
+      "upstreamPath": "src/xmb/monochrome/NEC - PC-FX.svg",
+      "upstreamSha256": "9363c3c26f43d9683ef84534ee24eece740ac7a0bb1bb22e316dc963b7185738",
+      "sha256": "d49764c82a6d69f8ad93706b9f609e766eaa0f8c376d3811b8452230626e1c01"
+    },
+    "wonderswan": {
+      "upstreamPath": "src/xmb/monochrome/Bandai - WonderSwan.svg",
+      "upstreamSha256": "962f5ca1580ca0dd98b7ad2ac46ac85d344f5cc44809a1309c5a2b084cba7f49",
+      "sha256": "784516437768f49fb1c32757082f274194678d716b0647e138997ceacb49ce3c"
+    },
+    "atari2600": {
+      "upstreamPath": "src/xmb/monochrome/Atari - 2600.svg",
+      "upstreamSha256": "71faf87c840e6d7eb11f047b3c75fd2f99844ac5047b7fc6ad5e2509a33b4638",
+      "sha256": "0eb9df78a35afdab6ac9e875bec231f5ec8f96fcb28d19b918f237ead005991a"
+    },
+    "atari5200": {
+      "upstreamPath": "src/xmb/monochrome/Atari - 5200.svg",
+      "upstreamSha256": "8915754011b16a11adcea60e5cfc13cc66cdae9f4a596fc7e62b75cbc072ca91",
+      "sha256": "087abb70b17453f62bbc9506a059be6a231ab95096c8dd2bd309d3c5e8791737"
+    },
+    "atari7800": {
+      "upstreamPath": "src/xmb/monochrome/Atari - 7800.svg",
+      "upstreamSha256": "3ce054ac00a824b79696f549ee5218dfe04ed0d5dc8bb3b3a0c76e64b837f6d2",
+      "sha256": "fe5e5da8a528c7a1a60e18675476b8c8c8fe2f6d3a778d07cf883af7d07e7c27"
+    },
+    "lynx": {
+      "upstreamPath": "src/xmb/monochrome/Atari - Lynx.svg",
+      "upstreamSha256": "4ed74274f93821b8ac0245d0d1c348a6df63cc7883bc0dd6226dc5ed7ac228d2",
+      "sha256": "853aa6849c2a5731d340a28ec98d613d293962589422f5a669411955889681de"
+    },
+    "jaguar": {
+      "upstreamPath": "src/xmb/monochrome/Atari - Jaguar.svg",
+      "upstreamSha256": "ccc66753472289da8c27825fbad3527d8c4acf0071066de3ce1657ded22c9f30",
+      "sha256": "52d88bccf21168a21083410e1bc7d5f4e34b5e24d7ddd6499c33873d737c6dc3"
+    },
+    "coleco": {
+      "upstreamPath": "src/xmb/monochrome/Coleco - ColecoVision.svg",
+      "upstreamSha256": "0b2c681889eb67ae48f25367a8d416d7ed0640b9d4a05da4e1f982106036d1b6",
+      "sha256": "e332f735ac9907ca86e15d5d3934bc4164fd88ee0ffc8b73777d7b65332cf1c6"
+    },
+    "msx": {
+      "upstreamPath": "src/xmb/monochrome/Microsoft - MSX.svg",
+      "upstreamSha256": "e0eb7b74c1f019728ede6f6b45b54d35cdcf8aaed4d16e22bf59d2da5f70e39f",
+      "sha256": "2da40ba5ff731641e57a16d939bc21b28a81e4610948a991dc5d0067e405f0d5"
+    },
+    "dos": {
+      "upstreamPath": "src/xmb/monochrome/DOS.svg",
+      "upstreamSha256": "a586562fb72a93a781fec3d621be2d0d6334f75fdfd2ea477c70112f77721b78",
+      "sha256": "ac79e1b81c5b698c9d440386ea91059fb489914f3453718ffb9cd9dfeaa2ca0b"
+    },
+    "scummvm": {
+      "upstreamPath": "src/xmb/monochrome/ScummVM.svg",
+      "upstreamSha256": "d205ca2855adeaa4ff51118ae60f82ee246c798876da0746d55e8b22074ad50e",
+      "sha256": "685c68511e28a2db9368236c815fc4e583c1a8a8f05e512c90ba9661ecc3f5e2"
+    },
+    "quake": {
+      "upstreamPath": "src/xmb/monochrome/Quake.svg",
+      "upstreamSha256": "13985aa898b00cd4498d95e9a34d8933966c76cb217cb5062278f6b6ace55b2d",
+      "sha256": "cd073b006ef5b561d94006954fa11e17a4f2fc6461150ad012d96e3196970b79"
+    },
+    "quake2": {
+      "upstreamPath": "src/xmb/monochrome/Quake II.svg",
+      "upstreamSha256": "4e2b1903ee60f9d0423809e006a18ad54ccbb9392e5ae75fcbe5825a2678fbc0",
+      "sha256": "8e037bef0e4ec815f3355a580f7e7166b9abd0e01deb7612b6a1664b8d805f96"
+    },
+    "quake3": {
+      "upstreamPath": "src/xmb/monochrome/Quake III.svg",
+      "upstreamSha256": "b6a4b283ac122d46ee7d9022ff36e4a515444a3adbf7fe220d6c0ff943f084bc",
+      "sha256": "5466abb45b645c8145e81049ffa894c95c470cedbcd680653a9e1cb5751132a3"
+    },
+    "doom": {
+      "upstreamPath": "src/xmb/monochrome/DOOM.svg",
+      "upstreamSha256": "2f8037b77ebd8d89c23307d73399f5999aac129f90e7e01de2b7976b23404e31",
+      "sha256": "248667e4a0871b5aa89331c2c219b43b58081b38daf4131dbf3ae95d3688b771"
+    },
+    "amiga": {
+      "upstreamPath": "src/xmb/monochrome/Commodore - Amiga.svg",
+      "upstreamSha256": "e3fae08ff0d9c07fee7b89f8f62854b9c58fa833d8d2e81a0b34469574b2a911",
+      "sha256": "ac2f4aef25f2101ea909fff98f9bcd9c03cad7b68c3514febe5d3d587ca70cb7"
+    },
+    "c64": {
+      "upstreamPath": "src/xmb/monochrome/Commodore - 64.svg",
+      "upstreamSha256": "e84ec6c401dfd844ece7a16b132dd06a3cbb2f9b03170498cabf8fb61434f28b",
+      "sha256": "0e310ce3e97fad6b4cae84a75c462bb3ac30bf8ea92d7a374ab325e6fc65435e"
+    },
+    "vic20": {
+      "upstreamPath": "src/xmb/monochrome/Commodore - VIC-20.svg",
+      "upstreamSha256": "bf5fb2b6254884bd5ca1e931d993dd7aab0372f2dc51ca7023265241a81e8020",
+      "sha256": "9bcf121886eb674856b5112ca63efd8cf9a5777cd6ef8ae5585946cdd52946de"
+    },
+    "plus4": {
+      "upstreamPath": "src/xmb/monochrome/Commodore - Plus-4.svg",
+      "upstreamSha256": "21a813c8ec33d5c80e14522b603a4ff13ac92d31f42437d43f1e5a2b8d5f72a7",
+      "sha256": "1259567cf910fc9c7695c27ab9d3d93d34d33af195e26dbfb1713c7433051ab8"
+    },
+    "pet": {
+      "upstreamPath": "src/xmb/monochrome/Commodore - PET.svg",
+      "upstreamSha256": "260a7a10a0443100c6cc91db6bc63be74c32dba7e55ff5188b4bec47e26d0b82",
+      "sha256": "b19bb7dfd12964ab7ad6c9545675191903819e9217abc4ede6b5bb3819ebfee4"
+    },
+    "atarist": {
+      "upstreamPath": "src/xmb/monochrome/Atari - ST.svg",
+      "upstreamSha256": "c70a43f526994fbe2504797c8618c25e6fa2257ff92c102524a051e74c921c79",
+      "sha256": "a715719b6023ee192f24be7567b1bf7b349d81484364dc0bfff91526b32a5a9a"
+    },
+    "atari800": {
+      "upstreamPath": "src/xmb/monochrome/Atari - 8-bit Family.svg",
+      "upstreamSha256": "8d6599a79b927a15cbd21c272533c348d868256c5bb876105ed0988ddaf18497",
+      "sha256": "52ffc4b975db8d76e6c6274eca7430480b0c364adb5b79357e99dcdf99856a10"
+    },
+    "zxspectrum": {
+      "upstreamPath": "src/xmb/monochrome/Sinclair - ZX Spectrum.svg",
+      "upstreamSha256": "7faf620e370094edd152202b43c2fc99780a46472d061b994aebe73665c7211c",
+      "sha256": "2ae7534a157ab76dbe7a5de1f4d2dfb68af67c643f4d0f71aa1fd35d0c99a41e"
+    },
+    "amstradcpc": {
+      "upstreamPath": "src/xmb/monochrome/Amstrad - CPC.svg",
+      "upstreamSha256": "11990a437ac0a7ca99c3265e7b34a332c3d0d0d509520f1b3887a7c4dd726d1b",
+      "sha256": "7a136665701e37c3f12b77751184de4467c03442b37ecd259186a64d0f64a1cd"
+    },
+    "x68000": {
+      "upstreamPath": "src/xmb/monochrome/Sharp - X68000.svg",
+      "upstreamSha256": "61418c334ff3546d2dde2ead623a47538418b3755ceb136442a2648784e48ea9",
+      "sha256": "41965d7398629d3f964e9f382aea1bd835a156fc87d08eb61eb16b8e0a390e87"
+    },
+    "pc98": {
+      "upstreamPath": "src/xmb/monochrome/NEC - PC-98.svg",
+      "upstreamSha256": "d691be99b3c457808ec97915a62b105a0fa93140f383624a54546e9703af5660",
+      "sha256": "989a5d30c722421590ca90cc297b7ec1a11cbca21d7430adb29d18cb7411f819"
+    },
+    "3do": {
+      "upstreamPath": "src/xmb/monochrome/The 3DO Company - 3DO.svg",
+      "upstreamSha256": "e25686a77d4bd33aba08154aabeafa3251480312d3637bbb6709af87d5b8b10f",
+      "sha256": "b85336b987ba668735c0908d6769c9216c22de73b36aaffa8c1aacfb98cac676"
+    },
+    "intellivision": {
+      "upstreamPath": "src/xmb/monochrome/Mattel - Intellivision.svg",
+      "upstreamSha256": "a9ecdb93b4cc480b0d066eae31c6e1aefd8e4e57cbaa078bab16915cde991a92",
+      "sha256": "3ead3a59c8a67a62f30d93835d80d472aa2fd3b1a04c356d716b49465d619744"
+    },
+    "vectrex": {
+      "upstreamPath": "src/xmb/monochrome/GCE - Vectrex.svg",
+      "upstreamSha256": "a0d26f9552466a7234ee79d30c0c5c91a1caed7e971d0acfbb7fec19f4760d84",
+      "sha256": "7437966d52110cc465d6c54f4d6c45c09e15202dcf9a5b233b071c04da2a198f"
+    },
+    "channelf": {
+      "upstreamPath": "src/xmb/monochrome/Fairchild - Channel F.svg",
+      "upstreamSha256": "1d2064f441788e24c35b4de140796b93dadac037fb51bf4004b598e767145307",
+      "sha256": "01df19e02ef18623262250272b65530f470f0f2eadd7b6074c1a965a6e38436a"
+    },
+    "odyssey2": {
+      "upstreamPath": "src/xmb/monochrome/Magnavox - Odyssey2.svg",
+      "upstreamSha256": "5e88805e5a6636f97720ff5e435d2fe246372490ecd24002c16f9e96e2b03b28",
+      "sha256": "1d68a7a4a0eb2ce0b955b4a41d7fe404684530463313b17793f7bd98ac4ea0c4"
+    },
+    "pokemini": {
+      "upstreamPath": "src/xmb/monochrome/Nintendo - Pokemon Mini.svg",
+      "upstreamSha256": "c45fc075ff15dc8d2cdf16bbd6bf4dbef27d11943e19e0e99bbb18d8a358fbeb",
+      "sha256": "641c00b3da4a0b02bb2b17299eb530fba4dcee2f4e908bb3d4b037f81750a49a"
+    },
+    "gameandwatch": {
+      "upstreamPath": "src/xmb/monochrome/Nintendo - Game & Watch.svg",
+      "upstreamSha256": "4e8d07d26647bca3c4174da868e1c31dc62fc93171fa2778542b338a5a2ce281",
+      "sha256": "0d34f7847d46aa19fe71c585d891abe9af72b610f616b2c0377d77e95f4206e6"
+    },
+    "generic": {
+      "upstreamPath": "src/xmb/monochrome/Libretro - Pad.svg",
+      "upstreamSha256": "d1d66da5c7cbe2f4fdf8a6e4d5a0f4cda38fc0fca27f1703f14247dac9954f97",
+      "sha256": "2fb4e623a4af41c079510f1fdcc3900720ea87164239b939f4a3028385e70a34"
+    }
+  }
+}

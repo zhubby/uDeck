@@ -29,8 +29,10 @@ def run(root, language, theme):
     definitions = {"gambatte": {"supported_extensions": "gb|gbc"},
                    "mgba": {"supported_extensions": "gb|gba|gbc"},
                    "vba_next": {"supported_extensions": "gba"},
-                   "nestopia": {"supported_extensions": "nes"}}
-    definitions.update({f"example_{i:03}": {"systemid": f"example-{i:03}", "supported_extensions": "rom"}
+                   "nestopia": {"supported_extensions": "nes"},
+                   "ppsspp": {"supported_extensions": "iso|cso"}}
+    definitions.update({f"example_{i:03}": {"systemid": f"example-{i:03}", "supported_extensions": "rom",
+                                           "systemname": f"ZZ fixture {i:03}"}
                         for i in range(100)})
     catalog = installed(root, definitions)
     controller.catalog = controller.library.catalog = catalog
@@ -66,9 +68,54 @@ def run(root, language, theme):
     try:
         window.requestActivate()
         wait(lambda: not controller.library.pending)
-        controller.tab = 1
-        assert len(controller.rows()) == 3
+        controller.setTab(1)
+        assert len(controller.rows()) == 104
+        grid = window.findChild(QQuickItem, "appCards")
+        panel = window.findChild(QQuickItem, "selectedGamePanel")
+        wait(lambda: grid.width() > window.width() * 0.9)
+        assert not panel.isVisible()
+        def icons():
+            # GridView owns delegates through its visual tree, not the window's
+            # QObject parent tree.
+            found, pending = [], [window.contentItem()]
+            while pending:
+                item = pending.pop()
+                if item.objectName() == "platformIcon":
+                    found.append(item)
+                pending.extend(item.childItems())
+            return found
+        wait(lambda: bool(icons()) and all(icon.isVisible() for icon in icons()))
+        frame("platforms")
+        for _ in range(34):
+            QTest.keyClick(window, Qt.Key.Key_Down)
+        QTest.qWait(80)
+        assert grid.property("contentY") > 0
+        selected_platform = controller.selected
+        current_card = grid.property("currentItem")
+        assert current_card.y() >= grid.property("contentY") - 1
+        assert current_card.y() + current_card.height() <= grid.property("contentY") + grid.height() + 1
+        QTest.keyClick(window, Qt.Key.Key_Return)
+        wait(lambda: controller.platform.startswith("example-"))
+        QTest.keyClick(window, Qt.Key.Key_Escape)
+        wait(lambda: controller.platform == "All")
+        assert controller.selected == selected_platform and grid.property("contentY") > 0
+        controller.search("psp")
+        QTest.keyClick(window, Qt.Key.Key_Return)
+        wait(lambda: controller.platform == "psp")
+        assert controller.rows() == []
+        frame("empty-platform")
+        QTest.keyClick(window, Qt.Key.Key_Escape)
+        wait(lambda: controller.platform == "All")
+        controller.search("fc")
+        QTest.keyClick(window, Qt.Key.Key_Return)
+        wait(lambda: controller.platform == "nes")
+        assert [row["title"] for row in controller.rows()] == ["Original tiles"]
+        wait(lambda: panel.isVisible() and grid.width() < window.width() * 0.8)
         frame("library")
+        QTest.keyClick(window, Qt.Key.Key_Escape)
+        wait(lambda: controller.platform == "All")
+        assert controller.selected == "platform:nes" and controller.filter == "fc"
+        controller.search("")
         controller.settings()
         frame("settings")
         controller.rom_picker()
@@ -109,7 +156,8 @@ def run(root, language, theme):
         assert translated["title"] == ("核心管理" if language == "zh_CN" else "Core management")
         assert not errors, errors
         print(json.dumps({"qmlErrors": errors, "language": language, "theme": theme,
-                          "checks": ["picker-cancel", "focus-restore", "long-list-scroll", "return-consumed", "core-toggle"]}))
+                          "checks": ["platforms", "platform-scroll-back", "empty-platform", "two-level-back", "platform-icons", "picker-cancel",
+                                     "focus-restore", "long-list-scroll", "return-consumed", "core-toggle"]}))
     finally:
         delete(engine)
         controller.close()

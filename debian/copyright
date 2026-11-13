@@ -39,3 +39,10 @@ Files: src/udeck/apps/reader/web/foliate/*
 Copyright: 2022 John Factotum
 License: MIT
 Comment: The complete original LICENSE is installed with the unmodified upstream reader.
+
+Files: src/udeck/apps/emulator/resources/platform-icons/*
+Copyright: RetroArch Monochrome contributors (libretro/retroarch-assets)
+License: CC-BY-4.0
+Comment: The complete original COPYING, attribution NOTICE and source/hash
+ manifest are installed beside the icons. uDeck changes white foregrounds
+ to fixed warm gold; geometry and proportions are preserved.

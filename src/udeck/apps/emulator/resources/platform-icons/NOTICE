@@ -1,0 +1,10 @@
+RetroArch Monochrome icons by the libretro/retroarch-assets contributors.
+https://github.com/libretro/retroarch-assets
+Upstream revision: 8c918e2872482139273374ef4cc6c7aff34d7585
+Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).
+See COPYING for the full license.
+uDeck changes: white foreground replaced with fixed warm gold #e8cc9f;
+filenames normalized; geometry, transparency and proportions preserved.
+Commodore 128 shares the Commodore 64 family artwork.
+Unknown platforms use Libretro - Pad from the same collection.
+Text line endings normalized to LF for reproducible Git checkouts.

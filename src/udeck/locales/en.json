@@ -1229,5 +1229,12 @@
   "shortcut_invalid_xml": "Invalid labwc XML: {error}",
   "shortcut_unsafe_backup_directory": "Unsafe shortcut backup folder",
   "shortcut_unsafe_backup_file": "Unsafe shortcut backup file",
-  "shortcut_invalid_generation": "Invalid shortcut configuration generation"
+  "shortcut_invalid_generation": "Invalid shortcut configuration generation",
+  "emulator_game_count": "{count} games",
+  "emulator_one_game": "1 game",
+  "emulator_platform_count": "{count} platforms",
+  "emulator_one_platform": "1 platform",
+  "emulator_enable_cores_hint": "Enable a core in Settings → Core management to show its platform.",
+  "emulator_platform_games_hint": "Place games in {path}, then refresh the library.",
+  "emulator_no_search_matches": "No matches. Clear the search to see this collection."
 }

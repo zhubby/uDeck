@@ -90,7 +90,7 @@ Window {
                 Shared.BrandLogo { colors: window.colors; Layout.preferredWidth: 34; Layout.preferredHeight: 34 }
                 Text { font.family: window.fontFamily; text: window.appName; color: window.ink; font.pixelSize: 28 }
                 Item { Layout.fillWidth: true }
-                Text { font.family: window.fontFamily; text: window.state.scanning ? window.tr(msg.SCANNING) : window.state.app === "browser" ? window.tr(({navigation:msg.LINK_NAVIGATION,reading:msg.READING,pointer:msg.VIRTUAL_POINTER,text:msg.TEXT_INPUT})[window.state.webMode]||msg.LINK_NAVIGATION) : window.state.count+" "+window.tr(msg.ITEMS); color: window.muted; font.pixelSize: 18 }
+                Text { font.family: window.fontFamily; text: window.state.scanning ? window.tr(msg.SCANNING) : window.state.app === "browser" ? window.tr(({navigation:msg.LINK_NAVIGATION,reading:msg.READING,pointer:msg.VIRTUAL_POINTER,text:msg.TEXT_INPUT})[window.state.webMode]||msg.LINK_NAVIGATION) : window.state.app === "emulator" ? window.state.countLabel : window.state.count+" "+window.tr(msg.ITEMS); color: window.muted; font.pixelSize: 18 }
                 SuiteButton { fontFamily: window.fontFamily; colors: window.colors; promptKeys: ["gamecube_button_y"]; text: window.tr(msg.SETTINGS); implicitHeight: 42; onActivated: controller.dispatch("quick-settings") }
             }
         }
@@ -123,14 +123,15 @@ Window {
                 visible: ["library","album"].indexOf(window.state.page)>=0 && window.state.app!=="browser"
                 ColumnLayout {
                     Layout.fillWidth: true; Layout.fillHeight: true; spacing: 14
-                    Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.folder || window.state.filter || window.state.tabs[window.state.tab] || ""; color: window.ink; font.pixelSize: 30; elide: Text.ElideMiddle }
+                    Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.app === "emulator" ? (window.state.platformTitle || window.state.tabs[window.state.tab]) + (window.state.filter ? " · " + window.state.filter : "") : window.state.folder || window.state.filter || window.state.tabs[window.state.tab] || ""; color: window.ink; font.pixelSize: 30; elide: Text.ElideMiddle }
                     GridView {
                         id: cards
+                        objectName: "appCards"
                         Layout.fillWidth: true; Layout.fillHeight: true; clip: true
                         property bool listMode: window.state.page==="album" || (window.state.app==="music" && [1,2].indexOf(window.state.tab)>=0)
                         property int columns: listMode ? 1 : width<600 ? 2 : 3
                         cellWidth: Math.floor(width/columns)
-                        cellHeight: listMode ? 78 : window.state.app==="reader" ? 190 : 238
+                        cellHeight: listMode ? 78 : window.state.platformsView ? 208 : window.state.app==="reader" ? 190 : 238
                         model: controller.cardModel
                         currentIndex: controller.selectedIndex
                         onColumnsChanged: controller.setColumns(columns)
@@ -146,7 +147,7 @@ Window {
                             color: modelData.id===window.state.selected ? window.colors.selected : window.colors.panel
                             border.width: modelData.id===window.state.selected ? 3 : 1
                             border.color: modelData.id===window.state.selected ? window.accent : window.colors.border
-                            Artwork { fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-80; cover: card.modelData.cover||""; kind: card.modelData.kind==="folder"?"reader":window.state.app }
+                            Artwork { fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-80; cover: card.modelData.cover||""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" }
                             Column {
                                 x: cards.listMode ? 80 : 12; y: cards.listMode ? 12 : art.y+art.height+8
                                 width: parent.width-x-12; spacing: 4
@@ -161,13 +162,14 @@ Window {
                                 anchors.centerIn: parent; width: Math.min(parent.width-36,540); spacing: 18
                                 Text { font.family: window.fontFamily; width: parent.width; text: window.state.scanning?window.tr(msg.SCANNING):window.tr(msg.NOTHING_HERE_YET); color: window.ink; font.pixelSize: 30; horizontalAlignment: Text.AlignHCenter }
                                 Text { font.family: window.fontFamily; width: parent.width; text: window.state.app === "emulator" ? window.state.emptyHint : window.tr(msg.CHOOSE_A_FOLDER_IN_SOURCES_OR_SWITCH_TO_ANOTHER_COLLECTION); wrapMode: window.state.app === "emulator" ? Text.WrapAnywhere : Text.Wrap; color: window.muted; font.pixelSize: 21; horizontalAlignment: Text.AlignHCenter }
-                                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; anchors.horizontalCenter: parent.horizontalCenter; promptKeys: ["gamecube_button_color_a"]; text: window.tr(window.state.app === "emulator" ? msg.SETTINGS : msg.SOURCES); selected: true; onActivated: controller.command(window.state.app === "emulator" ? "settings" : "sources") }
+                                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; anchors.horizontalCenter: parent.horizontalCenter; promptKeys: ["gamecube_button_color_a"]; text: window.tr(window.state.app === "emulator" ? (window.state.filter ? msg.CLEAR_SEARCH : msg.SETTINGS) : msg.SOURCES); selected: true; onActivated: window.state.app === "emulator" ? controller.dispatch("accept") : controller.command("sources") }
                             }
                         }
                     }
                 }
                 ColumnLayout {
-                    visible: window.state.app==="music" || window.state.app==="emulator"
+                    objectName: "selectedGamePanel"
+                    visible: window.state.app==="music" || (window.state.app==="emulator" && !window.state.platformsView)
                     Layout.preferredWidth: window.width<1100?230:290; Layout.maximumWidth: window.width<1100?230:290; Layout.fillWidth: false; Layout.fillHeight: true; spacing: 16
                     Rectangle { Layout.fillWidth: true; height: 1; color: window.colors.divider }
                     Text { font.family: window.fontFamily; text: window.state.app==="music"?window.tr(msg.NOW_PLAYING):window.tr(msg.SELECTED_GAME); color: window.muted; font.pixelSize: 18 }

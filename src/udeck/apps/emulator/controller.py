@@ -16,6 +16,7 @@ from PySide6.QtCore import QObject, QProcess, QThreadPool, QTimer, Signal, Slot
 
 from udeck.apps.common.controller import AppController
 from udeck.apps.common.state import atomic_json
+from udeck.apps.emulator.browser import EmulatorBrowser
 from udeck.apps.emulator.catalog import CoreCatalog, message_lines, probe_core, probe_key
 from udeck.apps.emulator.library import EmulatorLibrary, confined_path, content_dependencies
 from udeck.apps.emulator.services import CoreInventoryTask, LaunchTask
@@ -456,7 +457,7 @@ class RetroEngine(QObject):
             self.runtime.cleanup()
 
 
-class EmulatorController(EmulatorSettings, AppController):
+class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
     def create_library(self, app):
         self.catalog = CoreCatalog.discover(self.store.data["preferences"])
         return EmulatorLibrary(self.store, self.catalog, self)
@@ -470,7 +471,6 @@ class EmulatorController(EmulatorSettings, AppController):
         self.engine.loaded.connect(self.load_done)
         self.engine.failed.connect(self.game_failed)
         self.engine.finished.connect(self.game_exited)
-        self.platform = "All"
         self.exit_after_save = False
         self.game_started = None
         self.checks = {}
@@ -555,20 +555,6 @@ class EmulatorController(EmulatorSettings, AppController):
     def tabs(self):
         return [tr(Msg.RECENTLY_PLAYED), tr(Msg.ALL_PLATFORMS), tr(Msg.FAVORITES)]
 
-    def rows(self):
-        rows = super().rows()
-        rows = [r for r in rows if r["sourceId"] == self.library.root_id]
-        if self.tab == 0:
-            order = self.store.data["recent"]
-            rows = [r for r in rows if r["id"] in order]
-            rows.sort(key=lambda r: order.index(r["id"]))
-        elif self.tab == 2:
-            rows = [r for r in rows if r["id"] in self.store.data["favorites"]]
-        if self.platform != "All":
-            rows = [r for r in rows if self.catalog.canonical(r["platform"]) == self.platform]
-        return [{**r, "subtitle": self.catalog.platforms[self.catalog.canonical(r["platform"])].title
-                 if self.catalog.canonical(r["platform"]) in self.catalog.platforms else r["platform"]} for r in rows]
-
     def game_root(self):
         identifier = self.current["id"]
         if not re.fullmatch(r"[A-Za-z0-9:_-]+", identifier):
@@ -601,8 +587,7 @@ class EmulatorController(EmulatorSettings, AppController):
                 "saveError": save_error, "romRoot": self.library.root_path,
                 "coreCount": len(self.catalog.cores), "coresPending": self.cores_pending,
                 "scanHints": self.library.reports.get(self.library.root_id, []),
-                "emptyHint": tr(Msg.ROM_ROOT_PATH_USE_PLATFORM_FOLDERS_GBA_PSP_PSX_DREAMCAST,
-                                path=self.library.root_path)}
+                **self.browser_state()}
 
     def start_game(self, resume=False):
         if self.launching or self.engine.running():
@@ -830,9 +815,11 @@ class EmulatorController(EmulatorSettings, AppController):
         elif self.engine.running():
             self.engine.pause()
         else:
-            self.menu(tr(Msg.EMULATOR_ACTIONS), [(tr(Msg.PLATFORM_FILTER), self.platform_menu),
-                       (tr(Msg.TOGGLE_FAVORITE), self.toggle_favorite),
+            options = [] if self.tab == 1 and self.platform == "All" else [
+                (tr(Msg.TOGGLE_FAVORITE), self.toggle_favorite)]
+            self.menu(tr(Msg.EMULATOR_ACTIONS), options + [
                        (tr(Msg.SEARCH), lambda: self.prompt(tr(Msg.SEARCH_LIBRARY), self.search, self.filter)),
+                       (tr(Msg.CLEAR_SEARCH), lambda: self.search("")),
                        (tr(Msg.BROWSE_ROM_ROOT), self.show_rom_root),
                        (tr(Msg.REFRESH_LIBRARY), self.refresh)],
                        message_lines(self.library.reports.get(self.library.root_id, [])))
@@ -845,18 +832,9 @@ class EmulatorController(EmulatorSettings, AppController):
             (tr(Msg.TOGGLE_FAVORITE), self.toggle_favorite), (tr(Msg.SETTINGS), self.settings)],
             message_lines(self.checks.get("errors", [])))
 
-    def platform_menu(self):
-        platforms = [p for p in self.catalog.platforms.values() if self.catalog.platform_cores(p.id)
-                     or any(self.catalog.canonical(i["platform"]) == p.id for i in self.library.items)]
-        self.menu(tr(Msg.PLATFORM_FILTER), [(tr(Msg.ALL), lambda: self.set_platform("All"))] +
-                  [(p.title, lambda p=p: self.set_platform(p.id), p.directory + "/")
-                   for p in sorted(platforms, key=lambda p: p.title.casefold())])
-
-    def set_platform(self, platform):
-        self.platform = platform
-        self.pop_menu()
-
     def toggle_favorite(self):
+        if self.page == "library" and self.tab == 1 and self.platform == "All":
+            return
         identifier = self.current["id"] if self.page == "game-details" else self.selected
         if identifier:
             values = self.store.data["favorites"]
@@ -885,7 +863,7 @@ class EmulatorController(EmulatorSettings, AppController):
             self.publish()
             return
         if not self.menus and self.page == "library" and action == "accept" and not self.rows():
-            self.settings()
+            self.search("") if self.filter else self.settings()
             return
         if self.engine.running() and not self.menus:
             # Physical B remains a game button; only the dedicated shortcut pauses.
