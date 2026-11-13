@@ -1,3 +1,11 @@
+udeck (0.2.11) unstable; urgency=medium
+
+  * Unify English and Chinese interface terminology and correct misleading copy.
+  * Localize sharing and reader failures without translating user filenames.
+  * Correct web file task statuses, conflict descriptions and accessible labels.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Fri, 13 Nov 2026 16:00:00 +0800
+
 udeck (0.2.10) unstable; urgency=medium
 
   * Keep an empty player's play command from interrupting active media.

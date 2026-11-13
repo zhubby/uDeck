@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=uDeck
 Comment=Button-first desktop for uConsole
+Comment[zh_CN]=面向实体按键操作的 uConsole 桌面
 Exec=/usr/bin/udeck-session
 Type=Application
 DesktopNames=uDeck;labwc;

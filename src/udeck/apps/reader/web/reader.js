@@ -4,6 +4,8 @@ import { EPUB } from './foliate/epub.js'
 const cfg = await (await fetch('config.json')).json()
 const view = document.querySelector('foliate-view')
 const emit = (type, data={}) => console.log('UDECK_READER:' + JSON.stringify({session:cfg.session,type,...data}))
+const readerError = (message, errorCode, errorDetail='') => Object.assign(Error(message), {errorCode,errorDetail})
+const reportError = error => emit('error',{error:String(error),errorCode:error?.errorCode,errorDetail:error?.errorDetail})
 let searchGeneration = 0
 const fonts = {sans:'system-ui, sans-serif', serif:"Georgia, 'Noto Serif CJK SC', serif", mono:'ui-monospace, monospace'}
 const backgrounds = {
@@ -32,7 +34,7 @@ try {
         const fetchEntry = async name => {
             if (!(name in cfg.entries)) return null
             const response = await fetch('book/' + name.split('/').map(encodeURIComponent).join('/'))
-            if (!response.ok) throw Error('Cannot read EPUB resource: ' + name)
+            if (!response.ok) throw readerError('Cannot read EPUB resource: ' + name, 'epub-resource', name)
             return response
         }
         book = await new EPUB({
@@ -48,7 +50,7 @@ try {
             slice: (start = 0, end = cfg.mobiSize) => ({
                 arrayBuffer: async () => {
                     const response = await fetch(`mobi/${start}/${end}`)
-                    if (!response.ok) throw Error('Cannot read MOBI record')
+                    if (!response.ok) throw readerError('Cannot read MOBI record', 'mobi-record')
                     return response.arrayBuffer()
                 },
             }),
@@ -112,6 +114,6 @@ try {
                 }
                 if(generation===searchGeneration) emit('search',{results,query:value})
             }
-        } catch(error) {emit('error',{error:String(error)})}
+        } catch(error) {reportError(error)}
     }
-} catch(error) {emit('error',{error:String(error)})}
+} catch(error) {reportError(error)}

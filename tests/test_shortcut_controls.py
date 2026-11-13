@@ -46,7 +46,7 @@ def test_conflict_cancel_and_transfer_preserve_other_aliases(tmp_path):
         choose(controller, 'terminal')
         controller.setShortcut('terminal', 'Ctrl+Alt+P', 0)
         assert controller.modal['kind'] == 'confirm'
-        assert '全屏截屏' in json.loads(controller.snapshotJson)['modal']['body']
+        assert '全屏截图' in json.loads(controller.snapshotJson)['modal']['body']
         controller.dispatch('accept')
         assert controller.shortcut_store.bindings()['terminal'] == ['C-A-t']
         controller.setShortcut('terminal', 'Ctrl+Alt+P', 0)

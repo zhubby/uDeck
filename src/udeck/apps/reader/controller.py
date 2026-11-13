@@ -169,7 +169,17 @@ class ReaderController(AppController):
                 self.search_results = data.get("results", [])
                 self.show_results()
             elif event == "error":
-                self.error = tr(Msg.READING_FAILED_ERROR, error=data.get("error", ""))
+                detail = data.get("errorDetail", "")
+                code = data.get("errorCode")
+                if code == "epub-resource":
+                    error = tr(Msg.READER_EPUB_RESOURCE_FAILED, name=detail)
+                elif code == "mobi-record":
+                    error = tr(Msg.READER_MOBI_RECORD_FAILED)
+                elif code == "reader-process":
+                    error = tr(Msg.READER_PROCESS_ENDED, code=detail)
+                else:
+                    error = data.get("error", "")
+                self.error = tr(Msg.READING_FAILED_ERROR, error=error)
             elif event == "external":
                 url = data.get("url", "")
                 self.menu(tr(Msg.EXTERNAL_LINK), [(tr(Msg.OPEN_IN_BROWSER), lambda: self.open_external(url)),

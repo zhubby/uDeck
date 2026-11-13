@@ -92,7 +92,7 @@ Item {
                 onNavigationRequested:function(request){if(request.isMainFrame&&request.url.toString()!=="about:blank"&&!request.url.toString().startsWith(appState.readerUrl.replace("index.html","")))request.reject()}
                 onCertificateError:function(error){error.rejectCertificate()}
                 onFeaturePermissionRequested:function(origin,feature){grantFeaturePermission(origin,feature,false)}
-                onRenderProcessTerminated:function(status,code){controller.readerEvent(JSON.stringify({session:(appState.readerUrl||"").split("/")[3],type:"error",error:"Reading process ended ("+code+")"}))}
+                onRenderProcessTerminated:function(status,code){controller.readerEvent(JSON.stringify({session:(appState.readerUrl||"").split("/")[3],type:"error",errorCode:"reader-process",errorDetail:String(code)}))}
             }
         }
         Rectangle {

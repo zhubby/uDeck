@@ -17,6 +17,6 @@ X-TerminalArgDir=--working-directory
 Actions=NewWindow;
 
 [Desktop Action NewWindow]
-Name=New Window
+Name=New window
 Name[zh_CN]=新建窗口
 Exec=udeck-terminal --new-window

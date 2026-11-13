@@ -115,7 +115,7 @@ def main(argv=None):
         if response.type() == QDBusMessage.MessageType.ErrorMessage:
             raise RuntimeError(response.errorMessage())
         if options.command in ('input-mode', 'input-ack') and response.arguments() == [False]:
-            raise RuntimeError('输入模式或配置代次未被接受；请查看 doctor --json')
+            raise RuntimeError('操作模式或配置代次未被接受；请查看 doctor --json')
         del application
         return 0
     except (ImportError, RuntimeError) as error:

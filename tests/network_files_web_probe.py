@@ -6,6 +6,31 @@ from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtWidgets import QApplication
 
 SCENARIOS = {
+    "translations": """
+        state.language = 'zh_CN';
+        translate();
+        render();
+        assert(document.documentElement.lang === 'zh-CN', 'The page language did not update');
+        assert(document.querySelector('.brand').getAttribute('aria-label') === 'uDeck 文件', 'The brand accessibility label is untranslated');
+        assert(document.getElementById('breadcrumbs').getAttribute('aria-label') === '文件夹路径', 'The breadcrumb accessibility label is untranslated');
+        assert(document.querySelector('[data-path="hello.txt"] .file-name').textContent === 'hello.txt', 'A filename was translated');
+        try { await api('files?path=missing'); assert(false, 'The missing folder request succeeded'); }
+        catch(error) { assert(error.message === '文件或文件夹已不可用', 'The service error leaked English: ' + error.message); }
+        try { await api('rename', {path:'hello.txt',name:'invalid/name'}); assert(false, 'The invalid filename was accepted'); }
+        catch(error) { assert(error.message === '名称不能为空，也不能包含路径分隔符', 'The name validation error leaked English: ' + error.message); }
+        addTask({name:'Failed {literal}',state:'Failed'});
+        assert(document.querySelector('.transfer-detail').textContent === '失败', 'A failed task was reported as incomplete');
+        assert(document.querySelector('.transfer-label span').textContent === 'Failed {literal}', 'The user task name was translated');
+        const pending = conflict('Files', true);
+        await waitFor(() => document.getElementById('dialog').open);
+        assert(document.getElementById('dialog-body').textContent === 'Files', 'The conflict dialog translated a literal path');
+        assert(![...document.querySelectorAll('#dialog-actions button')].some(item => item.textContent === '替换'), 'A folder conflict offered replacement');
+        document.getElementById('dialog-close').click();
+        assert(await pending === null, 'Closing a conflict chose a file policy');
+        state.language = 'en'; translate();
+        assert(document.querySelector('.transfer-detail').textContent === 'Failed', 'The task status did not switch back to English');
+        assert(document.getElementById('breadcrumbs').getAttribute('aria-label') === 'Folder path', 'The accessibility label did not switch back to English');
+    """,
     "initial-reconnect": """
         await waitFor(() => !document.getElementById('load-error').hidden && document.getElementById('connection').classList.contains('offline'));
         await config();

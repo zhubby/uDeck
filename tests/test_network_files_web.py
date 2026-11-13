@@ -11,7 +11,7 @@ from udeck.file_trash import TrashStore
 
 @pytest.mark.parametrize("scenario", [
     "history", "destination-loading", "destination-race", "hidden-destination", "destination-pagination",
-    "file-workflow", "pagination", "initial-reconnect", "initial-reconnect-folder", "reconnect-refresh", "failed-load", "missing-folder",
+    "file-workflow", "pagination", "initial-reconnect", "initial-reconnect-folder", "reconnect-refresh", "failed-load", "missing-folder", "translations",
 ])
 def test_network_files_web_interactions(tmp_path, monkeypatch, scenario):
     if scenario.startswith("initial-reconnect"):

@@ -3,6 +3,7 @@ Type=Application
 Name=uDeck Window Preview
 Name[zh_CN]=uDeck 窗口预览
 Comment=Open uDeck without changing the current desktop session
+Comment[zh_CN]=在当前桌面会话中预览 uDeck
 Exec=udeck --windowed
 Icon=io.github.zhubby.uDeck
 Terminal=false

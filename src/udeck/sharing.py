@@ -7,8 +7,9 @@ from pathlib import Path
 from PySide6.QtCore import QTimer
 from PySide6.QtDBus import QDBusConnection
 
-from .i18n import Msg, tr
+from .i18n import Msg, error_text, tr
 from .menu_icons import system_menu_icons
+from .sharing_messages import sharing_message
 
 
 class SharingControls:
@@ -97,7 +98,7 @@ class SharingControls:
                         result = client.status()
                     except Exception:
                         pass
-                return protocol, operation, result, str(error)
+                return protocol, operation, result, sharing_message(error_text(error))
 
         def finished(future):
             if not self._sharing_closing:
@@ -170,7 +171,7 @@ class SharingControls:
         # Preserve marked messages until serialization, including when language changes.
         body = ""
         for line in lines:
-            body = body + ("\n" if body else "") + line
+            body = body + ("\n" if body else "") + sharing_message(line)
         return body
 
     def _sharing_root_options(self):

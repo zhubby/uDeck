@@ -30,7 +30,7 @@ def test_old_and_invalid_theme_preferences_keep_classic(tmp_path, value):
 
 @pytest.mark.parametrize("language,names,current", [
     ("en", ["Classic", "Dark"], "Current theme"),
-    ("zh_CN", ["经典", "黑暗"], "当前主题"),
+    ("zh_CN", ["经典", "深色"], "当前主题"),
 ])
 def test_theme_menu_applies_persists_and_restores_focus(controller, language, names, current):
     controller.setLanguage(language)

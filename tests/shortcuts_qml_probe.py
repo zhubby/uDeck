@@ -103,7 +103,7 @@ def run():
             capture('recorded', recorder.window)
             QTest.keyClick(recorder.window, Qt.Key_Return)
             assert recorder.window is None and controller.modal['kind'] == 'confirm'
-            assert ('全屏截屏' if args.language == 'zh_CN' else 'Full screen screenshot') in json.loads(controller.snapshotJson)['modal']['body']
+            assert ('全屏截图' if args.language == 'zh_CN' else 'Full-screen screenshot') in json.loads(controller.snapshotJson)['modal']['body']
             capture('conflict')
             controller.dispatch('right')
             controller.dispatch('accept')

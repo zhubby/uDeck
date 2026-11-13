@@ -1,8 +1,10 @@
 import json
+from types import SimpleNamespace
 
 import pytest
 
 from udeck.apps.reader.style import normalize_reader_preferences
+from udeck.i18n import Message, render
 
 
 def test_reader_preferences_have_safe_defaults_and_reject_invalid_values():
@@ -61,6 +63,31 @@ def reader_controller(tmp_path):
     controller.current = None  # Layout fixtures do not open an actual document.
     controller.close()
     application.processEvents()
+
+
+@pytest.mark.parametrize("code,detail,chinese", [
+    ("epub-resource", "Files {literal}/音量.xhtml", "无法读取 EPUB 资源：Files {literal}/音量.xhtml"),
+    ("mobi-record", "", "无法读取 MOBI 数据记录"),
+    ("reader-process", "9", "阅读进程已退出（9）"),
+    ("unknown", "", "Unknown backend error {literal}"),
+])
+def test_reader_errors_keep_identity_arguments_and_session_guards(reader_controller, code, detail, chinese):
+    controller = reader_controller
+    controller.book = SimpleNamespace(token="active")
+    controller.page = "document"
+    payload = {"session": "old", "type": "error", "errorCode": code,
+               "errorDetail": detail, "error": "Unknown backend error {literal}"}
+    try:
+        controller.readerEvent(json.dumps(payload))
+        assert not controller.error
+        payload["session"] = "active"
+        controller.readerEvent(json.dumps(payload))
+        assert isinstance(controller.error, Message)
+        assert chinese in render(controller.error, "zh_CN")
+        if code == "epub-resource":
+            assert detail in render(controller.error, "en")
+    finally:
+        controller.book = None
 
 
 def test_reader_layout_menu_hides_reflow_controls_for_pdf(reader_controller):

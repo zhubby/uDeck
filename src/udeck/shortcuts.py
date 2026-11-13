@@ -222,7 +222,7 @@ class ShortcutStore:
 
 def render_bindings(original, bindings, *, pointer=False, token='startup'):
     if not re.fullmatch(r'[a-zA-Z0-9]{1,64}', token):
-        raise ValueError('Invalid configuration generation')
+        raise ValueError(tr(Msg.SHORTCUT_INVALID_GENERATION))
     root = ET.fromstring(original, parser=ET.XMLParser(target=ET.TreeBuilder(insert_comments=True)))
     namespace, separator, name = root.tag.rpartition('}')
     prefix = namespace + '}' if separator else ''

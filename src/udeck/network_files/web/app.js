@@ -7,23 +7,38 @@ const chinese = {
   'NETWORK ACCESS':'网络访问', 'Upload files':'上传文件', 'Upload folder':'上传文件夹',
   'New folder':'新建文件夹', 'Search this folder':'搜索当前文件夹', 'List view':'列表视图', 'Grid view':'网格视图', 'View options':'显示选项',
   'Sort':'排序', 'Name':'名称', 'Modified':'修改时间', 'Size':'大小', 'Reverse order':'倒序排列', 'Show hidden files':'显示隐藏文件',
-  'Download':'下载', 'Copy':'复制', 'Move':'移动', 'Rename':'重命名', 'Move to Trash':'移入回收站',
+  'Download':'下载', 'Copy':'复制', 'Move':'移动', 'Rename':'重命名', 'Move to trash':'移入回收站',
   'This folder is empty':'此文件夹为空', 'Loading…':'正在读取…', 'Drop files here, or choose Upload files.':'拖入文件，或点击“上传文件”。',
-  'Drop into this folder':'松开，上传到此文件夹', 'Try again':'重新尝试', 'Load more':'加载更多', 'Select all':'全选',
-  'Transfers & tasks':'传输与任务', 'Clear selection':'取消选择', 'Close':'关闭', 'Cancel':'取消', 'Create':'新建', 'Save':'保存',
-  'Folder name':'文件夹名称', 'New name':'新名称', 'Selected':'已选择', 'items':'个项目', 'free':'可用', 'No matching files':'没有找到匹配的文件',
+  'Drop into this folder':'松开，上传到此文件夹', 'Try again':'重试', 'Load more':'加载更多', 'Select all':'全选',
+  'Transfers & tasks':'传输与任务', 'Clear selection':'取消选择', 'Close':'关闭', 'Cancel':'取消', 'Create':'创建', 'Save':'保存',
+  'Folder name':'文件夹名称', 'Folder path':'文件夹路径', 'uDeck Files':'uDeck 文件', 'New name':'新名称', 'Selected':'已选择', 'items':'个项目', 'free':'可用', 'No matching files':'没有匹配的文件',
   'Try another name in this folder.':'试试其他文件名。', 'Cancel upload':'取消上传', 'Uploading':'上传中', 'Waiting':'等待中',
-  'Completed':'已完成', 'Failed':'未完成', 'Cancelled':'已取消', 'Preparing':'准备中', 'Running':'处理中', 'Skipped':'已跳过',
-  'Choose destination':'选择目标文件夹', 'Use this folder':'选择此文件夹', 'Parent folder':'上级文件夹', 'Home':'共享目录',
-  'A file with this name already exists':'已存在同名项目', 'Keep both':'保留两者', 'Skip':'跳过', 'Replace':'替换',
-  'Replace the existing file?':'替换现有文件？', 'Only regular files can be replaced. Folders are never merged.':'只替换普通文件，不合并或覆盖文件夹。',
-  'Continue':'继续', 'Folder created':'文件夹已新建', 'Renamed':'已重命名', 'Download started':'已开始下载',
+  'Completed':'已完成', 'Failed':'失败', 'Cancelled':'已取消', 'Preparing':'准备中', 'Running':'处理中', 'Skipped':'已跳过',
+  'Choose destination':'选择目标文件夹', 'Use this folder':'使用此文件夹', 'Parent folder':'上级文件夹', 'Home':'共享文件夹',
+  'An item with this name already exists':'已存在同名项目', 'A file with this name already exists':'已存在同名项目', 'Keep both':'保留两者', 'Skip':'跳过', 'Replace':'替换',
+  'Replace the existing file?':'替换现有文件？', 'Only regular files can be replaced. Folders are never merged or overwritten.':'只替换普通文件，不合并或覆盖文件夹。',
+  'Continue':'继续', 'Folder created':'文件夹已创建', 'Renamed':'已重命名', 'Download started':'已开始下载',
   'The selected items will be moved to the device’s Trash.':'所选项目将移入设备回收站。',
   'Links and special files are not shared':'符号链接及特殊文件不提供网络访问', 'Permission denied':'没有访问权限',
   'The file or folder is no longer available':'文件或文件夹已不可用', 'Choose another destination':'请选择其他目标文件夹',
   'Not enough free space':'可用空间不足', 'Upload is incomplete':'上传未完成', 'Upload cancelled':'上传已取消',
   'Upload size does not match':'上传大小不匹配', 'Choose a path inside the shared folder':'请选择共享范围内的路径',
   'Open this action from the Files page':'请从文件页面执行此操作', 'Refresh to reconnect to the device.':'刷新页面以重新连接设备。',
+  'Network access has stopped':'网络访问已停止', 'Expected an object':'请求格式无效',
+  'Wait for the current uploads':'请等待当前上传完成', 'Upload is already running':'上传正在进行中',
+  'Unsupported operation':'不支持此操作', 'Wait for the current file tasks':'请等待当前文件任务完成',
+  'Wait for the current downloads':'请等待当前下载完成', 'Download cancelled':'下载已取消',
+  'Invalid server address':'服务器地址无效', 'Choose fewer files for one download':'请减少单次下载的文件数量',
+  'Archive interrupted':'打包已中断', 'File changed during download':'下载期间文件已更改', 'Download interrupted':'下载已中断',
+  'Atomic no-replace rename is not available':'当前环境不支持安全重命名',
+  'The name cannot be empty or contain path separators':'名称不能为空，也不能包含路径分隔符',
+  'Shared folder is no longer available':'共享文件夹已不可用', 'Choose a regular file':'请选择普通文件',
+  'Folders are never merged or replaced':'不会合并或替换文件夹', 'Invalid upload':'上传请求无效',
+  'Choose between 1 and 2000 items':'请选择 1 至 2000 个项目', 'Cannot copy a folder into itself':'不能将文件夹复制到自身',
+  'Unsafe trash directory; no files were changed':'回收站文件夹不安全，未改动任何文件',
+  'Destination changed during the operation':'操作期间目标位置已更改', 'Only regular files can be replaced':'只能替换普通文件',
+  'Source changed':'源文件或文件夹已更改', 'Source changed during copy':'复制期间源文件或文件夹已更改',
+  'The shared volume cannot use this trash; no file was deleted':'共享卷无法使用此回收站，未删除任何文件',
 };
 const t = text => state.language === 'zh_CN' ? chinese[text] || text : text;
 const svg = {list:'<path d="M9 6h12M9 12h12M9 18h12M3 6h1M3 12h1M3 18h1"/>',grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',options:'<path d="M4 6h16M4 12h16M4 18h16M9 3v6M15 9v6M8 15v6"/>'};
@@ -48,6 +63,8 @@ function translate() {
   $('clear-selection').setAttribute('aria-label',t('Clear selection'));
   $('dialog-close').setAttribute('aria-label',t('Close'));
   $('files').setAttribute('aria-label',t('Files'));
+  $('breadcrumbs').setAttribute('aria-label',t('Folder path'));
+  document.querySelector('.brand').setAttribute('aria-label',t('uDeck Files'));
   document.title=t('Files')+' · uDeck';
   $('subtitle').textContent=(state.language==='zh_CN'?'共享自 ':'Shared from ') + state.rootName;
   updateView(); renderTasks();
@@ -111,7 +128,7 @@ function renderBreadcrumbs(container=$('breadcrumbs'), path=state.path, handler=
 function selection() {
   const count=state.selected.size;
   $('selection').hidden=!count;
-  $('selection-count').textContent=state.language==='zh_CN'?`已选 ${count} 项`:`${count} selected`;
+  $('selection-count').textContent=state.language==='zh_CN'?`已选择 ${count} 个项目`:`${count} selected`;
   $('rename').disabled=count!==1;
   $('files').classList.toggle('has-selection',!!count);
   document.querySelectorAll('.file').forEach(tile=>{
@@ -144,7 +161,7 @@ function render() {
   $('empty').querySelector('h2').textContent=t($('search').value?'No matching files':'This folder is empty');
   $('empty').querySelector('p').textContent=t($('search').value?'Try another name in this folder.':'Drop files here, or choose Upload files.');
   $('load-more').hidden=state.entries.length>=state.total;
-  $('item-count').textContent=state.total+' '+t('items');$('space').textContent=size(state.freeBytes)+' '+t('free');
+  $('item-count').textContent=state.total+' '+t('items');$('space').textContent=state.language==='zh_CN'?'可用 '+size(state.freeBytes):size(state.freeBytes)+' free';
   updateView();selection();
 }
 function updateView() {
@@ -156,7 +173,7 @@ function updateView() {
 let dialogSequence=Promise.resolve();
 function dialog(title, description, content, buttons) {
   const next=()=>new Promise(resolve=>{
-    const panel=$('dialog');$('dialog-title').textContent=t(title);$('dialog-body').textContent=t(description);
+    const panel=$('dialog');$('dialog-title').textContent=t(title);$('dialog-body').textContent=description;
     $('dialog-content').replaceChildren();$('dialog-actions').replaceChildren();
     if(content)$('dialog-content').append(content);
     let settled=false;
@@ -179,8 +196,8 @@ async function conflict(path, folder=false) {
   const buttons=[{label:'Cancel',value:null},{label:'Skip',value:'skip'}];
   if(!folder)buttons.push({label:'Replace',value:'replace'});
   buttons.push({label:'Keep both',value:'keep',primary:true});
-  const policy=await dialog('A file with this name already exists',path,null,buttons);
-  if(policy==='replace')return await dialog('Replace the existing file?','Only regular files can be replaced. Folders are never merged.',null,[{label:'Cancel',value:null},{label:'Replace',value:true,primary:true}])?'replace':null;
+  const policy=await dialog('An item with this name already exists',path,null,buttons);
+  if(policy==='replace')return await dialog('Replace the existing file?',t('Only regular files can be replaced. Folders are never merged or overwritten.'),null,[{label:'Cancel',value:null},{label:'Replace',value:true,primary:true}])?'replace':null;
   return policy;
 }
 async function destination(action) {
@@ -232,7 +249,7 @@ async function fileTask(action) {
   const rows=chosen();if(!rows.length)return;
   let target={path:''},policy='error';
   if(action==='trash'){
-    const result=await dialog('Move to Trash','The selected items will be moved to the device’s Trash.',null,[{label:'Cancel',value:null},{label:'Move to Trash',value:true,primary:true}]);if(!result)return;
+    const result=await dialog('Move to trash',t('The selected items will be moved to the device’s Trash.'),null,[{label:'Cancel',value:null},{label:'Move to trash',value:true,primary:true}]);if(!result)return;
   }else{
     target=await destination(action==='copy'?'Copy':'Move');if(!target)return;
     const result=await api('conflicts',{paths:rows.map(row=>row.path),destination:target.path});

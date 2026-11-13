@@ -7,7 +7,7 @@ from string import Formatter
 from threading import Thread
 
 import pytest
-from PySide6.QtCore import QCoreApplication, Qt
+from PySide6.QtCore import QCoreApplication, QEventLoop, Qt, QTimer
 
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
@@ -239,7 +239,7 @@ def test_terminal_switches_chrome_without_restarting_sessions_or_translating_tit
     terminal.preparePaste("echo 设置\necho done")
     terminal.setLanguage("zh_CN")
     assert terminal.current == identifier
-    assert snapshot(terminal)["tabs"][0]["title"] == "本地 shell"
+    assert snapshot(terminal)["tabs"][0]["title"] == "本地 Shell"
     assert snapshot(terminal)["pastePreview"] == "echo 设置\necho done"
     assert terminal.tabs.rowCount() == 1
     assert operations == []
@@ -250,7 +250,56 @@ def test_terminal_switches_chrome_without_restarting_sessions_or_translating_tit
     terminal.componentFailed()
     assert snapshot(terminal)["message"].startswith("Could not load the native terminal component")
     terminal.setLanguage("zh_CN")
-    assert snapshot(terminal)["message"] == "终端原生组件加载失败，请检查 udeck-terminal 安装和 Qt 版本。"
+    assert snapshot(terminal)["message"] == "终端原生组件加载失败，请检查 udeck 软件包安装和 Qt 版本。"
+
+
+@pytest.mark.parametrize("protocol", ["web", "smb"])
+@pytest.mark.parametrize("marked", [False, True])
+def test_sharing_worker_errors_follow_language_changes(controller, monkeypatch, protocol, marked):
+    from udeck.network_files import client as web_client
+    from udeck.smb_files import client as smb_client
+
+    client = web_client if protocol == "web" else smb_client
+    detail = "音量 {literal} /home/user/Files"
+    message = (tr(Msg.SHARING_PORT_UNAVAILABLE, error=detail) if marked
+               else "A selected network is no longer connected")
+
+    def fail(_value):
+        raise RuntimeError(message)
+
+    monkeypatch.setattr(client, "start", fail)
+    monkeypatch.setattr(client, "status", lambda: dict(controller._shares[protocol]["state"]))
+    controller._sharing_open(protocol)
+    loop = QEventLoop()
+    controller.sharingFinished.connect(loop.quit)
+    controller._sharing_request(protocol, "start", {})
+    if controller._shares[protocol]["busy"]:
+        QTimer.singleShot(3000, loop.quit)
+        loop.exec()
+    assert not controller._shares[protocol]["busy"]
+    assert isinstance(controller._shares[protocol]["error"], Message)
+    english = snapshot(controller)["modal"]["body"]
+    controller.setLanguage("zh_CN")
+    chinese = snapshot(controller)["modal"]["body"]
+    if marked:
+        assert detail in english and detail in chinese
+        assert "端口已被占用或不可用" in chinese
+    else:
+        assert "A selected network is no longer connected" in english
+        assert "所选网络已断开连接" in chinese
+    controller.setLanguage("en")
+    assert snapshot(controller)["modal"]["body"] == english
+
+
+def test_sharing_status_errors_are_marked_without_translating_unknown_details(controller):
+    controller._sharing_open("smb")
+    state = dict(controller.smb_access, errors=["Shared folder changed before Samba startup"])
+    controller._sharing_result(("smb", "status", state, ""))
+    controller.setLanguage("zh_CN")
+    assert "共享文件夹已更改，请重新选择。" in snapshot(controller)["modal"]["body"]
+    state["errors"] = ["Unknown backend detail: Files {literal}"]
+    controller._sharing_result(("smb", "status", state, ""))
+    assert "Unknown backend detail: Files {literal}" in snapshot(controller)["modal"]["body"]
 
 
 def test_catalogs_cover_every_marked_message_and_preserve_format_fields():
