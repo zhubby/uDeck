@@ -110,7 +110,7 @@ def test_action_queued_behind_status_immediately_shows_progress(controller):
 def test_open_sharing_body_tracks_language_changes(controller):
     controller._sharing_open("smb")
     controller.setLanguage("zh_CN")
-    assert "免密码" in json.loads(controller.snapshotJson)["modal"]["body"]
+    assert "无需密码" in json.loads(controller.snapshotJson)["modal"]["body"]
     controller.setLanguage("en")
     assert "Passwordless" in json.loads(controller.snapshotJson)["modal"]["body"]
 

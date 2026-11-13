@@ -3,9 +3,10 @@
 import argparse
 import json
 import tempfile
+import time
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QUrl
+from PySide6.QtCore import QEventLoop, Qt, QTimer, QUrl
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine, QQmlEngine, QQmlExpression
 from PySide6.QtTest import QTest
@@ -15,6 +16,15 @@ from udeck.controller import ShellController
 from udeck.core import ConfigStore
 from udeck.mock import MockBackend
 from udeck.shortcut_recorder import ShortcutRecorder
+
+
+def wait_until(predicate):
+    deadline = time.monotonic() + 3
+    while not predicate() and time.monotonic() < deadline:
+        loop = QEventLoop()
+        QTimer.singleShot(10, loop.quit)
+        loop.exec()
+    assert predicate()
 
 
 def run():
@@ -120,7 +130,7 @@ def run():
             choose('add')
             assert recorder.timeout_timer.interval() == 15000
             recorder.timeout_timer.start(20)
-            QTest.qWait(60)
+            wait_until(lambda: recorder.window is None)
             assert recorder.window is None
             recorder.timeout_timer.setInterval(15000)
             choose('add')

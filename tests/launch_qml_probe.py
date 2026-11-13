@@ -1,9 +1,10 @@
 import argparse
 import json
 import os
+import time
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Qt, QUrl
+from PySide6.QtCore import QEventLoop, QObject, Qt, QTimer, QUrl
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtTest import QTest
@@ -13,6 +14,15 @@ from udeck import main
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
 from udeck.mock import MockBackend
+
+
+def wait_until(predicate):
+    deadline = time.monotonic() + 3
+    while not predicate() and time.monotonic() < deadline:
+        loop = QEventLoop()
+        QTimer.singleShot(10, loop.quit)
+        loop.exec()
+    assert predicate()
 
 
 def run():
@@ -71,7 +81,7 @@ def run():
                 break
         assert controller.startup["active"]
         controller.startupFrameSwapped()
-        QTest.qWait(180)
+        wait_until(lambda: not startup.property("visible"))
         assert not startup.property("visible")
         assert not startup.property("animationRunning")
 
@@ -110,7 +120,7 @@ def run():
         QTest.keyClick(window, Qt.Key.Key_Right)
         assert controller.navigation.index == 1
         QTest.keyClick(window, Qt.Key.Key_Escape)
-        QTest.qWait(180)
+        wait_until(lambda: not overlay.property("visible"))
         assert not overlay.property("visible")
         assert not overlay.property("animationRunning")
         assert controller.navigation.index == 1
