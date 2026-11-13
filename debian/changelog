@@ -1,3 +1,10 @@
+udeck (0.2.8) unstable; urgency=medium
+
+  * Use built-in icons throughout the shell, launch overlays and application menus.
+  * Remove desktop icon theme lookup while preserving explicit application images.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Fri, 13 Nov 2026 13:00:00 +0800
+
 udeck (0.2.7) unstable; urgency=medium
 
   * Keep application settings icons in the built-in rounded tile style.

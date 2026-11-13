@@ -1,4 +1,4 @@
-"""Shared desktop theme icons and uDeck's native fallback artwork."""
+"""Bundled uDeck artwork and explicit application image files."""
 
 import hashlib
 import math
@@ -30,9 +30,11 @@ class IconProvider(QQuickImageProvider):
             image = self._draw_bundled_setting(name, dimension)
         elif name.startswith(APP_MENU_ICON_PREFIX):
             image = self._draw(name.removeprefix(APP_MENU_ICON_PREFIX), dimension)
-        else:
-            icon = QIcon(name) if name.startswith("/") else QIcon.fromTheme(name)
+        elif name.startswith("/"):
+            icon = QIcon(name)
             image = icon.pixmap(QSize(dimension, dimension)).toImage() if not icon.isNull() else self._draw(name, dimension)
+        else:
+            image = self._draw(name, dimension)
         size.setWidth(image.width())
         size.setHeight(image.height())
         return image
