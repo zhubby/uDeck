@@ -134,7 +134,7 @@ def run(output, zoom):
         QTest.qWait(80)
         for key in (Qt.Key.Key_A, Qt.Key.Key_B, Qt.Key.Key_X, Qt.Key.Key_Y):
             QTest.keyClick(window, key)
-        assert evaluate("document.getElementById('draft').value") == "abxy"
+        wait(lambda: evaluate("document.getElementById('draft').value") == "abxy")
         QTest.keyClick(window, Qt.Key.Key_Return)
         wait(lambda: any(path == "/submit?draft=abxy" for path in requests))
         wait(lambda: controller.active_tab().url == base + "/submit?draft=abxy"
