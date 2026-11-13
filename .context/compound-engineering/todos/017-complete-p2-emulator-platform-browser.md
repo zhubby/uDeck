@@ -1,5 +1,5 @@
 ---
-status: ready
+status: complete
 priority: p2
 issue_id: "017"
 tags: [emulator, navigation, icons, device]
@@ -28,10 +28,12 @@ Implement the user-approved plan, validate real Qt events and complete Debian te
 - [x] Platform/game navigation, searches, focus, recent games and favorites pass regression tests.
 - [x] Fixed Monochrome resources, attribution and packaging verified.
 - [x] English/Chinese and Classic/Dark Qt probes pass; code review completed.
-- [ ] Full Debian build/tests pass, main pushed and live ref checked.
-- [ ] Exact package deployed, runtime verified, and requested device screenshots captured.
+- [x] Full Debian build/tests pass, main pushed and live ref checked.
+- [x] Exact package deployed, runtime verified, and requested device screenshots captured.
 
 ## Work Log
 
 - 2026-11-13: Approved plan implemented in isolated `codex/emulator-platforms`; original 50 baseline tests passed and new navigation tests reproduced the missing behavior before implementation.
 - 2026-11-13: 73 focused regressions and an additional 13 navigation/QML checks passed; all 60 SVGs render in Qt with fixed gold foreground. Ruff, lock consistency and wheel resource checks passed. Full Debian and device delivery remain pending.
+
+- 2026-11-13: Delivered clean 0.2.13 from main 3540063; 1587 complete Debian tests passed, package lifecycle/source verification passed, and exact package deployed to the uConsole. Real platform/core navigation, mGBA launches from recent/favorites, normal exit, four language/theme combinations and final configuration restoration passed. Three final device screenshots are checked in with the delivery record. Human physical-button acceptance remains separate.
