@@ -47,9 +47,9 @@ class EmulatorBrowser:
         if state != self._core_view_state:
             self._core_view_state = state
             self._row_revision += 1
-            if (self.tab == 1 and self.platform != "All" and self.page == "library"
-                    and not self.catalog.candidates(self.platform)):
-                self._return_to_platforms()
+        if (self.tab == 1 and self.platform != "All" and self.page == "library"
+                and not self.catalog.candidates(self.platform)):
+            self._return_to_platforms()
 
     def _view_rows(self):
         self._sync_core_browser()

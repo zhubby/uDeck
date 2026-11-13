@@ -166,3 +166,19 @@ def test_snapshot_is_consistent_when_core_probe_removes_the_current_platform(pla
     assert {row["kind"] for row in state["cards"]} == {"platform"}
     assert state["count"] == 2
     assert state["selected"] == "platform:gba"
+
+
+def test_returning_from_details_reconciles_a_platform_disabled_there(platform_browser):
+    controller = platform_browser
+    enter_platform(controller, "nes")
+    controller.dispatch("accept")
+    assert controller.page == "game-details"
+    controller.core_details("nestopia", "nes")
+    controller.toggle_core("nestopia", False, "nes")
+    controller.clear_menus()
+    controller.publish()
+    assert controller.page == "game-details"
+    controller.dispatch("back")
+    state = json.loads(controller.snapshotJson)
+    assert state["platformsView"] and state["platform"] == "All"
+    assert state["selected"] == "platform:gba"
