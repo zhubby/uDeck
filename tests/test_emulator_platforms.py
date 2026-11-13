@@ -81,7 +81,7 @@ def test_last_core_disabled_hides_platform_with_games_and_reconciles_focus(platf
     controller.toggle_core("nestopia", False, "nes")
     rows = platform_rows(controller)
     assert set(rows) == {"gb", "gba"}
-    assert controller.selected in {r["id"] for r in rows.values()}
+    assert controller.selected == "platform:gba"
     assert controller.menus[-1]["coreId"] == "nestopia"
 
 
@@ -154,6 +154,7 @@ def test_disabling_active_platform_returns_to_platform_list(platform_browser):
     controller.publish()
     assert controller.page == "library" and controller.platform == "All"
     assert set(platform_rows(controller)) == {"gb", "gba"}
+    assert controller.selected == "platform:gba"
 
 
 def test_snapshot_is_consistent_when_core_probe_removes_the_current_platform(platform_browser):
@@ -164,3 +165,4 @@ def test_snapshot_is_consistent_when_core_probe_removes_the_current_platform(pla
     assert state["platform"] == "All" and state["platformsView"]
     assert {row["kind"] for row in state["cards"]} == {"platform"}
     assert state["count"] == 2
+    assert state["selected"] == "platform:gba"

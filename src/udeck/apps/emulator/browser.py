@@ -19,6 +19,7 @@ class EmulatorBrowser:
         self.platform = "All"
         self._searches = {}
         self._core_view_state = None
+        self._platform_index = 0
         super().__init__(*args, **kwargs)
 
     def _scope(self):
@@ -86,6 +87,7 @@ class EmulatorBrowser:
         platform = row["platformId"]
         if not self.catalog.candidates(platform):
             return
+        self._platform_index = max(0, self.selectedIndex)
         self._remember_browser()
         self.feedback("open")
         self.platform = platform
@@ -96,6 +98,11 @@ class EmulatorBrowser:
         self.platform, self.page, self.folder = "All", "library", ""
         self.history.clear()
         self._restore_browser()
+        rows = self.rows()
+        if self.selected not in {row["id"] for row in rows}:
+            # The previous card model contains games, so reconcile against the
+            # platform position saved before entering the now-disabled platform.
+            self.selected = rows[min(self._platform_index, len(rows) - 1)]["id"] if rows else ""
 
     def back(self):
         if self.page == "library" and self.tab == 1 and self.platform != "All":
