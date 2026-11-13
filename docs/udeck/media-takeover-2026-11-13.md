@@ -21,3 +21,5 @@
 - 正常运行的视频进程设置菜单仅保留 `Audio output`、`Sources`、`Close application` 三项，截图为 `artifacts/media-preemption-20261113/video-y-menu-0.2.9.png`。
 
 构建日志、安装与会话校验、播放检查报告和原图保留在忽略目录 `artifacts/media-preemption-20261113/`。设备回退包与配置备份位于 `/var/backups/udeck-media-preemption-0.2.9-20261113/`。
+
+后续的代码审查、空播放器修复与 0.2.10 实机按键和音频回录结果见[复测记录](media-review-2026-11-13.md)。
