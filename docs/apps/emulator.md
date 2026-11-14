@@ -1,6 +1,6 @@
 # Emulator：Libretro 列表、目录、核心与存档
 
-适用于完整的 uDeck 0.2.16 Debian 单包。
+适用于完整的 uDeck 0.2.17 Debian 单包。
 
 ## 游戏列表与游戏
 
