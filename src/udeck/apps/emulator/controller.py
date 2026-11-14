@@ -3,14 +3,12 @@
 import copy
 import hashlib
 import json
-import os
 import re
 import shutil
 import signal
 import tempfile
 import threading
 import time
-import uuid
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QProcess, QThreadPool, QTimer, Signal, Slot
@@ -20,8 +18,12 @@ from udeck.apps.common.state import atomic_json
 from udeck.apps.emulator.browser import EmulatorBrowser
 from udeck.apps.emulator.catalog import CoreCatalog, message_lines, probe_core, probe_key
 from udeck.apps.emulator.library import EmulatorLibrary, confined_path, content_dependencies
+from udeck.apps.emulator.save_management import EmulatorSaveManagement
 from udeck.apps.emulator.services import CoreInventoryTask, LaunchTask
 from udeck.apps.emulator.settings import EmulatorSettings
+from udeck.emulator_saves.files import copy_file, native_tree, replace_tree
+from udeck.emulator_saves.store import CoreSaveStore, latest_save
+from udeck.emulator_saves.store import SaveStore as SaveStore
 from udeck.i18n import Msg, error_text, tr
 from udeck.sounds import interaction
 
@@ -103,99 +105,6 @@ def preflight(item, preferences, executable=None, catalog=None, validate_native=
     return checks
 
 
-class SaveStore:
-    def __init__(self, root):
-        self.root = Path(root)
-        self.sram_root = self.root / "sram"
-
-    def prepare_sram(self):
-        self.sram_root.mkdir(parents=True, exist_ok=True, mode=0o700)
-
-    def inspect(self, slot):
-        name = self.manifest().get(str(slot))
-        if not isinstance(name, str) or not re.fullmatch(r"[0-9a-f]{32}", name):
-            raise ValueError(tr(Msg.THIS_SAVE_SLOT_IS_EMPTY))
-        value = json.loads((self.root / name / "metadata.json").read_text())
-        if not isinstance(value, dict):
-            raise ValueError(tr(Msg.THE_SAVE_STATE_IS_DAMAGED))
-        return value
-
-    def manifest(self):
-        try:
-            slots = json.loads((self.root / "slots.json").read_text())
-            if not isinstance(slots, dict):
-                raise ValueError(tr(Msg.THE_SAVE_INDEX_IS_DAMAGED))
-            return slots
-        except FileNotFoundError:
-            return {}
-
-    def publish(self, slot, state_file, metadata, thumbnail=None):
-        if not Path(state_file).is_file() or Path(state_file).stat().st_size == 0:
-            raise OSError(tr(Msg.THE_CORE_DID_NOT_WRITE_A_SAVE_STATE))
-        self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
-        name = uuid.uuid4().hex
-        staging = self.root / ("." + name)
-        staging.mkdir(mode=0o700)
-        try:
-            target = staging / "state"
-            with Path(state_file).open("rb") as source, target.open("wb") as output:
-                shutil.copyfileobj(source, output)
-                output.flush()
-                os.fsync(output.fileno())
-            data = {**metadata, "version": 1, "sha256": file_hash(target), "created": time.time(),
-                    "thumbnail": bool(thumbnail and Path(thumbnail).is_file())}
-            if data["thumbnail"]:
-                shutil.copyfile(thumbnail, staging / "thumbnail.png")
-            atomic_json(staging / "metadata.json", data)
-            os.replace(staging, self.root / name)
-            slots = SaveStore.manifest(self)
-            slots[str(slot)] = name
-            atomic_json(self.root / "slots.json", slots)
-            return data
-        finally:
-            if staging.exists():
-                shutil.rmtree(staging)
-
-    def load(self, slot, content_hash, core_hash):
-        name = self.manifest().get(str(slot))
-        if not isinstance(name, str) or len(name) != 32 or any(c not in "0123456789abcdef" for c in name):
-            raise ValueError(tr(Msg.THIS_SAVE_SLOT_IS_EMPTY))
-        directory = self.root / name
-        metadata = json.loads((directory / "metadata.json").read_text())
-        if not isinstance(metadata, dict):
-            raise ValueError(tr(Msg.THE_SAVE_STATE_IS_DAMAGED))
-        if metadata.get("version") != 1 or metadata.get("contentHash") != content_hash or metadata.get("coreHash") != core_hash:
-            raise ValueError(tr(Msg.THIS_STATE_BELONGS_TO_ANOTHER_GAME_OR_CORE_VERSION))
-        path = directory / "state"
-        if file_hash(path) != metadata.get("sha256"):
-            raise ValueError(tr(Msg.THE_SAVE_STATE_IS_DAMAGED))
-        return path, metadata
-
-
-class CoreSaveStore(SaveStore):
-    def __init__(self, game_root, core_id, core_hash):
-        if not re.fullmatch(r"[A-Za-z0-9_-]+", core_id) or not re.fullmatch(r"[0-9a-f]{64}", core_hash):
-            raise ValueError(tr(Msg.INVALID_CORE_SAVE_IDENTITY))
-        self.game_root, self.core_id, self.core_hash = Path(game_root), core_id, core_hash
-        super().__init__(self.game_root / "cores" / core_id / core_hash)
-        self.sram_root = self.root.parent / "sram"
-
-
-def latest_save(game_root, slot="auto"):
-    root = Path(game_root)
-    candidates = []
-    for directory in root.glob("cores/*/*"):
-        if directory.name == "sram":
-            continue
-        try:
-            store = SaveStore(directory)
-            metadata = store.inspect(slot)
-            candidates.append((float(metadata.get("created", 0)), store, metadata))
-        except (OSError, ValueError, TypeError):
-            continue
-    return max(candidates, key=lambda x: x[0])[1:] if candidates else (None, None)
-
-
 def config_quote(value):
     value = str(value)
     if any(x in value for x in ('"', '\n', '\r')):
@@ -255,6 +164,8 @@ class RetroEngine(QObject):
         self.metadata = {}
         self.deadline = 0
         self.load_observed = False
+        self.sram_runtime = None
+        self.sram_committed = False
 
     def start(self, item, checks, save_store, resume=False):
         if self.running():
@@ -269,7 +180,11 @@ class RetroEngine(QObject):
         self.runtime = tempfile.TemporaryDirectory(prefix="udeck-game-")
         root = Path(self.runtime.name)
         save_store.prepare_sram()
-        sram = save_store.sram_root
+        sram = root / "sram"
+        sram.mkdir(mode=0o700)
+        for name, source in native_tree(save_store.sram_root).items():
+            copy_file(source, sram / name)
+        self.sram_runtime, self.sram_committed = sram, False
         # RetroArch uses retro_system_info.library_name when there is no content.
         basename = (Path(item["path"]).stem if item.get("path") else
                     checks.get("libraryName") or checks.get("coreId", "core"))
@@ -471,10 +386,24 @@ class RetroEngine(QObject):
         if self.terminating and error == QProcess.ProcessError.Crashed:
             return  # exited() still reports unexpected exit codes/signals.
         self.failed.emit(self.process.errorString())
+        if error == QProcess.ProcessError.FailedToStart:
+            self.timer.stop()
+            self.quit_timer.stop()
+            self.status, self.pending = "idle", None
+            self.sram_committed = False
+            self.finished.emit(-1)
+            self.changed.emit()
 
     def exited(self, code, status):
         self.timer.stop()
         self.quit_timer.stop()
+        self.sram_committed = False
+        if code == 0 and status == QProcess.ExitStatus.NormalExit and self.sram_runtime is not None:
+            try:
+                replace_tree(self.store.sram_root, native_tree(self.sram_runtime))
+                self.sram_committed = True
+            except (OSError, ValueError) as error:
+                self.failed.emit(error_text(error))
         self.status, self.pending = "idle", None
         expected_signal = self.terminating and status == QProcess.ExitStatus.CrashExit and code == signal.SIGTERM
         self.quitting = self.terminating = False
@@ -495,7 +424,7 @@ class RetroEngine(QObject):
             self.runtime.cleanup()
 
 
-class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
+class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrowser, AppController):
     def create_library(self, app):
         self.catalog = CoreCatalog.discover(self.store.data["preferences"])
         return EmulatorLibrary(self.store, self.catalog, self)
@@ -522,6 +451,7 @@ class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
         self.launch_item = None
         self.launch_cancel = threading.Event()
         self.tab = 0 if self.store.data["recent"] else 1
+        self.init_save_management()
 
     def start(self):
         self.refresh_catalog(force=False)
@@ -621,13 +551,17 @@ class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
             save_error = tr(Msg.CANNOT_READ_SAVES_ERROR, error=error)
         return {"platform": self.platform, "gameStatus": self.engine.status,
                 "gameChecks": self.checks, "saveSlots": list(slots),
-                "gameBusy": bool(self.engine.pending) or self.launching, "sourceMissing": self.source_missing,
+                "gameBusy": bool(self.engine.pending) or self.launching or bool(self.sync_launch), "sourceMissing": self.source_missing,
                 "saveError": save_error, "romRoot": self.library.root_path,
                 "coreCount": len(self.catalog.cores), "coresPending": self.cores_pending,
                 "scanHints": self.library.reports.get(self.library.root_id, []),
+                **self.save_state(),
                 **self.browser_state()}
 
     def start_game(self, resume=False):
+        self.save_start_game(resume)
+
+    def _start_game(self, resume=False):
         if self.launching or self.engine.running():
             raise RuntimeError(tr(Msg.A_GAME_IS_ALREADY_STARTING_OR_RUNNING))
         item = self.require_current()
@@ -692,12 +626,19 @@ class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
             stat = Path(path).stat()
             if [stat.st_size, stat.st_mtime_ns] != stamp:
                 raise ValueError(tr(Msg.THE_FILE_HAS_CHANGED_REFRESH_THE_LIBRARY_BEFORE_OPENING_IT))
+        if not self.prepare_save_launch():
+            return
         saves = self.save_store()
         if self.launch_resume:
             if not self.checks["savestate"]:
                 raise ValueError(tr(Msg.THIS_CORE_DOES_NOT_SUPPORT_SAVE_STATES))
             saves.load("auto", self.checks["contentHash"], self.checks["coreHash"])
-        self.engine.start(item, self.checks, saves, self.launch_resume)
+        self.acquire_save_session()
+        try:
+            self.engine.start(item, self.checks, saves, self.launch_resume)
+        except Exception:
+            self.release_save_session()
+            raise
         self.page = "game-running"
         self.game_started = time.monotonic()
         self.source_missing = False
@@ -708,6 +649,9 @@ class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
         self.launch_generation += 1
         self.launching = False
         self.launch_cancel.set()
+        if hasattr(self, "sync_launch"):
+            self.sync_launch = None
+            self.save_launch_ready = -1
 
     def require_current(self):
         if self.current.get("noContent"):
@@ -811,6 +755,7 @@ class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
         self.engine.load(slot) if load else self.engine.save(slot)
 
     def save_done(self, slot):
+        self.record_running_save(slot)
         self.notice = tr(Msg.STATE_SAVED)
         if self.exit_after_save:
             self.exit_after_save = False
@@ -844,6 +789,7 @@ class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
         self.publish()
 
     def game_exited(self, code):
+        self.record_exited_sram(code)
         self.exit_after_save = False
         self.clear_menus()
         self.page = "game-details"
@@ -874,6 +820,7 @@ class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
             (tr(Msg.CONTINUE), lambda: self.start_game(True)),
             (tr(Msg.RESTART), lambda: self.start_game()),
             (tr(Msg.CHOOSE_CORE), self.choose_game_core),
+            (tr(Msg.EMU_SAVE_MANAGEMENT), self.save_management),
             (tr(Msg.TOGGLE_FAVORITE), self.toggle_favorite), (tr(Msg.SETTINGS), self.settings)],
             message_lines(self.checks.get("errors", [])))
 
@@ -933,6 +880,7 @@ class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
 
     def poll(self):
         super().poll()
+        self.save_poll()
         if (self.source_missing and not self.reconnect_checked and self.current
                 and self.current["sourceId"] not in self.library.unavailable):
             self.reconnect_checked = True
@@ -957,6 +905,7 @@ class EmulatorController(EmulatorSettings, EmulatorBrowser, AppController):
         self.core_generation += 1
         self.core_cancel.set()
         self.engine.close()
+        self.close_save_management()
         super().close()
 
     @Slot()

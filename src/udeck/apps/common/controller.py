@@ -233,7 +233,7 @@ class AppController(SoundFeedback):
             self._callbacks.pop(row["id"], None)
         return rows
 
-    def menu(self, title, options=(), body="", owner=None, quiet=False, icon="", *, settings=None):
+    def menu(self, title, options=(), body="", owner=None, quiet=False, icon="", *, settings=None, body_lines=5):
         if not quiet:
             self.feedback("open")
         if not icon and self.menus:
@@ -243,7 +243,7 @@ class AppController(SoundFeedback):
             settings = bool(self.menus and self.menus[-1].get("settings"))
         refresh = options if callable(options) else None
         rows = self._menu_rows(refresh() if refresh else options, icon, settings)
-        self.menus.append({"id": rows[0]["id"], "title": title, "body": body, "options": rows,
+        self.menus.append({"id": rows[0]["id"], "title": title, "body": body, "bodyLines": body_lines, "options": rows,
                            "index": next(i for i, r in enumerate(rows) if not r["disabled"]),
                            "owner": owner or (self.current or {}).get("sourceId", ""),
                            "input": False, "draft": "", "icon": icon, "settings": settings, "refresh": refresh})

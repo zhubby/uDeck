@@ -22,6 +22,7 @@ class EmulatorSettings:
             option(tr(Msg.ROM_ROOT), self.rom_picker, "folder", self.library.root_path, path=True),
             option(tr(Msg.CREATE_PLATFORM_FOLDERS), self.confirm_platform_folders, "folder-new"),
             option(tr(Msg.CORE_MANAGEMENT), self.core_management, "applications-system", tr(Msg.COUNT_INSTALLED_CORES, count=len(self.catalog.cores))),
+            option(tr(Msg.EMU_SAVE_SETTINGS), self.save_settings, "document-save"),
             option(tr(Msg.ADD_ENGINE_ENTRY), self.engine_platform_menu, "list-add"),
             option(tr(Msg.CORE_FOLDER), lambda: self.folder_picker("coreDirectory", "/usr/lib/aarch64-linux-gnu/libretro"), "folder", core_folder, path=True),
             option(tr(Msg.FIRMWARE_FOLDER), lambda: self.folder_picker("firmwareDirectory", str(Path.home() / ".config/retroarch/system")), "folder", firmware_folder, path=True),
@@ -78,7 +79,7 @@ class EmulatorSettings:
             options.append((tr(Msg.PARENT_FOLDER), lambda: navigate(path.parent), "", "go-up"))
         if boundary is None:
             options.append((tr(Msg.ENTER_PATH), lambda: self.prompt(tr(Msg.FOLDER_PATH),
-                           lambda text: self.picker_path(text, callback), str(path)), "", "document-edit"))
+                           lambda text: self.picker_path(text, callback, boundary, file_filter), str(path)), "", "document-edit"))
         for entry in entries:
             if entry.is_symlink() or entry.name.startswith("."):
                 continue
@@ -91,8 +92,19 @@ class EmulatorSettings:
         self.menus[-1].update(picker=True, pickerParent=(lambda: navigate(path.parent))
                              if path != path.parent and (boundary is None or path != Path(boundary)) else None)
 
-    def picker_path(self, text, callback):
+    def picker_path(self, text, callback, boundary=None, file_filter=None):
         path = Path(text).expanduser().resolve(strict=True)
+        if boundary is not None:
+            path = confined_path(path, boundary)
+        if file_filter:
+            if path.is_dir():
+                self.pop_menu()  # Replace the prompt and its previous file picker.
+                self.path_picker(path, callback, boundary, file_filter, replace=True)
+            elif path.is_file() and file_filter(path):
+                callback(str(path))
+            else:
+                raise ValueError(tr(Msg.CHOOSE_A_FILE))
+            return
         if not path.is_dir():
             raise ValueError(tr(Msg.FOLDER_DOES_NOT_EXIST))
         callback(str(path))

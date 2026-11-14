@@ -1,0 +1,4 @@
+#!/usr/bin/python3
+from udeck.emulator_saves.daemon import main
+
+main()

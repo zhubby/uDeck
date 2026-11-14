@@ -135,7 +135,7 @@ Depends:
  qml6-module-qtwebengine,
  ffmpeg,
  ca-certificates,
-Recommends: fcitx5-frontend-gtk3, fcitx5-frontend-gtk4, gvfs-backends, gvfs-fuse, retroarch, libretro-gambatte, libretro-mgba, libretro-nestopia
+Recommends: fcitx5-frontend-gtk3, fcitx5-frontend-gtk4, gvfs-backends, gvfs-fuse, retroarch, libretro-gambatte, libretro-mgba, libretro-nestopia, rclone
 Suggests: libretro-snes9x
 Description: Complete button-first desktop suite for ClockworkPi uConsole
  Native Qt Quick desktop, terminal, Music, Video, Browser, Reader and Emulator

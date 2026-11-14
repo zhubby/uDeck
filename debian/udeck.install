@@ -1,5 +1,9 @@
 src/udeck/apps usr/lib/python3/dist-packages/udeck
 src/udeck/network_files usr/lib/python3/dist-packages/udeck
+src/udeck/emulator_saves usr/lib/python3/dist-packages/udeck
+packaging/bin/udeck-emulator-saves usr/bin
+packaging/udeck-emulator-saves.service usr/lib/systemd/user
+packaging/io.github.zhubby.uDeck.EmulatorSaves.service usr/share/dbus-1/services
 src/udeck/smb_files usr/lib/python3/dist-packages/udeck
 packaging/udeck-smb-manager.service usr/lib/systemd/system
 packaging/udeck-smb.service usr/lib/systemd/system

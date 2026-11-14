@@ -1,0 +1,16 @@
+[Unit]
+Description=uDeck emulator save history synchronization
+After=network.target
+
+[Service]
+Type=dbus
+BusName=io.github.zhubby.uDeck.EmulatorSaves
+ExecStart=/usr/bin/udeck-emulator-saves
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=100
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

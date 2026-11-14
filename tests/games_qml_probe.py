@@ -154,10 +154,75 @@ def run(root, language, theme):
         controller.core_management()
         translated = json.loads(controller.snapshotJson)["menu"]
         assert translated["title"] == ("核心管理" if language == "zh_CN" else "Core management")
+
+        def activate(title):
+            rows = json.loads(controller.snapshotJson)["menu"]["options"]
+            index = next(i for i, row in enumerate(rows) if row["title"] == title)
+            for _ in range((index - controller.menus[-1]["index"]) % len(rows)):
+                QTest.keyClick(window, Qt.Key.Key_Down)
+            QTest.keyClick(window, Qt.Key.Key_Return)
+
+        # Native save menus use the same window, real key routing and focus stack.
+        controller.clear_menus()
+        controller.current = next(i for i in controller.library.items if i["platform"] == "gb")
+        controller.checks = {"coreId": "gambatte", "coreHash": "a" * 64, "contentHash": "b" * 64,
+                             "savestate": True, "ready": True, "errors": []}
+        controller.page = "game-details"
+        native = rom_root / "外部存档.state7"
+        native.write_bytes(b"unchanged RetroArch native bytes")
+        controller.detail_menu()
+        activate("存档管理" if language == "zh_CN" else "Save management")
+        frame("save-management")
+        activate("导入原生存档" if language == "zh_CN" else "Import native save")
+        activate(native.name)
+        QTest.keyClick(window, Qt.Key.Key_Down)  # Target slot 2, regardless of .state7.
+        QTest.keyClick(window, Qt.Key.Key_Return)
+        wait(lambda: not controller.save_jobs)
+        confirmation = json.loads(controller.snapshotJson)["menu"]
+        assert "Original stripes" in confirmation["body"] and "gambatte" in confirmation["body"]
+        QTest.qWait(80)
+        body = next(item for item in window.findChildren(QQuickItem) if item.property("text") == confirmation["body"])
+        assert not body.property("truncated"), "Import target and compatibility notice must remain readable"
+        assert controller.save_manager.store(controller.save_context()).manifest() == {}
+        frame("save-confirmation")
+        QTest.keyClick(window, Qt.Key.Key_Escape)
+        assert controller.save_manager.store(controller.save_context()).manifest() == {}
+        wait(lambda: window.findChild(QQuickItem, "appKeys").hasActiveFocus())
+        QTest.keyClick(window, Qt.Key.Key_Return)
+        QTest.keyClick(window, Qt.Key.Key_Return)
+        wait(lambda: not controller.save_jobs)
+        save_store = controller.save_manager.store(controller.save_context())
+        assert save_store.load("2", "b" * 64, "a" * 64)[0].read_bytes() == native.read_bytes()
+        activate("导出原生存档" if language == "zh_CN" else "Export native save")
+        wait(lambda: not controller.save_jobs)
+        QTest.keyClick(window, Qt.Key.Key_Return)
+        activate("输入路径" if language == "zh_CN" else "Enter path")
+        output = root / "导出"
+        output.mkdir()
+        wait(lambda: window.findChild(QQuickItem, "menuDraft").hasActiveFocus())
+        window.findChild(QQuickItem, "menuDraft").setProperty("text", str(output))
+        QTest.keyClick(window, Qt.Key.Key_Return)
+        wait(lambda: not controller.save_jobs)
+        assert (output / "Original stripes.state2").read_bytes() == native.read_bytes()
+        activate("存档历史" if language == "zh_CN" else "Save history")
+        wait(lambda: not controller.save_jobs)
+        frame("save-history")
+        QTest.keyClick(window, Qt.Key.Key_Return)
+        QTest.keyClick(window, Qt.Key.Key_Escape)
+        assert len(controller.save_manager.history.entries()) == 1
+        controller.clear_menus()
+        controller.settings()
+        activate("备份与云同步" if language == "zh_CN" else "Backups and cloud sync")
+        frame("save-settings")
+        assert json.loads(controller.snapshotJson)["saveSync"]["enabled"] is False
+        QTest.keyClick(window, Qt.Key.Key_Escape)
+        wait(lambda: window.findChild(QQuickItem, "appKeys").hasActiveFocus())
         assert not errors, errors
         print(json.dumps({"qmlErrors": errors, "language": language, "theme": theme,
                           "checks": ["platforms", "platform-scroll-back", "empty-platform", "two-level-back", "platform-icons", "picker-cancel",
-                                     "focus-restore", "long-list-scroll", "return-consumed", "core-toggle"]}))
+                                     "focus-restore", "long-list-scroll", "return-consumed", "core-toggle",
+                                     "native-import-confirm-cancel", "native-slot-mapping", "native-export",
+                                     "save-history-restore-cancel", "save-settings-focus"]}))
     finally:
         delete(engine)
         controller.close()

@@ -61,6 +61,8 @@ def main():
     assert set(packages) == {"udeck"}
     assert "qt6-svg-plugins" in subprocess.check_output(
         ["dpkg-deb", "--field", str(packages["udeck"]), "Depends"], text=True)
+    assert "rclone" in subprocess.check_output(
+        ["dpkg-deb", "--field", str(packages["udeck"]), "Recommends"], text=True)
     # Existing login, desktop and application data must survive every lifecycle operation.
     preserved = {
         Path("/etc/lightdm/lightdm.conf"): b"[Seat:*]\nuser-session=original-desktop\n",
@@ -119,8 +121,12 @@ def main():
         for unit in ("smbd", "nmbd"):
             assert not Path("/etc/systemd/system/multi-user.target.wants/" + unit + ".service").exists()
         for path in ("/usr/lib/systemd/system/udeck-smb.service", "/usr/lib/systemd/system/udeck-smb-manager.service",
-                     "/usr/share/dbus-1/system.d/io.github.zhubby.uDeck.Smb.conf", "/usr/share/polkit-1/actions/io.github.zhubby.uDeck.Smb.policy"):
+                     "/usr/share/dbus-1/system.d/io.github.zhubby.uDeck.Smb.conf", "/usr/share/polkit-1/actions/io.github.zhubby.uDeck.Smb.policy",
+                     "/usr/bin/udeck-emulator-saves", "/usr/lib/systemd/user/udeck-emulator-saves.service",
+                     "/usr/share/dbus-1/services/io.github.zhubby.uDeck.EmulatorSaves.service"):
             assert Path(path).is_file(), path
+        assert not Path("/etc/systemd/user/default.target.wants/udeck-emulator-saves.service").exists()
+        run(["udeck-emulator-saves", "--help"])
         # Later install/upgrade operations must preserve an existing Samba setup,
         # including an administrator's enabled service and custom configuration.
         samba_config = Path("/etc/samba/smb.conf")

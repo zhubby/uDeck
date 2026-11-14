@@ -236,7 +236,7 @@ Window {
             ColumnLayout {
                 id: modalContents; anchors.fill: parent; anchors.margins: 24; spacing: 16
                 Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.menu.title||""; font.pixelSize: 30; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
-                Text { font.family: window.fontFamily; Layout.fillWidth: true; visible: !!window.state.menu.body; text: window.state.menu.body||""; font.pixelSize: 21; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: 5; elide: Text.ElideRight }
+                Text { font.family: window.fontFamily; objectName: "menuBody"; Layout.fillWidth: true; visible: !!window.state.menu.body; text: window.state.menu.body||""; textFormat: Text.PlainText; font.pixelSize: 21; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: window.state.menu.bodyLines || 5; elide: Text.ElideRight }
                 TextField { font.family: window.fontFamily; palette: window.colors.controls;
                     id: draft; objectName: "menuDraft"; visible: !!window.state.menu.input; Layout.fillWidth: true
                     property QtObject inputController: controller

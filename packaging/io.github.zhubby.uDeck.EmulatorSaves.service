@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=io.github.zhubby.uDeck.EmulatorSaves
+Exec=/usr/bin/udeck-emulator-saves
+SystemdService=udeck-emulator-saves.service
