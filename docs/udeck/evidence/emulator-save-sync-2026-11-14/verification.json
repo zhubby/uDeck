@@ -1,0 +1,27 @@
+{
+  "version": "0.2.16",
+  "packageRevision": "754908e177a21238f0ea8006a967c25f4000b3df",
+  "recordedUtc": "2026-11-14T14:02:00.486249+00:00",
+  "fullArm64Tests": {
+    "passed": 1661,
+    "warnings": 16,
+    "seconds": 924.65,
+    "skipped": 0
+  },
+  "packageLifecycle": {
+    "packageLifecycle": "passed",
+    "installedSourceFilesChecked": 501,
+    "physicalAcceptance": "not checked"
+  },
+  "installedSaveTests": {
+    "passed": 45,
+    "seconds": 31.8,
+    "skipped": 0
+  },
+  "nativeDeviceChecks": 9,
+  "visuallyReviewedCaptures": 6,
+  "externalCloudProviderTested": false,
+  "humanPhysicalInputTested": false,
+  "packageSha256": "5ec7f0aebc82ddc892f9164e178a446b10529beda27919ae87ad713475705e66",
+  "rcloneSha256": "b8ba161d5c837206fad79ff1aabf0a81aa02a5fb164cdbc0ff5db4160aecd278"
+}

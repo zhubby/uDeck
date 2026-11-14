@@ -112,6 +112,6 @@ Emulator 配置使用独立的 `emulator.json`，共享状态格式版本为 1�
 
 `test_emulator_save_management.py`、`test_emulator_save_ui.py` 验证原生字节往返、覆盖备份、SRAM／RTC、核心兼容性、损坏文件、写盘失败、分叉选择、运行时保护和启动取消。`test_emulator_save_sync.py` 使用真实 rclone 与隔离目录模拟两个设备，验证首次合并、并发上传、离线冲突、选择后的收敛、取消、配置切换及后台恢复，并通过本机 WebDAV 服务实际断线、重连检查离线进度；`test_emulator_save_daemon.py` 使用独立 D-Bus 会话运行真实后台服务，验证协议、状态通知、前端断开和服务重启。Qt 按键探针另外覆盖原生导入确认／取消、槽位映射、导出、历史与焦点。
 
-上述本地验证不等同于目标网盘或 uConsole 实机验收；实际网盘传输及在设备上恢复运行仍需单独检查。
+0.2.16 已在 uConsole 安装，完成真实 Gambatte 原生存档恢复、SRAM 正常与异常退出保护、已安装后台服务及中英文界面验证，见 [2026-11-14 真机部署记录](../udeck/emulator-save-sync-2026-11-14.md)。实际网盘传输与真人物理按键仍需单独验收；本轮设备未配置真实云端账户，云同步保持默认关闭。
 
 `tests/games_device_probe.py <evidence-directory>` 在设备图形会话运行原创 GB、NES、GBA 程序，验证完整启动、修改设置保留 PID、暂停、存取档、返回和重启续玩流程。测试只写指定证据目录，并通过 `tests/game_fixtures.py` 生成原创测试内容，不包含商业 ROM 或主机标志。运行前应确保没有另一个 RetroArch 会话。

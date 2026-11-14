@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "version": "0.2.16",
+  "normalSessionFrontend": true,
+  "qmlErrors": [],
+  "cloudDefaultOff": true,
+  "kernelKeyboardNavigation": true,
+  "daemonSurvivesFrontendExit": true,
+  "daemonPid": 3744586,
+  "otherApplicationPidsPreserved": true,
+  "protectedConfigAndSavesUnchanged": true,
+  "before": {
+    "udeck": 3574116,
+    "udeck-browser": 3574240,
+    "udeck-music": 3574322,
+    "udeck-video": 3574379,
+    "udeck-reader": 3574406,
+    "udeck-terminal": 3576124,
+    "udeck-emulator": 3746328
+  },
+  "after": {
+    "udeck": 3574116,
+    "udeck-browser": 3574240,
+    "udeck-music": 3574322,
+    "udeck-video": 3574379,
+    "udeck-reader": 3574406,
+    "udeck-terminal": 3576124,
+    "udeck-emulator": 3759550
+  },
+  "keyboardReadiness": [
+    {
+      "seconds": 0.441,
+      "index": 1
+    }
+  ],
+  "keyboardUdev": [
+    "ID_INPUT=1",
+    "ID_INPUT_KEY=1",
+    "ID_INPUT_KEYBOARD=1"
+  ],
+  "humanPhysicalInput": false,
+  "screenshots": [
+    "device-installed-cloud-settings-en.png"
+  ]
+}
