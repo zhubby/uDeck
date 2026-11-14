@@ -129,7 +129,7 @@ Window {
                         objectName: "appCards"
                         Layout.fillWidth: true; Layout.fillHeight: true; clip: true
                         property bool listMode: window.state.page==="album" || (window.state.app==="music" && [1,2].indexOf(window.state.tab)>=0)
-                        property int columns: listMode ? 1 : width<600 ? 2 : 3
+                        property int columns: listMode ? 1 : window.state.platformsView ? 5 : width<600 ? 2 : 3
                         cellWidth: Math.floor(width/columns)
                         cellHeight: listMode ? 78 : window.state.platformsView ? 208 : window.state.app==="reader" ? 190 : 238
                         model: controller.cardModel
