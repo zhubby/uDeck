@@ -69,6 +69,8 @@ class EmulatorSaveManagement:
         if not job or self.save_closed:
             return
         _, done, on_error, owner, internal = job
+        if not internal and self.notice == tr(Msg.EMU_SAVE_WORKING):
+            self.notice = ""
         if owner and owner != (self.current or {}).get("id") and not internal:
             return
         if error:

@@ -1,6 +1,6 @@
 # Emulator：目录、核心与存档
 
-适用于完整的 uDeck 0.2.12 Debian 单包。
+适用于完整的 uDeck 0.2.16 Debian 单包。
 
 ## 平台与游戏
 

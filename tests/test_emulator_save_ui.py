@@ -62,6 +62,23 @@ def test_save_management_and_cloud_settings_use_existing_menu_navigation(tmp_pat
         controller.close()
 
 
+@pytest.mark.parametrize("operation,title", [("save_history", "Save history"), ("save_export_menu", "Export native save")])
+def test_loaded_save_menu_clears_finished_work_notice(tmp_path, operation, title):
+    controller = prepared(tmp_path)
+    source = tmp_path / "Original.state"
+    source.write_bytes(b"existing native save")
+    try:
+        controller.save_manager.import_native(controller.save_context(), source, confirmed=True)
+        getattr(controller, operation)()
+        wait_for(lambda: not controller.save_jobs)
+        snapshot = json.loads(controller.snapshotJson)
+        assert snapshot["menu"]["title"] == title
+        assert snapshot["saveManagementBusy"] is False
+        assert snapshot["notice"] == ""
+    finally:
+        controller.close()
+
+
 def test_cloud_launch_failure_offers_explicit_offline_launch_and_cancel(tmp_path, monkeypatch):
     controller = prepared(tmp_path)
     launches = []
