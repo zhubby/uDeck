@@ -1,3 +1,11 @@
+udeck (0.2.14) unstable; urgency=medium
+
+  * Synchronize terminal font size across existing windows and sessions.
+  * Restore keyboard focus after terminal search and activate the recent Wayland window.
+  * Display five emulator platform cards per row and cover native terminal regressions.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Sat, 14 Nov 2026 07:00:00 +0800
+
 udeck (0.2.13) unstable; urgency=medium
 
   * Uncover the paused RetroArch frontend while quitting under Wayland.
