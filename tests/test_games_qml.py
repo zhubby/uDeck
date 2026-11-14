@@ -17,4 +17,5 @@ def test_games_settings_and_focus_with_real_qt_events(tmp_path, language, theme)
     assert json.loads(result.stdout.strip().splitlines()[-1])["qmlErrors"] == []
     assert all((tmp_path / (name + ".png")).stat().st_size > 10000
                for name in ("platforms", "empty-platform", "library", "settings", "cores",
-                            "save-management", "save-confirmation", "save-history", "save-settings"))
+                            "save-management", "save-confirmation", "save-history", "save-settings",
+                            "thumbnail-boxart", "thumbnail-snapshot", "scan-preview"))

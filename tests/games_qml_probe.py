@@ -5,16 +5,20 @@ import sys
 import time
 from pathlib import Path
 
+from libretro_fixtures import configure_library
 from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QImage
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickItem
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 from shiboken6 import delete
+from test_emulator_playlists import write_playlist
 from test_games_catalog import installed
 
 from udeck.apps.emulator.controller import EmulatorController
 from udeck.core import ConfigStore
+from udeck.i18n import Msg, render, tr
 from udeck.icons import IconProvider
 
 
@@ -42,7 +46,10 @@ def run(root, language, theme):
         folder = rom_root / platform
         folder.mkdir(parents=True)
         (folder / name).write_bytes(b"Original preview fixture; no commercial game")
-    controller.library.configure_root(rom_root)
+    for index in range(100):
+        write_playlist(root / f"playlists/ZZ fixture {index:03}.lpl", [])
+    write_playlist(root / "playlists/Sony - PlayStation Portable.lpl", [])
+    configure_library(controller, rom_root)
     engine = QQmlApplicationEngine()
     engine.addImageProvider("desktop", IconProvider())
     errors = []
@@ -95,26 +102,26 @@ def run(root, language, theme):
         assert current_card.y() >= grid.property("contentY") - 1
         assert current_card.y() + current_card.height() <= grid.property("contentY") + grid.height() + 1
         QTest.keyClick(window, Qt.Key.Key_Return)
-        wait(lambda: controller.platform.startswith("example-"))
+        wait(lambda: controller.platform != "All")
         QTest.keyClick(window, Qt.Key.Key_Escape)
         wait(lambda: controller.platform == "All")
         assert controller.selected == selected_platform and grid.property("contentY") > 0
         controller.search("psp")
         QTest.keyClick(window, Qt.Key.Key_Return)
-        wait(lambda: controller.platform == "psp")
+        wait(lambda: json.loads(controller.snapshotJson)["playlistTitle"] == "Sony - PlayStation Portable")
         assert controller.rows() == []
         frame("empty-platform")
         QTest.keyClick(window, Qt.Key.Key_Escape)
         wait(lambda: controller.platform == "All")
         controller.search("fc")
         QTest.keyClick(window, Qt.Key.Key_Return)
-        wait(lambda: controller.platform == "nes")
+        wait(lambda: json.loads(controller.snapshotJson)["playlistTitle"] == "Nintendo - Nintendo Entertainment System")
         assert [row["title"] for row in controller.rows()] == ["Original tiles"]
         wait(lambda: panel.isVisible() and grid.width() < window.width() * 0.8)
         frame("library")
         QTest.keyClick(window, Qt.Key.Key_Escape)
         wait(lambda: controller.platform == "All")
-        assert controller.selected == "platform:nes" and controller.filter == "fc"
+        assert controller.rows()[0]["title"] == "Nintendo - Nintendo Entertainment System" and controller.filter == "fc"
         controller.search("")
         controller.settings()
         frame("settings")
@@ -217,12 +224,69 @@ def run(root, language, theme):
         assert json.loads(controller.snapshotJson)["saveSync"]["enabled"] is False
         QTest.keyClick(window, Qt.Key.Key_Escape)
         wait(lambda: window.findChild(QQuickItem, "appKeys").hasActiveFocus())
+        controller.clear_menus()
+
+        # Standard images retain their aspect ratio, and menu choices use real keys.
+        thumbnails = root / "thumbnails"
+        controller.library.thumbnail_path = str(thumbnails)
+        kinds = (("Named_Boxarts", 80, 120, 0xFF145766), ("Named_Snaps", 160, 90, 0xFF854322),
+                 ("Named_Titles", 120, 90, 0xFF365817))
+        for kind, width, height, color in kinds:
+            target = thumbnails / "Nintendo - Game Boy" / kind / "Original stripes.png"
+            target.parent.mkdir(parents=True)
+            image = QImage(width, height, QImage.Format.Format_RGB32)
+            image.fill(color)
+            assert image.save(str(target))
+        controller.library.reload_thumbnails()
+        controller.current = next(i for i in controller.library.items if i["platform"] == "gb")
+        controller.preview_images()
+        activate(render(tr(Msg.EMU_SNAPSHOT), language))
+        assert "/Named_Snaps/" in controller.current["cover"]
+        frame("thumbnail-snapshot")
+        cover = window.findChild(QQuickItem, "gameArtwork").findChild(QQuickItem, "coverImage")
+        wait(lambda: cover.property("paintedHeight") > 0)
+        assert abs(cover.property("paintedWidth") / cover.property("paintedHeight") - 160 / 90) < 0.02
+        controller.preview_images()
+        activate(render(tr(Msg.EMU_BOXART), language))
+        assert "/Named_Boxarts/" in controller.current["cover"]
+        frame("thumbnail-boxart")
+        wait(lambda: cover.property("paintedHeight") > 0 and
+             abs(cover.property("paintedWidth") / cover.property("paintedHeight") - 80 / 120) < 0.02)
+        assert abs(cover.property("paintedWidth") / cover.property("paintedHeight") - 80 / 120) < 0.02
+
+        # A scan is previewed before any list changes, and Back cancels it.
+        added = rom_root / "gb/Added preview.gb"
+        added.write_bytes(b"original preview only")
+        playlist = Path(controller.library.playlist_path) / "Nintendo - Game Boy.lpl"
+        before = playlist.read_bytes()
+        controller.settings()
+        activate(render(tr(Msg.EMU_GENERATE_PLAYLISTS), language))
+        wait(lambda: controller.library_task is None)
+        assert "Added preview.gb" in str(controller.menus[-1]["body"])
+        frame("scan-preview")
+        QTest.keyClick(window, Qt.Key.Key_Escape)
+        assert playlist.read_bytes() == before
+        activate(render(tr(Msg.EMU_GENERATE_PLAYLISTS), language))
+        wait(lambda: controller.library_task is None)
+        QTest.keyClick(window, Qt.Key.Key_Return)
+        wait(lambda: controller.library_task is None and not controller.library.pending)
+        assert any(i["label"] == "Added preview" for i in json.loads(playlist.read_text())["items"])
+
+        # The three directory pickers have independent state and restore focus.
+        controller.settings()
+        for key in ("playlistDirectory", "thumbnailDirectory"):
+            before = (controller.library.playlist_path, controller.library.thumbnail_path)
+            controller.library_directory_picker(key)
+            QTest.keyClick(window, Qt.Key.Key_Escape)
+            assert (controller.library.playlist_path, controller.library.thumbnail_path) == before
+            wait(lambda: window.findChild(QQuickItem, "appKeys").hasActiveFocus())
         assert not errors, errors
         print(json.dumps({"qmlErrors": errors, "language": language, "theme": theme,
                           "checks": ["platforms", "platform-scroll-back", "empty-platform", "two-level-back", "platform-icons", "picker-cancel",
                                      "focus-restore", "long-list-scroll", "return-consumed", "core-toggle",
                                      "native-import-confirm-cancel", "native-slot-mapping", "native-export",
-                                     "save-history-restore-cancel", "save-settings-focus"]}))
+                                     "save-history-restore-cancel", "save-settings-focus", "thumbnail-aspect-selection",
+                                     "scan-preview-cancel-commit", "independent-directory-pickers"]}))
     finally:
         delete(engine)
         controller.close()

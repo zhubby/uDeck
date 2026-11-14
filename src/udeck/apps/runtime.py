@@ -92,10 +92,10 @@ class AppControl(QObject):
         for path in paths:
             if not path.is_file():
                 raise ValueError(tr(Msg.CHOOSE_A_FILE))
-            if controller.app == "emulator":
-                controller.accept_file_path(path)
-            elif path.suffix.lower() not in EXTENSIONS[controller.app]:
+            if controller.app != "emulator" and path.suffix.lower() not in EXTENSIONS[controller.app]:
                 raise ValueError(tr(Msg.UNSUPPORTED_FILE_FORMAT_NAME, name=path.name))
+        if controller.app == "emulator":
+            controller.accept_file_paths(paths)
         self.open_generation += 1
         generation = self.open_generation
         for path in paths:

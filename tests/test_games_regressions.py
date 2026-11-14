@@ -187,14 +187,18 @@ for command in sys.stdin:
 
 
 def test_refresh_discovers_a_rom_root_created_after_startup(application, tmp_path):
+    from udeck.apps.emulator.playlists import generate_playlists
+
     root = tmp_path / "Games"
     state = AppState("emulator", tmp_path / "state")
     state.data["preferences"]["romRoot"] = str(root)
+    state.data["preferences"]["playlistDirectory"] = str(tmp_path / "playlists")
     catalog = installed(tmp_path, {"mgba": {"supported_extensions": "gba"}})
     library = EmulatorLibrary(state, catalog)
     (root / "gba").mkdir(parents=True)
     rom = root / "gba/original.gba"
     rom.write_bytes(b"original")
+    generate_playlists(root, tmp_path / "playlists", catalog).commit()
     try:
         library.refresh()
         wait_for(lambda: not library.pending)

@@ -1,7 +1,5 @@
 """Two-level platform browsing, with independent focus and searches per collection."""
 
-from collections import Counter
-from pathlib import Path
 
 from PySide6.QtCore import Slot
 
@@ -37,18 +35,20 @@ class EmulatorBrowser:
 
     def persist(self):
         self._remember_browser()
+        if self.library.suspended:
+            return
         self.store.save()
 
     def _sync_core_browser(self):
-        # Core switches and probe results mutate the catalogue in place. They
-        # must invalidate cards even before the asynchronous ROM scan finishes.
         state = (id(self.catalog), tuple((c.id, c.status) for c in self.catalog.cores.values()),
-                 tuple(sorted(self.catalog.preferences.get("coreEnabled", {}).items())))
+                 tuple(sorted(self.catalog.preferences.get("coreEnabled", {}).items())),
+                 tuple((p["id"], p["count"], str(p["error"])) for p in self.library.playlists))
         if state != self._core_view_state:
             self._core_view_state = state
             self._row_revision += 1
+            self._availability = {}
         if (self.tab == 1 and self.platform != "All" and self.page == "library"
-                and not self.catalog.candidates(self.platform)):
+                and self.platform not in {p["id"] for p in self.library.playlists}):
             self._return_to_platforms()
 
     def _view_rows(self):
@@ -57,36 +57,53 @@ class EmulatorBrowser:
 
     def rows(self):
         self._sync_core_browser()
+        query = self.filter.casefold()
         if self.tab == 1 and self.platform == "All":
-            counts = Counter(self.catalog.canonical(item["platform"]) for item in self.library.items
-                             if item["sourceId"] == self.library.root_id
-                             and item["sourceId"] not in self.library.unavailable)
-            query = self.filter.casefold()
-            return [{"id": "platform:" + p.id, "kind": "platform", "platformId": p.id,
-                     "title": p.title, "subtitle": game_count(counts[p.id]),
-                     "gameCount": counts[p.id], "cover": platform_icon(p.id)}
-                    for p in sorted(self.catalog.platforms.values(), key=lambda p: p.title.casefold())
-                    if self.catalog.candidates(p.id) and (not query or query in
-                        " ".join((p.id, p.title, p.directory, *p.aliases)).casefold())]
-        rows = [r for r in super().rows() if r["sourceId"] == self.library.root_id]
-        if self.tab == 0:
-            order = self.store.data["recent"]
-            rows = [r for r in rows if r["id"] in order]
-            rows.sort(key=lambda r: order.index(r["id"]))
-        elif self.tab == 2:
-            rows = [r for r in rows if r["id"] in self.store.data["favorites"]]
-        if self.tab == 1 and self.platform != "All":
-            rows = [r for r in rows if self.catalog.canonical(r["platform"]) == self.platform]
-        return [{**r, "subtitle": self.catalog.platforms[self.catalog.canonical(r["platform"])].title
-                 if self.catalog.canonical(r["platform"]) in self.catalog.platforms else r["platform"]}
-                for r in rows]
+            rows = []
+            for playlist in self.library.playlists:
+                platform = self.catalog.platform_for_database(playlist["title"])
+                names = " ".join((playlist["title"], platform.id, *platform.aliases)) if platform else playlist["title"]
+                if query and query not in names.casefold():
+                    continue
+                rows.append({"id": playlist["id"], "kind": "playlist", "title": playlist["title"],
+                             "subtitle": playlist["error"] or game_count(playlist["count"]),
+                             "gameCount": playlist["count"], "cover": platform_icon(platform.id if platform else ""),
+                             "playlistPath": playlist["path"]})
+            return rows
+        items = self.library.items
+        if self.tab == 1:
+            items = [i for i in items if i.get("playlistId") == self.platform]
+        else:
+            choices = self.store.data["preferences"].get("entryChoices", {})
+            unique = {}
+            for item in items:
+                if item["id"] not in unique or item.get("entryId") == choices.get(item["id"]):
+                    unique[item["id"]] = item
+            order = self.store.data["recent" if self.tab == 0 else "favorites"]
+            items = [unique[i] for i in order if i in unique]
+        rows = []
+        for item in items:
+            if query and query not in (str(item["title"]) + " " + item.get("relative", "")).casefold():
+                continue
+            platform = self.catalog.platforms.get(self.catalog.canonical(item["platform"]))
+            key = (item["platform"], item.get("format"), item.get("playlistCoreId"), item.get("playlistDefaultCoreId"))
+            if key not in self._availability:
+                try:
+                    self.catalog.resolve(item)
+                    self._availability[key] = ""
+                except ValueError as error:
+                    from udeck.i18n import error_text
+
+                    self._availability[key] = error_text(error)
+            rows.append({**item, "id": item.get("entryId", item["id"]), "gameId": item["id"],
+                         "subtitle": item.get("contentError") or self._availability[key]
+                         or (platform.title if platform else item.get("dbName", ""))})
+        return rows
 
     def activate(self, row):
-        if row.get("kind") != "platform":
+        if row.get("kind") != "playlist":
             return super().activate(row)
-        platform = row["platformId"]
-        if not self.catalog.candidates(platform):
-            return
+        platform = row["id"]
         self._platform_index = max(0, self.selectedIndex)
         self._remember_browser()
         self.feedback("open")
@@ -124,19 +141,12 @@ class EmulatorBrowser:
         self.publish()
 
     def browser_state(self):
-        platforms = self.tab == 1 and self.platform == "All"
-        platform = self.catalog.platforms.get(self.platform) if self.tab == 1 else None
+        collections = self.tab == 1 and self.platform == "All"
+        playlist = next((p for p in self.library.playlists if p["id"] == self.platform), None) if self.tab == 1 else None
         count = len(self._rows)
-        if self.filter:
-            hint = tr(Msg.EMULATOR_NO_SEARCH_MATCHES)
-        elif platforms:
-            hint = tr(Msg.EMULATOR_ENABLE_CORES_HINT)
-        else:
-            hint = tr(Msg.EMULATOR_PLATFORM_GAMES_HINT,
-                      path=str(Path(self.library.root_path) / platform.directory)) if platform else tr(
-                          Msg.ROM_ROOT_PATH_USE_PLATFORM_FOLDERS_GBA_PSP_PSX_DREAMCAST,
-                          path=self.library.root_path)
-        return {"platformsView": platforms, "platformTitle": platform.title if platform else "",
-                "countLabel": (tr(Msg.EMULATOR_ONE_PLATFORM) if count == 1 else
-                               tr(Msg.EMULATOR_PLATFORM_COUNT, count=count)) if platforms else game_count(count),
-                "emptyHint": hint}
+        hint = tr(Msg.EMULATOR_NO_SEARCH_MATCHES) if self.filter else tr(
+            Msg.EMU_EMPTY_PLAYLIST if playlist else Msg.EMU_PLAYLIST_HINT)
+        return {"platformsView": collections, "playlistsView": collections,
+                "platformTitle": playlist["title"] if playlist else "",
+                "playlistTitle": playlist["title"] if playlist else "",
+                "countLabel": str(count) if collections else game_count(count), "emptyHint": hint}

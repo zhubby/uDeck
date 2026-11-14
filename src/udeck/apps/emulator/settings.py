@@ -16,28 +16,40 @@ class EmulatorSettings:
 
     def settings_options(self):
         option = self.setting_option
+        if self.migration_pending:
+            return [option(tr(Msg.EMU_MIGRATION_RECOVERY), lambda: self.recover_migration(True), "view-refresh"),
+                    option(tr(Msg.EMU_MIGRATION_ROLLBACK), self.recover_migration, "go-previous"),
+                    option(tr(Msg.CLOSE_APPLICATION), self.requestClose, "window-close")]
         core_folder = self.store.data["preferences"].get("coreDirectory", "/usr/lib/aarch64-linux-gnu/libretro")
         firmware_folder = self.store.data["preferences"].get("firmwareDirectory", str(Path.home() / ".config/retroarch/system"))
         return [
             option(tr(Msg.ROM_ROOT), self.rom_picker, "folder", self.library.root_path, path=True),
+            option(tr(Msg.EMU_PLAYLIST_DIRECTORY), lambda: self.library_directory_picker("playlistDirectory"), "folder", self.library.playlist_path, path=True),
+            option(tr(Msg.EMU_THUMBNAIL_DIRECTORY), lambda: self.library_directory_picker("thumbnailDirectory"), "folder", self.library.thumbnail_path, path=True),
+            option(tr(Msg.EMU_GENERATE_PLAYLISTS), self.preview_scan, "view-refresh"),
             option(tr(Msg.CREATE_PLATFORM_FOLDERS), self.confirm_platform_folders, "folder-new"),
+            option(tr(Msg.EMU_MIGRATE_LIBRARY), self.migrate_library, "folder-move"),
+            option(tr(Msg.EMU_PREVIEW_IMAGES), self.preview_images, "image-x-generic"),
+            option(tr(Msg.EMU_IMAGE_DOWNLOADS), self.image_download_menu, "folder-download"),
             option(tr(Msg.CORE_MANAGEMENT), self.core_management, "applications-system", tr(Msg.COUNT_INSTALLED_CORES, count=len(self.catalog.cores))),
             option(tr(Msg.EMU_SAVE_SETTINGS), self.save_settings, "document-save"),
             option(tr(Msg.ADD_ENGINE_ENTRY), self.engine_platform_menu, "list-add"),
             option(tr(Msg.CORE_FOLDER), lambda: self.folder_picker("coreDirectory", "/usr/lib/aarch64-linux-gnu/libretro"), "folder", core_folder, path=True),
             option(tr(Msg.FIRMWARE_FOLDER), lambda: self.folder_picker("firmwareDirectory", str(Path.home() / ".config/retroarch/system")), "folder", firmware_folder, path=True),
-            option(tr(Msg.REFRESH_LIBRARY), self.refresh, "view-refresh"),
+            option(tr(Msg.EMU_REFRESH_PLAYLISTS), self.refresh, "view-refresh"),
             option(tr(Msg.CLOSE_APPLICATION), self.requestClose, "window-close")]
 
     def scan_description(self):
         return tr(Msg.SCANNING) if self.library.pending else (
             message_lines(e for e in self.library.errors.values() if e) or
-            tr(Msg.PLATFORM_FOLDERS_ONLY_GBA_PSP_PSX_DREAMCAST))
+            (tr(Msg.EMU_MIGRATION_NEEDED) if self.library.legacy_root else tr(Msg.EMU_PLAYLIST_HINT)))
 
     def rom_picker(self):
         self.path_picker(self.library.root_path, self.set_rom_root)
 
     def set_rom_root(self, path):
+        self.require_library_idle()
+        self.thumbnail_downloader.cancel()
         self.library.configure_root(path)
         self.cancel_launch()
         self.setTab(1)
@@ -257,13 +269,24 @@ class EmulatorSettings:
 
     def choose_game_core(self):
         platform = self.catalog.canonical(self.current["platform"])
-        cores = self.catalog.candidates(platform, Path(self.current["path"]).suffix)
-        options = [(tr(Msg.USE_PLATFORM_DEFAULT), lambda: self.set_game_core(None))]
+        cores = self.catalog.candidates(platform, Path(self.current.get("archiveMember") or self.current["path"]).suffix)
+        options = [(tr(Msg.EMU_PLAYLIST_CORE_DEFAULT), lambda: self.set_game_core(None))]
         options.extend((c.name, lambda c=c: self.set_game_core(c.id), c.id + " · " + self.core_status(c, platform))
                        for c in cores if c.status == "available")
         self.menu(tr(Msg.CHOOSE_CORE), options, tr(Msg.ONLY_ENABLED_CORES_SUPPORTING_THIS_FORMAT_ARE_LISTED))
 
     def set_game_core(self, identifier):
+        if self.current.get("playlistPath"):
+            from .playlists import update_entry
+
+            core = self.catalog.cores.get(identifier) if identifier else None
+            update_entry(self.current, {"core_path": core.path if core else "DETECT",
+                                        "core_name": core.name if core else "DETECT"})
+            self.current["playlistCoreId"] = identifier or ""
+            self.library.refresh()
+            self.update_checks()
+            self.pop_menu()
+            return
         choices = self.store.data["preferences"].setdefault("gameCores", {})
         if identifier:
             choices[self.current["id"]] = identifier
@@ -288,13 +311,9 @@ class EmulatorSettings:
         if not directories:
             raise ValueError(tr(Msg.CREATE_THE_PLATFORM_FOLDER_FIRST_DIRECTORY, directory=self.catalog.platforms[platform].directory))
         def chosen(path):
-            entries = self.store.data["preferences"].setdefault("engineEntries", [])
-            if path not in entries:
-                entries.append(path)
-            self.persist()
-            self.library.refresh()
             self.clear_menus()
             self.setTab(1)
+            self.accept_file_paths([path])
         self.path_picker(directories[0], chosen, boundary=directories[0], file_filter=lambda p:
                          any(c.supports(p.suffix) for c in self.catalog.candidates(platform)))
 

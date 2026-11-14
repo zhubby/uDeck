@@ -147,11 +147,11 @@ Window {
                             color: modelData.id===window.state.selected ? window.colors.selected : window.colors.panel
                             border.width: modelData.id===window.state.selected ? 3 : 1
                             border.color: modelData.id===window.state.selected ? window.accent : window.colors.border
-                            Artwork { fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-80; cover: card.modelData.cover||""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" }
+                            Artwork { fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-(card.modelData.kind==="playlist"?102:80); cover: card.modelData.cover||""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" || card.modelData.kind === "playlist" }
                             Column {
                                 x: cards.listMode ? 80 : 12; y: cards.listMode ? 12 : art.y+art.height+8
                                 width: parent.width-x-12; spacing: 4
-                                Text { font.family: window.fontFamily; width: parent.width; text: (card.modelData.id===window.state.current.id ? "▶  " : "")+card.modelData.title; color: window.ink; font.pixelSize: cards.listMode?22:20; elide: Text.ElideRight }
+                                Text { font.family: window.fontFamily; width: parent.width; text: ((card.modelData.gameId||card.modelData.id)===window.state.current.id ? "▶  " : "")+card.modelData.title; color: window.ink; font.pixelSize: cards.listMode?22:20; wrapMode: card.modelData.kind==="playlist"?Text.Wrap:Text.NoWrap; maximumLineCount: card.modelData.kind==="playlist"?2:1; elide: Text.ElideRight }
                                 Text { font.family: window.fontFamily; width: parent.width; text: card.modelData.subtitle||""; color: window.muted; font.pixelSize: 17; elide: Text.ElideRight }
                             }
                             MouseArea { anchors.fill: parent; onClicked: {controller.select(card.modelData.id);controller.dispatch("accept")} }

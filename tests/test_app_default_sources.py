@@ -11,6 +11,7 @@ from test_games_catalog import installed
 from udeck.apps.common.library import Library, Source
 from udeck.apps.common.state import AppState
 from udeck.apps.emulator.library import EmulatorLibrary
+from udeck.apps.emulator.playlists import generate_playlists
 
 
 @pytest.fixture
@@ -30,7 +31,7 @@ def home(tmp_path, monkeypatch):
     ("music", "Music", "albums/original.wav"),
     ("video", "Video", "clips/original.mp4"),
     ("reader", "Books", "books/original.txt"),
-    ("emulator", "Games", "gba/original.gba"),
+    ("emulator", "Games/roms", "Nintendo - Game Boy Advance/original.gba"),
 ])
 def content(request):
     return request.param
@@ -57,6 +58,8 @@ def test_default_folder_indexes_nested_content_and_restores_identity(application
     path.write_bytes(b"original library fixture")
     (path.parent / "ignored.exe").write_bytes(b"unsupported")
     catalog = installed(tmp_path, {"mgba": {"supported_extensions": "gba"}})
+    if app == "emulator":
+        generate_playlists(home / folder, home / "Games/playlists", catalog).commit()
     directory = tmp_path / "state"
     library = library_for(app, directory, catalog)
     try:
@@ -88,6 +91,8 @@ def test_default_folder_created_after_startup_is_found_on_refresh(application, t
         path = home / folder / relative
         path.parent.mkdir(parents=True)
         path.write_bytes(b"original library fixture")
+        if app == "emulator":
+            generate_playlists(home / folder, home / "Games/playlists", catalog).commit()
         refresh(library)
         assert [item["path"] for item in library.items] == [str(path)]
     finally:
@@ -109,6 +114,8 @@ def test_saved_custom_folder_is_preserved_when_default_exists(application, tmp_p
     state.data["sources"] = [Source.create(tmp_path / "custom").to_dict()]
     if app == "emulator":
         state.data["preferences"]["romRoot"] = str(tmp_path / "custom")
+        state.data["preferences"]["playlistDirectory"] = str(tmp_path / "playlists")
+        generate_playlists(tmp_path / "custom", tmp_path / "playlists", catalog).commit()
     state.save()
     library = library_for(app, directory, catalog)
     try:

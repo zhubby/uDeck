@@ -40,7 +40,7 @@ class EmulatorSaveManagement:
         return {"gameId": item["id"], "title": item["title"], "platform": checks.get("platform") or item["platform"].lower(),
                 "contentHash": checks.get("contentHash") or content_hash(item),
                 "coreId": checks["coreId"], "coreHash": checks["coreHash"],
-                "basename": Path(item["path"]).stem if item.get("path") else checks.get("libraryName") or checks["coreId"]}
+                "basename": (item.get("basename") or Path(item["path"]).stem) if item.get("path") else checks.get("libraryName") or checks["coreId"]}
 
     def save_work(self, operation, done=None, *, contextual=True, on_error=None, internal=False):
         if self.save_closed:
@@ -186,7 +186,7 @@ class EmulatorSaveManagement:
                         hashes = [core.core_hash or file_hash(core.path)]
                     for core_hash in hashes:
                         self.save_manager.register({"gameId": item["id"], "title": item["title"],
-                            "basename": Path(item["path"]).stem, "platform": item["platform"].lower(),
+                            "basename": item.get("basename") or Path(item["path"]).stem, "platform": item["platform"].lower(),
                             "contentHash": identity, "coreId": core_root.name, "coreHash": core_hash})
             result = self.save_manager.backup_all()
             result["deferred"] = sorted(set(result["deferred"] + deferred))

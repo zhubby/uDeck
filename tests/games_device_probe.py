@@ -14,6 +14,7 @@ import time
 from pathlib import Path
 
 from game_fixtures import create_original_roms
+from libretro_fixtures import configure_library
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
@@ -52,7 +53,7 @@ def run(root, extra_cores=()):
             result = probe_core(core.path)
             assert result["status"] == "available", result
             controller.catalog.apply_probe(identifier, result)
-        controller.library.configure_root(root / "Games")
+        configure_library(controller, root / "Games")
         wait(lambda: not controller.library.pending)
         assert len(controller.library.items) == 3
         for path in paths:

@@ -79,6 +79,7 @@ class Platform:
     cores: tuple = ()
     mode: str = "files"
     firmware_groups: dict = field(default_factory=dict)
+    databases: tuple = ()
 
     def __post_init__(self):
         self.directory = self.directory or self.id
@@ -114,11 +115,15 @@ class CoreCatalog:
         self.preferences = preferences
         self.cores = {}
         data = json.loads((Path(__file__).parent / "resources/platforms.json").read_text())
+        self.database_data = json.loads((Path(__file__).parent / "resources/databases.json").read_text())
         self.system_ids = data.get("systemIds", {})
         self.firmware_groups = data.get("firmwareGroups", {})
         self.platforms = {p["id"]: Platform(p["id"], p["title"], aliases=tuple(p.get("aliases", [])),
                                           cores=tuple(p["cores"]), mode=p.get("mode", "files"),
                                           firmware_groups=p.get("firmwareGroups", {})) for p in data["platforms"]}
+        for value in self.platforms.values():
+            value.databases = tuple(self.database_data["platforms"].get(value.id, [value.title]))
+            value.directory = value.databases[0]
         self.errors = []
 
     @classmethod
@@ -193,7 +198,25 @@ class CoreCatalog:
 
     def platform_for_directory(self, name):
         name = name.casefold()
-        return next((p for p in self.platforms.values() if name in (p.directory, *p.aliases)), None)
+        return next((p for p in self.platforms.values() if name in
+                     {n.casefold() for n in (p.id, p.directory, *p.aliases, *p.databases)}), None)
+
+    def platform_for_database(self, name):
+        return self.platform_for_directory(str(name).removesuffix(".lpl"))
+
+    def database_for_path(self, platform, path, directory="", *, strict=False):
+        value = self.platforms[self.canonical(platform)]
+        names = value.databases or (value.directory,)
+        exact = next((n for n in names if n.casefold() == directory.casefold()), None)
+        if exact:
+            return exact
+        inferred = self.database_data["extensions"].get(Path(path).suffix.lower())
+        alias = self.database_data["aliases"].get(directory.casefold())
+        if inferred in names:
+            return inferred
+        if alias in names:
+            return alias
+        return "" if strict and len(names) > 1 else names[0]
 
     def platform_cores(self, platform):
         platform = self.canonical(platform)
@@ -216,8 +239,10 @@ class CoreCatalog:
 
     def resolve(self, item, require_available=True):
         platform = self.canonical(item["platform"])
-        suffix = Path(item.get("path", "")).suffix or item.get("format", "")
-        explicit = item.get("coreId") or self.preferences.get("gameCores", {}).get(item.get("id"))
+        suffix = Path(item.get("archiveMember") or item.get("path", "")).suffix or item.get("format", "")
+        explicit = item.get("coreId") or item.get("playlistCoreId") or item.get("playlistDefaultCoreId")
+        if not item.get("playlistPath"):
+            explicit = explicit or self.preferences.get("gameCores", {}).get(item.get("id"))
         if explicit:
             core = self.cores.get(explicit)
             if (not core or platform not in core.platforms or not self.enabled(core, platform)

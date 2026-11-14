@@ -231,8 +231,8 @@ def test_creating_platform_folders_merges_existing_without_overwriting_roms(tmp_
     rom.write_bytes(b"preserve me")
     create_platform_directories(root, catalog)
     assert rom.read_bytes() == b"preserve me"
-    (root / "gb").rmdir()
-    (root / "gb").symlink_to(tmp_path, target_is_directory=True)
+    (root / "Nintendo - Game Boy").rmdir()
+    (root / "Nintendo - Game Boy").symlink_to(tmp_path, target_is_directory=True)
     with pytest.raises(ValueError):
         create_platform_directories(root, catalog)
 

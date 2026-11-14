@@ -18,6 +18,7 @@ from udeck.apps.common.state import atomic_json
 from udeck.apps.emulator.browser import EmulatorBrowser
 from udeck.apps.emulator.catalog import CoreCatalog, message_lines, probe_core, probe_key
 from udeck.apps.emulator.library import EmulatorLibrary, confined_path, content_dependencies
+from udeck.apps.emulator.library_management import EmulatorLibraryManagement
 from udeck.apps.emulator.save_management import EmulatorSaveManagement
 from udeck.apps.emulator.services import CoreInventoryTask, LaunchTask
 from udeck.apps.emulator.settings import EmulatorSettings
@@ -47,6 +48,8 @@ def content_hash(item, cancelled=lambda: False):
     if item.get("noContent"):
         return hashlib.sha256(("no-content:" + item["coreId"]).encode()).hexdigest()
     base = file_hash(item["path"], cancelled)
+    if item.get("archiveMember"):
+        return hashlib.sha256((base + "#" + item["archiveMember"]).encode()).hexdigest()
     if Path(item["path"]).suffix.lower() not in (".cue", ".gdi", ".m3u"):
         return base
     digest = hashlib.sha256(base.encode())
@@ -186,7 +189,7 @@ class RetroEngine(QObject):
             copy_file(source, sram / name)
         self.sram_runtime, self.sram_committed = sram, False
         # RetroArch uses retro_system_info.library_name when there is no content.
-        basename = (Path(item["path"]).stem if item.get("path") else
+        basename = (item.get("basename") or Path(item["path"]).stem if item.get("path") else
                     checks.get("libraryName") or checks.get("coreId", "core"))
         self.state_path = root / (basename + ".state")
         options = {"stdin_cmd_enable": "true", "network_cmd_enable": "false", "config_save_on_exit": "false",
@@ -217,7 +220,7 @@ class RetroEngine(QObject):
         self.process.setProgram(checks["executable"])
         arguments = ["--verbose", "--appendconfig", str(config), "-L", checks["core"]]
         if not item.get("noContent"):
-            arguments.append(item["path"])
+            arguments.append(item.get("contentPath") or item["path"])
         self.process.setArguments(arguments)
         self.process.start()
         self.timer.start()
@@ -424,7 +427,7 @@ class RetroEngine(QObject):
             self.runtime.cleanup()
 
 
-class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrowser, AppController):
+class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, EmulatorSettings, EmulatorBrowser, AppController):
     def create_library(self, app):
         self.catalog = CoreCatalog.discover(self.store.data["preferences"])
         return EmulatorLibrary(self.store, self.catalog, self)
@@ -452,6 +455,7 @@ class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrows
         self.launch_cancel = threading.Event()
         self.tab = 0 if self.store.data["recent"] else 1
         self.init_save_management()
+        self.init_library_management()
 
     def start(self):
         self.refresh_catalog(force=False)
@@ -521,7 +525,7 @@ class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrows
                                     catalog=self.catalog, validate_native=False)
 
     def tabs(self):
-        return [tr(Msg.RECENTLY_PLAYED), tr(Msg.ALL_PLATFORMS), tr(Msg.FAVORITES)]
+        return [tr(Msg.RECENTLY_PLAYED), tr(Msg.EMU_PLAYLISTS), tr(Msg.FAVORITES)]
 
     def game_root(self):
         identifier = self.current["id"]
@@ -537,7 +541,8 @@ class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrows
     def open_item(self, identifier):
         if self.engine.running():
             raise RuntimeError(tr(Msg.A_GAME_IS_ALREADY_RUNNING))
-        self.current = self.library.require(identifier)
+        self.current = self.library.entry(identifier)
+        self.store.data["preferences"].setdefault("entryChoices", {})[self.current["id"]] = self.current.get("entryId", identifier)
         self.cancel_launch()
         self.update_checks()
         self.enter("game-details")
@@ -562,6 +567,10 @@ class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrows
         self.save_start_game(resume)
 
     def _start_game(self, resume=False):
+        if self.library_task is not None or self.migration_pending:
+            raise RuntimeError(tr(Msg.EMU_LIBRARY_BUSY))
+        if self.library.identity_error:
+            raise RuntimeError(self.library.identity_error)
         if self.launching or self.engine.running():
             raise RuntimeError(tr(Msg.A_GAME_IS_ALREADY_STARTING_OR_RUNNING))
         item = self.require_current()
@@ -657,7 +666,7 @@ class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrows
         if self.current.get("noContent"):
             return self.current
         try:
-            return self.library.require(self.current["id"])
+            return self.library.require(self.current.get("entryId", self.current["id"]))
         except OSError:
             # Keep an already opened detail/resume request after a core switch.
             # The original source and file identity must still match.
@@ -694,12 +703,15 @@ class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrows
         if not platform or not self.catalog.candidates(platform.id, path.suffix):
             raise ValueError(tr(Msg.NO_ENABLED_CORE_SUPPORTS_THIS_PLATFORM_FOLDER_AND_FORMAT))
         confined_path(path, Path(source.path) / relative.parts[0])
-        if platform.mode in ("manual", "dos"):
-            entries = self.store.data["preferences"].setdefault("engineEntries", [])
-            if str(path) not in entries:
-                entries.append(str(path))
-                self.persist()
-                self.library.refresh()
+
+    def accept_file_paths(self, paths):
+        self.require_library_idle()
+        for path in paths:
+            self.accept_file_path(path)
+        known = {item["path"] for item in self.library.items}
+        additions = [path for path in paths if str(path) not in known]
+        if additions:
+            self.preview_file_entries(additions)
 
     def pause_menu(self):
         if not self.engine.running():
@@ -808,6 +820,11 @@ class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrows
         else:
             options = [] if self.tab == 1 and self.platform == "All" else [
                 (tr(Msg.TOGGLE_FAVORITE), self.toggle_favorite)]
+            if self.tab == 1 and self.platform != "All":
+                options.extend([(tr(Msg.EMU_DOWNLOAD_LIST_IMAGES), self.download_list_images),
+                                (tr(Msg.CHOOSE_CORE), self.playlist_core_menu)])
+            if not (self.tab == 1 and self.platform == "All") and self.selected:
+                options.append((tr(Msg.EMU_DOWNLOAD_GAME_IMAGES), self.download_game_images))
             self.menu(tr(Msg.EMULATOR_ACTIONS), options + [
                        (tr(Msg.SEARCH), lambda: self.prompt(tr(Msg.SEARCH_LIBRARY), self.search, self.filter)),
                        (tr(Msg.CLEAR_SEARCH), lambda: self.search("")),
@@ -820,6 +837,9 @@ class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrows
             (tr(Msg.CONTINUE), lambda: self.start_game(True)),
             (tr(Msg.RESTART), lambda: self.start_game()),
             (tr(Msg.CHOOSE_CORE), self.choose_game_core),
+            (tr(Msg.EMU_SELECT_PLATFORM), self.select_game_platform),
+            (tr(Msg.EMU_PREVIEW_IMAGES), self.preview_images),
+            (tr(Msg.EMU_DOWNLOAD_GAME_IMAGES), self.download_game_images),
             (tr(Msg.EMU_SAVE_MANAGEMENT), self.save_management),
             (tr(Msg.TOGGLE_FAVORITE), self.toggle_favorite), (tr(Msg.SETTINGS), self.settings)],
             message_lines(self.checks.get("errors", [])))
@@ -827,7 +847,7 @@ class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrows
     def toggle_favorite(self):
         if self.page == "library" and self.tab == 1 and self.platform == "All":
             return
-        identifier = self.current["id"] if self.page == "game-details" else self.selected
+        identifier = self.current["id"] if self.page == "game-details" else self.library.entry(self.selected)["id"]
         if identifier:
             values = self.store.data["favorites"]
             values.remove(identifier) if identifier in values else values.append(identifier)
@@ -846,6 +866,10 @@ class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrows
     @Slot(str)
     @interaction
     def dispatch(self, action):
+        if self.library_task is not None:
+            if action == "back":
+                self.cancel_library_operation()
+            return
         if self.launching and action == "accept":
             return
         if self.menus and self.menus[-1].get("picker") and action == "left":
@@ -885,7 +909,7 @@ class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrows
                 and self.current["sourceId"] not in self.library.unavailable):
             self.reconnect_checked = True
             try:
-                item = self.library.require(self.current["id"])
+                item = self.library.require(self.current.get("entryId", self.current["id"]))
                 if content_hash(item) == self.engine.metadata.get("contentHash"):
                     self.source_missing = False
                     if len(self.menus) == 1 and self.menus[0]["title"] == tr(Msg.GAME_PAUSED):
@@ -901,6 +925,7 @@ class EmulatorController(EmulatorSaveManagement, EmulatorSettings, EmulatorBrows
         self.attempt(self.persist)
 
     def close(self):
+        self.close_library_management()
         self.cancel_launch()
         self.core_generation += 1
         self.core_cancel.set()

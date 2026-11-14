@@ -9,7 +9,7 @@ import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from PySide6.QtCore import QRunnable, QThreadPool
+from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
 
 from udeck.apps.common.library import Library, ScanSignals, Source, fingerprint
 from udeck.i18n import Msg, error_text, tr
@@ -109,7 +109,7 @@ class GameScan:
     hints: list = field(default_factory=list)
 
 
-def scan_games(source, catalog, cancelled=lambda: False, cache=None):
+def scan_games(source, catalog, cancelled=lambda: False, cache=None, *, enabled_only=True):
     result = GameScan()
     cache = cache or {}
     root = Path(source.path)
@@ -127,7 +127,7 @@ def scan_games(source, catalog, cancelled=lambda: False, cache=None):
             if len(result.hints) < 20:
                 result.hints.append(tr(Msg.NOT_SCANNED_NAME_USE_A_PLATFORM_FOLDER, name=directory.name))
             continue
-        candidates = catalog.candidates(platform.id)
+        candidates = catalog.candidates(platform.id, enabled_only=enabled_only)
         if not candidates:
             if len(result.hints) < 20:
                 result.hints.append(tr(Msg.ENABLE_A_CORE_FOR_PLATFORM, platform=platform.title))
@@ -215,13 +215,73 @@ class GameScanTask(QRunnable):
         self.signals.done.emit(self.generation, self.source.id, items, report)
 
 
+class PlaylistReadSignals(QObject):
+    done = Signal(int, object, object)
+
+
+class PlaylistReadTask(QRunnable):
+    def __init__(self, generation, directory, root, catalog, identities, cache, cancel):
+        super().__init__()
+        self.generation, self.directory, self.root = generation, directory, root
+        self.catalog, self.identities, self.cache, self.cancel = catalog, identities, cache, cancel
+        self.signals = PlaylistReadSignals()
+
+    def run(self):
+        from .playlists import read_library
+
+        try:
+            result = read_library(self.directory, self.root, self.catalog, self.identities,
+                                  self.cancel.is_set, self.cache)
+            self.signals.done.emit(self.generation, (result, self.identities), None)
+        except (OSError, ValueError) as error:
+            self.signals.done.emit(self.generation, None, error_text(error))
+
+
 class EmulatorLibrary(Library):
     def __init__(self, state, catalog, parent=None):
         super().__init__("emulator", state, parent)
-        self.catalog = catalog
-        self.reports = {}
-        self.root_id = state.data["preferences"].get("romSourceId", "")
-        self.root_path = str(Path(state.data["preferences"].get("romRoot", str(Path.home() / "Games"))).expanduser())
+        self.catalog, self.reports, self.playlists = catalog, {}, []
+        self.suspended = False
+        self.reload_configuration()
+
+    def reload_configuration(self):
+        from udeck.apps.common.state import atomic_json
+
+        from .playlists import ContentIdentities
+
+        self.cancel.set()
+        self.generation += 1
+        self.pending.clear()
+        self.errors.clear()
+        self.unavailable.clear()
+        self.playlists, self.reports = [], {}
+        self.items = self.state.data.get("index", [])
+        self.sources = []
+        for value in self.state.data["sources"]:
+            try:
+                self.sources.append(Source(**value))
+            except (TypeError, ValueError):
+                continue
+        prefs = self.state.data["preferences"]
+        self.root_id = prefs.get("romSourceId", "")
+        self.root_path = str(Path(prefs.get("romRoot", str(Path.home() / "Games/roms"))).expanduser())
+        self.playlist_path = str(Path(prefs.get("playlistDirectory", str(Path.home() / "Games/playlists"))).expanduser())
+        self.thumbnail_path = str(Path(prefs.get("thumbnailDirectory", str(Path.home() / "Games/thumbnails"))).expanduser())
+        self.legacy_path = self.state.path.parent / "emulator-legacy-library.json"
+        self.legacy_root = prefs.get("romRoot", "") if prefs.get("emulatorSchema") == 2 else ""
+        if self.legacy_root and not self.legacy_path.exists():
+            atomic_json(self.legacy_path, {"root": self.legacy_root, "items": self.items})
+        self.identity_error = ""
+        try:
+            self.identities = ContentIdentities(self.state.path.parent / "emulator-identities.json")
+        except (OSError, ValueError) as error:
+            self.identities = None
+            self.identity_error = error_text(error)
+            self.errors["identities"] = self.identity_error
+        if self.identities is not None:
+            for item in self.items:
+                if item.get("path") and item.get("id"):
+                    self.identities.register(item["path"], item.get("archiveMember", ""), item["id"])
         if Path(self.root_path).is_dir():
             self._attach_root(self.root_path, reconnect=False)
 
@@ -234,11 +294,12 @@ class EmulatorLibrary(Library):
         self.sources.append(source)
         self.root_id, self.root_path = source.id, source.path
         prefs = self.state.data["preferences"]
-        prefs.update(romRoot=source.path, romSourceId=source.id, emulatorSchema=2)
+        prefs.update(romRoot=source.path, romSourceId=source.id)
+        if not self.legacy_root:
+            prefs["emulatorSchema"] = 3
         self.state.data["sources"] = [s.to_dict() for s in self.sources]
 
     def configure_root(self, path):
-        # Validation happens before touching preferences, source identity or scans.
         source = Source.create(path)
         with os.scandir(source.path) as entries:
             next(entries, None)
@@ -255,45 +316,115 @@ class EmulatorLibrary(Library):
             raise
         self.refresh()
 
+    def configure_directory(self, key, path):
+        source = Source.create(path)
+        with os.scandir(source.path) as entries:
+            next(entries, None)
+        attribute = {"playlistDirectory": "playlist_path", "thumbnailDirectory": "thumbnail_path"}[key]
+        previous = getattr(self, attribute)
+        old = self.state.data["preferences"].get(key)
+        try:
+            self.state.data["preferences"][key] = source.path
+            setattr(self, attribute, source.path)
+            self.state.save()
+        except OSError:
+            setattr(self, attribute, previous)
+            if old is None:
+                self.state.data["preferences"].pop(key, None)
+            else:
+                self.state.data["preferences"][key] = old
+            raise
+        self.refresh()
+
     def refresh(self):
+        if self.suspended:
+            return
+        if self.identity_error:
+            self.errors["identities"] = self.identity_error
+            self.changed.emit()
+            return
         self.cancel.set()
         self.cancel = threading.Event()
         self.generation += 1
-        self.pending.clear()
+        self.pending = {"playlists"}
         self.check_sources()
-        self.errors.pop("rom-root", None)
-        root = Path(self.root_path)
-        if not root.is_dir():
-            self.errors["rom-root"] = tr(Msg.ROM_ROOT_DOES_NOT_EXIST_PATH, path=self.root_path)
+        task = PlaylistReadTask(self.generation, self.playlist_path, self.root_path,
+                                copy.deepcopy(self.catalog), copy.deepcopy(self.identities),
+                                {i["path"]: i for i in self.items}, self.cancel)
+        task.signals.done.connect(self._playlist_done)
+        self.tasks.append(task)
+        QThreadPool.globalInstance().start(task)
+        self.changed.emit()
+
+    def _playlist_done(self, generation, payload, error):
+        self.tasks = [t for t in self.tasks if t.generation != generation]
+        if generation != self.generation or self.suspended:
+            return
+        self.pending.discard("playlists")
+        if error:
+            self.errors["playlists"] = error
         else:
+            result, identities = payload
+            # A malformed external edit must not silently erase its last good collection.
+            for playlist in result.playlists:
+                if playlist["error"]:
+                    kept = [i for i in self.items if i.get("playlistPath") == playlist["path"]]
+                    result.items.extend(kept)
+                    playlist["count"] = len(kept)
+            self.items, self.playlists, self.identities = result.items, result.playlists, identities
+            for item in self.items:
+                item["romRoot"] = self.root_path
+            existing = {s.path: s for s in self.sources}
+            existing.update({s.path: s for s in result.sources})
+            self.sources = list(existing.values())
+            if Path(self.root_path).is_dir():
+                self._attach_root(self.root_path, reconnect=False)
+            self.state.data["sources"] = [s.to_dict() for s in self.sources]
+            self.errors = dict(result.errors)
+            self.reports[self.root_id] = list(result.errors.values())
+            self.state.set_index(self.items)
             try:
-                if not any(s.id == self.root_id and s.path == str(root.resolve()) for s in self.sources):
-                    self._attach_root(root, reconnect=False)
-            except OSError as error:
-                self.errors["rom-root"] = error_text(error)
-        cache = {i["path"]: i for i in self.items}
-        catalog = copy.deepcopy(self.catalog)
-        for source in self.sources:
-            if not source.available():
-                continue
-            self.pending.add(source.id)
-            task = GameScanTask(self.generation, source, catalog, self.cancel, cache)
-            task.signals.done.connect(self._done)
-            self.tasks.append(task)
-            QThreadPool.globalInstance().start(task)
+                self.identities.save()
+                self.state.save()
+            except OSError as failure:
+                self.errors["state"] = error_text(failure)
+            self.reload_thumbnails(emit=False)
         self.changed.emit()
 
     def _done(self, generation, source_id, items, report):
+        # Ignore any pre-playlist worker finishing after a configuration change.
         if generation == self.generation and source_id not in self.unavailable:
             self.reports[source_id] = report["hints"]
         super()._done(generation, source_id, items, report["error"])
 
-    def require(self, identifier):
-        item = super().require(identifier)
-        source = next(s for s in self.sources if s.id == item["sourceId"])
-        confined_path(item["path"], source.path)
-        confined_path(item["path"], item.get("platformRoot", Path(item["path"]).parent))
+    def entry(self, identifier):
+        item = next((i for i in self.items if i.get("entryId") == identifier), None)
+        item = item or next((i for i in self.items if i["id"] == identifier), None)
+        if item is None:
+            raise OSError(tr(Msg.SOURCE_DISCONNECTED_RECONNECT_THE_FOLDER_IN_SOURCES))
         return item
+
+    def require(self, identifier):
+        item = self.entry(identifier)
+        source = next((s for s in self.sources if s.id == item["sourceId"]), None)
+        path = Path(item["path"])
+        if not source or not source.available() or not path.is_file():
+            raise OSError(tr(Msg.SOURCE_DISCONNECTED_RECONNECT_THE_FOLDER_IN_SOURCES))
+        confined_path(path, source.path)
+        confined_path(path, item.get("platformRoot", path.parent))
+        stat = path.stat()
+        if [stat.st_size, stat.st_mtime_ns] != item["stamp"]:
+            raise OSError(tr(Msg.THE_FILE_HAS_CHANGED_REFRESH_THE_LIBRARY_BEFORE_OPENING_IT))
+        return item
+
+    def reload_thumbnails(self, emit=True):
+        from .thumbnails import apply_thumbnails
+
+        preferred = self.state.data["preferences"].get("thumbnailType", "Named_Boxarts")
+        for item in self.items:
+            apply_thumbnails(item, self.thumbnail_path, preferred)
+        if emit:
+            self.changed.emit()
 
 
 def create_platform_directories(root, catalog):
@@ -305,9 +436,10 @@ def create_platform_directories(root, catalog):
     for platform in catalog.platforms.values():
         if not catalog.candidates(platform.id):
             continue
-        path = root / platform.directory
-        if path.is_symlink():
-            raise ValueError(tr(Msg.CONTENT_REFERENCE_USES_A_SYMBOLIC_LINK_PATH, path=path))
-        path.mkdir(exist_ok=True)
-        created.append(str(path))
+        for database in platform.databases or (platform.directory,):
+            path = root / database
+            if path.is_symlink():
+                raise ValueError(tr(Msg.CONTENT_REFERENCE_USES_A_SYMBOLIC_LINK_PATH, path=path))
+            path.mkdir(exist_ok=True)
+            created.append(str(path))
     return created
