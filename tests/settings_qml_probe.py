@@ -19,7 +19,7 @@ from udeck.controller import ShellController
 from udeck.core import ConfigStore
 from udeck.key_test import KeyTestFilter
 from udeck.key_test_layout import KEY_SPECS
-from udeck.mock import MockBackend
+from udeck.mock import MockBackend, mock_system_info
 
 
 def run():
@@ -30,6 +30,7 @@ def run():
     parser.add_argument("--language", default="en")
     parser.add_argument("--theme", default="classic")
     parser.add_argument("--clock-rollover", action="store_true")
+    parser.add_argument("--system-info", action="store_true")
     options = parser.parse_args()
     options.output.mkdir(parents=True, exist_ok=True)
     application = QGuiApplication([])
@@ -61,13 +62,16 @@ def run():
     def inspect():
         expression = QQmlExpression(QQmlEngine.contextForObject(window), window, """
             JSON.stringify((function() {
-                const result = {caps: [], icons: [], flow: []}
+                const result = {caps: [], icons: [], flow: [], rows: []}
                 function visit(item) {
                     if (!item.visible) return
                     const p = item.mapToItem(contentItem, 0, 0)
                     const rect = {x: p.x, y: p.y, width: item.width, height: item.height}
                     if (item.objectName === 'dialogPanel') result.panel = rect
                     if (item.objectName === 'dialogContent') result.content = rect
+                    if (item.objectName === 'menuList') result.menu = rect
+                    if (item.objectName === 'settingOptionRow') result.rows.push(Object.assign(rect,
+                        {id: item.modelData.id, selected: item.index === dialog.index}))
                     if (item.parent && item.parent.objectName === 'dialogContent')
                         result.flow.push(Object.assign({name: item.objectName || item.toString(), text: (item.text || '').slice(0, 50)}, rect))
                     if (item.objectName.indexOf('testKey-') === 0) result.caps.push(Object.assign(rect,
@@ -120,6 +124,51 @@ def run():
         return visit(window.contentItem())
 
     try:
+        if options.system_info:
+            position = next(index for index, item in enumerate(controller._items()) if item["id"] == "system-info")
+            controller.select(position)
+            capture("system-info-setting")
+            QTest.keyClick(window, Qt.Key_Return)
+            report = capture("system-info-hardware")
+            owner = controller.modal["key"]
+            assert controller.modal["source"] == "system-info"
+            assert report["menu"]["height"] > 0
+            QTest.keyClick(window, Qt.Key_Return)
+            assert controller.modal["body"] == "Raspberry Pi Compute Module 4 Rev 1.0"
+            capture("system-info-value")
+            QTest.keyClick(window, Qt.Key_Escape)
+            assert controller.modal["key"] == owner
+            for _ in range(len(controller.modal["options"]) - 1):
+                QTest.keyClick(window, Qt.Key_Down)
+            report = capture("system-info-system")
+            selected = next(row for row in report["rows"] if row["selected"])
+            assert selected["id"] == "refresh"
+            assert selected["y"] >= report["menu"]["y"] - 1
+            assert selected["y"] + selected["height"] <= report["menu"]["y"] + report["menu"]["height"] + 1
+            QTest.keyClick(window, Qt.Key_Return)
+            assert controller.modal["key"] == owner
+            info = mock_system_info()
+            info.update(temperature=None, memoryAvailable=None, serial=None)
+            with patch("udeck.controller.mock_system_info", return_value=info):
+                QTest.keyClick(window, Qt.Key_Return)
+            for _ in range(5):
+                QTest.keyClick(window, Qt.Key_Up)
+            capture("system-info-unavailable")
+            unavailable = "不可用" if options.language == "zh_CN" else "Not available"
+            modal = json.loads(controller.snapshotJson)["modal"]
+            assert next(row for row in modal["options"] if row["id"] == "temperature")["subtitle"] == unavailable
+            QTest.keyClick(window, Qt.Key_Return)
+            assert json.loads(controller.snapshotJson)["modal"]["body"] == unavailable
+            QTest.keyClick(window, Qt.Key_Escape)
+            QTest.keyClick(window, Qt.Key_Escape)
+            assert not controller.modal and controller.navigation.index == position
+            assert controller.backend.actions == []
+            assert not errors, errors
+            summary = {"language": options.language, "theme": options.theme,
+                       "viewport": [options.width, options.height], "captures": captures, "qmlErrors": errors}
+            (options.output / "report.json").write_text(json.dumps(summary))
+            print(json.dumps(summary))
+            return
         timezone_position = next(i for i, item in enumerate(controller._items()) if item["id"] == "timezone")
         controller.select(timezone_position)
         capture("settings")

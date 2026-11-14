@@ -47,6 +47,7 @@ SETTING_ICONS = {
     "bluetooth": "bluetooth", "audio-modes": "audio-card", "battery": "battery",
     "input": "udeck-setting:controller", "key-test": "udeck-setting:keyboard-fill",
     "shortcuts": "udeck-setting:command",
+    "system-info": "dialog-information",
     "language": "preferences-desktop-locale", "theme": "preferences-desktop-theme",
     "ui-sounds": "audio-volume-high", "timezone": "preferences-system-time",
     "sharing": "network-connect",
@@ -85,6 +86,7 @@ NAVIGATION_ACTIONS = {
     "wifi-device", "wifi-connect", "wifi-saved", "wifi-saved-connect", "wifi-profile",
     "wifi-password", "wifi-details", "hotspot-device", "hotspot-name", "hotspot-password",
     "shortcut-group", "shortcut-detail", "shortcut-record",
+    "system-info-detail",
 }
 
 
@@ -93,7 +95,7 @@ def system_menu_icons(options, source=""):
         "settings", "quick-settings", "language", "theme", "timezone-areas", "timezone-cities",
         "wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details",
         "hotspot", "hotspot-device", "bluetooth", "volume", "audio-input", "audio-output", "audio-cards", "audio-profiles",
-        "shortcuts", "shortcuts-group", "shortcut-action",
+        "shortcuts", "shortcuts-group", "shortcut-action", "system-info",
     } or source.startswith("sharing") or any(option.get("action") in ACTION_ICONS or option.get("action") == "setting"
              or option.get("action") == "system" and option.get("systemAction") in SYSTEM_ICONS
              for option in options)

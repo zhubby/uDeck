@@ -5,6 +5,16 @@ from PySide6.QtCore import QObject, QTimer, Signal
 
 from .i18n import Msg, tr
 
+
+def mock_system_info():
+    return {"model": "Raspberry Pi Compute Module 4 Rev 1.0", "serial": "10000000abcdef01",
+            "processor": "ARM Cortex-A72", "cores": 4, "architecture": "aarch64",
+            "cpuMaxFrequency": 1500, "memoryTotal": 4 * 1024**3,
+            "memoryAvailable": 1.5 * 1024**3, "storageTotal": 64 * 1024**3,
+            "storageFree": 20 * 1024**3, "temperature": 42.5,
+            "os": "Debian GNU/Linux 13 (trixie)", "kernel": "6.12.47+rpt-rpi-v8"}
+
+
 MOCK_APPS = [
     ("terminal", tr(Msg.TERMINAL), "Terminal", "utilities-terminal", "System"),
     ("code", tr(Msg.CODE_EDITOR), "Visual Studio Code", "visual-studio-code", "Development"),

@@ -21,11 +21,12 @@ from .i18n import translate as translate_message
 from .key_test import KeyTestControls
 from .launch_controller import LaunchControls
 from .menu_icons import system_menu_icons
-from .mock import mock_apps
+from .mock import mock_apps, mock_system_info
 from .sharing import SharingControls
 from .shortcut_controller import ShortcutControls
 from .shortcuts import binding_label
 from .sounds import SoundFeedback, interaction
+from .system_info import read_system_info, system_info_options
 from .text_input import composing_action_blocked
 from .timezone import REGIONS, local_clock, region, zone_label, zone_summary
 from .wifi import wifi_indicators, wifi_label, wifi_status, wifi_summary
@@ -155,6 +156,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             {"id": "theme", "name": tr(Msg.THEME), "subtitle": THEMES[self.theme], "icon": "preferences-desktop-theme"},
             {"id": "ui-sounds", "name": tr(Msg.INTERFACE_SOUNDS), "subtitle": tr(Msg.ON) if self.config.data["preferences"]["uiSounds"] else tr(Msg.OFF), "checked": self.config.data["preferences"]["uiSounds"], "icon": "audio-volume-high"},
             {"id": "timezone", "name": tr(Msg.TIME_ZONE), "subtitle": zone_summary(self.data["timezone"]), "icon": "preferences-system-time"},
+            {"id": "system-info", "name": tr(Msg.SYSTEM_INFORMATION), "subtitle": tr(Msg.HARDWARE_AND_SYSTEM_DETAILS), "icon": "dialog-information"},
             {"id": "lock", "name": tr(Msg.LOCK_SCREEN), "subtitle": tr(Msg.UNLOCK_WITH_YOUR_LOGIN_PASSWORD), "icon": "system-lock-screen"},
             {"id": "blank", "name": tr(Msg.TURN_OFF_DISPLAY), "subtitle": tr(Msg.PRESS_A_DIRECTION_OR_KEYBOARD_KEY_TO_WAKE_THE_SYSTEM_STAYS_AWAKE), "icon": "video-display"},
             {"id": "logout", "name": tr(Msg.LOG_OUT), "subtitle": tr(Msg.RETURN_TO_LOGIN_SAVE_YOUR_WORK_FIRST), "icon": "system-log-out"},
@@ -669,6 +671,9 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             self._sharing_menu()
         elif identifier == "shortcuts":
             self._open_shortcuts()
+        elif identifier == "system-info":
+            info = mock_system_info() if self.mock else read_system_info()
+            self._menu(tr(Msg.SYSTEM_INFORMATION), system_info_options(info), source="system-info")
         elif identifier == "ui-sounds":
             previous = ConfigStore(self.config.path).data["preferences"]["uiSounds"]
             self.config.data["preferences"]["uiSounds"] = not previous
@@ -918,7 +923,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                     self.feedback("error")
                     self.notify(option.get("reason") or tr(Msg.THIS_ITEM_IS_CURRENTLY_UNAVAILABLE))
                     return
-                keep_parent = modal.get('source', '').startswith('sharing') or modal.get('source') in ('console', 'shortcuts', 'shortcuts-group', 'shortcut-action') or (modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot", "shortcuts", "sharing"))
+                keep_parent = modal.get('source', '').startswith('sharing') or modal.get('source') in ('console', 'shortcuts', 'shortcuts-group', 'shortcut-action', 'system-info') or (modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot", "shortcuts", "sharing"))
                 if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "hotspot", "hotspot-device", "bluetooth", "volume", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
                     self._pop()
                 self._execute_option(option)
@@ -1015,6 +1020,11 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             self.setLanguage(option["language"])
         elif action == "theme":
             self.setTheme(option["theme"])
+        elif action == "system-info-detail":
+            self._push({"kind": "information", "title": option["label"], "body": option["subtitle"]})
+        elif action == "system-info-refresh":
+            info = mock_system_info() if self.mock else read_system_info()
+            self.modal["options"] = system_menu_icons(system_info_options(info), "system-info")
         elif action == "timezone-region":
             area = option["region"]
             options = self._timezone_options(area)
