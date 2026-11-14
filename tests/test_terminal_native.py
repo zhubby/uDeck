@@ -49,3 +49,19 @@ def test_native_terminal_themes_ansi_and_nerd_glyph_cells(tmp_path):
     )
     assert result.returncode == 0, result.stdout + result.stderr
     assert '"nativeAppearance": "passed"' in result.stdout
+
+
+def test_native_terminal_menus_search_paste_and_shared_font_size(tmp_path):
+    root = Path(__file__).resolve().parent.parent
+    plugin = Path(os.environ.get("UDECK_TERMINAL_PLUGIN_PATH", root / "build/terminal-plugin"))
+    if not (plugin / "QMLTermWidget/qmldir").is_file():
+        if os.environ.get("UDECK_REQUIRE_NATIVE"):
+            pytest.fail("Required native plugin has not been built")
+        pytest.skip("Native plugin required for terminal menu and font integration")
+    result = subprocess.run(
+        [sys.executable, str(root / "tests/terminal_device_audit_probe.py"), "--output", str(tmp_path)],
+        capture_output=True, text=True, timeout=60,
+        env={**os.environ, "PYTHONPATH": str(root / "src"), "QT_QPA_PLATFORM": "offscreen",
+             "QT_QUICK_BACKEND": "software", "QT_QUICK_CONTROLS_STYLE": "Basic", "QT_SCALE_FACTOR": "1"},
+    )
+    assert result.returncode == 0, result.stdout + result.stderr

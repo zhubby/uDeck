@@ -1,0 +1,83 @@
+{
+  "baseCommit": "1c7c736e9329f8af2922d5299dab241b76e01754",
+  "candidateSource": true,
+  "installedBuild": false,
+  "humanPhysicalInput": false,
+  "allDeviceProbesPassed": true,
+  "existingStatePreserved": true,
+  "before": {
+    "configuration": {
+      "/home/zhubby/.config/udeck/settings.json": "d0992dca04ebc4e52fc27d4c78b3aad46cba28bb76b05eb2d70c937d22e4c8e6",
+      "/home/zhubby/.config/udeck/terminal.json": null,
+      "/home/zhubby/.config/xdg-terminals.list": null
+    },
+    "processes": {
+      "3458854": {
+        "startTicks": "30014984",
+        "children": [
+          "3458884"
+        ]
+      }
+    },
+    "terminalCounts": {
+      "windows": 1,
+      "sessions": 1,
+      "localShells": 0
+    },
+    "defaultTerminal": "/usr/bin/udeck-terminal",
+    "installedVersion": "0.2.13"
+  },
+  "after": {
+    "configuration": {
+      "/home/zhubby/.config/udeck/settings.json": "d0992dca04ebc4e52fc27d4c78b3aad46cba28bb76b05eb2d70c937d22e4c8e6",
+      "/home/zhubby/.config/udeck/terminal.json": null,
+      "/home/zhubby/.config/xdg-terminals.list": null
+    },
+    "processes": {
+      "3458854": {
+        "startTicks": "30014984",
+        "children": [
+          "3458884"
+        ]
+      }
+    },
+    "terminalCounts": {
+      "windows": 1,
+      "sessions": 1,
+      "localShells": 0
+    },
+    "defaultTerminal": "/usr/bin/udeck-terminal",
+    "installedVersion": "0.2.13"
+  },
+  "tests": {
+    "localTerminalSuite": {
+      "passed": 98,
+      "skippedNative": 4
+    },
+    "deviceTerminalSuite": {
+      "passed": 102,
+      "skipped": 0
+    },
+    "finalNativeMenuRegression": {
+      "passed": 1
+    },
+    "finalMockAppearanceAndActivation": {
+      "passed": 11
+    },
+    "ruff": "passed",
+    "diffCheck": "passed"
+  },
+  "candidateSourceHashes": {
+    "src/udeck/terminal/controller.py": "67ac5a7ed9781bde89ed884ff302a9123458f052d9bde9c07bd7776017529569",
+    "src/udeck/terminal/runtime.py": "de2f8f24b05c1a9b6957a0716dcdd4668bbe7f59d39f94c5a3e5eed4162a7f50",
+    "src/udeck/terminal/activation.py": "ebf26f3a9e59157d94e18c4a850794758176919564ae52c085fbe632695e4ca7",
+    "src/udeck/terminal/qml/Main.qml": "eada4d5b0e32138fad23180b515a51ae70e1b80f677944797911512bba70c573",
+    "tests/terminal_device_audit_probe.py": "ec1bf3e65b70c92b5dfd0109b291715a93dc4dc3dd38ab3501dd9f75ae2a0740",
+    "tests/terminal_appearance_probe.py": "24716406aea1d2af9a515f679d89907cd7cf72f9fa1aae64b151887d1c64d3d0",
+    "tests/terminal_device_probe.py": "e6c317514141707ab933f86eb0de41285e0687cab633bf1ae2c6ec536451bc07",
+    "tests/terminal_ipc_probe.py": "aeb290a108a8325fdd65ae554469e1da4fdcaaf513f1eba669112631b6cf4859",
+    "tests/test_terminal_native.py": "31102f866efb6da06e92efa8c64ad8d7dcbd59c51f69c1ff69b345e5eafeb3c9",
+    "tests/test_terminal_activation.py": "34bde78549b325238b1efc1a3d9df2646929eec5888c1dd6003e402c2c20a2e1"
+  },
+  "probeHistory": "The first kernel-keyboard attempt timed out. Product source did not change. Diagnostics and an end-to-end device-readiness check were added; the final Wayland audit passed."
+}

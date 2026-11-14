@@ -12,10 +12,23 @@ from pathlib import Path
 
 from udeck.core import ConfigStore
 from udeck.desktop import open_terminal
+from udeck.terminal import main
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--output", type=Path, required=True)
+parser.add_argument("--wayland-activation", action="store_true")
 options = parser.parse_args()
+installed = str(Path(main.__file__).resolve()).startswith("/usr/lib/python3/dist-packages/")
+windows = None
+if options.wayland_activation:
+    from PySide6.QtCore import QCoreApplication
+
+    from udeck.windows import WindowService
+
+    app = QCoreApplication([])
+    windows = WindowService()
+    windows.start()
+    assert windows.available
 
 
 def doctor():
@@ -26,10 +39,24 @@ def doctor():
 def wait(condition, timeout=12):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
+        if windows:
+            app.processEvents()
         if condition():
             return
         time.sleep(0.1)
     raise AssertionError("Installed CLI/IPC probe timed out")
+
+
+def check_activation(title):
+    if not windows:
+        return
+    wait(lambda: any(row['name'] == title for row in windows.handles.values()))
+    target = next(row['id'] for row in windows.handles.values() if row['name'] == title)
+    windows.activate_shell()
+    wait(lambda: any(row['appId'] == 'io.github.zhubby.uDeck' and row['active']
+                     for row in windows.handles.values()))
+    subprocess.run(["/usr/bin/udeck-terminal"], check=True, capture_output=True, timeout=8)
+    wait(lambda: windows.handles.get(target, {}).get('active'))
 
 
 assert doctor().get("running") is False, "Close existing terminal windows before this probe"
@@ -49,8 +76,8 @@ with tempfile.TemporaryDirectory(prefix="udeck-terminal-ipc-") as temporary:
     holder = directory / "holder.py"
     holder.write_text("import time\nfrom pathlib import Path\nPath('ready').touch()\nwhile not Path('finish').exists(): time.sleep(0.1)\n")
     child = directory / "argv.py"
-    child.write_text("import json,os,sys,time\nfrom pathlib import Path\nPath('argv.json').write_text(json.dumps({'argv':sys.argv[1:],'cwd':os.getcwd(),'value':os.environ.get('UDECK_PROBE_CALLER')},ensure_ascii=False))\ntime.sleep(2)\n")
-    primary = subprocess.Popen(["/usr/bin/udeck-terminal", "--windowed", "--no-input", "--",
+    child.write_text("import json,os,sys,time\nfrom pathlib import Path\nPath('argv.json').write_text(json.dumps({'argv':sys.argv[1:],'cwd':os.getcwd(),'value':os.environ.get('UDECK_PROBE_CALLER')},ensure_ascii=False))\ntime.sleep(6)\n")
+    primary = subprocess.Popen(["/usr/bin/udeck-terminal", "--windowed", "--no-input", "-T", "uTerminal IPC audit A", "--",
                                 sys.executable, str(holder)], cwd=directory,
                                stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
     try:
@@ -58,6 +85,7 @@ with tempfile.TemporaryDirectory(prefix="udeck-terminal-ipc-") as temporary:
         assert doctor()["windows"] == 1
         subprocess.run(["/usr/bin/udeck-terminal"], cwd=cwd, check=True, capture_output=True)
         assert doctor()["windows"] == 1, "Plain invocation should activate the recent window"
+        check_activation("uTerminal IPC audit A")
         arguments = ["", "  ", "中文 空格", 'single\'double"', "$HOME", "$(literal)"]
         subprocess.run(["/usr/bin/udeck-terminal", "--working-directory", str(cwd), "-T", "中文 标题",
                         "-e", sys.executable, str(child), *arguments], cwd=directory,
@@ -66,6 +94,7 @@ with tempfile.TemporaryDirectory(prefix="udeck-terminal-ipc-") as temporary:
         payload = json.loads((cwd / "argv.json").read_text())
         assert payload == {"argv": arguments, "cwd": str(cwd), "value": "secondary-中文"}, payload
         assert doctor()["windows"] == 2
+        check_activation("中文 标题")
         wait(lambda: doctor()["windows"] == 1)
         children_path = Path(f"/proc/{primary.pid}/task/{primary.pid}/children")
         children_before = set(map(int, children_path.read_text().split()))
@@ -86,11 +115,12 @@ with tempfile.TemporaryDirectory(prefix="udeck-terminal-ipc-") as temporary:
         (directory / "finish").touch()
         assert primary.wait(timeout=10) == 0, primary.stderr.read()
         assert doctor().get("running") is False
-        report = {"result": "passed", "activation": True, "secondaryWindow": True,
+        report = {"result": "passed", "activationVerified": options.wayland_activation, "secondaryWindow": True,
                   "fileDirectoryCreatesWindowWhilePrimaryExists": True,
                   "unicodeSpaceQuoteEmptyArgv": True, "callerCwdEnvironment": True,
                   "invalidCwdProgramErrors": True,
-                  "buildId": json.loads(Path("/usr/share/udeck-terminal/build-info.json").read_text())["buildId"]}
+                  "installed": installed, "moduleSource": main.__file__,
+                  "buildId": json.loads(Path("/usr/share/udeck-terminal/build-info.json").read_text())["buildId"] if installed else None}
         options.output.parent.mkdir(parents=True, exist_ok=True)
         options.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
         print(json.dumps(report))
@@ -99,3 +129,5 @@ with tempfile.TemporaryDirectory(prefix="udeck-terminal-ipc-") as temporary:
         if primary.poll() is None:
             primary.terminate()
             primary.wait(timeout=5)
+        if windows:
+            windows.close()

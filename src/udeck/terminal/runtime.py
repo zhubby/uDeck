@@ -60,6 +60,15 @@ class Coordinator(QObject):
         self.recent = None
         self.first_frame = None
         self.inputs = None
+        self.window_service = None
+        self.window_activation = None
+        if not options.mock and application.platformName().startswith("wayland"):
+            from ..windows import WindowService
+            from .activation import RecentWindowActivation
+
+            self.window_service = WindowService(self)
+            self.window_activation = RecentWindowActivation(self.window_service, application.desktopFileName() or APP_ID)
+            self.window_service.start()
         if not options.mock and not options.no_input and sys.platform == "linux":
             from .input import TerminalInput
 
@@ -70,6 +79,8 @@ class Coordinator(QObject):
         self.trace.request_activation()
         if not request.new_window and self.recent:
             self.activate(self.recent["window"])
+            if self.window_activation:
+                self.window_activation.activate()
             return
         controller = TerminalController(request, self.preferences, mock=self.options.mock, language=self.language, theme=self.theme)
         self.trace.mark('controllerReady')
@@ -88,6 +99,7 @@ class Coordinator(QObject):
         controller.closed.connect(lambda: QTimer.singleShot(0, lambda: self.retire(entry)))
         controller.home.connect(lambda: self.desktop_action("Home", window))
         controller.quickSettings.connect(lambda: self.quick_settings(entry))
+        controller.preferencesChanged.connect(self.refresh_preferences)
         controller.clipboardRequested.connect(lambda: controller.preparePaste(self.application.clipboard().text()))
         window.activeChanged.connect(self.focus_changed)
         window.frameSwapped.connect(self.record_frame)
@@ -108,6 +120,10 @@ class Coordinator(QObject):
             self.theme = theme
             for entry in self.windows:
                 entry["controller"].setTheme(theme)
+
+    def refresh_preferences(self):
+        for entry in self.windows:
+            entry["controller"].changed.emit()
 
     def activate(self, window):
         window.showNormal() if self.options.windowed or self.options.mock else window.showFullScreen()
@@ -187,6 +203,8 @@ class Coordinator(QObject):
         self.language_timer.stop()
         if self.inputs:
             self.inputs.close()
+        if self.window_service:
+            self.window_service.close()
         # Destroy native delegates before their controllers/context disappear.
         for entry in list(self.windows):
             entry["sounds"].close()

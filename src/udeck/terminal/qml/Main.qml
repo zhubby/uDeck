@@ -33,6 +33,7 @@ Window {
         if (!allowClose) controller.requestCloseWindow()
     }
     function focusInput() {
+        if (state.mode !== "search") searchBox.focus = false
         if (state.mode === "input") {
             for (let i = 0; i < panes.count; ++i) {
                 const pane = panes.itemAt(i)

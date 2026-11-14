@@ -36,6 +36,8 @@ udeck-terminal -- python3 script.py '中文 空格' 'literal $HOME'
 
 同一图形会话只有一个终端主进程。普通调用激活最近窗口；显式目录、标题、程序或 `--new-window` 创建新窗口。未指定目录时使用调用方当前目录，未指定程序时使用账户数据库中的 shell。`-e` 与 `--` 后的参数逐项执行，不经过 shell、不展开变量或重新拆分引号。需要 shell 语法时明确指定 `sh -c`。
 
+Wayland 下按窗口管理器报告的活动窗口 ID 记录最近使用顺序，重新打开终端时恢复对应窗口；标题相同或动态变化不会影响选择。窗口关闭或窗口控制连接失效后，清除对应记录。
+
 窗口请求通过会话 D-Bus `io.github.zhubby.uDeck.Terminal.Session_<display hash>` 发送，接口为 `io.github.zhubby.uDeck.Terminal.Control`，路径为 `/io/github/zhubby/uDeck/Terminal`。`Open(s)->s` 的空字符串表示接受请求，非空字符串为错误；请求包含 cwd、argv、title、environment、new_window。完整环境只在内存中传递，`Diagnose` 和 `--doctor` 仅返回数量、输入状态及性能信息。
 
 ## 按键与交互
@@ -62,6 +64,8 @@ udeck-terminal -- python3 script.py '中文 空格' 'literal $HOME'
 窗口、菜单和终端正文统一跟随系统 Classic / Dark，沿用约一秒的设置同步周期。Classic 使用暖炭灰背景 `#151719`、正文 `#F1EEE7`；Dark 使用冷黑背景 `#0B0E12`、正文 `#F5F2EB`。强调色均为 `#EDB866`。Classic 保留既有 ANSI 16 色，Dark 使用单独的高对比配色；光标和选区保留原生行为，程序自行指定的真彩色不被改写。终端设置仅显示当前主题，不再提供独立深浅配色开关。
 
 已打开的所有窗口和标签同步换色，不重建终端组件或 shell，不清空历史、选区或当前标签。语言切换也不重启会话；字号仍为 14–28 px、默认 20 px。
+
+在任一终端窗口中调整字号，会立即更新其他已打开窗口及其现有标签，保留原来的 PTY 和当前标签。
 
 随包提供原版 Nerd Fonts **v3.5.1 Symbols Nerd Font Mono**，以“当前界面语言文字字体 → Nerd 图标字体 → 另一套文字字体”的明确顺序补齐缺失字符，不需要联网或系统预装。它不替换 LXGW WenKai Mono / JetBrains Mono，也不自动安装或修改 Starship、Oh My Zsh 等 shell 配置。原生插件按完整 Unicode 码点测宽，私用区图标独立绘制并裁剪到当前格内，超过单元格宽度时横向适配，避免负边距或过宽字形覆盖相邻文字；支持 Powerline、文件夹、终端和补充私用区图标，不改动原字体文件。
 
@@ -135,3 +139,11 @@ python3 tests/terminal_default_device_probe.py --output artifacts/installed-defa
 ```
 
 IPC 和默认配置演练前关闭已有终端窗口。默认配置演练使用临时 alternatives 数据库、链接和 XDG 配置，检查真实 alternative / xdg-terminal-exec / Gio 启动以及精确恢复；不会替代正式系统入口验收。TUI 脚本使用 Qt 合成键盘事件，包含 Vim 保存、less 搜索、tmux 分离和 Codex 启动/按键退出。若 Codex 进入目录信任向导，脚本选择 No 退出，记录此边界，不修改用户信任设置，也不声称验证了模型请求或完整编辑器。
+
+源码候选可显式给 TUI 脚本传入 `--allow-source`；报告会记录真实模块路径、`installed: false` 和空的安装构建 ID。在已有 uDeck Wayland 会话中，可用独立 D-Bus 保留原有终端，验证候选的实际 CLI、D-Bus 和 compositor 激活；`--wayland-activation` 会核对重新打开后真正处于前台的窗口，而不只检查窗口数量：
+
+```sh
+dbus-run-session -- env PYTHONPATH=src python3 tests/terminal_ipc_probe.py --wayland-activation --output artifacts/candidate-ipc.json
+```
+
+`tests/terminal_device_audit_probe.py --output artifacts/terminal-audit` 使用临时配置和原生 PTY 检查多窗口字号、菜单焦点、普通文本搜索、冻结粘贴和取消关闭；Wayland 下额外验证同名窗口的最近窗口恢复。可选 `--evdev-keyboard` 需要 `/dev/uinput` 权限，等待虚拟键盘输入实际到达后，再检查“内核输入 → compositor → Qt → PTY”的字母、菜单、搜索和粘贴路径；这仍不等于真人操作 uConsole 的实体按键或中文输入法候选窗验收。

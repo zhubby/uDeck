@@ -1,0 +1,12 @@
+{
+  "result": "passed",
+  "activationVerified": true,
+  "secondaryWindow": true,
+  "fileDirectoryCreatesWindowWhilePrimaryExists": true,
+  "unicodeSpaceQuoteEmptyArgv": true,
+  "callerCwdEnvironment": true,
+  "invalidCwdProgramErrors": true,
+  "installed": false,
+  "moduleSource": "/var/tmp/udeck-terminal-audit-20261114/candidate/src/udeck/terminal/main.py",
+  "buildId": null
+}

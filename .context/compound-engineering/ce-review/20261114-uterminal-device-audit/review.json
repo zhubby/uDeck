@@ -1,0 +1,10 @@
+{
+  "reviewer": "correctness",
+  "findings": [],
+  "residual_risks": [
+    "Wayland sessions without the foreign-toplevel protocol retain the existing Qt activation fallback; the target labwc session provides the protocol."
+  ],
+  "testing_gaps": [
+    "Human operation of uConsole ABXY/L/R and actual Chinese IME candidate placement remain outside this automated device audit."
+  ]
+}

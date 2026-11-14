@@ -1,0 +1,54 @@
+{
+  "platform": "wayland",
+  "humanPhysicalInput": false,
+  "checks": {
+    "reopen-restores-recent-window-with-duplicate-titles": {
+      "passed": true
+    },
+    "font-size-shared-between-windows": {
+      "passed": true
+    },
+    "menu-settings-isolation-and-focus": {
+      "passed": true
+    },
+    "literal-search-and-copy-shortcut": {
+      "passed": true
+    },
+    "dangerous-paste-cancel-freeze-and-brackets": {
+      "passed": true
+    },
+    "kernel-keyboard-compositor-menu-search-and-paste": {
+      "passed": true
+    },
+    "font-size-limits-and-reload": {
+      "passed": true
+    },
+    "close-default-cancel-preserves-process": {
+      "passed": true
+    }
+  },
+  "fontSizesAfterChange": [
+    22,
+    22
+  ],
+  "pasteResult": {
+    "expected": "1b5b3230307e616c7068610d626574611b5b3230317e",
+    "received": "1b5b3230307e616c7068610d626574611b5b3230317e",
+    "mode": "input",
+    "index": 1
+  },
+  "kernelKeyboard": {
+    "device": "/dev/input/event9",
+    "udev": [
+      "ID_INPUT=1",
+      "ID_INPUT_KEY=1",
+      "ID_INPUT_KEYBOARD=1"
+    ],
+    "inputMethodState": "1",
+    "readinessBytes": "20",
+    "expected": "1b5b3230307e616c7068610d626574611b5b3230317e20616278791b5b3230307e6b65726e656c0d6b6579626f6172641b5b3230317e",
+    "received": "1b5b3230307e616c7068610d626574611b5b3230317e20616278791b5b3230307e6b65726e656c0d6b6579626f6172641b5b3230317e"
+  },
+  "qmlErrors": [],
+  "allPassed": true
+}

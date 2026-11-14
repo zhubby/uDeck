@@ -62,6 +62,7 @@ class TerminalController(SoundFeedback):
     home = Signal()
     quickSettings = Signal()
     clipboardRequested = Signal()
+    preferencesChanged = Signal()
 
     def __init__(self, request, preferences, *, mock=False, parent=None, language=None, theme=None):
         super().__init__(parent)
@@ -366,6 +367,7 @@ class TerminalController(SoundFeedback):
             else:
                 self.command(actions[position])
         elif mode == "settings":
+            previous_size = self.preferences.font_size
             if position in (0, 1):
                 self.preferences.change_font(-2 if position == 0 else 2)
             else:
@@ -374,6 +376,8 @@ class TerminalController(SoundFeedback):
                 self.preferences.save()
             except OSError as error:
                 self.showError(tr(Msg.COULD_NOT_SAVE_SETTINGS_VALUE0, value0=error))
+            if self.preferences.font_size != previous_size:
+                self.preferencesChanged.emit()
         elif mode == "paste":
             text, self.pending_text = self.pending_text, ""
             self.mode = "input"

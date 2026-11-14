@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 from types import SimpleNamespace
 
-from PySide6.QtCore import QEvent
+from PySide6.QtCore import QEvent, Qt
 from PySide6.QtGui import QFontMetricsF, QRawFont, QTextLayout
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
@@ -99,6 +99,22 @@ def run():
                     assert all(item.property("color").name() == background
                                for item in items(current["window"], "terminalBackground"))
             controller.command("settings")
+            controller.dispatch("down")
+            controller.dispatch("accept")
+            QTest.qWait(80)
+            for current, requests, identifier, terminals, _focus in preserved:
+                assert all(item.property("font").pixelSize() == 22 for item in terminals), (
+                    "A shared font-size change must update existing windows immediately",
+                    [item.property("font").pixelSize() for item in terminals],
+                )
+                assert current["controller"].requests == requests
+                assert current["controller"].current == identifier
+                assert items(current["window"], "terminalContent") == terminals
+            controller.dispatch("back")
+            controller.command("settings")
+            controller.dispatch("accept")
+            controller.dispatch("back")
+            controller.command("settings")
             QTest.qWait(60)
             hint = items(window, "terminalThemeHint")[0]
             assert hint.isVisible() and not hint.hasActiveFocus() and not hint.property("focus")
@@ -109,6 +125,21 @@ def run():
             controller.dispatch("back")
             QTest.qWait(60)
             assert window.grabWindow().save(str(output / f"terminal-{theme}-{language}.png"))
+            controller.command("search")
+            QTest.qWait(60)
+            assert window.activeFocusItem().isVisible()
+            controller.dispatch("back")
+            QTest.qWait(40)
+            operations = []
+            controller.operate.connect(lambda *arguments: operations.append(arguments))
+            controller.preparePaste("alpha\nbeta")
+            QTest.qWait(60)
+            assert window.activeFocusItem().isVisible(), "A hidden search field must not keep modal focus"
+            QTest.keyClick(window, Qt.Key_Down)
+            QTest.keyClick(window, Qt.Key_Return)
+            QTest.qWait(40)
+            assert controller.mode == "input"
+            assert operations[-1][1:] == ("paste", "alpha\nbeta")
             assert not coordinator.errors, coordinator.errors
             print(json.dumps({"theme": theme, "language": language, "windows": len(coordinator.windows),
                               "sessions": sum(len(current["controller"].requests) for current in coordinator.windows),

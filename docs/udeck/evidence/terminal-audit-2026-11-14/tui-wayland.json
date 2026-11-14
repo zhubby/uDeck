@@ -1,0 +1,20 @@
+{
+  "backend": "wayland",
+  "input": "synthetic Qt keyboard events",
+  "installed": false,
+  "moduleSource": "/var/tmp/udeck-terminal-audit-20261114/candidate/src/udeck/terminal/main.py",
+  "checks": {
+    "qml-shortcuts-modal-isolation-close-cancel": "passed",
+    "keyboard-escape-function-arrows-ctrl-letters": "passed",
+    "vim-edit-save-exit": "passed",
+    "less-scroll-search-exit": "passed",
+    "tmux-shell-detach": "passed",
+    "codex-tui-startup-keyboard-exit": "passed",
+    "abnormal-exit-removes-window": "passed"
+  },
+  "buildId": null,
+  "codexVersion": "codex-cli 0.130.0",
+  "codexScope": "Rendered interactive editor; interrupted without submitting a prompt",
+  "qmlErrors": [],
+  "result": "passed"
+}

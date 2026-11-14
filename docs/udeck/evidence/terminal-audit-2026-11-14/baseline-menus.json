@@ -1,0 +1,42 @@
+{
+  "platform": "wayland",
+  "humanPhysicalInput": false,
+  "checks": {
+    "font-size-shared-between-windows": {
+      "passed": false,
+      "error": "Font size after one window changes it: [22, 20], expected [22, 22]",
+      "traceback": "Traceback (most recent call last):\n  File \"/var/tmp/udeck-terminal-audit-20261114/tests/terminal_device_audit_probe.py\", line 102, in check\n    callback()\n    ~~~~~~~~^^\n  File \"/var/tmp/udeck-terminal-audit-20261114/tests/terminal_device_audit_probe.py\", line 153, in font_sync\n    assert actual == [expected, expected], f'Font size after one window changes it: {actual}, expected {[expected, expected]}'\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Font size after one window changes it: [22, 20], expected [22, 22]\n"
+    },
+    "menu-settings-isolation-and-focus": {
+      "passed": true
+    },
+    "literal-search-and-copy-shortcut": {
+      "passed": true
+    },
+    "dangerous-paste-cancel-freeze-and-brackets": {
+      "passed": false,
+      "error": "Terminal condition timed out",
+      "traceback": "Traceback (most recent call last):\n  File \"/var/tmp/udeck-terminal-audit-20261114/tests/terminal_device_audit_probe.py\", line 102, in check\n    callback()\n    ~~~~~~~~^^\n  File \"/var/tmp/udeck-terminal-audit-20261114/tests/terminal_device_audit_probe.py\", line 216, in paste\n    wait(lambda: len(received.read_bytes()) >= len(expected))\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/var/tmp/udeck-terminal-audit-20261114/tests/terminal_device_audit_probe.py\", line 47, in wait\n    assert predicate(), 'Terminal condition timed out'\n           ~~~~~~~~~^^\nAssertionError: Terminal condition timed out\n"
+    },
+    "font-size-limits-and-reload": {
+      "passed": false,
+      "error": "",
+      "traceback": "Traceback (most recent call last):\n  File \"/var/tmp/udeck-terminal-audit-20261114/tests/terminal_device_audit_probe.py\", line 102, in check\n    callback()\n    ~~~~~~~~^^\n  File \"/var/tmp/udeck-terminal-audit-20261114/tests/terminal_device_audit_probe.py\", line 227, in settings_limits_and_persistence\n    assert preferences.font_size == 14\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    "close-default-cancel-preserves-process": {
+      "passed": true
+    }
+  },
+  "fontSizesAfterChange": [
+    22,
+    20
+  ],
+  "pasteResult": {
+    "expected": "1b5b3230307e616c7068610d626574611b5b3230317e",
+    "received": "",
+    "mode": "paste",
+    "index": 0
+  },
+  "qmlErrors": [],
+  "allPassed": false
+}

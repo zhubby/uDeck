@@ -25,14 +25,17 @@ from udeck.terminal.core import LaunchRequest, TerminalPreferences
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--output", type=Path, required=True)
+parser.add_argument("--allow-source", action="store_true")
 options = parser.parse_args()
 options.output.parent.mkdir(parents=True, exist_ok=True)
-assert str(Path(main.__file__).resolve()).startswith("/usr/lib/python3/dist-packages/"), main.__file__
+installed = str(Path(main.__file__).resolve()).startswith("/usr/lib/python3/dist-packages/")
+assert installed or options.allow_source, main.__file__
 app = QApplication([])
 app.setQuitOnLastWindowClosed(False)
+app.setDesktopFileName("io.github.zhubby.uDeck.Terminal.DeviceProbe")
 report = {"backend": app.platformName(), "input": "synthetic Qt keyboard events",
-          "installedModule": main.__file__, "checks": {},
-          "buildId": json.loads(Path("/usr/share/udeck-terminal/build-info.json").read_text())["buildId"]}
+          "installed": installed, "moduleSource": main.__file__, "checks": {},
+          "buildId": json.loads(Path("/usr/share/udeck-terminal/build-info.json").read_text())["buildId"] if installed else None}
 
 
 def wait(condition, timeout=10):
