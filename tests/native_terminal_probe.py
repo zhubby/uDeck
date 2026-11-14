@@ -70,7 +70,13 @@ def write_json(name, value):
         json.dump(value, pending)
     os.replace(pending.name, directory / name)
 def size(*args):
-    write_json("size.json", list(os.get_terminal_size(0)))
+    # A resize can interrupt an earlier atomic write and publish the old sample
+    # last. Serialize the initial sample and SIGWINCH handlers as well.
+    previous = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGWINCH})
+    try:
+        write_json("size.json", list(os.get_terminal_size(0)))
+    finally:
+        signal.pthread_sigmask(signal.SIG_SETMASK, previous)
 signal.signal(signal.SIGWINCH, size)
 tty.setraw(0)
 size()
