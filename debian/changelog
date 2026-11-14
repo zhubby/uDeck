@@ -1,3 +1,10 @@
+udeck (0.2.15) unstable; urgency=medium
+
+  * Show hardware readings and operating-system details in System information.
+  * Refresh device information and preserve selection when returning from details.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Sat, 14 Nov 2026 11:35:58 +0800
+
 udeck (0.2.14) unstable; urgency=medium
 
   * Synchronize terminal font size across existing windows and sessions.
