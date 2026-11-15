@@ -23,8 +23,10 @@ Window {
     Shared.InterfaceFonts { id: interfaceFonts; language: window.state.language }
     property var tabModel: []
     property var menuModel: []
+    property var gameInfoModel: []
     property string tabsStamp: ""
     property string menuStamp: ""
+    property string gameInfoStamp: ""
     property string focusedInputId: ""
     property bool allowClose: false
     property bool videoFull: state.app === "video" && state.page === "player"
@@ -37,8 +39,10 @@ Window {
         const tabs = JSON.stringify(state.tabs)
         const options = state.menu.options || []
         const menu = JSON.stringify(options)
+        const gameInfo = JSON.stringify(state.selectedGameInfo || [])
         if (tabs !== tabsStamp) { tabsStamp=tabs; tabModel=state.tabs }
         if (menu !== menuStamp) { menuStamp=menu; menuModel=options }
+        if (gameInfo !== gameInfoStamp) { gameInfoStamp=gameInfo; gameInfoModel=state.selectedGameInfo || [] }
         ensureSurface()
     }
     function ensureSurface() {
@@ -180,25 +184,94 @@ Window {
                     }
                 }
                 ColumnLayout {
+                    id: selectedGamePanel
                     objectName: "selectedGamePanel"
                     visible: window.state.app==="music" || (window.state.app==="emulator" && !window.state.platformsView)
                     Layout.preferredWidth: window.width<1100?230:290; Layout.maximumWidth: window.width<1100?230:290; Layout.fillWidth: false; Layout.fillHeight: true; spacing: 16
                     Rectangle { Layout.fillWidth: true; height: 1; color: window.colors.divider }
                     Text { font.family: window.fontFamily; text: window.state.app==="music"?window.tr(msg.NOW_PLAYING):window.tr(msg.SELECTED_GAME); color: window.muted; font.pixelSize: 18 }
-                    Artwork { fontFamily: window.fontFamily; colors: window.colors; Layout.fillWidth: true; Layout.preferredHeight: 170; cover: window.state.app==="music"?(window.state.current.cover||""):(controller.selectedItem.cover||""); fallbackIcon: window.state.app === "emulator" ? controller.platformIcon(controller.selectedItem.platform || "") : ""; kind: window.state.app }
-                    ScrollingTitle {
-                        objectName: "selectedGameTitle"
+                    Flickable {
+                        id: selectedGameBody
+                        objectName: "selectedGameBody"
                         visible: window.state.app === "emulator"
                         Layout.fillWidth: true
-                        fontFamily: window.fontFamily; pixelSize: 25; textColor: window.ink
-                        text: controller.selectedItem.title || ""
-                        resetKey: controller.selectedItem.id || ""
-                        active: window.active && !window.state.menu.title
+                        Layout.fillHeight: true
+                        contentHeight: selectedGameContent.implicitHeight
+                        interactive: contentHeight > height
+                        boundsBehavior: Flickable.StopAtBounds
+                        clip: true
+                        ScrollBar.vertical: ScrollBar { id: gameInfoScroll; policy: ScrollBar.AsNeeded }
+                        WheelHandler {
+                            enabled: selectedGameBody.interactive
+                            target: null
+                            onWheel: function(event) {
+                                const delta = event.pixelDelta.y || event.angleDelta.y / 120 * 48
+                                if (!delta) { event.accepted = false; return }
+                                selectedGameBody.cancelFlick()
+                                const end = Math.max(0, selectedGameBody.contentHeight - selectedGameBody.height)
+                                selectedGameBody.contentY = Math.max(0, Math.min(end, selectedGameBody.contentY - delta))
+                                event.accepted = true
+                            }
+                        }
+                        Connections {
+                            target: controller
+                            function onSelectionChanged() { selectedGameBody.contentY = 0 }
+                        }
+                        ColumnLayout {
+                            id: selectedGameContent
+                            width: selectedGameBody.width - (selectedGameBody.interactive ? gameInfoScroll.width + 8 : 0)
+                            spacing: 12
+                            Artwork {
+                                fontFamily: window.fontFamily; colors: window.colors
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: Math.max(80, Math.min(170, selectedGameBody.height - 180))
+                                cover: controller.selectedItem.cover || ""
+                                fallbackIcon: window.state.app === "emulator" ? controller.platformIcon(controller.selectedItem.platform || "") : ""
+                                kind: "emulator"
+                            }
+                            ScrollingTitle {
+                                objectName: "selectedGameTitle"
+                                Layout.fillWidth: true
+                                fontFamily: window.fontFamily; pixelSize: 25; textColor: window.ink
+                                text: controller.selectedItem.title || ""
+                                resetKey: controller.selectedItem.id || ""
+                                active: window.active && !window.state.menu.title
+                            }
+                            ColumnLayout {
+                                objectName: "selectedGameInfo"
+                                Layout.fillWidth: true
+                                spacing: 8
+                                Repeater {
+                                    model: window.gameInfoModel
+                                    RowLayout {
+                                        required property var modelData
+                                        Layout.fillWidth: true
+                                        spacing: 12
+                                        Text {
+                                            objectName: "gameInfoLabel_" + modelData.key
+                                            Layout.preferredWidth: 88
+                                            font.family: window.fontFamily; font.pixelSize: 17
+                                            text: modelData.label; color: window.muted
+                                            textFormat: Text.PlainText
+                                        }
+                                        ScrollingTitle {
+                                            objectName: "gameInfoValue_" + modelData.key
+                                            Layout.fillWidth: true
+                                            fontFamily: window.fontFamily; pixelSize: 17; textColor: window.ink
+                                            text: modelData.value
+                                            resetKey: controller.selectedItem.id || ""
+                                            active: window.active && !window.state.menu.title
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
+                    Artwork { visible: window.state.app === "music"; fontFamily: window.fontFamily; colors: window.colors; Layout.fillWidth: true; Layout.preferredHeight: 170; cover: window.state.current.cover || ""; kind: window.state.app }
                     Text { font.family: window.fontFamily; visible: window.state.app==="music"; Layout.fillWidth: true; text: window.state.current.title||window.tr(msg.CHOOSE_A_TRACK); wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight; color: window.ink; font.pixelSize: 25 }
                     Text { font.family: window.fontFamily; visible: window.state.app==="music"; text: window.time((window.state.media||{}).position)+" / "+window.time((window.state.media||{}).duration); color: window.muted; font.pixelSize: 19 }
                     SuiteButton { fontFamily: window.fontFamily; colors: window.colors; visible: window.state.app==="music" && !!window.state.current.id; text: window.tr(msg.NOW_PLAYING); onActivated: controller.command("now-playing") }
-                    Item { Layout.fillHeight: true }
+                    Item { visible: window.state.app === "music"; Layout.fillHeight: true }
                     Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.app==="music"?window.tr(msg.PLAYBACK_CONTINUES_WHILE_BROWSING):window.tr(msg.CTRL_ALT_M_OPENS_THE_GAME_MENU); wrapMode: Text.Wrap; color: window.muted; font.pixelSize: 18 }
                 }
             }

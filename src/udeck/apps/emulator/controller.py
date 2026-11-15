@@ -17,6 +17,7 @@ from udeck.apps.common.controller import AppController
 from udeck.apps.common.state import atomic_json
 from udeck.apps.emulator.browser import EmulatorBrowser
 from udeck.apps.emulator.catalog import CoreCatalog, message_lines, probe_core, probe_key
+from udeck.apps.emulator.game_info import game_info, play_seconds
 from udeck.apps.emulator.library import EmulatorLibrary, confined_path, content_dependencies
 from udeck.apps.emulator.library_management import EmulatorLibraryManagement
 from udeck.apps.emulator.save_management import EmulatorSaveManagement
@@ -137,6 +138,7 @@ def stock_controls(sysfs=Path("/sys/class/input")):
 
 class RetroEngine(QObject):
     changed = Signal()
+    started = Signal()
     paused = Signal()
     finished = Signal(int)
     saved = Signal(str)
@@ -246,6 +248,7 @@ class RetroEngine(QObject):
                 # Drain failure logs before accepting the reply after our load barrier.
                 self.read_stderr()
                 value = line[11:].split(" ", 1)[0]
+                starting = self.status == "starting"
                 if value.startswith("PAUSED"):
                     first = self.status != "paused"
                     self.status = "paused"
@@ -260,6 +263,8 @@ class RetroEngine(QObject):
                     self.status = "playing"
                     if first and self.resume_on_start:
                         self.pause()
+                if starting and self.status in ("playing", "paused"):
+                    self.started.emit()
                 if (self.pending and self.pending["kind"] == "load"
                         and self.pending.get("barrier")):
                     self.pending = None
@@ -436,6 +441,7 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
         super().__init__("emulator", directory, language_path)
         self.engine = RetroEngine(self)
         self.engine.changed.connect(self.publish)
+        self.engine.started.connect(self.game_playing)
         self.engine.paused.connect(self.pause_menu)
         self.engine.saved.connect(self.save_done)
         self.engine.loaded.connect(self.load_done)
@@ -560,6 +566,7 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
                 "saveError": save_error, "romRoot": self.library.root_path,
                 "coreCount": len(self.catalog.cores), "coresPending": self.cores_pending,
                 "scanHints": self.library.reports.get(self.library.root_id, []),
+                "selectedGameInfo": game_info(self.selectedItem, self.catalog, self.store.data),
                 **self.save_state(),
                 **self.browser_state()}
 
@@ -649,10 +656,20 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
             self.release_save_session()
             raise
         self.page = "game-running"
-        self.game_started = time.monotonic()
         self.source_missing = False
-        self.store.remember(item["id"])
         self.persist()
+
+    def game_playing(self):
+        if self.game_started is not None:
+            return
+        self.game_started = time.monotonic()
+        identifier = self.engine.item["id"]
+        record = self.store.data["positions"].get(identifier)
+        if not isinstance(record, dict):
+            record = self.store.data["positions"][identifier] = {}
+        record["lastPlayed"] = time.time()
+        self.store.remember(identifier)
+        self.attempt(self.persist)
 
     def cancel_launch(self):
         self.launch_generation += 1
@@ -814,9 +831,10 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
         self.exit_after_save = False
         self.clear_menus()
         self.page = "game-details"
-        if self.game_started:
-            record = self.store.data["positions"].setdefault(self.current["id"], {})
-            record["seconds"] = record.get("seconds", 0) + time.monotonic() - self.game_started
+        if self.game_started is not None:
+            record = self.store.data["positions"][self.engine.item["id"]]
+            record["seconds"] = play_seconds(record.get("seconds")) + max(0, time.monotonic() - self.game_started)
+            record["lastPlayed"] = time.time()
             self.game_started = None
         self.attempt(self.persist)
         self.present.emit()

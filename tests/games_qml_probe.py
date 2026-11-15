@@ -7,8 +7,8 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from libretro_fixtures import configure_library
-from PySide6.QtCore import Qt, QUrl
-from PySide6.QtGui import QImage
+from PySide6.QtCore import QEventLoop, QPoint, QPointF, Qt, QTimer, QUrl
+from PySide6.QtGui import QImage, QWheelEvent
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickItem
 from PySide6.QtTest import QTest
@@ -21,6 +21,12 @@ from udeck.apps.emulator.controller import EmulatorController
 from udeck.core import ConfigStore
 from udeck.i18n import Msg, render, tr
 from udeck.icons import IconProvider
+
+
+def pump(milliseconds):
+    loop = QEventLoop()
+    QTimer.singleShot(milliseconds, loop.quit)
+    loop.exec()
 
 
 def run(root, language, theme, mode="menus"):
@@ -47,6 +53,13 @@ def run(root, language, theme, mode="menus"):
         folder = rom_root / platform
         folder.mkdir(parents=True)
         (folder / name).write_bytes(b"Original preview fixture; no commercial game")
+    if mode == "info":
+        (rom_root / "gba/Unplayed.gba").write_bytes(b"Original unplayed preview fixture")
+        catalog.preferences["coreEnabled"] = {"vba_next": True}
+        write_playlist(root / "playlists/Mixed.lpl", [
+            entry(rom_root / "gba/Original red.gba", "Alternative label", "Nintendo - Game Boy Advance.lpl",
+                  core_path=str(root / "cores/vba_next_libretro.so")),
+            entry(rom_root / "gb/Original stripes.gb", "GB")])
     long_name = "A long adventure - 漫长的冒险旅程\nDeluxe edition"
     title_platforms = (("Nintendo - Game Boy", "gb", "gb"),
                        ("Nintendo - Game Boy Color", "gbc", "gbc"),
@@ -76,12 +89,12 @@ def run(root, language, theme, mode="menus"):
         deadline = time.monotonic() + seconds
         while not condition() and time.monotonic() < deadline:
             application.processEvents()
-            QTest.qWait(20)
+            pump(20)
         assert condition(), json.loads(controller.snapshotJson)
 
     def frame(name):
         controller.publish()
-        QTest.qWait(80)
+        pump(80)
         assert window.grabWindow().save(str(root / (name + ".png")))
 
     def platform_artwork(owner, icon, *, covered=False):
@@ -97,9 +110,113 @@ def run(root, language, theme, mode="menus"):
         window.requestActivate()
         wait(lambda: not controller.library.pending)
         controller.setTab(1)
-        assert len(controller.rows()) == (105 if mode == "titles" else 104)
         grid = window.findChild(QQuickItem, "appCards")
         panel = window.findChild(QQuickItem, "selectedGamePanel")
+        if mode == "info":
+            controller.select(next(row["id"] for row in controller.rows() if row["title"] == "Nintendo - Game Boy Advance"))
+            QTest.keyClick(window, Qt.Key.Key_Return)
+            wait(lambda: not json.loads(controller.snapshotJson)["platformsView"])
+            game = next(row for row in controller.rows() if row["title"] == "Original red")
+            controller.store.data["positions"][game["gameId"]] = {"seconds": 7380, "lastPlayed": 1794720000}
+            controller.store.data["recent"] = [game["gameId"]]
+            controller.select(game["id"])
+            controller.publish()
+            info = panel.findChild(QQuickItem, "selectedGameInfo")
+            body = panel.findChild(QQuickItem, "selectedGameBody")
+            info_views = {}
+
+            def info_item(name):
+                pending = [info]
+                while pending:
+                    child = pending.pop()
+                    if child.objectName() == name:
+                        return child
+                    pending.extend(child.childItems())
+
+            def field(key):
+                view = info_item("gameInfoValue_" + key)
+                # Keep the parent wrapper alive while inspecting its Text child.
+                info_views[key] = view
+                return view.findChild(QQuickItem, "cardTitleText")
+
+            wait(lambda: info_item("gameInfoValue_playTime") is not None)
+            wait(lambda: field("playTime").property("text") == ("2 h 3 min" if language == "en" else "2 小时 3 分钟"))
+            assert field("system").property("text") == "Game Boy Advance · GBA"
+            assert field("core").property("text") == "mgba"
+            assert field("lastPlayed").property("text").startswith("2026-11-15")
+            wait(lambda: body.height() > body.property("contentHeight"))
+            assert field("playTime").mapToScene(QPointF(0, field("playTime").height())).y() <= body.mapToScene(QPointF(0, body.height())).y()
+            frame("selected-game-info")
+            QTest.keyClick(window, Qt.Key.Key_Right)
+            wait(lambda: controller.selectedItem["title"] == "Unplayed")
+            assert field("lastPlayed").property("text") == ("Not played yet" if language == "en" else "尚未游玩")
+            assert field("playTime").property("text") == ("0 min" if language == "en" else "0 分钟")
+            frame("selected-game-unplayed")
+            QTest.keyClick(window, Qt.Key.Key_Left)
+            wait(lambda: controller.selected == game["id"])
+            del controller.store.data["positions"][game["gameId"]]["lastPlayed"]
+            controller.publish()
+            wait(lambda: field("lastPlayed").property("text") == ("Time not recorded" if language == "en" else "时间未记录"))
+            frame("selected-game-legacy-time")
+            QTest.keyClick(window, Qt.Key.Key_Return)
+            wait(lambda: json.loads(controller.snapshotJson)["page"] == "game-details")
+            QTest.keyClick(window, Qt.Key.Key_Escape)
+            wait(lambda: json.loads(controller.snapshotJson)["page"] == "library")
+            assert controller.selected == game["id"] and window.activeFocusItem().objectName() == "appKeys"
+            QTest.keyClick(window, Qt.Key.Key_Escape)
+            wait(lambda: json.loads(controller.snapshotJson)["platformsView"])
+            assert not panel.isVisible()
+            controller.select(next(row["id"] for row in controller.rows() if row["title"] == "Mixed"))
+            QTest.keyClick(window, Qt.Key.Key_Return)
+            wait(lambda: not json.loads(controller.snapshotJson)["platformsView"])
+            controller.select(next(row["id"] for row in controller.rows() if row["title"] == "Alternative label"))
+            wait(lambda: field("core").property("text") == "vba_next")
+            assert field("playTime").property("text") == ("2 h 3 min" if language == "en" else "2 小时 3 分钟")
+            catalog.cores["vba_next"].name = "A very long core name that must stay on a single line"
+            controller.publish()
+            wait(lambda: field("core").x() < -5)
+            assert field("core").property("lineCount") == 1
+            QTest.keyClick(window, Qt.Key.Key_F3)
+            wait(lambda: field("core").x() == 0)
+            QTest.keyClick(window, Qt.Key.Key_Escape)
+            for width, height in ((960, 600), (800, 500)):
+                window.resize(width, height)
+                pump(100)
+                if body.property("interactive"):
+                    position = body.mapToScene(QPointF(body.width() / 2, body.height() / 2))
+                    QTest.mouseMove(window, position.toPoint())
+                    pump(80)
+                    for _ in range(8):
+                        wheel = QWheelEvent(position, window.mapToGlobal(position.toPoint()), QPoint(), QPoint(0, -120),
+                                            Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier,
+                                            Qt.ScrollPhase.NoScrollPhase, False)
+                        application.sendEvent(window, wheel)
+                        pump(150)
+                        if body.property("contentY") >= body.property("contentHeight") - body.height() - 1:
+                            break
+                    try:
+                        wait(lambda: body.property("contentY") >= body.property("contentHeight") - body.height() - 1)
+                    except AssertionError:
+                        frame("scroll-error")
+                        raise AssertionError({"width": width, "height": body.height(),
+                                              "contentHeight": body.property("contentHeight"),
+                                              "contentY": body.property("contentY"),
+                                              "originY": body.property("originY"),
+                                              "atYEnd": body.property("atYEnd"),
+                                              "contentItemHeight": body.property("contentItem").height(),
+                                              "position": [position.x(), position.y()]}) from None
+                    assert field("playTime").mapToScene(QPointF(0, field("playTime").height())).y() <= body.mapToScene(QPointF(0, body.height())).y() + 1
+                else:
+                    assert body.property("contentHeight") <= body.height() + 1
+                frame(f"selected-game-info-{width}")
+                assert window.activeFocusItem().objectName() == "appKeys"
+            assert not errors, errors
+            print(json.dumps({"qmlErrors": errors, "language": language, "theme": theme,
+                              "checks": ["selected-game-metadata", "unplayed-and-legacy-history",
+                                         "shared-game-entry-specific-core", "single-line-long-metadata",
+                                         "menu-and-back-focus", "compact-viewport-and-wheel-scroll"]}))
+            return
+        assert len(controller.rows()) == (105 if mode == "titles" else 104)
         if mode == "titles":
             tested_platforms = []
             for database, platform, _ in title_platforms:

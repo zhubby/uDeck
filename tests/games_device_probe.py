@@ -15,12 +15,18 @@ from pathlib import Path
 
 from game_fixtures import create_original_roms
 from libretro_fixtures import configure_library
-from PySide6.QtTest import QTest
+from PySide6.QtCore import QEventLoop, QTimer
 from PySide6.QtWidgets import QApplication
 
 from udeck.apps.common.state import AppState
 from udeck.apps.emulator.catalog import probe_core
 from udeck.apps.emulator.controller import EmulatorController
+
+
+def wait_events(milliseconds):
+    loop = QEventLoop()
+    QTimer.singleShot(milliseconds, loop.quit)
+    loop.exec()
 
 
 def run(root, extra_cores=()):
@@ -41,7 +47,7 @@ def run(root, extra_cores=()):
         deadline = time.monotonic() + seconds
         while not condition() and not errors and time.monotonic() < deadline:
             application.processEvents()
-            QTest.qWait(20)
+            wait_events(20)
         if not condition() or errors:
             (root / "failure.json").write_text(json.dumps({"errors": errors, "state": json.loads(controller.snapshotJson),
                                                          "log": controller.engine.log}, indent=2))
@@ -61,7 +67,9 @@ def run(root, extra_cores=()):
             controller.open_item(item["id"])
             controller.start_game()
             wait(lambda: controller.engine.status == "playing")
-            QTest.qWait(300)
+            wait_events(300)
+            assert controller.game_started is not None
+            assert controller.store.data["positions"][item["id"]]["lastPlayed"] > 0
             pid = controller.engine.process.processId()
             identifier = controller.checks["coreId"]
             # Changing core settings must not change the running process or save owner.
@@ -85,6 +93,10 @@ def run(root, extra_cores=()):
             wait(lambda: controller.engine.status == "paused")
             controller.save_exit()
             wait(lambda: not controller.engine.running())
+            controller.store.flush()
+            first_history = dict(controller.store.data["positions"][item["id"]])
+            assert first_history["seconds"] > 0
+            assert AppState("emulator", root / "state").data["positions"][item["id"]] == first_history
             controller.start_game(True)
             assert controller.menus[-1]["title"] == "Resume uses another core"
             controller.choose(0)  # Restore the disabled original core, with explicit confirmation.
@@ -92,10 +104,16 @@ def run(root, extra_cores=()):
             wait(lambda: "loaded" in events and controller.engine.status == "playing")
             controller.engine.quit()
             wait(lambda: not controller.engine.running())
+            controller.store.flush()
+            play_history = AppState("emulator", root / "state").data["positions"][item["id"]]
+            assert play_history["seconds"] >= first_history["seconds"]
+            assert play_history["lastPlayed"] >= first_history["lastPlayed"]
             reports.append({"platform": item["platform"], "core": identifier, "stateBytes": state.stat().st_size,
+                            "playHistory": play_history,
                             "saveDirectory": str(store.root), "sramDirectory": str(store.sram_root),
                             "thumbnail": metadata["thumbnail"], "checks": ["launch", "settings-preserve-pid", "pause",
-                            "save", "load", "save-return", "restore-disabled-core", "resume-after-restart"]})
+                            "save", "load", "save-return", "restore-disabled-core", "resume-after-restart",
+                            "confirmed-session-history-persists"]})
             (root / (item["platform"] + "-retroarch.log")).write_text(controller.engine.log)
             events.clear()
             print(json.dumps(reports[-1]), flush=True)

@@ -1,3 +1,11 @@
+udeck (0.2.23) unstable; urgency=medium
+
+  * Show the selected game's platform, format, core and play history.
+  * Record confirmed sessions and preserve shared history across playlists.
+  * Keep long information on one line and support scrolling in small windows.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Sun, 15 Nov 2026 20:00:00 +0800
+
 udeck (0.2.22) unstable; urgency=medium
 
   * Retry transient thumbnail failures and allow slower image connections.
