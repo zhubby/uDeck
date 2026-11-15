@@ -3,11 +3,11 @@
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from types import SimpleNamespace
 
 import pytest
-from PySide6.QtCore import QCoreApplication
+from PySide6.QtCore import QCoreApplication, QEventLoop, QTimer
 from PySide6.QtGui import QImage
-from PySide6.QtTest import QTest
 
 
 def image_file(path):
@@ -21,7 +21,9 @@ def image_file(path):
 def wait_for(predicate, seconds=5):
     deadline = time.monotonic() + seconds
     while not predicate() and time.monotonic() < deadline:
-        QTest.qWait(10)
+        loop = QEventLoop()
+        QTimer.singleShot(10, loop.quit)
+        loop.exec()
     assert predicate()
 
 
@@ -57,6 +59,37 @@ def test_local_label_matching_and_directory_traversal_are_bounded(tmp_path):
     assert find_thumbnails(item, tmp_path) == {}
 
 
+def test_variant_filename_keeps_its_suffix_locally_and_matches_official_art(application, tmp_path, server):
+    from udeck.apps.emulator.thumbnails import ThumbnailDownloader, find_thumbnails
+
+    base, requests, png, _ = server
+    item = {"path": "/roms/Original [53E0BEF4-1234].zip", "title": "中文汉化版",
+            "dbName": "Nintendo - Game Boy"}
+    downloader = ThumbnailDownloader(base_url=base)
+    downloader.start([item], tmp_path)
+    wait_for(lambda: not downloader.running)
+    target = tmp_path / "Nintendo - Game Boy/Named_Boxarts/Original [53E0BEF4-1234].png"
+    assert target.read_bytes() == png
+    assert find_thumbnails(item, tmp_path)["Named_Boxarts"] == target.as_uri()
+    assert "/Nintendo%20-%20Game%20Boy/Named_Boxarts/Original.png" in requests
+    count = len(requests)
+    downloader.start([item], tmp_path)
+    wait_for(lambda: not downloader.running)
+    assert not any("Named_Boxarts" in path for path in requests[count:])
+
+
+@pytest.mark.parametrize("language,expected", [("en", "name"), ("zh_CN", "名称")])
+def test_unmatched_download_explains_names_instead_of_claiming_success(language, expected):
+    from udeck.apps.emulator.library_management import EmulatorLibraryManagement
+    from udeck.i18n import render
+
+    owner = SimpleNamespace(thumbnail_downloader=SimpleNamespace(
+        running=False, status={"total": 3, "done": 3, "missing": 3}))
+    status = render(EmulatorLibraryManagement.thumbnail_status(owner), language)
+    assert expected in status
+    assert ("Download complete" if language == "en" else "下载完成") not in status
+
+
 @pytest.fixture
 def server(tmp_path):
     png = image_file(tmp_path / "fixture.png")
@@ -74,7 +107,17 @@ def server(tmp_path):
             requests.append(self.path)
             if "/Slow" in self.path:
                 release.wait(3)
-            if "Named_Boxarts/Original.png" in self.path:
+            if "Partial.png" in self.path and requests.count(self.path) == 1:
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(png[:8])
+                self.wfile.flush()
+                release.wait(0.4)
+            elif "Flaky.png" in self.path and requests.count(self.path) == 1:
+                self.send_error(503)
+            elif "AlwaysFail.png" in self.path:
+                self.send_error(503)
+            elif "Named_Boxarts/Original.png" in self.path or "Flaky.png" in self.path or "Partial.png" in self.path:
                 self.send_response(200)
                 self.send_header("Content-Type", "image/png")
                 self.end_headers()
@@ -100,6 +143,47 @@ def server(tmp_path):
     httpd.shutdown()
     httpd.server_close()
     thread.join()
+
+
+def test_transient_server_failure_retries_and_success_is_preserved(application, tmp_path, server):
+    from udeck.apps.emulator.thumbnails import ThumbnailDownloader
+
+    base, requests, png, _ = server
+    downloader = ThumbnailDownloader(base_url=base)
+    item = {"path": "/roms/Flaky.gb", "title": "Flaky", "dbName": "Nintendo - Game Boy"}
+    downloader.start([item], tmp_path)
+    wait_for(lambda: not downloader.running)
+    assert downloader.status["saved"] == 3 and downloader.status["failed"] == 0
+    assert downloader.status["retried"] == 3
+    assert len(requests) == 6
+    assert all(path.read_bytes() == png for path in tmp_path.glob("Nintendo - Game Boy/*/Flaky.png"))
+
+
+def test_permanent_server_failure_has_a_bounded_retry_budget(application, tmp_path, server):
+    from udeck.apps.emulator.thumbnails import ThumbnailDownloader
+
+    base, requests, _, _ = server
+    downloader = ThumbnailDownloader(base_url=base)
+    item = {"path": "/roms/AlwaysFail.gb", "title": "AlwaysFail", "dbName": "Nintendo - Game Boy"}
+    downloader.start([item], tmp_path)
+    wait_for(lambda: not downloader.running)
+    assert downloader.status["failed"] == 3 and downloader.status["done"] == 3
+    assert len(requests) == 6
+    assert not list(tmp_path.glob("Nintendo - Game Boy/*/*.png"))
+
+
+def test_timeout_after_http_headers_retries_and_discards_partial_body(application, tmp_path, server):
+    from udeck.apps.emulator.thumbnails import ThumbnailDownloader
+
+    base, requests, png, _ = server
+    downloader = ThumbnailDownloader(base_url=base, timeout=100)
+    item = {"path": "/roms/Partial.gb", "title": "Partial", "dbName": "Nintendo - Game Boy"}
+    downloader.start([item], tmp_path)
+    wait_for(lambda: not downloader.running)
+    assert downloader.status["saved"] == 3 and downloader.status["failed"] == 0
+    assert len(requests) == 6
+    files = list(tmp_path.glob("Nintendo - Game Boy/*/Partial.png"))
+    assert len(files) == 3 and all(path.read_bytes() == png for path in files)
 
 
 def test_downloader_checks_responses_and_keeps_custom_images(application, tmp_path, server):

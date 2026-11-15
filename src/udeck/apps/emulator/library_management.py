@@ -182,7 +182,7 @@ class EmulatorLibraryManagement:
     def image_download_menu(self):
         self.menu(tr(Msg.EMU_IMAGE_DOWNLOADS), [
             (tr(Msg.CANCEL_DOWNLOAD), self.thumbnail_downloader.cancel),
-            (tr(Msg.BACK), self.pop_menu)], self.thumbnail_status())
+            (tr(Msg.BACK), self.pop_menu)], self.thumbnail_status(), body_lines=8)
         self.menus[-1]["imageDownloads"] = True
 
     def thumbnail_status(self):
@@ -192,7 +192,14 @@ class EmulatorLibraryManagement:
         if status.get("cancelled"):
             body += "\n" + tr(Msg.OPERATION_CANCELLED)
         elif status and not self.thumbnail_downloader.running:
-            body += "\n" + tr(Msg.DOWNLOAD_COMPLETE)
+            body += "\n" + tr(Msg.EMU_IMAGE_INCOMPLETE if status.get("missing") or status.get("failed")
+                              else Msg.DOWNLOAD_COMPLETE)
+        if status.get("missing"):
+            body += "\n" + tr(Msg.EMU_IMAGE_UNMATCHED)
+        if status.get("retried"):
+            body += "\n" + tr(Msg.EMU_IMAGE_RETRIED, count=status["retried"])
+        if status.get("errors"):
+            body += "\n" + status["errors"][0]
         return body
 
     def thumbnail_progress(self):
@@ -201,9 +208,6 @@ class EmulatorLibraryManagement:
         for menu in self.menus:
             if menu.get("imageDownloads"):
                 menu["body"] = self.thumbnail_status()
-                errors = self.thumbnail_downloader.status.get("errors", [])
-                if errors:
-                    menu["body"] += "\n" + "\n".join(errors[:2])
         self.publish()
 
     def thumbnails_finished(self):

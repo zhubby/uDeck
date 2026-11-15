@@ -16,13 +16,22 @@ from udeck.i18n import Msg, tr
 from .playlists import database_name
 
 KINDS = ("Named_Boxarts", "Named_Snaps", "Named_Titles")
+TRANSIENT_ERRORS = {
+    QNetworkReply.NetworkError.TimeoutError, QNetworkReply.NetworkError.OperationCanceledError,
+    QNetworkReply.NetworkError.RemoteHostClosedError, QNetworkReply.NetworkError.TemporaryNetworkFailureError,
+    QNetworkReply.NetworkError.NetworkSessionFailedError,
+}
 
 
-def thumbnail_names(item):
+def thumbnail_names(item, *, official_first=False):
     filename = item.get("basename") or Path(item.get("archiveMember") or item.get("path", "")).stem
     title = str(item.get("title") or filename)
     names = []
-    for name in (filename, title, title.split("(", 1)[0].rstrip()):
+    # A trailing bracket qualifier can distinguish translations/revisions while
+    # retaining the official name, including its region, for artwork lookup.
+    official = re.sub(r" \[.*\]$", "", filename)
+    filenames = (official, filename) if official_first else (filename, official)
+    for name in (*filenames, title, title.split("(", 1)[0].rstrip()):
         name = re.sub(r'[&*/:`<>?\\|]', "_", name).replace("\x00", "_")
         if name and name not in {".", ".."} and name not in names:
             names.append(name)
@@ -66,10 +75,11 @@ class ThumbnailDownloader(QObject):
     changed = Signal()
     finished = Signal()
 
-    def __init__(self, parent=None, *, base_url="https://thumbnails.libretro.com/", timeout=15000):
+    def __init__(self, parent=None, *, base_url="https://thumbnails.libretro.com/", timeout=30000, retries=1):
         super().__init__(parent)
         self.network = QNetworkAccessManager(self)
         self.base_url, self.timeout = base_url.rstrip("/") + "/", timeout
+        self.retries = retries
         self.active, self.queue = {}, deque()
         self.running = False
         self.status = {}
@@ -77,7 +87,7 @@ class ThumbnailDownloader(QObject):
     def start(self, items, root):
         self.cancel()
         self.status = {"total": 0, "done": 0, "saved": 0, "missing": 0, "failed": 0,
-                       "cancelled": False, "errors": []}
+                       "retried": 0, "cancelled": False, "errors": []}
         seen = set()
         for item in items:
             existing = find_thumbnails(item, root)
@@ -91,7 +101,8 @@ class ThumbnailDownloader(QObject):
                     continue
                 seen.add(key)
                 self.queue.append({"item": dict(item), "root": Path(root), "kind": kind,
-                                   "directory": directory, "names": deque(names)})
+                                   "directory": directory, "names": deque(thumbnail_names(item, official_first=True)),
+                                   "target": directory / (names[0] + ".png")})
         self.status["total"] = len(self.queue)
         self.running = True
         self.changed.emit()
@@ -118,10 +129,12 @@ class ThumbnailDownloader(QObject):
             if job["kind"] in find_thumbnails(job["item"], job["root"]):
                 self.status["done"] += 1
                 continue
-            name = job["names"].popleft()
-            job["target"] = job["directory"] / (name + ".png")
+            if "name" not in job:
+                job["name"] = job["names"].popleft()
+                job["attempts"] = 0
+            job["attempts"] += 1
             relative = "/".join(quote(part, safe="") for part in
-                                (job["item"]["dbName"], job["kind"], name + ".png"))
+                                (job["item"]["dbName"], job["kind"], job["name"] + ".png"))
             request = QNetworkRequest(QUrl(self.base_url + relative))
             request.setTransferTimeout(self.timeout)
             request.setRawHeader(b"User-Agent", b"uDeck thumbnail downloader")
@@ -139,9 +152,10 @@ class ThumbnailDownloader(QObject):
     def _read(self, reply=None):
         reply = reply if reply is not None else self.sender()
         job = self.active.get(reply)
-        if job is not None:
+        if job is not None and reply.isReadable():
             job.setdefault("data", bytearray()).extend(bytes(reply.readAll()))
             if len(job["data"]) > 16 * 1024 * 1024:
+                job["tooLarge"] = True
                 reply.abort()
 
     @Slot()
@@ -156,8 +170,14 @@ class ThumbnailDownloader(QObject):
         error = reply.error()
         message = reply.errorString()
         reply.deleteLater()
-        if status == 404 and job["names"]:
+        transient = status in (500, 502, 503, 504) or (status != 404 and error in TRANSIENT_ERRORS)
+        if transient and not job.get("tooLarge") and job["attempts"] <= self.retries:
             job.pop("data", None)
+            self.status["retried"] += 1
+            self.queue.append(job)
+        elif status == 404 and job["names"]:
+            job.pop("data", None)
+            job.pop("name", None)
             self.queue.appendleft(job)
         else:
             self.status["done"] += 1
@@ -173,13 +193,18 @@ class ThumbnailDownloader(QObject):
                 except (OSError, ValueError) as failure:
                     self._failure(job, str(failure))
             else:
+                if job.get("tooLarge"):
+                    message = tr(Msg.EMU_IMAGE_INVALID)
+                elif error in (QNetworkReply.NetworkError.TimeoutError,
+                               QNetworkReply.NetworkError.OperationCanceledError):
+                    message = tr(Msg.EMU_IMAGE_TIMEOUT)
                 self._failure(job, message)
         self._pump()
 
     def _failure(self, job, error):
         self.status["failed"] += 1
         if len(self.status["errors"]) < 20:
-            self.status["errors"].append(str(job["target"]) + ": " + error)
+            self.status["errors"].append((job["item"].get("title") or job["target"].stem) + ": " + error)
 
     @staticmethod
     def _publish(job, data):
