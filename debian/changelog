@@ -1,3 +1,11 @@
+udeck (0.2.18) unstable; urgency=medium
+
+  * Wait for RetroArch to pause before presenting the Emulator menu on Wayland.
+  * Uncover the game frontend while saving and loading native states.
+  * Keep long playlist titles and game counts within their cards.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Sun, 15 Nov 2026 09:55:06 +0800
+
 udeck (0.2.17) unstable; urgency=medium
 
   * Use interoperable JSON Libretro playlists as the Emulator library source.
