@@ -150,7 +150,7 @@ Window {
                             color: modelData.id===window.state.selected ? window.colors.selected : window.colors.panel
                             border.width: modelData.id===window.state.selected ? 3 : 1
                             border.color: modelData.id===window.state.selected ? window.accent : window.colors.border
-                            Artwork { fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-(window.state.app==="emulator"?cardTitleMetrics.height+cardSubtitleMetrics.height+32:80); cover: card.modelData.cover||""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" || card.modelData.kind === "playlist" }
+                            Artwork { fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-(window.state.app==="emulator"?cardTitleMetrics.height+cardSubtitleMetrics.height+32:80); cover: card.modelData.cover||""; fallbackIcon: window.state.app === "emulator" ? controller.platformIcon(card.modelData.platform || "") : ""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" || card.modelData.kind === "playlist" }
                             Column {
                                 x: cards.listMode ? 80 : 12; y: cards.listMode ? 12 : art.y+art.height+8
                                 width: parent.width-x-12; spacing: 4
@@ -185,7 +185,7 @@ Window {
                     Layout.preferredWidth: window.width<1100?230:290; Layout.maximumWidth: window.width<1100?230:290; Layout.fillWidth: false; Layout.fillHeight: true; spacing: 16
                     Rectangle { Layout.fillWidth: true; height: 1; color: window.colors.divider }
                     Text { font.family: window.fontFamily; text: window.state.app==="music"?window.tr(msg.NOW_PLAYING):window.tr(msg.SELECTED_GAME); color: window.muted; font.pixelSize: 18 }
-                    Artwork { fontFamily: window.fontFamily; colors: window.colors; Layout.fillWidth: true; Layout.preferredHeight: 170; cover: window.state.app==="music"?(window.state.current.cover||""):(controller.selectedItem.cover||""); kind: window.state.app }
+                    Artwork { fontFamily: window.fontFamily; colors: window.colors; Layout.fillWidth: true; Layout.preferredHeight: 170; cover: window.state.app==="music"?(window.state.current.cover||""):(controller.selectedItem.cover||""); fallbackIcon: window.state.app === "emulator" ? controller.platformIcon(controller.selectedItem.platform || "") : ""; kind: window.state.app }
                     ScrollingTitle {
                         objectName: "selectedGameTitle"
                         visible: window.state.app === "emulator"

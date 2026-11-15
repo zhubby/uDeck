@@ -4,6 +4,7 @@ import json
 import sys
 import time
 from pathlib import Path
+from urllib.parse import unquote
 
 from libretro_fixtures import configure_library
 from PySide6.QtCore import Qt, QUrl
@@ -13,7 +14,7 @@ from PySide6.QtQuick import QQuickItem
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 from shiboken6 import delete
-from test_emulator_playlists import write_playlist
+from test_emulator_playlists import entry, write_playlist
 from test_games_catalog import installed
 
 from udeck.apps.emulator.controller import EmulatorController
@@ -83,6 +84,15 @@ def run(root, language, theme, mode="menus"):
         QTest.qWait(80)
         assert window.grabWindow().save(str(root / (name + ".png")))
 
+    def platform_artwork(owner, icon, *, covered=False):
+        fallback = owner.findChild(QQuickItem, "fallbackPlatformIcon")
+        assert fallback is not None, "Games without artwork must display a platform icon"
+        cover = owner.findChild(QQuickItem, "coverImage")
+        wait(lambda: fallback.isVisible() != covered and cover.isVisible() == covered)
+        if not covered:
+            wait(lambda: fallback.property("paintedWidth") > 0)
+        assert fallback.property("source").toString().endswith("/platform-icons/" + icon + ".svg")
+
     try:
         window.requestActivate()
         wait(lambda: not controller.library.pending)
@@ -100,6 +110,9 @@ def run(root, language, theme, mode="menus"):
                 controller.select(game["id"])
                 QTest.qWait(80)
                 card = grid.property("currentItem")
+                icon = "gb" if platform == "gbc" else platform
+                platform_artwork(card, icon)
+                platform_artwork(panel, icon)
                 title_view = card.findChild(QQuickItem, "cardTitleViewport")
                 title_text = title_view.findChild(QQuickItem, "cardTitleText")
                 wait(lambda label=title_text: label.x() < -5)
@@ -130,6 +143,60 @@ def run(root, language, theme, mode="menus"):
                 tested_platforms.append(platform)
                 QTest.keyClick(window, Qt.Key.Key_Escape)
                 wait(lambda: json.loads(controller.snapshotJson)["platformsView"])
+
+            # Custom playlists keep each game's platform, including an unknown
+            # platform. Neither the playlist name nor the preceding selection
+            # may choose the placeholder for the next game.
+            unknown = rom_root / "Mystery.odd"
+            unknown.write_bytes(b"Original unknown-system preview fixture")
+            mixed = root / "playlists/ZZ fixture 000.lpl"
+            write_playlist(mixed, [entry(rom_root / "gb/Original stripes.gb", "GB"),
+                                   entry(rom_root / "nes/Original tiles.nes", "NES",
+                                         "Nintendo - Nintendo Entertainment System.lpl"),
+                                   entry(unknown, "Unknown", "Unregistered system.lpl")])
+            controller.library.refresh()
+            wait(lambda: not controller.library.pending)
+            controller.select(next(row["id"] for row in controller.rows() if row["title"] == "ZZ fixture 000"))
+            QTest.keyClick(window, Qt.Key.Key_Return)
+            for label, icon in (("GB", "gb"), ("NES", "nes"), ("Unknown", "generic")):
+                controller.select(next(row["id"] for row in controller.rows() if row["title"] == label))
+                QTest.qWait(80)
+                platform_artwork(grid.property("currentItem"), icon)
+                platform_artwork(panel, icon)
+            frame("mixed-platform-placeholders")
+
+            controller.select(next(row["id"] for row in controller.rows() if row["title"] == "GB"))
+            image_path = root / "thumbnails/Nintendo - Game Boy/Named_Boxarts/Original stripes.png"
+            image_path.parent.mkdir(parents=True, exist_ok=True)
+            image = QImage(80, 120, QImage.Format.Format_RGB32)
+            image.fill(0xFF145766)
+            assert image.save(str(image_path))
+            controller.library.reload_thumbnails()
+            wait(lambda: bool(controller.selectedItem.get("cover")))
+            platform_artwork(grid.property("currentItem"), "gb", covered=True)
+            platform_artwork(panel, "gb", covered=True)
+            frame("cover-before-placeholder")
+            QTest.keyClick(window, Qt.Key.Key_Return)
+            wait(lambda: window.findChild(QQuickItem, "gameArtwork") is not None)
+            details = window.findChild(QQuickItem, "gameArtwork")
+            platform_artwork(details, "gb", covered=True)
+            QTest.keyClick(window, Qt.Key.Key_Escape)
+
+            image_path.write_bytes(b"Intentionally invalid image fixture")
+            # Use a fresh URL so Qt's image cache cannot reuse the valid cover.
+            broken_path = image_path.with_suffix(".jpg")
+            image_path.rename(broken_path)
+            controller.library.reload_thumbnails()
+            platform_artwork(grid.property("currentItem"), "gb")
+            platform_artwork(panel, "gb")
+            QTest.keyClick(window, Qt.Key.Key_Return)
+            platform_artwork(details, "gb")
+            frame("invalid-cover-platform-fallback")
+            expected_errors = [error for error in errors if str(broken_path) in unquote(error)]
+            assert expected_errors, "The corrupt cover must be attempted before falling back"
+            errors[:] = [error for error in errors if error not in expected_errors]
+            QTest.keyClick(window, Qt.Key.Key_Escape)
+            QTest.keyClick(window, Qt.Key.Key_Escape)
             for tab in (0, 2):
                 controller.setTab(tab)
                 wait(lambda: len(controller.rows()) == 1)
@@ -141,6 +208,8 @@ def run(root, language, theme, mode="menus"):
                 side_text = side_title.findChild(QQuickItem, "cardTitleText")
                 wait(lambda label=title_text, side=side_text: label.x() < -5 and side.x() < -5)
                 assert title_text.property("lineCount") == side_text.property("lineCount") == 1
+                platform_artwork(card, "gba")
+                platform_artwork(panel, "gba")
             QTest.keyClick(window, Qt.Key.Key_F3)
             wait(lambda: title_text.x() == side_text.x() == 0)
             QTest.qWait(1300)
@@ -149,11 +218,13 @@ def run(root, language, theme, mode="menus"):
             wait(lambda: title_text.x() < -5 and side_text.x() < -5)
             frame("favorite-title-scrolling")
             assert not errors, errors
-            print(json.dumps({"qmlErrors": errors, "language": language, "theme": theme,
+            print(json.dumps({"qmlErrors": errors, "expectedInvalidImageErrors": len(expected_errors),
+                              "language": language, "theme": theme,
                               "platforms": tested_platforms,
                               "checks": ["all-platform-game-title-scroll", "single-line-newline-label",
                                          "selected-sidebar-scroll-reset", "recent-favorite-title-scroll",
-                                         "menu-scroll-reset"]}))
+                                         "menu-scroll-reset", "platform-placeholders-card-sidebar-details",
+                                         "mixed-platform-and-unknown-placeholders", "cover-precedence-invalid-fallback"]}))
             return
         wait(lambda: grid.width() > window.width() * 0.9)
         assert not panel.isVisible()

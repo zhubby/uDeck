@@ -31,5 +31,7 @@ def test_game_titles_scroll_on_all_platforms_and_collections(tmp_path, language,
     assert result.returncode == 0, result.stdout + result.stderr
     report = json.loads(result.stdout.strip().splitlines()[-1])
     assert report["qmlErrors"] == [] and report["platforms"] == ["gb", "gbc", "gba", "nes", "psp"]
+    assert report["expectedInvalidImageErrors"] > 0
     assert all((tmp_path / (name + ".png")).stat().st_size > 10000
-               for name in ("game-title-scrolling", "game-title-end", "favorite-title-scrolling"))
+               for name in ("game-title-scrolling", "game-title-end", "favorite-title-scrolling",
+                            "mixed-platform-placeholders", "cover-before-placeholder", "invalid-cover-platform-fallback"))

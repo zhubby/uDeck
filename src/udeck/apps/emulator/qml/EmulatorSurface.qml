@@ -12,7 +12,7 @@ Item {
     property var appState:host?host.state:({current:{},gameChecks:{}})
     RowLayout {
         anchors.fill: parent; anchors.margins: 48; spacing: 40
-        Artwork { objectName: "gameArtwork"; fontFamily: surface.host.fontFamily; colors: surface.colors; Layout.preferredWidth: 300; Layout.preferredHeight: 330; cover: appState.current.cover||""; kind: "emulator" }
+        Artwork { objectName: "gameArtwork"; fontFamily: surface.host.fontFamily; colors: surface.colors; Layout.preferredWidth: 300; Layout.preferredHeight: 330; cover: appState.current.cover||""; fallbackIcon: controller.platformIcon(appState.current.platform || ""); kind: "emulator" }
         ColumnLayout {
             Layout.fillWidth: true; spacing: 18
             Text { font.family: surface.host.fontFamily; Layout.fillWidth:true;text:appState.current.title||"";color:surface.colors.text;font.pixelSize:36;wrapMode:Text.Wrap;maximumLineCount:3;elide:Text.ElideRight }

@@ -1,3 +1,11 @@
+udeck (0.2.21) unstable; urgency=medium
+
+  * Show each game's platform icon when cover artwork is missing or unreadable.
+  * Use consistent placeholders in game cards, the sidebar and game details.
+  * Keep covers first and use a generic gamepad for unrecognized platforms.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Sun, 15 Nov 2026 16:00:00 +0800
+
 udeck (0.2.20) unstable; urgency=medium
 
   * Keep game titles on one line across every Emulator platform and collection.

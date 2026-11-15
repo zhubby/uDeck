@@ -23,6 +23,10 @@ class EmulatorBrowser:
     def _scope(self):
         return f"1:{self.platform}" if self.tab == 1 and self.platform != "All" else str(self.tab)
 
+    @Slot(str, result=str)
+    def platformIcon(self, platform):
+        return platform_icon(self.catalog.canonical(platform))
+
     def _remember_browser(self):
         scope = self._scope()
         self.store.data["focus"][scope] = self.selected
