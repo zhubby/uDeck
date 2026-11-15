@@ -3,9 +3,10 @@
 The Libretro implementation (`ecf8756`), subsequent Wayland fixes (`c13625c`) and
 uDeck **0.2.18** release preparation
 (`86bb1f0ddac5c333618cefe66cc3f3657dd66bfa`) are merged into and pushed to `main`.
-Version 0.2.18 is installed on the uConsole. Its existing ROM library was migrated
-with 0.2.17 and remains in the standard layout. Subsequent delivery documentation
-does not change the packaged application source.
+Version 0.2.18 was installed and accepted on the uConsole. Its existing ROM
+library was migrated with 0.2.17 and remains in the standard layout. This report
+retains the 0.2.18 results; the subsequent 0.2.19 card layout and title-scrolling
+fix is recorded in the [playlist card verification](emulator-playlist-cards-2026-11-15.md).
 
 ## Delivered behavior
 

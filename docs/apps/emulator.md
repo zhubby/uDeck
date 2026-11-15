@@ -139,10 +139,10 @@ Emulator 配置使用独立的 `emulator.json`，共享状态格式版本为 1�
 
 `tests/test_emulator_playlists.py`、`test_emulator_playlist_library.py`、`test_emulator_playlist_browser.py` 覆盖 JSON 往返、未知字段、外部编辑、可移植路径、归档成员、跨平台集合、共享身份与生成预览。`test_emulator_migration.py` 在隔离目录测试分类、冲突、依赖变更、写盘错误、进程中断、跨盘复制、恢复配置与旧记录／SRAM。`test_emulator_thumbnails.py` 使用本地 HTTP 服务验证名称匹配、404、无效图片、超时、重试、取消和已有图片保护。
 
-`test_games_catalog.py`、`test_games_management.py` 继续覆盖格式、核心选择、固件、存档隔离与取消边界。`test_games_qml.py` 使用真实 Qt 键盘事件验证中英文、Classic／Dark、列表导航、滚动、焦点、生成预览确认／取消、图片比例与长标题卡片边界。暂停与原生存读档另有 Wayland 窗口显示时序回归。
+`test_games_catalog.py`、`test_games_management.py` 继续覆盖格式、核心选择、固件、存档隔离与取消边界。`test_games_qml.py` 使用真实 Qt 键盘事件验证中英文、Classic／Dark、列表导航、滚动、焦点、生成预览确认／取消、图片比例、卡片尺寸一致性及长标题滚动与菜单／选择复位。暂停与原生存读档另有 Wayland 窗口显示时序回归。
 
 `test_emulator_save_management.py`、`test_emulator_save_ui.py` 验证原生字节往返、覆盖备份、SRAM／RTC、核心兼容性、损坏文件、写盘失败、分叉选择、运行时保护和启动取消。`test_emulator_save_sync.py` 使用真实 rclone 与隔离目录模拟两个设备，验证首次合并、并发上传、离线冲突、选择后的收敛、取消、配置切换及后台恢复，并通过本机 WebDAV 服务实际断线、重连检查离线进度；`test_emulator_save_daemon.py` 使用独立 D-Bus 会话运行真实后台服务，验证协议、状态通知、前端断开和服务重启。Qt 按键探针另外覆盖原生导入确认／取消、槽位映射、导出、历史与焦点。
 
-0.2.18 已在 uConsole 安装，完成迁移后的正常应用 GB／NES／GBA 启动、暂停、存读档、保存退出与自动续玩，并复验中文 ZIP 成员、GB／GBC 分离、跨平台与可移植列表、真实 HTTPS 补图及已有图片保护。arm64 完整测试 1710 项、设备安装代码回归 253 项、中英文 × Classic／Dark 四组 Qt 探针均通过，见 [2026-11-15 Libretro 实机验证记录](../udeck/emulator-libretro-2026-11-15.md)。原有配置、存档、收藏和其他桌面进程保留；现有云同步配置与服务保持启用，部分启动通过界面选择离线游玩。真实云端完整传输、真人物理按键与音频效果仍需单独验收。较早的原生存档、SRAM 异常退出及后台服务测试见 [2026-11-14 真机部署记录](../udeck/emulator-save-sync-2026-11-14.md)。
+0.2.18 在 uConsole 完成了迁移后的正常应用 GB／NES／GBA 启动、暂停、存读档、保存退出与自动续玩，并复验中文 ZIP 成员、GB／GBC 分离、跨平台与可移植列表、真实 HTTPS 补图及已有图片保护。该版本的 arm64 完整测试 1710 项、设备安装代码回归 253 项、中英文 × Classic／Dark 四组 Qt 探针均通过，见 [2026-11-15 Libretro 实机验证记录](../udeck/emulator-libretro-2026-11-15.md)。随后安装的 0.2.19 统一了卡片图标和单行文字位置，新增选中长名称滚动；26 项受影响回归、设备上 10 项共享应用界面检查及四组 Qt 复验通过，正常应用的 40 帧实机截图确认滚动时图标与游戏数量保持不动，见 [卡片与长标题实机验证](../udeck/emulator-playlist-cards-2026-11-15.md)。原有配置、存档、收藏和其他桌面进程保留；现有云同步配置与服务保持启用，部分启动通过界面选择离线游玩。真实云端完整传输、真人物理按键与音频效果仍需单独验收。较早的原生存档、SRAM 异常退出及后台服务测试见 [2026-11-14 真机部署记录](../udeck/emulator-save-sync-2026-11-14.md)。
 
 `tests/games_device_probe.py <evidence-directory>` 在设备图形会话运行原创 GB、NES、GBA 程序，验证完整启动、修改设置保留 PID、暂停、存取档、返回和重启续玩流程。测试只写指定证据目录，并通过 `tests/game_fixtures.py` 生成原创测试内容，不包含商业游戏 ROM。运行前应确保没有另一个 RetroArch 会话。
