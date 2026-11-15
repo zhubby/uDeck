@@ -1,9 +1,12 @@
 # Emulator single-line game titles — 2026-11-15
 
+This records the historical 0.2.20 delivery. Version 0.2.21 adds platform icons
+for missing artwork; see [platform artwork verification](emulator-platform-placeholders-2026-11-15.md).
+
 uDeck **0.2.20** (`35e65faee99b3bd390d211270c301b98bffd6eaa`) extends
 single-line title scrolling to every Emulator platform, Recently played,
 Favorites and the selected-game sidebar. The change is merged into and pushed
-to `main`, and the package is installed on the uConsole.
+to `main`, and the package was installed on the uConsole.
 
 ## Behavior
 

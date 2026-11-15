@@ -1,7 +1,7 @@
 # Emulator playlist card sizing and scrolling — 2026-11-15
 
-This records the historical 0.2.19 delivery. The uConsole now runs 0.2.20,
-which extends this behavior to every platform's games and the sidebar; see
+This records the historical 0.2.19 delivery. Version 0.2.20 extends this
+behavior to every platform's games and the sidebar; see
 [single-line game title verification](emulator-game-titles-2026-11-15.md).
 
 uDeck **0.2.19** (`b8db50f77123beaa955829e5a4d628391a358a55`) fixes playlist
