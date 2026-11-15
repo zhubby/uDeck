@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 
+import pytest
 from PySide6.QtCore import QCoreApplication, QObject, Signal
 
 from udeck.app_routing import APP_IDS
@@ -118,6 +119,32 @@ def test_loaded_game_resumes_and_source_loss_disables_save_and_load(tmp_path):
     assert [row["disabled"] for row in controller.menus[-1]["options"]][:3] == [True, True, True]
     controller.engine.running = lambda: False
     controller.close()
+    assert application
+
+
+@pytest.mark.parametrize("operation", ["save", "load", "save-exit", "pause"])
+def test_game_commands_uncover_wayland_frontend_until_confirmation(tmp_path, operation):
+    application = QCoreApplication.instance() or QCoreApplication([])
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
+    events = []
+    controller.window = SimpleNamespace(showMinimized=lambda: events.append("uncovered"))
+    controller.require_current = lambda: {}
+    controller.engine.save = lambda slot: events.append(("save", slot))
+    controller.engine.load = lambda slot: events.append(("load", slot))
+    controller.engine.send = lambda command: events.append(command)
+    try:
+        if operation == "pause":
+            controller.engine.status = "playing"
+            controller.command("pause-game")
+            assert events == ["uncovered", "PAUSE_TOGGLE"]
+        elif operation == "save-exit":
+            controller.save_exit()
+            assert events == [("save", "auto"), "uncovered"] and controller.exit_after_save
+        else:
+            controller.slot_action("3", operation == "load")
+            assert events == [(operation, "3"), "uncovered"]
+    finally:
+        controller.close()
     assert application
 
 

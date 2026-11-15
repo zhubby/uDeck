@@ -69,8 +69,11 @@ class AppControl(QObject):
                 self.controller.command(request["command"])
             if request.get("files"):
                 self.open_files(request["files"])
-            self.trace.request_activation()
-            self.show()
+            # A covered Wayland game may stop servicing its command loop.
+            # The emulator presents its menu after RetroArch confirms the pause.
+            if request.get("command") != "pause-game":
+                self.trace.request_activation()
+                self.show()
             return ""
         except (ValueError, OSError, RuntimeError) as error:
             return str(error)

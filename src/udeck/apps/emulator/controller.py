@@ -713,6 +713,11 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
         if additions:
             self.preview_file_entries(additions)
 
+    def pause_game(self):
+        if self.engine.status == "playing" and self.window:
+            self.window.showMinimized()
+        self.engine.pause()
+
     def pause_menu(self):
         if not self.engine.running():
             return
@@ -765,6 +770,8 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
         self.require_current()
         self.pop_menu()
         self.engine.load(slot) if load else self.engine.save(slot)
+        if self.window:
+            self.window.showMinimized()
 
     def save_done(self, slot):
         self.record_running_save(slot)
@@ -786,6 +793,8 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
         self.require_current()
         self.engine.save("auto")
         self.exit_after_save = True
+        if self.window:
+            self.window.showMinimized()
 
     def confirm_quit(self):
         self.menu(tr(Msg.RETURN_WITHOUT_SAVING_PROMPT), [(tr(Msg.CONFIRM), self.quit_game), (tr(Msg.CANCEL), self.pop_menu)])
@@ -816,7 +825,7 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
         if self.page == "game-details":
             self.detail_menu()
         elif self.engine.running():
-            self.engine.pause()
+            self.pause_game()
         else:
             options = [] if self.tab == 1 and self.platform == "All" else [
                 (tr(Msg.TOGGLE_FAVORITE), self.toggle_favorite)]
@@ -944,7 +953,7 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
     @interaction
     def command(self, command):
         if command == "pause-game":
-            self.attempt(self.engine.pause)
+            self.attempt(self.pause_game)
         elif command in ("core-management", "rom-library", "rom-root"):
             self.attempt({"core-management": self.core_management, "rom-library": self.show_rom_root,
                           "rom-root": self.rom_picker}[command])

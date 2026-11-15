@@ -92,6 +92,15 @@ def run(root, language, theme):
                 pending.extend(item.childItems())
             return found
         wait(lambda: bool(icons()) and all(icon.isVisible() for icon in icons()))
+        for title in ("Nintendo - Game Boy Advance", "Nintendo - Nintendo Entertainment System",
+                      "Sony - PlayStation Portable"):
+            controller.select(next(row["id"] for row in controller.rows() if row["title"] == title))
+            QTest.qWait(80)
+            card = grid.property("currentItem")
+            caption = next(child for child in card.childItems() if child.inherits("QQuickColumn"))
+            assert caption.y() + caption.height() <= card.height() - 9, (
+                title, caption.y(), caption.height(), card.height())
+        controller.select(controller.rows()[0]["id"])
         frame("platforms")
         for _ in range(34):
             QTest.keyClick(window, Qt.Key.Key_Down)

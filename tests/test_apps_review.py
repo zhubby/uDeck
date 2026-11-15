@@ -30,6 +30,27 @@ def test_normal_second_launcher_request_presents_existing_app(application, tmp_p
         controller.close()
 
 
+def test_pause_launcher_waits_for_retroarch_before_covering_its_window(application, tmp_path):
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
+    commands, shown = [], []
+    controller.engine.status = "playing"
+    controller.engine.running = lambda: True
+    controller.engine.send = commands.append
+    controller.present.connect(lambda: shown.append(True))
+    control = AppControl(controller, lambda: shown.append(True), [], time.monotonic())
+    try:
+        assert control.Open(json.dumps({"command": "pause-game", "files": []})) == ""
+        assert commands == ["PAUSE_TOGGLE"] and not shown
+        controller.engine.status = "paused"
+        controller.engine.paused.emit()
+        assert shown == [True] and controller.menus
+        assert control.Open(json.dumps({"command": "pause-game", "files": []})) == ""
+        assert shown == [True, True]
+    finally:
+        controller.engine.running = lambda: False
+        controller.close()
+
+
 def test_canceled_browser_reading_result_cannot_restore_reading_mode(application, tmp_path):
     controller = BrowserController(tmp_path, tmp_path / "settings.json")
     try:
