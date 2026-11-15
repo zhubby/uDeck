@@ -150,42 +150,19 @@ Window {
                             color: modelData.id===window.state.selected ? window.colors.selected : window.colors.panel
                             border.width: modelData.id===window.state.selected ? 3 : 1
                             border.color: modelData.id===window.state.selected ? window.accent : window.colors.border
-                            Artwork { fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-(card.modelData.kind==="playlist"?cardTitleMetrics.height+cardSubtitleMetrics.height+32:80); cover: card.modelData.cover||""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" || card.modelData.kind === "playlist" }
+                            Artwork { fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-(window.state.app==="emulator"?cardTitleMetrics.height+cardSubtitleMetrics.height+32:80); cover: card.modelData.cover||""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" || card.modelData.kind === "playlist" }
                             Column {
                                 x: cards.listMode ? 80 : 12; y: cards.listMode ? 12 : art.y+art.height+8
                                 width: parent.width-x-12; spacing: 4
-                                Item {
-                                    id: titleViewport
+                                ScrollingTitle {
                                     objectName: "cardTitleViewport"
-                                    width: parent.width; height: cardTitleMetrics.height; clip: true
-                                    property real offset: 0
-                                    readonly property real overflow: Math.max(0, cardTitle.implicitWidth-width)
-                                    readonly property bool scrolling: card.modelData.kind === "playlist"
-                                        && card.modelData.id === window.state.selected && overflow > 0
-                                        && visible && window.active && !window.state.menu.title
-                                    Text {
-                                        id: cardTitle
-                                        objectName: "cardTitleText"
-                                        x: -titleViewport.offset
-                                        width: titleViewport.scrolling ? implicitWidth : parent.width
-                                        height: parent.height; verticalAlignment: Text.AlignVCenter
-                                        font.family: window.fontFamily; font.pixelSize: cards.listMode ? 22 : 20
-                                        text: ((card.modelData.gameId||card.modelData.id)===window.state.current.id ? "▶  " : "")+card.modelData.title
-                                        color: window.ink; wrapMode: Text.NoWrap; elide: Text.ElideRight
-                                    }
-                                    SequentialAnimation {
-                                        running: titleViewport.scrolling
-                                        loops: Animation.Infinite
-                                        onRunningChanged: if (!running) titleViewport.offset=0
-                                        PauseAnimation { duration: 1200 }
-                                        NumberAnimation {
-                                            target: titleViewport; property: "offset"
-                                            from: 0; to: titleViewport.overflow
-                                            duration: Math.max(1000, titleViewport.overflow*1000/36)
-                                        }
-                                        PauseAnimation { duration: 1400 }
-                                        PropertyAction { target: titleViewport; property: "offset"; value: 0 }
-                                    }
+                                    width: parent.width; height: cardTitleMetrics.height
+                                    fontFamily: window.fontFamily; pixelSize: cards.listMode ? 22 : 20
+                                    text: ((card.modelData.gameId||card.modelData.id)===window.state.current.id ? "▶  " : "")+card.modelData.title
+                                    textColor: window.ink
+                                    resetKey: card.modelData.id
+                                    active: window.state.app === "emulator" && card.modelData.id === window.state.selected
+                                        && window.active && !window.state.menu.title
                                 }
                                 Text { font.family: window.fontFamily; width: parent.width; height: cardSubtitleMetrics.height; text: card.modelData.subtitle||""; color: window.muted; font.pixelSize: 17; elide: Text.ElideRight }
                             }
@@ -209,7 +186,16 @@ Window {
                     Rectangle { Layout.fillWidth: true; height: 1; color: window.colors.divider }
                     Text { font.family: window.fontFamily; text: window.state.app==="music"?window.tr(msg.NOW_PLAYING):window.tr(msg.SELECTED_GAME); color: window.muted; font.pixelSize: 18 }
                     Artwork { fontFamily: window.fontFamily; colors: window.colors; Layout.fillWidth: true; Layout.preferredHeight: 170; cover: window.state.app==="music"?(window.state.current.cover||""):(controller.selectedItem.cover||""); kind: window.state.app }
-                    Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.app==="music"?(window.state.current.title||window.tr(msg.CHOOSE_A_TRACK)):(controller.selectedItem.title||""); wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight; color: window.ink; font.pixelSize: 25 }
+                    ScrollingTitle {
+                        objectName: "selectedGameTitle"
+                        visible: window.state.app === "emulator"
+                        Layout.fillWidth: true
+                        fontFamily: window.fontFamily; pixelSize: 25; textColor: window.ink
+                        text: controller.selectedItem.title || ""
+                        resetKey: controller.selectedItem.id || ""
+                        active: window.active && !window.state.menu.title
+                    }
+                    Text { font.family: window.fontFamily; visible: window.state.app==="music"; Layout.fillWidth: true; text: window.state.current.title||window.tr(msg.CHOOSE_A_TRACK); wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight; color: window.ink; font.pixelSize: 25 }
                     Text { font.family: window.fontFamily; visible: window.state.app==="music"; text: window.time((window.state.media||{}).position)+" / "+window.time((window.state.media||{}).duration); color: window.muted; font.pixelSize: 19 }
                     SuiteButton { fontFamily: window.fontFamily; colors: window.colors; visible: window.state.app==="music" && !!window.state.current.id; text: window.tr(msg.NOW_PLAYING); onActivated: controller.command("now-playing") }
                     Item { Layout.fillHeight: true }

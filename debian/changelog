@@ -1,3 +1,11 @@
+udeck (0.2.20) unstable; urgency=medium
+
+  * Keep game titles on one line across every Emulator platform and collection.
+  * Scroll selected long game titles in cards and the selected-game sidebar.
+  * Share title scrolling and font-based caption sizing with playlist cards.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Sun, 15 Nov 2026 13:20:00 +0800
+
 udeck (0.2.19) unstable; urgency=medium
 
   * Keep playlist artwork and single-line captions the same size across cards.

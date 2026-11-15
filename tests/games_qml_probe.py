@@ -22,7 +22,7 @@ from udeck.i18n import Msg, render, tr
 from udeck.icons import IconProvider
 
 
-def run(root, language, theme):
+def run(root, language, theme, mode="menus"):
     root.mkdir(parents=True, exist_ok=True)
     application = QApplication([])
     config = ConfigStore(root / "settings.json")
@@ -46,6 +46,17 @@ def run(root, language, theme):
         folder = rom_root / platform
         folder.mkdir(parents=True)
         (folder / name).write_bytes(b"Original preview fixture; no commercial game")
+    long_name = "A long adventure - 漫长的冒险旅程\nDeluxe edition"
+    title_platforms = (("Nintendo - Game Boy", "gb", "gb"),
+                       ("Nintendo - Game Boy Color", "gbc", "gbc"),
+                       ("Nintendo - Game Boy Advance", "gba", "gba"),
+                       ("Nintendo - Nintendo Entertainment System", "nes", "nes"),
+                       ("Sony - PlayStation Portable", "psp", "cso"))
+    if mode == "titles":
+        for _, platform, extension in title_platforms:
+            folder = rom_root / platform
+            folder.mkdir(exist_ok=True)
+            (folder / (long_name + "." + extension)).write_bytes(b"Original long-name preview fixture")
     for index in range(100):
         write_playlist(root / f"playlists/ZZ fixture {index:03}.lpl", [])
     write_playlist(root / "playlists/Sony - PlayStation Portable.lpl", [])
@@ -76,9 +87,74 @@ def run(root, language, theme):
         window.requestActivate()
         wait(lambda: not controller.library.pending)
         controller.setTab(1)
-        assert len(controller.rows()) == 104
+        assert len(controller.rows()) == (105 if mode == "titles" else 104)
         grid = window.findChild(QQuickItem, "appCards")
         panel = window.findChild(QQuickItem, "selectedGamePanel")
+        if mode == "titles":
+            tested_platforms = []
+            for database, platform, _ in title_platforms:
+                controller.select(next(row["id"] for row in controller.rows() if row["title"] == database))
+                QTest.keyClick(window, Qt.Key.Key_Return)
+                wait(lambda: not json.loads(controller.snapshotJson)["platformsView"])
+                game = next(row for row in controller.rows() if row["title"] == long_name)
+                controller.select(game["id"])
+                QTest.qWait(80)
+                card = grid.property("currentItem")
+                title_view = card.findChild(QQuickItem, "cardTitleViewport")
+                title_text = title_view.findChild(QQuickItem, "cardTitleText")
+                wait(lambda label=title_text: label.x() < -5)
+                assert title_text.property("lineCount") == 1
+                assert "\n" not in title_text.property("text")
+                side_title = window.findChild(QQuickItem, "selectedGameTitle")
+                side_text = side_title.findChild(QQuickItem, "cardTitleText")
+                wait(lambda label=side_text: label.x() < -5)
+                assert side_text.property("lineCount") == 1 and "\n" not in side_text.property("text")
+                caption = next(child for child in card.childItems() if child.inherits("QQuickColumn"))
+                assert caption.y() + caption.height() <= card.height() - 9
+                if platform == "gba":
+                    frame("game-title-scrolling")
+                    wait(lambda label=title_text, view=title_view: label.x() <= view.width() - label.width() + 1,
+                         seconds=12)
+                    frame("game-title-end")
+                    controller.store.data["favorites"] = [game["gameId"]]
+                    controller.store.data["recent"] = [game["gameId"]]
+                    original = next(row for row in controller.rows() if row["title"] == "Original red")
+                    controller.select(original["id"])
+                    QTest.qWait(80)
+                    assert side_text.x() == 0
+                    QTest.qWait(1300)
+                    assert side_text.x() == 0 and side_text.property("text") == "Original red"
+                    controller.select(game["id"])
+                    QTest.qWait(80)
+                    assert side_text.x() == 0
+                tested_platforms.append(platform)
+                QTest.keyClick(window, Qt.Key.Key_Escape)
+                wait(lambda: json.loads(controller.snapshotJson)["platformsView"])
+            for tab in (0, 2):
+                controller.setTab(tab)
+                wait(lambda: len(controller.rows()) == 1)
+                QTest.qWait(80)
+                card = grid.property("currentItem")
+                title_view = card.findChild(QQuickItem, "cardTitleViewport")
+                title_text = title_view.findChild(QQuickItem, "cardTitleText")
+                side_title = window.findChild(QQuickItem, "selectedGameTitle")
+                side_text = side_title.findChild(QQuickItem, "cardTitleText")
+                wait(lambda label=title_text, side=side_text: label.x() < -5 and side.x() < -5)
+                assert title_text.property("lineCount") == side_text.property("lineCount") == 1
+            QTest.keyClick(window, Qt.Key.Key_F3)
+            wait(lambda: title_text.x() == side_text.x() == 0)
+            QTest.qWait(1300)
+            assert title_text.x() == side_text.x() == 0
+            QTest.keyClick(window, Qt.Key.Key_Escape)
+            wait(lambda: title_text.x() < -5 and side_text.x() < -5)
+            frame("favorite-title-scrolling")
+            assert not errors, errors
+            print(json.dumps({"qmlErrors": errors, "language": language, "theme": theme,
+                              "platforms": tested_platforms,
+                              "checks": ["all-platform-game-title-scroll", "single-line-newline-label",
+                                         "selected-sidebar-scroll-reset", "recent-favorite-title-scroll",
+                                         "menu-scroll-reset"]}))
+            return
         wait(lambda: grid.width() > window.width() * 0.9)
         assert not panel.isVisible()
         def icons():
@@ -341,4 +417,4 @@ def run(root, language, theme):
 
 
 if __name__ == "__main__":
-    run(Path(sys.argv[1]), sys.argv[2], sys.argv[3])
+    run(Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4] if len(sys.argv) > 4 else "menus")
