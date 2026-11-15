@@ -92,14 +92,52 @@ def run(root, language, theme):
                 pending.extend(item.childItems())
             return found
         wait(lambda: bool(icons()) and all(icon.isVisible() for icon in icons()))
-        for title in ("Nintendo - Game Boy Advance", "Nintendo - Nintendo Entertainment System",
-                      "Sony - PlayStation Portable"):
+        card_geometry = []
+        for title in ("Nintendo - Game Boy", "Nintendo - Game Boy Advance",
+                      "Nintendo - Nintendo Entertainment System", "Sony - PlayStation Portable",
+                      "ZZ fixture 000"):
             controller.select(next(row["id"] for row in controller.rows() if row["title"] == title))
             QTest.qWait(80)
             card = grid.property("currentItem")
             caption = next(child for child in card.childItems() if child.inherits("QQuickColumn"))
             assert caption.y() + caption.height() <= card.height() - 9, (
                 title, caption.y(), caption.height(), card.height())
+            icon = card.findChild(QQuickItem, "platformIcon")
+            card_geometry.append((icon.width(), icon.height(), caption.y(), caption.height()))
+        assert all(geometry == card_geometry[0] for geometry in card_geometry), card_geometry
+
+        # Long titles reveal their full text without resizing artwork or moving
+        # the game count. Selection and menus stop/reset the animation.
+        controller.select(next(row["id"] for row in controller.rows()
+                               if row["title"] == "Nintendo - Nintendo Entertainment System"))
+        QTest.qWait(80)
+        card = grid.property("currentItem")
+        title_view = card.findChild(QQuickItem, "cardTitleViewport")
+        title_text = title_view.findChild(QQuickItem, "cardTitleText")
+        assert title_view.clip() and title_text.property("implicitWidth") > title_view.width()
+        frame("playlist-title-start")
+        QTest.qWait(250)
+        assert title_text.x() == 0, "Give the selected title time to be read before scrolling"
+        wait(lambda: title_text.x() < -10)
+        wait(lambda: title_text.x() <= title_view.width() - title_text.width() + 1, seconds=12)
+        frame("playlist-title-end")
+        QTest.keyClick(window, Qt.Key.Key_F3)
+        wait(lambda: title_text.x() == 0)
+        QTest.qWait(1300)
+        assert title_text.x() == 0, "Titles must stay still behind menus"
+        QTest.keyClick(window, Qt.Key.Key_Escape)
+        wait(lambda: title_text.x() < -10)
+        QTest.keyClick(window, Qt.Key.Key_Right)
+        wait(lambda: title_text.x() == 0)
+        QTest.qWait(1300)
+        assert title_text.x() == 0, "Only the selected title may scroll"
+        controller.select(next(row["id"] for row in controller.rows() if row["title"] == "ZZ fixture 000"))
+        QTest.qWait(80)
+        short_card = grid.property("currentItem")
+        short_view = short_card.findChild(QQuickItem, "cardTitleViewport")
+        short_text = short_view.findChild(QQuickItem, "cardTitleText")
+        QTest.qWait(1300)
+        assert short_text.x() == 0 and short_text.property("implicitWidth") < short_view.width()
         controller.select(controller.rows()[0]["id"])
         frame("platforms")
         for _ in range(34):
@@ -291,7 +329,8 @@ def run(root, language, theme):
             wait(lambda: window.findChild(QQuickItem, "appKeys").hasActiveFocus())
         assert not errors, errors
         print(json.dumps({"qmlErrors": errors, "language": language, "theme": theme,
-                          "checks": ["platforms", "platform-scroll-back", "empty-platform", "two-level-back", "platform-icons", "picker-cancel",
+                          "checks": ["platforms", "playlist-fixed-layout", "selected-title-scroll-reset",
+                                     "platform-scroll-back", "empty-platform", "two-level-back", "platform-icons", "picker-cancel",
                                      "focus-restore", "long-list-scroll", "return-consumed", "core-toggle",
                                      "native-import-confirm-cancel", "native-slot-mapping", "native-export",
                                      "save-history-restore-cancel", "save-settings-focus", "thumbnail-aspect-selection",

@@ -130,6 +130,9 @@ Window {
                         Layout.fillWidth: true; Layout.fillHeight: true; clip: true
                         property bool listMode: window.state.page==="album" || (window.state.app==="music" && [1,2].indexOf(window.state.tab)>=0)
                         property int columns: listMode ? 1 : window.state.platformsView ? 5 : width<600 ? 2 : 3
+                        // Reserve one font line per label, independent of title length.
+                        FontMetrics { id: cardTitleMetrics; font.family: window.fontFamily; font.pixelSize: cards.listMode ? 22 : 20 }
+                        FontMetrics { id: cardSubtitleMetrics; font.family: window.fontFamily; font.pixelSize: 17 }
                         cellWidth: Math.floor(width/columns)
                         cellHeight: listMode ? 78 : window.state.platformsView ? 208 : window.state.app==="reader" ? 190 : 238
                         model: controller.cardModel
@@ -147,13 +150,44 @@ Window {
                             color: modelData.id===window.state.selected ? window.colors.selected : window.colors.panel
                             border.width: modelData.id===window.state.selected ? 3 : 1
                             border.color: modelData.id===window.state.selected ? window.accent : window.colors.border
-                            Artwork { fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-(card.modelData.kind==="playlist"?cardLabels.implicitHeight+28:80); cover: card.modelData.cover||""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" || card.modelData.kind === "playlist" }
+                            Artwork { fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-(card.modelData.kind==="playlist"?cardTitleMetrics.height+cardSubtitleMetrics.height+32:80); cover: card.modelData.cover||""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" || card.modelData.kind === "playlist" }
                             Column {
-                                id: cardLabels
                                 x: cards.listMode ? 80 : 12; y: cards.listMode ? 12 : art.y+art.height+8
                                 width: parent.width-x-12; spacing: 4
-                                Text { font.family: window.fontFamily; width: parent.width; text: ((card.modelData.gameId||card.modelData.id)===window.state.current.id ? "▶  " : "")+card.modelData.title; color: window.ink; font.pixelSize: cards.listMode?22:20; wrapMode: card.modelData.kind==="playlist"?Text.Wrap:Text.NoWrap; maximumLineCount: card.modelData.kind==="playlist"?2:1; elide: Text.ElideRight }
-                                Text { font.family: window.fontFamily; width: parent.width; text: card.modelData.subtitle||""; color: window.muted; font.pixelSize: 17; elide: Text.ElideRight }
+                                Item {
+                                    id: titleViewport
+                                    objectName: "cardTitleViewport"
+                                    width: parent.width; height: cardTitleMetrics.height; clip: true
+                                    property real offset: 0
+                                    readonly property real overflow: Math.max(0, cardTitle.implicitWidth-width)
+                                    readonly property bool scrolling: card.modelData.kind === "playlist"
+                                        && card.modelData.id === window.state.selected && overflow > 0
+                                        && visible && window.active && !window.state.menu.title
+                                    Text {
+                                        id: cardTitle
+                                        objectName: "cardTitleText"
+                                        x: -titleViewport.offset
+                                        width: titleViewport.scrolling ? implicitWidth : parent.width
+                                        height: parent.height; verticalAlignment: Text.AlignVCenter
+                                        font.family: window.fontFamily; font.pixelSize: cards.listMode ? 22 : 20
+                                        text: ((card.modelData.gameId||card.modelData.id)===window.state.current.id ? "▶  " : "")+card.modelData.title
+                                        color: window.ink; wrapMode: Text.NoWrap; elide: Text.ElideRight
+                                    }
+                                    SequentialAnimation {
+                                        running: titleViewport.scrolling
+                                        loops: Animation.Infinite
+                                        onRunningChanged: if (!running) titleViewport.offset=0
+                                        PauseAnimation { duration: 1200 }
+                                        NumberAnimation {
+                                            target: titleViewport; property: "offset"
+                                            from: 0; to: titleViewport.overflow
+                                            duration: Math.max(1000, titleViewport.overflow*1000/36)
+                                        }
+                                        PauseAnimation { duration: 1400 }
+                                        PropertyAction { target: titleViewport; property: "offset"; value: 0 }
+                                    }
+                                }
+                                Text { font.family: window.fontFamily; width: parent.width; height: cardSubtitleMetrics.height; text: card.modelData.subtitle||""; color: window.muted; font.pixelSize: 17; elide: Text.ElideRight }
                             }
                             MouseArea { anchors.fill: parent; onClicked: {controller.select(card.modelData.id);controller.dispatch("accept")} }
                         }
