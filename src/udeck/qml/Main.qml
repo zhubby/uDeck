@@ -267,13 +267,13 @@ Window {
         }
         Text { textFormat: Text.PlainText;
             visible: viewState.page !== "files"
-            x: 30; y: 214; width: parent.width - 80 - inputStatus.width
+            x: 30; y: 214; width: inputStatus.visible ? parent.width - 80 - inputStatus.width : parent.width - 60
             text: viewState.description; elide: Text.ElideMiddle
             font.family: window.fontFamily; font.pixelSize: 24; color: window.muted
         }
         Text { textFormat: Text.PlainText;
             id: inputStatus
-            visible: viewState.page !== "files"
+            visible: viewState.page !== "files" && viewState.page !== "home"
             anchors.right: parent.right; anchors.rightMargin: 30; y: 216
             width: Math.min(implicitWidth, parent.width * 0.35); elide: Text.ElideRight
             text: viewState.mock ? window.tr(msg.NO_HARDWARE_CHANGES) : (viewState.input.verified ? window.tr(msg.ABXY_CALIBRATED) : (viewState.input.mapped ? window.tr(msg.ABXY_MAPPED) : window.tr(msg.ABXY_NEEDS_CALIBRATION)))
