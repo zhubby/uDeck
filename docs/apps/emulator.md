@@ -95,6 +95,8 @@ Sega CD 的 Genesis Plus GX、GX Wide 和 PicoDrive 至少需要一份区域 CD 
 
 RetroArch 在独立进程运行，使用私有 stdin 控制通道，关闭网络命令通道，并保留用户原有 RetroArch 配置。游戏中按 Ctrl+Alt+M 打开暂停菜单，Ctrl+Alt+Esc 返回桌面。真实按钮、音频和游戏兼容性需另行实测。
 
+状态轮询最多保留一条未回复的查询。游戏被其他窗口覆盖或暂时停止读取命令时，查询不会持续排队；暂停、续玩、存读档与退出指令仍可发送。重复的运行或暂停回复不触发整页刷新；读档完成仍立即发布操作结果。读档先等待 `VERSION` 屏障回复，再查询最终状态，避免旧回复提前确认读档。
+
 手动槽 1–3 与自动续玩点独立。存储位置：
 
 ```text
@@ -148,6 +150,8 @@ Emulator 配置使用独立的 `emulator.json`，共享状态格式版本为 1�
 同步状态页显示进度、速度、最近同步时间与错误。服务问题可查看 `systemctl --user status udeck-emulator-saves.service` 和 `journalctl --user -u udeck-emulator-saves.service`。遇到访问标记、校验或锁错误时先检查目标目录、连接和另一同步进程；保留工作目录、历史及恢复备份，不要用强制删除或重新建基线掩盖错误。
 
 ## 验证
+
+`tests/test_emulator_engine.py` 使用真实 QProcess 和隔离 stdin 前端，覆盖长期无回复、控制指令通行、重复状态通知、读档屏障与进程重启。该测试不连接正在运行的设备游戏。
 
 `tests/test_emulator_playlists.py`、`test_emulator_playlist_library.py`、`test_emulator_playlist_browser.py` 覆盖 JSON 往返、未知字段、外部编辑、可移植路径、归档成员、跨平台集合、共享身份与生成预览。`test_emulator_migration.py` 在隔离目录测试分类、冲突、依赖变更、写盘错误、进程中断、跨盘复制、恢复配置与旧记录／SRAM。`test_emulator_thumbnails.py` 使用本地 HTTP 服务验证名称匹配、404、无效图片、超时、重试、取消和已有图片保护。
 
