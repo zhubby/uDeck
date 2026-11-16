@@ -1,5 +1,5 @@
 """
-[INPUT]: 依赖共享应用控制器、游戏库、RetroEngine 与原生存档服务。
+[INPUT]: 依赖共享应用控制器、游戏库、RetroEngine、原生存档与 Wayland 窗口接口。
 [OUTPUT]: 提供 EmulatorController、启动预检及原有引擎辅助函数导入。
 [POS]: 模拟器应用编排；进程协议由 engine.py 单独承担。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
@@ -15,6 +15,7 @@ import time
 from pathlib import Path
 
 from PySide6.QtCore import QThreadPool, Slot
+from PySide6.QtGui import QGuiApplication
 
 from udeck.apps.common.controller import AppController
 from udeck.apps.common.state import atomic_json
@@ -389,9 +390,26 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
         if additions:
             self.preview_file_entries(additions)
 
-    def pause_game(self):
-        if self.engine.status == "playing" and self.window:
+    def uncover_game(self):
+        if self.window:
             self.window.showMinimized()
+        if self.isolated or not self.window or QGuiApplication.platformName() != "wayland":
+            return
+        from udeck.windows import WindowService
+
+        windows = WindowService()
+        try:
+            windows.start()
+            for entry in windows.entries():
+                if entry.get("appId") == "com.libretro.RetroArch":
+                    windows.request(entry["id"], "activate")
+                    break
+        finally:
+            windows.close()
+
+    def pause_game(self):
+        if self.engine.status == "playing":
+            self.uncover_game()
         self.engine.pause()
 
     def pause_menu(self):
@@ -418,14 +436,13 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
             raise OSError(tr(Msg.THE_SOURCE_IS_DISCONNECTED))
         self.engine.resume()
         self.clear_menus()
-        self.desktop("Home") if not self.window else self.window.showMinimized()
+        self.uncover_game()
 
     def quit_game(self):
         self.engine.quit()
         # Wayland may suspend frame delivery to a fully covered RetroArch window,
         # blocking its command loop. Uncover it until game_exited presents us again.
-        if self.window:
-            self.window.showMinimized()
+        self.uncover_game()
 
     def slots_menu(self, load):
         slots = self.save_store().manifest()
@@ -446,8 +463,7 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
         self.require_current()
         self.pop_menu()
         self.engine.load(slot) if load else self.engine.save(slot)
-        if self.window:
-            self.window.showMinimized()
+        self.uncover_game()
 
     def save_done(self, slot):
         self.record_running_save(slot)
@@ -469,8 +485,7 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
         self.require_current()
         self.engine.save("auto")
         self.exit_after_save = True
-        if self.window:
-            self.window.showMinimized()
+        self.uncover_game()
 
     def confirm_quit(self):
         self.menu(tr(Msg.RETURN_WITHOUT_SAVING_PROMPT), [(tr(Msg.CONFIRM), self.quit_game), (tr(Msg.CANCEL), self.pop_menu)])

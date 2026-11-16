@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖真实应用控制器、AppControl 与隔离的 Qt 测试环境。
+[OUTPUT]: 验证重复启动、游戏暂停确认和异步操作取消边界。
+[POS]: 应用共用运行层与各控制器之间的回归测试。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 import time
 
@@ -30,7 +37,8 @@ def test_normal_second_launcher_request_presents_existing_app(application, tmp_p
         controller.close()
 
 
-def test_pause_launcher_waits_for_retroarch_before_covering_its_window(application, tmp_path):
+@pytest.mark.parametrize("command", ["pause-game", "", None])
+def test_running_game_launcher_waits_for_pause_before_covering_its_window(application, tmp_path, command):
     controller = EmulatorController(tmp_path, tmp_path / "settings.json")
     commands, shown = [], []
     controller.engine.status = "playing"
@@ -39,15 +47,27 @@ def test_pause_launcher_waits_for_retroarch_before_covering_its_window(applicati
     controller.present.connect(lambda: shown.append(True))
     control = AppControl(controller, lambda: shown.append(True), [], time.monotonic())
     try:
-        assert control.Open(json.dumps({"command": "pause-game", "files": []})) == ""
+        assert control.Open(json.dumps({"command": command, "files": []})) == ""
         assert commands == ["PAUSE_TOGGLE"] and not shown
         controller.engine.status = "paused"
         controller.engine.paused.emit()
         assert shown == [True] and controller.menus
-        assert control.Open(json.dumps({"command": "pause-game", "files": []})) == ""
+        assert control.Open(json.dumps({"command": command, "files": []})) == ""
         assert shown == [True, True]
     finally:
         controller.engine.running = lambda: False
+        controller.close()
+
+
+def test_idle_emulator_launcher_presents_the_library(application, tmp_path):
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
+    shown = []
+    control = AppControl(controller, lambda: shown.append(True), [], time.monotonic())
+    try:
+        assert control.Open(json.dumps({"command": "", "files": []})) == ""
+        assert shown == [True]
+        assert not controller.menus
+    finally:
         controller.close()
 
 

@@ -58,8 +58,8 @@ test_app_performance.py: pytest 回归入口，验证 app_performance 边界。
 test_app_settings.py: pytest 回归入口，验证 app_settings 边界。
 test_apps_core.py: pytest 回归入口，验证 apps_core 边界。
 test_apps_native.py: pytest 回归入口，验证 apps_native 边界。
-test_apps_review.py: pytest 回归入口，验证 apps_review 边界。
-test_apps_routing.py: pytest 回归入口，验证 apps_routing 边界。
+test_apps_review.py: 应用启动、游戏暂停确认与异步取消的回归测试。
+test_apps_routing.py: 输入归属、会话恢复与原生命令窗口激活的回归测试。
 test_apps_saves.py: pytest 回归入口，验证 apps_saves 边界。
 test_audio.py: pytest 回归入口，验证 audio 边界。
 test_audio_qml.py: pytest 回归入口，验证 audio_qml 边界。

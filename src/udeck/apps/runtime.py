@@ -1,4 +1,9 @@
-"""Independent, single-instance application launchers and session D-Bus control."""
+"""
+[INPUT]: 依赖应用控制器、Qt Quick、会话 D-Bus 与桌面激活接口。
+[OUTPUT]: 提供单实例应用入口、AppControl 和控制器工厂。
+[POS]: 应用共用运行层；模拟器确认暂停后再显示前台。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import json
 import os
@@ -65,13 +70,17 @@ class AppControl(QObject):
                     or not isinstance(request.get("files", []), list)
                     or not all(isinstance(value, str) for value in request.get("files", []))):
                 raise ValueError("Expected an object with a command string and a list of file paths")
-            if request.get("command"):
-                self.controller.command(request["command"])
+            command = request.get("command")
+            if (not command and not request.get("files") and self.controller.app == "emulator"
+                    and self.controller.engine.running()):
+                command = "pause-game"
+            if command:
+                self.controller.command(command)
             if request.get("files"):
                 self.open_files(request["files"])
             # A covered Wayland game may stop servicing its command loop.
             # The emulator presents its menu after RetroArch confirms the pause.
-            if request.get("command") != "pause-game":
+            if command != "pause-game":
                 self.trace.request_activation()
                 self.show()
             return ""

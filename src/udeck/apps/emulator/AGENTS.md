@@ -6,7 +6,7 @@
 __init__.py: Python 包入口。
 browser.py: 列表与游戏浏览状态，向控制器提供导航行为。
 catalog.py: Libretro 核心发现、平台策略与固件检查。
-controller.py: 启动预检与应用状态编排，保留原有引擎导入接口。
+controller.py: 启动预检、应用状态与原生窗口激活，保留原有引擎导入接口。
 engine.py: RetroArch 进程协议、单条状态查询背压与存读档确认。
 game_info.py: 选中游戏信息与游玩时长展示。
 library.py: 游戏库扫描、内容路径约束与条目身份。
@@ -28,5 +28,7 @@ resources/: 平台、数据库和图标的固定资源。
 状态变化和读档完成发布界面快照。
 重复状态不发布快照，输出按整批行解析。
 前台窗口切换由控制器执行。
+发送原生命令时，控制器唤回 RetroArch 窗口。
+退出主界面遮挡后，原生进程继续接收命令。
 
 [PROTOCOL]: Update this header on change, then check AGENTS.md

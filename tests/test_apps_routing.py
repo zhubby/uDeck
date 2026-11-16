@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖应用输入路由、模拟器控制器与隔离的 Qt 环境。
+[OUTPUT]: 验证输入归属、会话恢复与原生命令的窗口激活。
+[POS]: 桌面和独立应用之间的路由回归测试。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 from types import SimpleNamespace
 
 import pytest
@@ -143,6 +150,38 @@ def test_game_commands_uncover_wayland_frontend_until_confirmation(tmp_path, ope
         else:
             controller.slot_action("3", operation == "load")
             assert events == [(operation, "3"), "uncovered"]
+    finally:
+        controller.close()
+    assert application
+
+
+def test_game_pause_activates_retroarch_after_leaving_home(tmp_path, monkeypatch):
+    application = QCoreApplication.instance() or QCoreApplication([])
+    controller = EmulatorController(tmp_path, tmp_path / "settings.json")
+    events = []
+
+    class GameWindows:
+        def start(self):
+            events.append("connect")
+
+        def entries(self):
+            return [{"id": "reader", "appId": APP_IDS["reader"]},
+                    {"id": "game", "appId": "com.libretro.RetroArch"}]
+
+        def request(self, identifier, action):
+            events.append((identifier, action))
+
+        def close(self):
+            events.append("disconnect")
+
+    monkeypatch.setattr("PySide6.QtGui.QGuiApplication.platformName", lambda: "wayland")
+    monkeypatch.setattr("udeck.windows.WindowService", GameWindows)
+    controller.window = SimpleNamespace(showMinimized=lambda: events.append("uncovered"))
+    controller.engine.status = "playing"
+    controller.engine.send = events.append
+    try:
+        controller.command("pause-game")
+        assert events == ["uncovered", "connect", ("game", "activate"), "disconnect", "PAUSE_TOGGLE"]
     finally:
         controller.close()
     assert application

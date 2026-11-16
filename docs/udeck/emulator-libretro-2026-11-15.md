@@ -153,3 +153,48 @@ Current release and retest evidence is retained under
 
 The checks use automated Qt and compositor key events; human physical-input
 and audio acceptance are not established by this deployment.
+
+## 2026-11-16 source acceptance
+
+A normal-session Wayland retest found that leaving a game with Home and opening
+Emulator again displayed an inactive game-details page. Minimizing that page
+alone left the shell above RetroArch, preventing the native command loop from
+acknowledging pause. Reopening an active session now requests pause and waits for
+confirmation before presenting the menu. Pause, resume, save, load and quit also
+activate the native game window through the existing Wayland window interface.
+The earlier single-outstanding-status-query fix remains in use.
+
+The retest runs the complete frontend, its normal session D-Bus service and real
+installed cores. A separate game library and save directory isolate the original
+test programs. Compositor keyboard events and the regular Emulator launcher
+exercise these steps for each platform: open, pause, resume, leave while playing,
+return, leave while paused, return, save slot 1, load slot 1, save and exit,
+Continue after restart, and quit without saving.
+
+| Platform | Core | Manual and automatic native-state bytes | Result |
+| --- | --- | ---: | --- |
+| Game Boy Advance | mGBA | 528,472 | Passed |
+| Game Boy | Gambatte | 26,672 | Passed |
+| NES | Nestopia | 5,096 | Passed |
+
+Leaving and returning preserves the game PID. Continue starts a new process and
+confirms automatic-state restoration. All six exits return code 0 and remove the
+native process. Covered games retain at most one 11-byte status query, with no
+Qt write backlog. Native save checksums and load completion are verified; all
+screenshots have an empty QML error list. The affected device regression suite
+passes **150 tests**, and Ruff and whitespace checks pass.
+
+Before replacing the stale running frontend, the user's current RPG session was
+preserved in previously empty manual slot 1. That state is **462,936 bytes** and
+passes its checksum check. The four original durable save files and all 14
+protected configuration files retain their hashes. `dpkg --verify udeck` passes,
+the original shell and compositor remain alive, and no RetroArch process remains
+after acceptance. Other desktop applications stay open.
+
+The verified source snapshot contains **511 checked files**. The normal user
+library is restored with that source; the installed **0.2.24 package is unchanged**.
+This validates automated input on the physical device, without establishing human
+button or audio acceptance. The ignored
+`artifacts/emulator-device-flow-20261116/acceptance-fixed/` directory contains
+33 screenshots, state/process records and the three-platform result. The parent
+directory contains the source checksums, user-state recovery and final checks.
