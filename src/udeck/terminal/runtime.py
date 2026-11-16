@@ -1,4 +1,8 @@
-"""Independent uDeck Terminal process.
+"""
+[INPUT]: 依赖终端控制器、Qt Quick 与会话 D-Bus。
+[OUTPUT]: 提供多窗口协调、最近窗口激活和整应用退出请求。
+[POS]: Terminal 独立进程入口；逐窗口保留会话关闭确认。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
 
 SPDX-License-Identifier: GPL-2.0-or-later
 """
@@ -124,6 +128,12 @@ class Coordinator(QObject):
     def refresh_preferences(self):
         for entry in self.windows:
             entry["controller"].changed.emit()
+
+    def request_quit(self):
+        for entry in list(self.windows):
+            entry["controller"].requestCloseWindow()
+        if self.recent:
+            self.activate(self.recent["window"])
 
     def activate(self, window):
         window.showNormal() if self.options.windowed or self.options.mock else window.showFullScreen()

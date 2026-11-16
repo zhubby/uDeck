@@ -1,0 +1,81 @@
+{
+  "reviewer": "primary-sequential-review",
+  "base": "6f5034eb9c2453edb1e606991e984756f6bacb6e",
+  "scope": "Console working tree including application lifecycle APIs, details dialog and exit icons",
+  "mode": "user-authorized-review-fix-device-test-and-delivery",
+  "findings": [
+    {
+      "title": "PID 查询失败后立即重复提交",
+      "severity": "P2",
+      "file": "src/udeck/runtime_console/service.py",
+      "line": 186,
+      "why_it_matters": "失败回调进入 _poll_info，再次提交相同 PID 查询。服务消失或总线错误时，请求频率失去定时器限制。",
+      "autofix_class": "safe_auto",
+      "owner": "review-fixer",
+      "requires_verification": true,
+      "confidence": 1.0,
+      "evidence": [
+        "新增回归在修复前失败：一次失败回复产生第二次请求。",
+        "修复后 test_failed_pid_query_waits_for_next_refresh_before_retrying 通过。"
+      ],
+      "pre_existing": false,
+      "suggested_fix": "仅成功解析 PID 后继续查询状态；失败等待下一轮刷新。",
+      "status": "fixed-and-verified"
+    },
+    {
+      "title": "原生状态未返回时退出走关闭窗口路径",
+      "severity": "P2",
+      "file": "src/udeck/runtime_console/service.py",
+      "line": 354,
+      "why_it_matters": "RuntimeInfo 尚未到达时直接关闭窗口，模拟器会执行暂停而非完整退出，绕过 RequestQuit 的原生存档写回。",
+      "autofix_class": "safe_auto",
+      "owner": "review-fixer",
+      "requires_verification": true,
+      "confidence": 1.0,
+      "evidence": [
+        "新增回归在修复前失败：未收到状态时没有提交 RequestQuit。",
+        "成功、旧接口兼容、超时和目标改变的回归均通过。",
+        "真实 Wayland 验证旧版空闲应用的接口回退，以及新版模拟器 QUIT、SRAM 写回和进程退出。"
+      ],
+      "pre_existing": false,
+      "suggested_fix": "等待所有者，优先调用其 RequestQuit；仅 UnknownMethod 或 UnknownInterface 回退到身份核对后的窗口关闭。",
+      "status": "fixed-and-verified"
+    },
+    {
+      "title": "滚动后退出提示保留旧悬停位置",
+      "severity": "P3",
+      "file": "src/udeck/qml/ConsoleScreen.qml",
+      "line": 127,
+      "why_it_matters": "指针静止时，mapFromItem 绑定不随 contentY 更新。离屏按钮仍显示退出提示，被裁剪的按钮也能在表头触发提示。",
+      "autofix_class": "safe_auto",
+      "owner": "review-fixer",
+      "requires_verification": true,
+      "confidence": 1.0,
+      "evidence": [
+        "修复前真实 QML 鼠标探针复现 scrolled-out exit icon retains stale hover。",
+        "修复后八组语言、主题、尺寸组合的滚动与裁剪检查通过。",
+        "实机验证悬停提示、键盘图标焦点及图标点击退出。"
+      ],
+      "pre_existing": false,
+      "suggested_fix": "显式订阅滚动和按钮几何，限定悬停点位于列表视口内。",
+      "status": "fixed-and-verified"
+    }
+  ],
+  "residual_risks": [
+    "混合 Qt 套件在终端激活测试处出现原生崩溃。未修改 6f5034e 基线复现同类崩溃；关联文件分进程运行均通过。"
+  ],
+  "testing_gaps": [
+    "未替换实机安装包，验证对象为隔离目录中的最新源码。",
+    "虚拟输入与真实 Wayland 验证不构成人工物理按键验收。",
+    "独立预览直接加载应用目录，本次不覆盖桌面冷启动。"
+  ],
+  "validation": {
+    "localPassed": 295,
+    "localSkipped": 1,
+    "devicePassed": 45,
+    "ruff": "passed",
+    "deviceEvidence": "docs/console/verification.json",
+    "reviewNotes": "docs/console/review-2026-11-16.md"
+  },
+  "remainingActionableFindings": []
+}

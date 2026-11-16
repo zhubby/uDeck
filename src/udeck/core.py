@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖偏好存储、主题与翻译。
+[OUTPUT]: 提供桌面页面、导航状态和配置持久化。
+[POS]: Console 沿用 windows 页面身份以保留配置与命令兼容性。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 import os
 import tempfile
@@ -8,7 +15,7 @@ from .i18n import Msg, language_code, tr
 
 PAGES = ("home", "apps", "windows", "files")
 ALL_PAGES = (*PAGES, "settings")
-PAGE_NAMES = (tr(Msg.HOME), tr(Msg.APPS), tr(Msg.RUNNING), tr(Msg.FILES))
+PAGE_NAMES = (tr(Msg.HOME), tr(Msg.APPS), tr(Msg.CONSOLE), tr(Msg.FILES))
 
 
 def move_index(index, direction, count, columns=1):

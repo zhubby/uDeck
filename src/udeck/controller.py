@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖系统后端、窗口服务与各桌面交互模块。
+[OUTPUT]: 提供桌面快照、导航、Console 详情桥接与模态操作。
+[POS]: 桌面交互入口；运行采样和进程终止由 runtime_console 承担。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 import os
 import threading
@@ -22,6 +29,7 @@ from .key_test import KeyTestControls
 from .launch_controller import LaunchControls
 from .menu_icons import system_menu_icons
 from .mock import mock_apps, mock_system_info
+from .runtime_console.controls import ConsoleControls
 from .sharing import SharingControls
 from .shortcut_controller import ShortcutControls
 from .shortcuts import binding_label
@@ -36,7 +44,7 @@ CATEGORY_NAMES = {"All": tr(Msg.ALL_APPS), "Development": tr(Msg.DEVELOPMENT), "
                   "Utility": tr(Msg.UTILITIES), "Game": tr(Msg.GAMES), "Graphics": tr(Msg.GRAPHICS), "Office": tr(Msg.OFFICE), "AudioVideo": tr(Msg.MULTIMEDIA), "Other": tr(Msg.OTHER)}
 
 
-class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControls, ShortcutControls, SharingControls, SoundFeedback):
+class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiControls, FileControls, ShortcutControls, SharingControls, SoundFeedback):
     changed = Signal()
     present = Signal()
     calibrationRequested = Signal()
@@ -118,6 +126,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             self.data["windows"] = [{"id": "terminal", "name": "zhubby@uconsole: ~", "appId": "terminal", "subtitle": tr(Msg.TERMINAL), "icon": "utilities-terminal", "active": False}, {"id": "editor", "name": "uDeck — 代码编辑器", "appId": "code", "subtitle": "Visual Studio Code", "icon": "visual-studio-code", "active": False}]
         elif not defer_startup:
             self._browse(Path.home())
+        self._init_console()
 
     @property
     def modal(self):
@@ -130,7 +139,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         if page == "apps":
             return [application for application in self.applications if (self.category == "All" or application["category"] == self.category) and (not self.query or self.query.casefold() in render(application["name"] + " " + application.get("subtitle", ""), self.language).casefold())]
         if page == "windows":
-            return self.data["windows"]
+            return self._console_items()
         if page == "files":
             return self.data["files"]
         return self._settings()
@@ -191,7 +200,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         modal = {key: value for key, value in self.modal.items() if not compact or key not in ("items", "option")}
         if not compact and modal.get("secret"):
             modal["text"] = ""
-        titles = {"home": tr(Msg.START_HERE), "apps": CATEGORY_NAMES[self.category], "windows": tr(Msg.RUNNING_APPS), "files": tr(Msg.TRASH) if self.data["directory"] == "trash:///" else Path(self.data["directory"]).name or "/", "settings": tr(Msg.DEVICE_SETTINGS)}
+        titles = {"home": tr(Msg.START_HERE), "apps": CATEGORY_NAMES[self.category], "windows": tr(Msg.CONSOLE), "files": tr(Msg.TRASH) if self.data["directory"] == "trash:///" else Path(self.data["directory"]).name or "/", "settings": tr(Msg.DEVICE_SETTINGS)}
         descriptions = {"home": tr(Msg.CHOOSE_A_DESTINATION_WITH_LEFT_RIGHT), "apps": tr(Msg.APPS_VALUE0, value0=len(items)) + (tr(Msg.SEARCH_VALUE0_SUFFIX, value0=self.query) if self.query else tr(Msg.X_FILTER_AND_ACTIONS_SUFFIX)), "windows": tr(Msg.SELECT_A_WINDOW_TO_CONTINUE), "files": self.data["directory"], "settings": tr(Msg.EVERYDAY_CONTROLS_WITHIN_REACH)}
         return json.dumps(render({
             **{key: value for key, value in self.data.items() if not compact or key != "files"},
@@ -203,6 +212,8 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             "pageNames": list(PAGE_NAMES), "pages": list(PAGES), "activeTab": self.navigation.tab_page,
             "title": titles[self.navigation.page], "description": descriptions[self.navigation.page],
             "index": selected, "zone": self.navigation.zone, "items": [] if compact and self.navigation.page == "files" else items,
+            "consoleExitFocused": self.console_exit_focused,
+            **({"console": self._console_snapshot()} if not compact else {}),
             "fileState": self._file_state(),
             "modal": modal,
             "toast": self.toast, "busy": self.busy,
@@ -251,7 +262,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         controls = {"volume", "brightness", "output", "microphone", "wifi", "hotspot", "bluetooth", "sharing", "battery", "input", "key-test", "language", "theme", "timezone", "ui-sounds"}
         return [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"],
                  "icon": entry["icon"], "checked": entry.get("checked"), "disabled": entry.get("disabled", False)} for entry in self._settings() if entry["id"] in controls] + [
-            {"label": tr(Msg.POWER_AND_SESSION), "action": "power-menu"}, {"label": tr(Msg.RUNNING_APPLICATIONS), "action": "switcher"}]
+            {"label": tr(Msg.POWER_AND_SESSION), "action": "power-menu"}, {"label": tr(Msg.CONSOLE), "action": "switcher"}]
 
     @Slot(str, result=bool)
     def setLanguage(self, language):
@@ -300,6 +311,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         return True
 
     def _publish(self):
+        self._console_sync()
         items = self._items()
         if self.startup["phase"] not in ("preparing", "scanning"):
             self.navigation.index = max(0, min(self.navigation.index, len(items) - 1))
@@ -412,6 +424,8 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
     @Slot(object)
     def _windows_changed(self, windows):
         self.data["windows"] = windows
+        if hasattr(self, "runtime_console"):
+            self.runtime_console.set_windows(windows)
         self.launches.windows_changed(windows)
         self._refresh_launch()
         self._publish()
@@ -502,9 +516,15 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         if (self.navigation.index, self.navigation.zone) != (max(0, index), "content"):
             self.feedback("navigate")
         self.navigation.select(index)
+        self.console_exit_focused = False
         if self.navigation.page == "files":
             self.file_section = "list"
         self._publish()
+
+    @Slot(str, str)
+    @interaction
+    def consoleAppAction(self, key, action):
+        self._console_action(key, action)
 
     @Slot(bool)
     def windowActive(self, active):
@@ -547,7 +567,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
                 self._menu(tr(Msg.CONTROL_PANEL), [
                     {'id': command, 'label': label, 'action': 'console-control', 'command': command}
                     for command, label in (
-                        ('home', tr(Msg.BACK_TO_HOME)), ('switcher', tr(Msg.RUNNING)), ('settings', tr(Msg.SETTINGS)),
+                        ('home', tr(Msg.BACK_TO_HOME)), ('switcher', tr(Msg.CONSOLE)), ('settings', tr(Msg.SETTINGS)),
                         ('poweroff', tr(Msg.POWER_OFF)), ('reboot', tr(Msg.REBOOT)),
                     )
                 ], source='console', body=tr(Msg.SHORTCUT_OPENS_CONSOLE_ESC_B_RETURNS_TO_THE_APPLICATION,
@@ -593,6 +613,8 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             return
         if self.navigation.page == "files" and self._file_dispatch(action):
             return
+        if self._console_dispatch(action):
+            return
         items = self._items()
         if action in ("left", "right", "up", "down"):
             before = (self.navigation.page, self.navigation.zone, self.navigation.index)
@@ -631,13 +653,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         elif self.navigation.page in ("home", "apps"):
             self._launch(item)
         elif self.navigation.page == "windows":
-            if not self.mock:
-                try:
-                    self.window_service.request(item["id"], "activate")
-                except RuntimeError as error:
-                    self.notify(error)
-            else:
-                self.notify(tr(Msg.PREVIEW_SWITCH_TO_PREFIX) + item["name"])
+            self._console_show(item)
         elif self.navigation.page == "files":
             self._activate_file(item)
         elif self.navigation.page == "settings":
@@ -660,7 +676,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         elif page == "files":
             self._file_context(item)
         elif page == "windows" and item:
-            self._menu(item["name"], [{"label": tr(Msg.SWITCH_TO_WINDOW), "action": "activate-window", "item": item}, {"label": tr(Msg.REQUEST_WINDOW_CLOSE), "action": "close-window", "item": item}])
+            self._console_context(item)
         else:
             self._menu(tr(Msg.DEVICE_ACTIONS), [{"label": tr(Msg.REFRESH_DEVICE_STATUS), "action": "system", "systemAction": "refresh"}, {"label": tr(Msg.CALIBRATE_ABXY), "action": "setting", "id": "input"}])
 
@@ -909,7 +925,9 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
             elif modal.get('source') == 'console':
                 self.consoleAction.emit('dismiss')
             return
-        if kind == "menu":
+        if kind == "console-details":
+            self._console_details_modal(action)
+        elif kind == "menu":
             options = modal["options"]
             if action in ("up", "down") and options:
                 previous = modal["index"]
@@ -999,6 +1017,8 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         self._dispatch_modal("accept")
 
     def _execute_option(self, option):
+        if self._console_option(option):
+            return
         if self._shortcut_option(option):
             return
         try:
@@ -1287,6 +1307,7 @@ class ShellController(LaunchControls, KeyTestControls, WifiControls, FileControl
         self._publish()
 
     def close(self):
+        self.runtime_console.close()
         self._close_sharing()
         self._close_shortcuts()
         self._close_loading()

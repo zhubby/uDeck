@@ -1,4 +1,8 @@
-"""Private, memory-only requests on the caller's graphical session bus.
+"""
+[INPUT]: 依赖终端窗口协调器与会话专属 D-Bus 身份。
+[OUTPUT]: 提供打开、运行摘要、退出请求和输入路由接口。
+[POS]: Terminal 与 Console 之间的生命周期适配层。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
 
 SPDX-License-Identifier: GPL-2.0-or-later
 """
@@ -51,6 +55,15 @@ class TerminalControl(QObject):
     @Slot(result=str)
     def Diagnose(self):
         return json.dumps(self.coordinator.diagnostics(), ensure_ascii=False)
+
+    @Slot(result=str)
+    def RuntimeInfo(self):
+        return json.dumps({"state": "running", "relatedWindows": []})
+
+    @Slot(result=str)
+    def RequestQuit(self):
+        self.coordinator.request_quit()
+        return ""
 
     @Slot(int, str)
     def Shoulder(self, generation, action):

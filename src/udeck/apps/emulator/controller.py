@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖共享应用控制器、游戏库、RetroEngine、原生存档与 Wayland 窗口接口。
-[OUTPUT]: 提供 EmulatorController、启动预检及原有引擎辅助函数导入。
+[OUTPUT]: 提供模拟器导航、运行摘要、有序退出与启动预检。
 [POS]: 模拟器应用编排；进程协议由 engine.py 单独承担。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -108,6 +108,7 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
         self.engine.failed.connect(self.game_failed)
         self.engine.finished.connect(self.game_exited)
         self.exit_after_save = False
+        self.quit_application = False
         self.game_started = None
         self.checks = {}
         self.source_missing = False
@@ -501,6 +502,7 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
         self.publish()
 
     def game_exited(self, code):
+        quit_application, self.quit_application = self.quit_application, False
         self.record_exited_sram(code)
         self.exit_after_save = False
         self.clear_menus()
@@ -511,6 +513,15 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
             record["lastPlayed"] = time.time()
             self.game_started = None
         self.attempt(self.persist)
+        if quit_application:
+            if code == 0 and (self.engine.sram_runtime is None or self.engine.sram_committed):
+                try:
+                    self.requestQuit()
+                    return
+                except (ValueError, OSError, RuntimeError) as error:
+                    self.error = error_text(error)
+            else:
+                self.error = tr(Msg.CONSOLE_GAME_EXIT_FAILED)
         self.present.emit()
 
     def context(self):
@@ -640,6 +651,23 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
             self.engine.pause()
         else:
             super().requestClose()
+
+    def runtimeInfo(self):
+        pid = int(self.engine.process.processId())
+        state = "exiting" if self.quit_application else self.engine.status if self.engine.running() else "running"
+        return {"state": state, "relatedWindows": [{"appId": "com.libretro.RetroArch", "pid": pid}] if pid else []}
+
+    @Slot()
+    def requestQuit(self):
+        if self.engine.running():
+            if self.engine.pending:
+                raise RuntimeError(tr(Msg.CONSOLE_OPERATION_BUSY))
+            if not self.quit_application:
+                self.quit_application = True
+                self.quit_game()
+        else:
+            self.cancel_launch()
+            super().requestQuit()
 
     @Slot(str)
     @interaction

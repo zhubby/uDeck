@@ -6,6 +6,7 @@ src/udeck/ - 桌面、系统接口与应用入口。
 src/udeck/apps/ - 共享应用框架与六类独立应用。
 src/udeck/apps/emulator/ - 游戏库、RetroArch 与存档编排。见该目录 AGENTS.md。
 src/udeck/emulator_saves/ - 原生存档、历史快照与云同步。
+src/udeck/runtime_console/ - 应用运行统计、进程身份与退出编排。
 tests/ - pytest 回归与独立进程探针。见该目录 AGENTS.md。
 docs/ - 设计、运行说明与验证记录。
 packaging/ - 会话入口、服务与运行包装。

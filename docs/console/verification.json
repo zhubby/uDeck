@@ -1,0 +1,469 @@
+{
+  "date": "2026-11-16",
+  "branch": "codex/console-runtime-panel",
+  "sourceChecks": {
+    "pytestPassed": 387,
+    "pytestSkipped": 1,
+    "skipReason": "Linux pidfd integration runs on the device",
+    "ruff": "passed",
+    "diffCheck": "passed"
+  },
+  "deviceChecks": {
+    "hardware": "uConsole CM4",
+    "session": "labwc Wayland",
+    "featureTestsPassed": 32,
+    "compatibilityTestsPassedInSeparateProcesses": 135,
+    "consoleChecks": [
+      "six-applications-real-metrics",
+      "keyboard-navigation-and-stable-refresh",
+      "visible-only-sampling",
+      "force-confirmation-defaults-cancel",
+      "force-terminated-test-application-only",
+      "console-playing-emulator-includes-retroarch",
+      "console-paused-emulator",
+      "normal-exit-writes-sram-without-savestate"
+    ],
+    "unrelatedApplicationsPreserved": true,
+    "sramBytes": 8192,
+    "sramFirstByte": 90,
+    "savestatesBefore": {},
+    "savestatesAfter": {},
+    "emulators": [
+      {
+        "platform": "gba",
+        "checks": [
+          "open",
+          "pause",
+          "resume",
+          "leave-playing-and-return",
+          "leave-paused-and-return",
+          "bounded-status-queries",
+          "save-slot-1",
+          "load-slot-1",
+          "save-and-exit",
+          "continue-after-exit",
+          "quit-without-saving",
+          "clean-process-exits"
+        ]
+      },
+      {
+        "platform": "gb",
+        "checks": [
+          "open",
+          "pause",
+          "resume",
+          "leave-playing-and-return",
+          "leave-paused-and-return",
+          "bounded-status-queries",
+          "save-slot-1",
+          "load-slot-1",
+          "save-and-exit",
+          "continue-after-exit",
+          "quit-without-saving",
+          "clean-process-exits"
+        ]
+      },
+      {
+        "platform": "nes",
+        "checks": [
+          "open",
+          "pause",
+          "resume",
+          "leave-playing-and-return",
+          "leave-paused-and-return",
+          "bounded-status-queries",
+          "save-slot-1",
+          "load-slot-1",
+          "save-and-exit",
+          "continue-after-exit",
+          "quit-without-saving",
+          "clean-process-exits"
+        ]
+      }
+    ]
+  },
+  "scope": {
+    "installedVersion": "0.2.24",
+    "packageReplaced": false,
+    "originalEmulatorRestored": true,
+    "mainShellPreserved": true,
+    "manualPhysicalInputAccepted": false
+  },
+  "baselineIssue": {
+    "test": "test_i18n.py::test_queued_service_updates_detach_mutable_data_and_keep_translations",
+    "location": "processEvents()",
+    "changedSource": "Qt native crash in a mixed suite",
+    "unchangedBaseline": "hang at the same location",
+    "separateProcessRuns": "passed"
+  },
+  "screenshotSha256": "6331d9b1f4bc2467299ffb52416d07ac1e7957e35c567e4ba715868b2e5f1cdb",
+  "detailsDialog": {
+    "sourceTestsPassed": 104,
+    "deviceTestsPassed": 25,
+    "qmlMatrix": {
+      "languages": [
+        "en",
+        "zh_CN"
+      ],
+      "themes": [
+        "classic",
+        "dark"
+      ],
+      "sizes": [
+        [
+          1280,
+          720
+        ],
+        [
+          960,
+          600
+        ]
+      ]
+    },
+    "checks": [
+      "mouse-opens-details",
+      "enter-opens-details",
+      "live-metrics-preserve-action",
+      "force-default-cancel",
+      "cancel-returns-to-details",
+      "back-restores-selection",
+      "application-identities-preserved"
+    ],
+    "qmlErrors": [],
+    "application": {
+      "applicationKey": "io.github.zhubby.uDeck.Emulator",
+      "applicationName": "uDeck 模拟器",
+      "applicationIcon": "io.github.zhubby.uDeck.Emulator",
+      "runtimeState": "running",
+      "cpuPercent": 0.4878048780487805,
+      "memoryBytes": 238489600,
+      "uptimeSeconds": 2141.6900000000023,
+      "canQuit": true,
+      "canForce": true,
+      "available": true,
+      "mainPid": 405900,
+      "processCount": 1,
+      "windowCount": 1
+    },
+    "sourceScope": "branch working tree",
+    "deviceScope": "isolated preview with immediate catalog loading; cold startup not exercised",
+    "installedPackageReplaced": false,
+    "manualPhysicalInputAccepted": false,
+    "screenshotSha256": "0e3c654a4e5dfee8c458f8b8ec7bb1046891923d663e897894a43a3f47bdb55c"
+  },
+  "review": {
+    "date": "2026-11-16",
+    "base": "6f5034eb9c2453edb1e606991e984756f6bacb6e",
+    "fixedFindings": [
+      "bounded-pid-query-retry",
+      "native-quit-before-runtime-info",
+      "scroll-and-clip-aware-icon-hover"
+    ],
+    "remainingConfirmedFindings": [],
+    "sourceTests": {
+      "passed": 295,
+      "skipped": 1,
+      "isolation": "one pytest process per file",
+      "files": [
+        {
+          "file": "tests/test_runtime_console.py",
+          "exitCode": 0,
+          "tests": 23,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_runtime_console_processes.py",
+          "exitCode": 0,
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 1
+        },
+        {
+          "file": "tests/test_runtime_console_apps.py",
+          "exitCode": 0,
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_runtime_console_qml.py",
+          "exitCode": 0,
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_console.py",
+          "exitCode": 0,
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_console_qml.py",
+          "exitCode": 0,
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_i18n.py",
+          "exitCode": 0,
+          "tests": 29,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_core.py",
+          "exitCode": 0,
+          "tests": 32,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_directions.py",
+          "exitCode": 0,
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_shortcuts.py",
+          "exitCode": 0,
+          "tests": 26,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_shortcuts_qml.py",
+          "exitCode": 0,
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_apps_review.py",
+          "exitCode": 0,
+          "tests": 22,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_apps_routing.py",
+          "exitCode": 0,
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_apps_native.py",
+          "exitCode": 0,
+          "tests": 15,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_apps_saves.py",
+          "exitCode": 0,
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_emulator_engine.py",
+          "exitCode": 0,
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_emulator_save_management.py",
+          "exitCode": 0,
+          "tests": 26,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_emulator_save_ui.py",
+          "exitCode": 0,
+          "tests": 12,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_terminal_routing.py",
+          "exitCode": 0,
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_terminal_activation.py",
+          "exitCode": 0,
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_terminal_controller.py",
+          "exitCode": 0,
+          "tests": 24,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    "deviceTests": {
+      "passed": 45,
+      "linuxPidfdIntegration": true,
+      "qmlMatrixPassed": 8
+    },
+    "waylandChecks": [
+      "mouse-and-enter-open-details",
+      "live-metrics-preserve-action",
+      "scrim-blocks-clicks",
+      "force-default-cancel-returns-to-details",
+      "back-restores-application",
+      "icon-keyboard-focus-and-tooltip",
+      "real-metrics-both-themes-languages",
+      "hidden-stops-sampling",
+      "mouse-exit-icon-closes-only-test-application",
+      "force-cancel-and-confirm-clean-child-tree",
+      "details-open-activates-original-application"
+    ],
+    "originalIdentitiesBeforeEmulatorLifecycleTest": {
+      "405900": "51063962",
+      "3576124": "32214592",
+      "3574406": "32202880",
+      "3574379": "32202623",
+      "3574322": "32202295",
+      "3574240": "32201956",
+      "27027": "44125231"
+    },
+    "originalShellAndOtherApplicationsPreserved": true,
+    "emulatorChecks": [
+      "six-applications-real-metrics",
+      "keyboard-navigation-and-stable-refresh",
+      "visible-only-sampling",
+      "force-confirmation-defaults-cancel",
+      "force-terminated-test-application-only",
+      "legacy-native-exit-falls-back-after-unknown-method",
+      "console-playing-emulator-includes-retroarch",
+      "console-paused-emulator",
+      "normal-exit-writes-sram-without-savestate"
+    ],
+    "sram": {
+      "path": "/home/zhubby/.local/state/udeck/device-tests/console-runtime-1794814089/emulator/test-data/emulator-saves/ec58bd4994e07a25e8fe05d91b69cbac036df7563d382e60024c877d8846ac02/cores/nestopia/sram/Battery check.srm",
+      "bytes": 8192,
+      "firstByte": 90
+    },
+    "savestatesBefore": {},
+    "savestatesAfter": {},
+    "restoration": {
+      "restored": true,
+      "pid": 430220,
+      "command": [
+        "python3",
+        "-m",
+        "udeck.apps.main",
+        "emulator"
+      ],
+      "pythonpath": "/home/zhubby/.local/state/udeck/device-tests/emulator-flow-1794809523437001440/verified-source/src",
+      "mainShellPid": 27027,
+      "version": "0.2.24",
+      "gameStatus": "idle",
+      "qmlErrors": [],
+      "consoleApplications": 6
+    },
+    "detailsOpen": {
+      "passed": true,
+      "check": "details-open-activates-original-application",
+      "pid": 430220,
+      "sameProcess": true,
+      "qmlErrors": [],
+      "previewClosed": true
+    },
+    "qmlErrors": [],
+    "sourceChecksums": {
+      "files": {
+        "src/udeck/apps/common/AGENTS.md": "7066f8e1ba2b0559dfa3e7630adc7a101f4a468902d73cc91e639070ac33ea76",
+        "src/udeck/locales/AGENTS.md": "599a5b763888f14bc40cb5a7b90a3e9bc442a4bbfc291c1b71d87a4a2b861725",
+        "src/udeck/qml/AGENTS.md": "9f4d35847a104310d76ff71ec636e38bd5135491b221053b102792957e3b4ce7",
+        "src/udeck/qml/ConsoleDetails.qml": "f8720f97e6a16134d1dd67326db4515e3ef56245dde017422c36b2a2c58bf421",
+        "src/udeck/qml/ConsoleFormat.qml": "f2980c309465759a6585ea430a81b5336315625c6f2f71a3099d404c114dc10c",
+        "src/udeck/qml/ConsoleScreen.qml": "4ab44eab17e20a6e3ac242d7fa7cfddc3329362c1000cc4013ea775d78417140",
+        "src/udeck/qml/DialogActions.qml": "61a6d45ef9519fe5d0a32b8562cb39e73aacfbafe0eedd40cf07257911de063c",
+        "src/udeck/runtime_console/AGENTS.md": "3025b8abdac33ec10863e79f558428eb3e33ddc4db6ee9c304a70e3aee6efb7e",
+        "src/udeck/runtime_console/__init__.py": "3ac6aa7d4d7d2b543a9176f09d682868e40f20058ec7a1e710d3272732b919a5",
+        "src/udeck/runtime_console/controls.py": "cd3aa3b99823b0774ed2c7584ce9acc7784155d997dc94b9585b1a3bd86b72d3",
+        "src/udeck/runtime_console/model.py": "4609f0b57977113394f2b0432979a7ae2351de68d3d7947226f1e0cfdcaa2f69",
+        "src/udeck/runtime_console/processes.py": "5ef4b96e17ea10994ae697747d5a9aa6c2bc3bfce20f456d6bf1f10e5b011c4e",
+        "src/udeck/runtime_console/service.py": "1bd1c953ef461d6e4ac2f8b2471b9fc299ed0bae4909d3f1575e6e7d1c7eeb8b",
+        "src/udeck/terminal/AGENTS.md": "863a724c854253b79d9cd6b47561555411802a85df451322878a7c022b9b37db",
+        "tests/runtime_console_qml_probe.py": "8540d39e6b3987b55dfffeacb4f1e6872f348f7f74cb16c7614ee8682930bf73",
+        "tests/test_runtime_console.py": "16139cc7b3c0197875d7bc615f61663a198019f0005b15d39d087d54ec570dc3",
+        "tests/test_runtime_console_apps.py": "050ba80542c63fcefc67ee23077a64674f8fcecaabd57fb051b680102045dd96",
+        "tests/test_runtime_console_processes.py": "fcffe1d5101f763bfb275ab6f1e0e4462daf7bf0f514b40e36c109535726da4e",
+        "tests/test_runtime_console_qml.py": "ed9deb584957980433af5a0d1dbe05ab28c8c75d6764ff48e013f45e860e94a9",
+        "src/udeck/apps/AGENTS.md": "91c8a19e343a8a665617ed1ad545df53816e7df8df5e467e42414b50a5a724b7",
+        "src/udeck/apps/common/controller.py": "5eb8370670031ab3413bd3ab1dc9602b83c89cba90e4e507fc38483d787a396b",
+        "src/udeck/apps/emulator/AGENTS.md": "397daa19c2d0c7a0557495bfb4932195dfe56656374c2f723b1396d8b0734106",
+        "src/udeck/apps/emulator/controller.py": "33636eeb1fc0db08c5bb92180ea558a6b31d6506d5014ec4ca0dda09c1fe825d",
+        "src/udeck/apps/runtime.py": "fb799fadb31388fcbaee2e0721f961f0159450701c8e5db17c4ea9f072066608",
+        "src/udeck/controller.py": "9569808e14f28826c811545a08d4e854f3cdd227238517c993132ffb1200a41f",
+        "src/udeck/core.py": "10a395fb270e70abe9d11d08b7b49f2d2dc961b5bd936228cebe6fde29993f0f",
+        "src/udeck/locales/en.json": "6a03ed4212aa5cad6546105f1548d79301568be0734f84d3e5d767562cd56c8c",
+        "src/udeck/locales/zh_CN.json": "cc7e69f0823b3dae7bff848f2c62d64fc23c2d9a002eef13def6421f70bdf291",
+        "src/udeck/messages.py": "e9ecc4232509260330e05138cfb1441d9b5b6ef12c67326101e089c0d6803146",
+        "src/udeck/qml/Main.qml": "16783e9593ae39edbdbbf94ab89d1f94c284f3b4052523d5a3539d8492f5cfb9",
+        "src/udeck/shortcuts.py": "fb2c65f7a94b419e41ca3c1d4072783383244697cf439350f614d7f8623252e8",
+        "src/udeck/terminal/ipc.py": "44c2abf1dfd1d7a3fa0753715fb930060191ad76fdafb21abb3c86da96227e72",
+        "src/udeck/terminal/runtime.py": "01403ac892c75a974dfe060624782f4f711bde88bee7618e051baede7c499c35",
+        "tests/AGENTS.md": "27890e007041135b8f66ae35fff3639faf22718f13959d57fea57014703b004f",
+        "tests/test_console.py": "0e72914f4e0d59a3f2491d1a6609a510ea5bab4489b94eb5ea86f461da0ae136",
+        "tests/test_i18n.py": "bf61f997a948510f1e4ad49334fca986e0e30c4a6ec0f0945bf4be78c63815b5"
+      },
+      "aggregateSha256": "f996af6caa0f040465ff5812a8daebfeb4138220b65d66b3fde2a6d09453d055",
+      "deviceMatches": true
+    },
+    "screenshots": {
+      "console-uconsole.png": "6331d9b1f4bc2467299ffb52416d07ac1e7957e35c567e4ba715868b2e5f1cdb",
+      "console-exit-focused-uconsole.png": "97f1a4a20c456cd64fe75e6dc623b41541e176fb7efceba7ca5717193b3a057e",
+      "console-icons-uconsole.png": "df93e59d41bcecb434ce225525e6b48bd7091dba535bab40b8b447594faed351",
+      "console-details-uconsole.png": "0e3c654a4e5dfee8c458f8b8ec7bb1046891923d663e897894a43a3f47bdb55c"
+    },
+    "baselineMixedSuite": {
+      "revision": "6f5034e",
+      "exitCode": -11,
+      "lastTest": "tests/test_terminal_activation.py::test_plain_launch_restores_recent_window_after_home_despite_duplicate_titles",
+      "isolatedFileRuns": "passed"
+    },
+    "installedPackageReplaced": false,
+    "manualPhysicalInputAccepted": false,
+    "coldStartupExercised": false,
+    "ruff": "passed",
+    "diffCheck": "passed"
+  }
+}

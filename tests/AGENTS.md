@@ -3,6 +3,12 @@
 
 成员清单：
 
+test_runtime_console_processes.py: proc 快照、资源聚合和 pidfd 终止身份回归。
+test_runtime_console_apps.py: 轻量应用状态与原生存档退出回归。
+test_runtime_console.py: 身份查询失败、应用聚合、详情和有序退出回归。
+runtime_console_qml_probe.py: 单行尺寸、滚动悬停与详情鼠标按键的 QML 探针。
+test_runtime_console_qml.py: Console 详情交互、中英文与双主题尺寸回归。
+
 app_forwarding_probe.py: 独立进程探针，验证 app_forwarding 流程。
 app_lazy_surface_probe.py: 独立进程探针，验证 app_lazy_surface 流程。
 app_settings_device_probe.py: 独立进程探针，验证 app_settings_device 流程。

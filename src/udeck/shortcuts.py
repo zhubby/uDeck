@@ -1,4 +1,9 @@
-"""System actions, portable shortcut identities and the owned labwc bindings."""
+"""
+[INPUT]: 依赖系统动作、配置文件和 labwc 快捷键格式。
+[OUTPUT]: 提供快捷键身份、分组、录制与配置持久化。
+[POS]: Console 页面沿用 switcher 命令，全局控制面板沿用 console 命令。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import json
 import os
@@ -26,7 +31,7 @@ class SystemAction:
 ACTIONS = (
     SystemAction('console', tr(Msg.OPEN_CONSOLE), 'navigation', ('C-S-Escape',), 'udeckctl console'),
     SystemAction('home', tr(Msg.RETURN_TO_HOME), 'navigation', ('C-A-Escape',), 'udeckctl home'),
-    SystemAction('switcher', tr(Msg.RUNNING_WINDOWS), 'navigation', ('C-A-Tab',), 'udeckctl switcher'),
+    SystemAction('switcher', tr(Msg.CONSOLE), 'navigation', ('C-A-Tab',), 'udeckctl switcher'),
     SystemAction('apps', tr(Msg.APPLICATIONS), 'navigation', ('C-A-a',), 'udeckctl apps'),
     SystemAction('files', tr(Msg.FILES_APP), 'navigation', ('C-A-f',), 'udeckctl files'),
     SystemAction('settings', tr(Msg.SYSTEM_SETTINGS), 'navigation', ('C-A-comma',), 'udeckctl settings'),

@@ -1,3 +1,9 @@
+/*
+[INPUT]: 依赖桌面控制器、Console 详情、主题与页面组件。
+[OUTPUT]: 提供桌面导航、隔离点击的模态界面和按键提示。
+[POS]: ConsoleScreen 展示运行模型，其余页面沿用各自布局。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+*/
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
@@ -72,6 +78,8 @@ Window {
             applicationGrid.positionViewAtIndex(viewState.index, GridView.Contain)
         else if (viewState.page === "files")
             filesScreen.positionSelection()
+        else if (viewState.page === "windows")
+            consoleScreen.positionSelection()
         else
             itemList.positionViewAtIndex(viewState.index, ListView.Contain)
         if (dialog.kind === "menu")
@@ -266,24 +274,49 @@ Window {
             font.family: window.fontFamily; font.pixelSize: 34; font.weight: Font.DemiBold; color: window.ink
         }
         Text { textFormat: Text.PlainText;
-            visible: viewState.page !== "files"
+            visible: viewState.page !== "files" && viewState.page !== "windows"
             x: 30; y: 214; width: inputStatus.visible ? parent.width - 80 - inputStatus.width : parent.width - 60
             text: viewState.description; elide: Text.ElideMiddle
             font.family: window.fontFamily; font.pixelSize: 24; color: window.muted
         }
         Text { textFormat: Text.PlainText;
             id: inputStatus
-            visible: viewState.page !== "files" && viewState.page !== "home"
+            visible: viewState.page !== "files" && viewState.page !== "home" && viewState.page !== "windows"
             anchors.right: parent.right; anchors.rightMargin: 30; y: 216
             width: Math.min(implicitWidth, parent.width * 0.35); elide: Text.ElideRight
             text: viewState.mock ? window.tr(msg.NO_HARDWARE_CHANGES) : (viewState.input.verified ? window.tr(msg.ABXY_CALIBRATED) : (viewState.input.mapped ? window.tr(msg.ABXY_MAPPED) : window.tr(msg.ABXY_NEEDS_CALIBRATION)))
             font.family: window.fontFamily; font.pixelSize: 24; color: viewState.mock ? window.muted : window.accent
         }
 
+        Text {
+            visible: viewState.page === "windows"
+            x: 30; y: 214; width: parent.width - 60
+            textFormat: Text.PlainText
+            text: consoleScreen.summaryText()
+            font.family: window.fontFamily; font.pixelSize: 22; color: window.muted
+            elide: Text.ElideRight
+        }
+
         Item {
             id: content
             x: 28; y: viewState.page === "files" ? 165 : viewState.page === "home" ? 250 : 265; width: parent.width - 56; height: parent.height - y - 85
             clip: true
+
+            ConsoleScreen {
+                id: consoleScreen
+                objectName: "consoleScreen"
+                anchors.fill: parent
+                visible: viewState.page === "windows"
+                appModel: controller.consoleModel
+                summary: controller.runtimeConsole.summary
+                colors: window.colors
+                fontFamily: window.fontFamily
+                index: viewState.index
+                contentFocused: viewState.zone === "content" && !dialog.kind
+                exitFocused: viewState.consoleExitFocused
+                language: viewState.language
+                hoverSurface: navigationPointer
+            }
 
             HomeScreen {
                 id: homeScreen
@@ -345,7 +378,7 @@ Window {
                 id: itemList
                 objectName: "itemList"
                 anchors.fill: parent
-                visible: viewState.page !== "home" && viewState.page !== "apps" && viewState.page !== "files"
+                visible: viewState.page === "settings"
                 model: visible ? window.itemModel : []
                 spacing: 10; currentIndex: viewState.index; keyNavigationEnabled: false
                 interactive: false
@@ -384,7 +417,7 @@ Window {
             }
 
             Column {
-                visible: viewState.page !== "files" && viewState.items.length === 0
+                visible: viewState.page !== "files" && viewState.page !== "windows" && viewState.items.length === 0
                 anchors.centerIn: parent; spacing: 14
                 Text { textFormat: Text.PlainText; anchors.horizontalCenter: parent.horizontalCenter; text: viewState.busy ? window.tr(msg.PREPARING_CONTENT) : window.tr(msg.NO_ITEMS_HERE_YET); font.family: window.fontFamily; font.pixelSize: 30; color: window.ink }
                 Text { textFormat: Text.PlainText; anchors.horizontalCenter: parent.horizontalCenter; text: viewState.page === "files" ? window.tr(msg.PRESS_X_TO_CREATE_A_FOLDER_OR_REFRESH) : (viewState.page === "windows" ? window.tr(msg.OPEN_AN_APP_TO_SEE_ITS_WINDOW_HERE) : window.tr(msg.PRESS_X_TO_CHANGE_CATEGORIES_OR_SEARCH)); font.family: window.fontFamily; font.pixelSize: 24; color: window.muted }
@@ -397,7 +430,7 @@ Window {
             objectName: "footerControls"
             x: 30; y: parent.height - 37 - height / 2; spacing: 20
             Repeater {
-                model: [{key: "gamecube_button_color_a", label: window.tr(msg.CONFIRM)}, {key: "gamecube_button_color_b", label: window.tr(msg.BACK)}, {key: "gamecube_button_x", label: window.tr(msg.MORE)}, {key: "gamecube_button_y", label: window.tr(msg.QUICK_SETTINGS)}]
+                model: [{key: "gamecube_button_color_a", label: viewState.page === "windows" && !dialog.kind ? window.tr(viewState.consoleExitFocused ? msg.CONSOLE_EXIT : msg.CONSOLE_DETAILS) : window.tr(msg.CONFIRM)}, {key: "gamecube_button_color_b", label: window.tr(msg.BACK)}, {key: "gamecube_button_x", label: window.tr(msg.MORE)}, {key: "gamecube_button_y", label: window.tr(msg.QUICK_SETTINGS)}]
                 delegate: InputPrompt {
                     required property var modelData
                     keys: [modelData.key]; label: modelData.label
@@ -431,6 +464,11 @@ Window {
             anchors.fill: parent
             color: window.colors.scrim
 
+            MouseArea {
+                anchors.fill: parent; acceptedButtons: Qt.AllButtons; cursorShape: Qt.BlankCursor
+                onWheel: function(wheel) { wheel.accepted = true }
+            }
+
             Rectangle {
                 id: panel
                 objectName: "dialogPanel"
@@ -454,9 +492,16 @@ Window {
                     id: modalColumn
                     objectName: "dialogContent"
                     x: dialog.kind === "key-test" ? 20 : 28; y: dialog.kind === "key-test" ? 20 : 26
-                    width: parent.width - 2 * x; spacing: dialog.kind === "key-test" ? 8 : 20
-                    Text { textFormat: Text.PlainText; id: dialogTitle; width: parent.width; text: dialog.title || ""; font.family: window.fontFamily; font.pixelSize: dialog.kind === "key-test" ? 28 : 32; font.weight: Font.DemiBold; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
+                    width: parent.width - 2 * x; spacing: dialog.kind === "key-test" ? 8 : dialog.kind === "console-details" ? 16 : 20
+                    Text { textFormat: Text.PlainText; id: dialogTitle; width: parent.width; text: dialog.title || ""; font.family: window.fontFamily; font.pixelSize: dialog.kind === "key-test" ? 28 : 32; font.weight: Font.DemiBold; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: dialog.kind === "console-details" ? 1 : 2; elide: Text.ElideRight }
                     Text { textFormat: Text.PlainText; id: dialogBody; visible: !!dialog.body && dialog.kind !== "file-preview"; width: parent.width; text: dialog.body || ""; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: 4; elide: Text.ElideRight }
+
+                    ConsoleDetails {
+                        visible: dialog.kind === "console-details"; width: parent.width
+                        details: controller.runtimeConsole.details
+                        colors: window.colors; fontFamily: window.fontFamily
+                        language: viewState.language; index: dialog.index || 0
+                    }
 
                     Column {
                         id: previewDetails
@@ -661,20 +706,13 @@ Window {
                     }
                     Text { id: previewNotice; visible: !!dialog.truncated; width: parent.width; textFormat: Text.PlainText; text: window.tr(msg.TEXT_PREVIEW_LIMITED_TO_64_KIB); font.family: window.fontFamily; font.pixelSize: 20; color: window.muted }
 
-                    Row {
+                    DialogActions {
                         visible: dialog.kind === "confirm" || dialog.kind === "text"
-                        width: parent.width; spacing: 14
-                        Repeater {
-                            model: [window.tr(msg.CANCEL), window.tr(msg.CONFIRM)]
-                            delegate: Rectangle {
-                                required property string modelData
-                                required property int index
-                                property bool selected: dialog.kind === "confirm" ? dialog.index === index : index === 1
-                                width: (modalColumn.width - 14) / 2; height: 58; radius: 8
-                                color: selected ? window.colors.buttonSelected : window.colors.button; border.width: selected ? 3 : 1; border.color: selected ? window.accent : window.colors.buttonBorder
-                                Text { textFormat: Text.PlainText; anchors.centerIn: parent; text: modelData; font.family: window.fontFamily; font.pixelSize: 25; color: window.ink }
-                            }
-                        }
+                        width: parent.width; colors: window.colors; fontFamily: window.fontFamily
+                        labels: [window.tr(msg.CANCEL), window.tr(msg.CONFIRM)]
+                        index: dialog.kind === "confirm" ? (dialog.index || 0) : 1
+                        mouseEnabled: viewState.page === "windows" && dialog.kind === "confirm"
+                        onChosen: function(index) { controller.chooseModal(index) }
                     }
 
                     InputHints {
@@ -693,7 +731,7 @@ Window {
                             {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(dialog.kind === "text" ? msg.CANCEL : msg.BACK)}].concat(dialog.kind === "text" && dialog.secret ? [
                             {keys: ["gamecube_button_x"], label: window.tr(dialog.reveal ? msg.HIDE_PASSWORD : msg.SHOW_PASSWORD)} ] : [])
                     }
-                    Text { textFormat: Text.PlainText; id: modalToast; visible: !!viewState.toast && dialog.kind !== "key-test"; width: parent.width; text: viewState.toast; font.family: window.fontFamily; font.pixelSize: 24; color: window.accent; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
+                    Text { textFormat: Text.PlainText; id: modalToast; visible: !!viewState.toast && dialog.kind !== "key-test"; width: parent.width; text: viewState.toast; font.family: window.fontFamily; font.pixelSize: dialog.kind === "console-details" ? 20 : 24; color: window.accent; wrapMode: Text.Wrap; maximumLineCount: dialog.kind === "console-details" ? 1 : 3; elide: Text.ElideRight }
                 }
             }
         }
@@ -701,7 +739,7 @@ Window {
             id: navigationPointer
             anchors.fill: parent
             z: 1000
-            acceptedButtons: Qt.AllButtons
+            acceptedButtons: viewState.page === "windows" ? (dialog.kind ? Qt.NoButton : Qt.RightButton) : Qt.AllButtons
             hoverEnabled: true
             cursorShape: Qt.BlankCursor
             preventStealing: true

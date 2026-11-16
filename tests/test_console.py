@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖全局控制面板、桌面控制器与窗口服务替身。
+[OUTPUT]: 验证 Console 导航入口、焦点恢复和电源确认。
+[POS]: 现有快捷控制面板的兼容性回归。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 
 import pytest
@@ -109,8 +116,8 @@ def test_session_lock_blocks_open_and_focus_restoration(console):
 
 
 @pytest.mark.parametrize('language,title,labels', [
-    ('en', 'Control panel', ['Back to home', 'Running', 'Settings', 'Shut down', 'Restart']),
-    ('zh_CN', '控制台', ['返回主页', '运行中', '设置', '关机', '重启']),
+    ('en', 'Control panel', ['Back to home', 'Console', 'Settings', 'Shut down', 'Restart']),
+    ('zh_CN', '控制面板', ['返回主页', '控制台', '设置', '关机', '重启']),
 ])
 def test_console_names_change_language_while_open(console, language, title, labels):
     controller, panel, _windows, _application = console

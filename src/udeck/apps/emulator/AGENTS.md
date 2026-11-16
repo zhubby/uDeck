@@ -6,7 +6,7 @@
 __init__.py: Python 包入口。
 browser.py: 列表与游戏浏览状态，向控制器提供导航行为。
 catalog.py: Libretro 核心发现、平台策略与固件检查。
-controller.py: 启动预检、应用状态与原生窗口激活，保留原有引擎导入接口。
+controller.py: 启动预检、运行摘要与原生窗口激活；游戏写回后退出应用。
 engine.py: RetroArch 进程协议、单条状态查询背压与存读档确认。
 game_info.py: 选中游戏信息与游玩时长展示。
 library.py: 游戏库扫描、内容路径约束与条目身份。

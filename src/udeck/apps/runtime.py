@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖应用控制器、Qt Quick、会话 D-Bus 与桌面激活接口。
-[OUTPUT]: 提供单实例应用入口、AppControl 和控制器工厂。
+[OUTPUT]: 提供单实例入口、轻量状态、退出请求和控制器工厂。
 [POS]: 应用共用运行层；模拟器确认暂停后再显示前台。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -138,6 +138,18 @@ class AppControl(QObject):
     def Route(self, generation, enabled):
         if self.controller.inputs:
             self.controller.inputs.route(generation, enabled)
+
+    @Slot(result=str)
+    def RuntimeInfo(self):
+        return json.dumps(self.controller.runtimeInfo(), ensure_ascii=False)
+
+    @Slot(result=str)
+    def RequestQuit(self):
+        try:
+            self.controller.requestQuit()
+            return ""
+        except (ValueError, OSError, RuntimeError) as error:
+            return str(error)
 
     @Slot(int, str)
     def Shoulder(self, generation, action):

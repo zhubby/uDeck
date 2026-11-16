@@ -1,6 +1,8 @@
-"""Stable message identifiers shared by Python and QML.
-
-Translations live in locales/*.json. Keep IDs when changing display copy.
+"""
+[INPUT]: 依赖 Python StrEnum 与中英文消息目录。
+[OUTPUT]: 提供 Python 和 QML 共用的稳定消息标识。
+[POS]: 界面文本契约；显示文案调整保留已有标识。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
 from enum import StrEnum
@@ -8,6 +10,35 @@ from enum import StrEnum
 
 class Msg(StrEnum):
     """Use these constants in tr(); locale files map their values to text."""
+
+    CONSOLE = "console"
+    CONSOLE_APPLICATION = "console_application"
+    CONSOLE_STATE = "console_state"
+    CONSOLE_MEMORY = "console_memory"
+    CONSOLE_UPTIME = "console_uptime"
+    CONSOLE_EXIT = "console_exit"
+    CONSOLE_ACTIONS = "console_actions"
+    CONSOLE_FORCE_QUIT = "console_force_quit"
+    CONSOLE_FORCE_PROMPT = "console_force_prompt"
+    CONSOLE_FORCE_BODY = "console_force_body"
+    CONSOLE_RUNNING = "console_running"
+    CONSOLE_PLAYING = "console_playing"
+    CONSOLE_PAUSED = "console_paused"
+    CONSOLE_EXITING = "console_exiting"
+    CONSOLE_UNKNOWN = "console_unknown"
+    CONSOLE_SUMMARY = "console_summary"
+    CONSOLE_EMPTY = "console_empty"
+    CONSOLE_PROCESS_UNAVAILABLE = "console_process_unavailable"
+    CONSOLE_IDENTITY_CHANGED = "console_identity_changed"
+    CONSOLE_EXIT_WAITING = "console_exit_waiting"
+    CONSOLE_OPERATION_BUSY = "console_operation_busy"
+    CONSOLE_GAME_EXIT_FAILED = "console_game_exit_failed"
+    CONSOLE_WINDOWS = "console_windows"
+    CONSOLE_DETAILS = "console_details"
+    CONSOLE_PID = "console_pid"
+    CONSOLE_PROCESSES = "console_processes"
+    CONSOLE_CLOSED = "console_closed"
+    CONSOLE_CLOSE = "console_close"
 
     EMU_PLAYLISTS = "emu_playlists"
     EMU_PLAYLIST_DIRECTORY = "emu_playlist_directory"
