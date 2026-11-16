@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖系统服务、桌面控制器、输入路由和源码缓存标识。
+[OUTPUT]: 提供桌面窗口、会话 D-Bus 与设备生命周期。
+[POS]: 桌面图形入口；创建 Qt 窗口前隔离编译缓存。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import argparse
 import json
 import os
@@ -22,6 +29,7 @@ from .icons import IconProvider
 from .input import Gamepad
 from .mock import MockBackend
 from .pointer import PointerGuard
+from .qml_cache import configure_qml_cache
 from .sounds import InterfaceSounds
 from .windows import APP_ID, WindowService
 
@@ -155,6 +163,7 @@ def main(argv=None):
     if not options.mock and sys.platform != "linux":
         parser.error(render(tr(Msg.THE_REAL_DESKTOP_REQUIRES_LINUX_USE_MOCK_WINDOWED_ON_THIS_PLATFORM), language))
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
+    configure_qml_cache()
     if os.environ.get("QT_QPA_PLATFORM") == "offscreen":
         os.environ.setdefault("QT_QUICK_BACKEND", "software")
     started = time.monotonic()

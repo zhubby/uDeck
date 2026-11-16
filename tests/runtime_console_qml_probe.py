@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实桌面 QML 与隔离的 Console 预览模型。
-[OUTPUT]: 输出行密度、实时详情、鼠标与按键交互和 QML 错误。
+[OUTPUT]: 输出指标控件复用、行密度与模态输入边界。
 [POS]: Console 视图的独立进程验收探针。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -107,9 +107,18 @@ QTest.qWait(40)
 click(visual("consoleRow-io.github.zhubby.uDeck.0"), QPointF(80, 24))
 assert controller.modal.get("kind") == "console-details", controller.modal
 assert controller.runtime_console.details["applicationKey"] == "io.github.zhubby.uDeck.0"
+details_focus = next(item for item in visual_items(visual("consoleDetails"))
+                     if item.metaObject().indexOfProperty("targetX") >= 0)
+assert details_focus.isVisible() and details_focus.property("target") is not None, "initial details action has no focus frame"
+assert details_focus.property("target").objectName() == "consoleDetailsAction-0"
 QTest.keyClick(window, Qt.Key_Down)
 QTest.qWait(30)
 assert controller.modal["index"] == 2
+assert details_focus.property("target").objectName() == "consoleDetailsAction-2"
+metric_names = ["consoleDetails" + name for name in ("State", "Cpu", "Memory", "Uptime", "Pid", "Processes")]
+destroyed_metrics = []
+for name in metric_names:
+    visual(name).destroyed.connect(lambda _object=None, name=name: destroyed_metrics.append(name))
 controller.runtime_console.model.update([dict(row, cpuPercent=87.6, memoryBytes=912 * 1048576, uptimeSeconds=5432)
                                        if row["applicationKey"] == "io.github.zhubby.uDeck.0" else row
                                        for row in controller.runtime_console.model.rows])
@@ -119,6 +128,7 @@ assert visual("consoleDetailsCpu").property("text") == "87.6%"
 assert visual("consoleDetailsMemory").property("text") == "912 MiB"
 assert visual("consoleDetailsUptime").property("text") == "01:30:32"
 assert controller.modal["index"] == 2
+assert not destroyed_metrics, ("metrics recreated during refresh", destroyed_metrics)
 panel = visual("dialogPanel")
 content = visual("dialogContent")
 assert content.y() + content.height() <= panel.height(), (content.height(), panel.height())
@@ -135,17 +145,22 @@ QTest.qWait(30)
 assert controller.modal["kind"] == "console-details"
 click(visual("consoleDetailsAction-2"))
 assert controller.modal["kind"] == "confirm" and controller.modal["index"] == 0
+confirm_root = visual("modalConfirm-0").parentItem().parentItem()
+confirm_focus = next(item for item in visual_items(confirm_root) if item.metaObject().indexOfProperty("targetX") >= 0)
+assert confirm_focus.isVisible() and confirm_focus.property("target").objectName() == "modalConfirm-0"
 click(visual("modalConfirm-0"))
 assert controller.modal["kind"] == "console-details"
 assert len(controller._items()) == 9
 click(visual("consoleDetailsAction-3"))
 assert not controller.modal
+QTest.qWait(140)
 click(visual("consoleExit-io.github.zhubby.uDeck.1"))
 assert len(controller._items()) == 8 and not controller.modal
 assert controller.runtime_console.row("io.github.zhubby.uDeck.0")
 assert not controller.runtime_console.row("io.github.zhubby.uDeck.1")
 report["detailsMouseAndKeyboard"] = True
 report["detailsLiveMetrics"] = True
+report["detailsMetricsReused"] = True
 report["detailsContained"] = True
 report["scrimBlocksRows"] = True
 window.close()

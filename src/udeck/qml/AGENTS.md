@@ -4,8 +4,13 @@
 成员清单：
 
 Main.qml: 桌面导航、模态界面和页面装配。
+ShellDialog.qml: 保留关闭画面的模态视图与输入隔离。
+FocusFrame.qml: 单一焦点边框，连续导航立即改向。
+MotionTimings.qml: 减少动画开关与统一短过渡时长。
+MotionItem.qml: 可立即结束的淡入淡出与轻微位移容器。
+ToastNotice.qml: 保留退出文字的非交互提示过渡。
 ConsoleScreen.qml: 应用单行表格、详情点击和随滚动刷新的退出提示。
-ConsoleDetails.qml: 应用实时指标、进程信息与模态操作入口。
+ConsoleDetails.qml: 固定指标控件、进程信息与模态操作入口。
 ConsoleFormat.qml: 列表与详情共用的状态和资源显示格式。
 DialogActions.qml: 模态取消确认按钮与选中索引事件。
 HomeScreen.qml: 主页面应用与设置入口。

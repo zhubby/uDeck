@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖单调时钟、应用身份与窗口发现结果。
+[OUTPUT]: 提供启动请求去重、即时反馈身份与延迟遮罩状态。
+[POS]: 启动控制器的纯状态机，不延迟真实启动操作。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import time
 import uuid
 from dataclasses import dataclass
@@ -45,6 +52,7 @@ class LaunchTracker:
         application = request.application
         return {
             "pending": True, "visible": elapsed >= 0.18, "requestId": self.current,
+            "applicationId": application["id"],
             "name": application["name"], "icon": application.get("icon") or "application-x-executable",
             "homeKind": application.get("homeKind", ""),
             "message": tr(Msg.STILL_WAITING_FOR_THE_APPLICATION_WINDOW) if elapsed >= 8 else tr(Msg.OPENING_APPLICATION),

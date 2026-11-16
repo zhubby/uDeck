@@ -1,5 +1,5 @@
 """
-[INPUT]: 依赖应用控制器、Qt Quick、会话 D-Bus 与桌面激活接口。
+[INPUT]: 依赖应用控制器、Qt Quick、源码缓存标识与会话 D-Bus。
 [OUTPUT]: 提供单实例入口、轻量状态、退出请求和控制器工厂。
 [POS]: 应用共用运行层；模拟器确认暂停后再显示前台。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
@@ -26,6 +26,7 @@ from udeck.core import ConfigStore
 from udeck.i18n import Msg, tr
 from udeck.icons import IconProvider
 from udeck.performance import StartupTrace
+from udeck.qml_cache import configure_qml_cache
 from udeck.sounds import InterfaceSounds
 
 
@@ -169,6 +170,7 @@ def main(argv=None, *, options=None, trace=None):
     trace.mark('runtimeImported')
     options = options or parse_options(argv)
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
+    configure_qml_cache()
     if os.environ.get("QT_QPA_PLATFORM") == "offscreen":
         os.environ.setdefault("QT_QUICK_BACKEND", "software")
     if options.app in ("browser", "reader"):

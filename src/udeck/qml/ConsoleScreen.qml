@@ -1,6 +1,6 @@
 /*
 [INPUT]: 依赖运行模型、显示格式、指针导航层与桌面选择。
-[OUTPUT]: 提供单行表格、详情点击与随滚动刷新的退出提示。
+[OUTPUT]: 提供单行表格、焦点与补位过渡和退出提示。
 [POS]: Console 专用视图；指标更新保留代理、选择与滚动位置。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -18,6 +18,8 @@ Item {
     required property bool exitFocused
     required property string language
     required property Item hoverSurface
+    property bool reducedMotion: false
+    MotionTimings { id: motion; reducedMotion: root.reducedMotion }
     readonly property var msg: controller.messageKeys
     readonly property real appWidth: Math.max(180, width - 640)
     readonly property var widths: [appWidth, 112, 96, 144, 152, 104]
@@ -61,6 +63,11 @@ Item {
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         ScrollBar.vertical: ScrollBar { palette: root.colors.controls; policy: ScrollBar.AsNeeded; interactive: false }
+        FocusFrame {
+            objectName: "consoleFocus"; parent: list.contentItem
+            target: list.currentItem; active: root.contentFocused && root.visible
+            accent: root.colors.accent; reducedMotion: root.reducedMotion; radius: 3
+        }
         delegate: Rectangle {
             id: row
             required property int index
@@ -74,10 +81,30 @@ Item {
             required property bool canQuit
             required property bool canForce
             readonly property bool selected: root.index === index && root.contentFocused
+            property real visualY: 0
+            property bool positioned: false
+            function positionRow() {
+                if (!positioned) { visualY = y; return }
+                rowMove.stop()
+                if (root.reducedMotion || !root.visible) visualY = y
+                else { rowMove.to = y; rowMove.start() }
+            }
+            onYChanged: positionRow()
+            Component.onCompleted: Qt.callLater(function() { visualY = y; positioned = true })
+            transform: Translate { y: row.visualY - row.y }
+            NumberAnimation {
+                id: rowMove; target: row; property: "visualY"
+                duration: motion.reflow; easing.type: Easing.OutCubic
+            }
+            Connections {
+                target: root
+                function onReducedMotionChanged() { if (root.reducedMotion) row.positionRow() }
+                function onVisibleChanged() { if (!root.visible) row.positionRow() }
+            }
             objectName: "consoleRow-" + applicationKey
+            ListView.onRemove: row.enabled = false
             width: list.width; height: 48
             color: selected ? root.colors.selected : "transparent"
-            Rectangle { width: 3; height: parent.height; color: row.selected ? root.colors.accent : "transparent" }
             Rectangle { anchors.bottom: parent.bottom; x: 16; width: parent.width - 32; height: 1; color: root.colors.divider }
             MouseArea {
                 anchors.fill: parent; cursorShape: Qt.BlankCursor
@@ -108,12 +135,13 @@ Item {
                     verticalAlignment: Text.AlignVCenter
                 }
                 Repeater {
-                    model: [format.percent(row.cpuPercent), format.memory(row.memoryBytes, "MiB"), format.uptime(row.uptimeSeconds)]
+                    model: 3
                     Text {
-                        required property string modelData
                         required property int index
                         width: root.widths[index + 2]; height: 48; rightPadding: 12
-                        text: modelData; textFormat: Text.PlainText
+                        text: index === 0 ? format.percent(row.cpuPercent)
+                            : index === 1 ? format.memory(row.memoryBytes, "MiB") : format.uptime(row.uptimeSeconds)
+                        textFormat: Text.PlainText
                         font.family: root.fontFamily; font.pixelSize: 22
                         font.features: { "tnum": 1 }
                         color: root.colors.text; horizontalAlignment: Text.AlignRight; verticalAlignment: Text.AlignVCenter
@@ -125,7 +153,7 @@ Item {
                         id: exitButton
                         // 显式依赖滚动和布局，静止指针随列表更新。
                         readonly property point hoverPosition: Qt.point(list.pointerPosition.x - rowContent.x - parent.x - x,
-                            list.pointerPosition.y + list.contentY - row.y - rowContent.y - parent.y - y)
+                            list.pointerPosition.y + list.contentY - row.visualY - rowContent.y - parent.y - y)
                         readonly property bool hovered: root.visible && root.contentFocused
                             && list.pointerPosition.x >= 0 && list.pointerPosition.x < list.width
                             && list.pointerPosition.y >= 0 && list.pointerPosition.y < list.height

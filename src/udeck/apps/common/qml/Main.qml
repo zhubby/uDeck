@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+/*
+[INPUT]: 依赖应用控制器、增量库模型和共享桌面组件。
+[OUTPUT]: 提供共享窗口、焦点过渡与关闭期间隔离的菜单。
+[POS]: 五类应用的窗口外壳，内容视图由各应用加载。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+*/
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -28,6 +34,10 @@ Window {
     property string menuStamp: ""
     property string gameInfoStamp: ""
     property string focusedInputId: ""
+    property var retainedMenu: ({})
+    property string renderedContent: ""
+    property string renderedNavigation: ""
+    Shared.MotionTimings { id: motion; reducedMotion: controller.reducedMotion }
     property bool allowClose: false
     property bool videoFull: state.app === "video" && state.page === "player"
     property color ink: window.colors.text
@@ -36,8 +46,15 @@ Window {
     function tr(source) { return controller.translate(source, state.language) }
     function time(value) { const s=Math.max(0,Math.floor(value||0));return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0") }
     function syncModels() {
+        if (state.menu.title) retainedMenu = state.menu
+        const navigation = [state.page, state.tab, state.selected].join(":")
+        if (modal.closing && renderedNavigation !== navigation) modal.finish()
+        renderedNavigation = navigation
+        const page = [state.page, state.tab, state.folder, state.platform || ""].join(":")
+        if (renderedContent && renderedContent !== page) content.replay()
+        renderedContent = page
         const tabs = JSON.stringify(state.tabs)
-        const options = state.menu.options || []
+        const options = (state.menu.title ? state.menu : retainedMenu).options || []
         const menu = JSON.stringify(options)
         const gameInfo = JSON.stringify(state.selectedGameInfo || [])
         if (tabs !== tabsStamp) { tabsStamp=tabs; tabModel=state.tabs }
@@ -119,8 +136,11 @@ Window {
                 }
             }
         }
-        Item {
+        Shared.MotionItem {
             id: content
+            objectName: "appPageContent"
+            reducedMotion: controller.reducedMotion
+            enterX: 6; enterDuration: motion.page
             Layout.fillWidth: true; Layout.fillHeight: true; clip: true
             RowLayout {
                 anchors.fill: parent; anchors.margins: 28; spacing: 28
@@ -144,6 +164,12 @@ Window {
                         onColumnsChanged: controller.setColumns(columns)
                         onCurrentIndexChanged: if(currentIndex>=0) Qt.callLater(function(){cards.positionViewAtIndex(cards.currentIndex,GridView.Contain)})
                         ScrollBar.vertical: ScrollBar { palette: window.colors.controls; }
+                        Shared.FocusFrame {
+                            objectName: "appCardFocus"; parent: cards.contentItem
+                            target: cards.currentItem
+                            active: cards.visible && !window.state.menu.title
+                            accent: window.accent; reducedMotion: controller.reducedMotion
+                        }
                         delegate: Rectangle {
                             id: card
                             required property var entry
@@ -152,9 +178,8 @@ Window {
                             width: cards.cellWidth-12; height: cards.cellHeight-12
                             radius: 10
                             color: modelData.id===window.state.selected ? window.colors.selected : window.colors.panel
-                            border.width: modelData.id===window.state.selected ? 3 : 1
-                            border.color: modelData.id===window.state.selected ? window.accent : window.colors.border
-                            Artwork { fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-(window.state.app==="emulator"?cardTitleMetrics.height+cardSubtitleMetrics.height+32:80); cover: card.modelData.cover||""; fallbackIcon: window.state.app === "emulator" ? controller.platformIcon(card.modelData.platform || "") : ""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" || card.modelData.kind === "playlist" }
+                            border.width: 1; border.color: window.colors.border
+                            Artwork { objectName: "cardArtwork"; fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-(window.state.app==="emulator"?cardTitleMetrics.height+cardSubtitleMetrics.height+32:80); cover: card.modelData.cover||""; fallbackIcon: window.state.app === "emulator" ? controller.platformIcon(card.modelData.platform || "") : ""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" || card.modelData.kind === "playlist" }
                             Column {
                                 x: cards.listMode ? 80 : 12; y: cards.listMode ? 12 : art.y+art.height+8
                                 width: parent.width-x-12; spacing: 4
@@ -302,16 +327,20 @@ Window {
             }
         }
     }
-    Rectangle {
-        visible: !!(window.state.error||window.state.saveError||window.state.notice||(window.state.sourceErrors||[]).length)
+    Shared.ToastNotice {
+        objectName: "appToast"
+        colors: window.colors; fontFamily: window.fontFamily
+        reducedMotion: controller.reducedMotion
+        message: window.state.error||window.state.saveError||window.state.notice||(window.state.sourceErrors||[]).join("\n")
         anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom; anchors.bottomMargin: 76
-        width: Math.min(parent.width-60,1000); height: toast.implicitHeight+24; radius: 8
-        color: window.state.error?window.colors.errorSurface:window.colors.toast; border.color: window.colors.toastBorder; z: 5
-        Text { font.family: window.fontFamily; id: toast; anchors.fill: parent; anchors.margins: 12; text: window.state.error||window.state.saveError||window.state.notice||(window.state.sourceErrors||[]).join("\n"); wrapMode: Text.Wrap; color: window.state.error && window.colors.dark ? window.colors.error : window.ink; font.pixelSize: 20; maximumLineCount: 4; elide: Text.ElideRight }
+        maximumWidth: Math.min(parent.width-60,1000); fontSize: 20; z: 5
+        surfaceColor: window.state.error?window.colors.errorSurface:window.colors.toast
+        textColor: window.state.error && window.colors.dark ? window.colors.error : window.ink
     }
     Item {
         id: keys; objectName: "appKeys"; anchors.fill: parent; focus: true
         Keys.onPressed: function(event) {
+            if (modal.closing) modal.finish()
             const map={};map[Qt.Key_Up]="up";map[Qt.Key_Down]="down";map[Qt.Key_Left]="left";map[Qt.Key_Right]="right";map[Qt.Key_Return]="accept";map[Qt.Key_Enter]="accept";map[Qt.Key_Escape]="back";map[Qt.Key_PageUp]="previous-tab";map[Qt.Key_PageDown]="next-tab";map[Qt.Key_F2]="context";map[Qt.Key_F3]="quick-settings"
             if(map[event.key]) {
                 if (!event.isAutoRepeat || ["up", "down", "left", "right"].indexOf(map[event.key]) >= 0)
@@ -320,19 +349,26 @@ Window {
             }
         }
     }
-    Rectangle {
-        anchors.fill: parent; visible: !!window.state.menu.title; color: window.colors.scrim; z: 10
-        MouseArea { anchors.fill: parent }
+    Shared.MotionItem {
+        id: modal; objectName: "applicationModal"
+        property var menu: window.state.menu.title ? window.state.menu : window.retainedMenu
+        anchors.fill: parent; shown: !!window.state.menu.title; z: 10
+        reducedMotion: controller.reducedMotion
+        enterDuration: motion.enter; leaveDuration: motion.leave
+        Rectangle { anchors.fill: parent; color: window.colors.scrim }
+        MouseArea { anchors.fill: parent; acceptedButtons: Qt.AllButtons; onWheel: function(wheel) { wheel.accepted = true } }
         Rectangle {
+            enabled: modal.shown
+            transform: Translate { y: 8 * (1 - modal.opacity) }
             anchors.centerIn: parent; width: Math.min(parent.width-72,780)
             height: Math.min(parent.height-64,modalContents.implicitHeight+48)
             radius: 16; color: window.colors.dialog; border.color: window.colors.dialogBorder
             ColumnLayout {
                 id: modalContents; anchors.fill: parent; anchors.margins: 24; spacing: 16
-                Text { font.family: window.fontFamily; Layout.fillWidth: true; text: window.state.menu.title||""; font.pixelSize: 30; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
-                Text { font.family: window.fontFamily; objectName: "menuBody"; Layout.fillWidth: true; visible: !!window.state.menu.body; text: window.state.menu.body||""; textFormat: Text.PlainText; font.pixelSize: 21; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: window.state.menu.bodyLines || 5; elide: Text.ElideRight }
+                Text { font.family: window.fontFamily; Layout.fillWidth: true; text: modal.menu.title||""; font.pixelSize: 30; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
+                Text { font.family: window.fontFamily; objectName: "menuBody"; Layout.fillWidth: true; visible: !!modal.menu.body; text: modal.menu.body||""; textFormat: Text.PlainText; font.pixelSize: 21; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: modal.menu.bodyLines || 5; elide: Text.ElideRight }
                 TextField { font.family: window.fontFamily; palette: window.colors.controls;
-                    id: draft; objectName: "menuDraft"; visible: !!window.state.menu.input; Layout.fillWidth: true
+                    id: draft; objectName: "menuDraft"; visible: !!modal.menu.input; Layout.fillWidth: true
                     property QtObject inputController: controller
                     font.pixelSize: 23; color: window.ink; selectByMouse: true
                     background: Rectangle { color: window.colors.input; radius: 8; border.width: 2; border.color: window.accent }
@@ -356,17 +392,22 @@ Window {
                 ListView {
                     id: options; objectName: "menuList"; Layout.fillWidth: true; Layout.fillHeight: true
                     Layout.preferredHeight: contentHeight; Layout.minimumHeight: 0; clip: true; spacing: 5
-                    model: window.menuModel; currentIndex: window.state.menu.index||0
+                    model: window.menuModel; currentIndex: modal.menu.index||0
                     onCurrentIndexChanged: Qt.callLater(function(){options.positionViewAtIndex(options.currentIndex,ListView.Contain)})
                     ScrollBar.vertical: ScrollBar { palette: window.colors.controls;}
+                    Shared.FocusFrame {
+                        objectName: "appMenuFocus"; parent: options.contentItem
+                        target: options.currentItem; active: modal.shown
+                        accent: window.accent; reducedMotion: controller.reducedMotion; radius: 8
+                    }
                     delegate: Rectangle {
                         id: menuOption
                         required property var modelData
                         required property int index
-                        property bool singleLine: !!window.state.menu.settings
+                        property bool singleLine: !!modal.menu.settings
                         width: options.width; height: singleLine ? settingsRow.implicitHeight : Math.max(60,optionContents.implicitHeight+22); radius: 8
                         color: index===options.currentIndex?window.colors.selected:"transparent"
-                        border.width: 3; border.color: index===options.currentIndex?window.accent:"transparent"
+                        border.width: 0
                         opacity: !singleLine && modelData.disabled?0.45:1
                         Shared.SettingsRow {
                             id: settingsRow
@@ -374,6 +415,7 @@ Window {
                             option: menuOption.modelData
                             colors: window.colors; fontFamily: window.fontFamily
                             selected: menuOption.index === options.currentIndex
+                            border.width: 0
                             onLabel: window.tr(msg.ON); offLabel: window.tr(msg.OFF)
                             onActivated: controller.choose(menuOption.index)
                         }

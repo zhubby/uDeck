@@ -1,3 +1,9 @@
+/*
+[INPUT]: 依赖主页条目、启动身份、主题和减少动画开关。
+[OUTPUT]: 提供主页卡片、单一焦点与即时启动反馈。
+[POS]: 桌面主页视图；控制器负责选择和启动。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+*/
 pragma ComponentBehavior: Bound
 
 import QtQuick
@@ -7,9 +13,12 @@ Item {
     required property var items
     required property var colors
     required property string fontFamily
+    required property string language
     property int index: 0
     property bool contentFocused: true
     property bool reducedMotion: false
+    property var launchState: ({})
+    MotionTimings { id: motion; reducedMotion: screen.reducedMotion }
     readonly property int tileWidth: 180
     readonly property var selectedItem: items[index] || ({})
 
@@ -41,6 +50,12 @@ Item {
         boundsBehavior: Flickable.StopAtBounds
         clip: true
         cacheBuffer: 1200
+        FocusFrame {
+            objectName: "homeFocus"; parent: shortcuts.contentItem
+            target: shortcuts.currentItem; active: screen.contentFocused && screen.visible
+            accent: screen.colors.accent; reducedMotion: screen.reducedMotion
+            topInset: 12; bottomInset: 12; radius: 16
+        }
 
         delegate: Item {
             id: tile
@@ -48,6 +63,7 @@ Item {
             required property int index
             objectName: "homeTile-" + index
             property bool selected: screen.index === index && screen.contentFocused
+            readonly property bool launchPending: !!screen.launchState.pending && modelData.id === screen.launchState.applicationId
             width: screen.tileWidth
             height: shortcuts.height
             Accessible.role: Accessible.Button
@@ -62,12 +78,11 @@ Item {
                 height: parent.height - 24
                 radius: 16
                 color: tile.selected ? screen.colors.selected : screen.colors.panel
-                border.width: tile.selected ? 3 : 1
-                border.color: tile.selected ? screen.colors.accent : screen.colors.border
-                scale: tile.selected ? 1.035 : 1
+                border.width: 1; border.color: screen.colors.border
+                scale: tile.launchPending ? 0.98 : 1
                 opacity: tile.modelData.disabled ? 0.5 : 1
                 Behavior on scale {
-                    NumberAnimation { duration: screen.reducedMotion ? 0 : 140; easing.type: Easing.OutCubic }
+                    NumberAnimation { duration: motion.press; easing.type: Easing.OutCubic }
                 }
 
                 Column {
@@ -127,7 +142,9 @@ Item {
         y: shortcuts.height + 60
         width: parent.width - 48
         textFormat: Text.PlainText
-        text: screen.selectedItem.reason || screen.selectedItem.subtitle || ""
+        text: screen.launchState.pending && screen.selectedItem.id === screen.launchState.applicationId
+            ? controller.translate(controller.messageKeys.OPENING_APPLICATION, screen.language)
+            : screen.selectedItem.reason || screen.selectedItem.subtitle || ""
         font.family: screen.fontFamily
         font.pixelSize: 22
         color: screen.colors.muted

@@ -6,8 +6,12 @@
 test_runtime_console_processes.py: proc 快照、资源聚合和 pidfd 终止身份回归。
 test_runtime_console_apps.py: 轻量应用状态与原生存档退出回归。
 test_runtime_console.py: 身份查询失败、应用聚合、详情和有序退出回归。
-runtime_console_qml_probe.py: 单行尺寸、滚动悬停与详情鼠标按键的 QML 探针。
+runtime_console_qml_probe.py: 指标控件复用、单行尺寸和详情输入的 QML 探针。
 test_runtime_console_qml.py: Console 详情交互、中英文与双主题尺寸回归。
+motion_qml_probe.py: 焦点改向、弹窗关闭隔离和启动反馈的真实 QML 探针。
+test_motion_qml.py: 双主题与减少动画的桌面短过渡回归。
+motion_extended_probe.py: 补位、Toast、封面与共享应用输入的真实 Qt 探针。
+test_motion_extended_qml.py: 完整动效的双主题与减少动画回归。
 
 app_forwarding_probe.py: 独立进程探针，验证 app_forwarding 流程。
 app_lazy_surface_probe.py: 独立进程探针，验证 app_lazy_surface 流程。
@@ -135,7 +139,8 @@ test_preflight.py: pytest 回归入口，验证 preflight 边界。
 test_qml.py: pytest 回归入口，验证 qml 边界。
 test_reader_layout.py: pytest 回归入口，验证 reader_layout 边界。
 test_reader_mobi.py: pytest 回归入口，验证 reader_mobi 边界。
-test_release.py: pytest 回归入口，验证 release 边界。
+test_release.py: 发布版本、Debian Python 载荷完整性与安装入口回归。
+test_qml_cache.py: 相同时间戳的源码更新、缓存复用和环境覆盖回归。
 test_safety.py: pytest 回归入口，验证 safety 边界。
 test_samba_install_guard.py: pytest 回归入口，验证 samba_install_guard 边界。
 test_screenshot.py: pytest 回归入口，验证 screenshot 边界。

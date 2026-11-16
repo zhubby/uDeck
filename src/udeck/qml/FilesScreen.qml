@@ -1,3 +1,9 @@
+/*
+[INPUT]: 依赖文件模型、目录快照、主题与减少动画开关。
+[OUTPUT]: 提供文件网格、路径焦点与任务进度。
+[POS]: 桌面文件视图；文件操作与选择由控制器决策。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+*/
 import QtQuick
 import QtQuick.Controls
 
@@ -40,14 +46,20 @@ Item {
             x: 8; width: parent.width - 16; height: parent.height
             orientation: ListView.Horizontal; spacing: 3; clip: true
             model: root.state.breadcrumbs
+            currentIndex: root.state.breadcrumbIndex
             interactive: false; keyNavigationEnabled: false
+            FocusFrame {
+                parent: breadcrumbs.contentItem; target: breadcrumbs.currentItem
+                active: root.visible && root.contentFocused && root.state.section === "breadcrumbs"
+                accent: root.colors.accent; reducedMotion: root.reducedMotion; radius: 6
+            }
             delegate: Rectangle {
                 required property var modelData
                 required property int index
                 readonly property bool focused: root.contentFocused && root.state.section === "breadcrumbs" && root.state.breadcrumbIndex === index
                 width: Math.min(190, breadcrumbLabel.implicitWidth + 32); height: 40; radius: 6
                 color: focused ? root.colors.selected : "transparent"
-                border.width: focused ? 2 : 0; border.color: root.colors.accent
+                border.width: 0
                 Text {
                     id: breadcrumbLabel
                     textFormat: Text.PlainText; anchors.centerIn: parent; width: Math.min(158, implicitWidth)
@@ -72,6 +84,12 @@ Item {
         boundsBehavior: Flickable.StopAtBounds
         ScrollBar.vertical: ScrollBar { palette: root.colors.controls; policy: ScrollBar.AsNeeded; interactive: false }
         onHeightChanged: Qt.callLater(root.positionSelection)
+        FocusFrame {
+            objectName: "fileFocus"; parent: fileGrid.contentItem; target: fileGrid.currentItem
+            active: root.visible && root.contentFocused && root.state.section === "list"
+            accent: root.colors.accent; reducedMotion: root.reducedMotion
+            leftInset: 6; rightInset: 6; topInset: 4; bottomInset: 4; radius: 12
+        }
         delegate: Item {
             required property var entry
             required property int index
@@ -84,8 +102,7 @@ Item {
                 readonly property real iconSize: Math.max(44, Math.min(72, fileGrid.cellHeight - 88))
                 x: 6; y: 4; width: parent.width - 12; height: parent.height - 8; radius: 12
                 color: current || entry.marked ? root.colors.selected : "transparent"
-                border.width: focused ? 3 : entry.marked ? 1 : 0
-                border.color: focused ? root.colors.accent : root.colors.border
+                border.width: entry.marked ? 1 : 0; border.color: root.colors.border
                 opacity: entry.cut ? 0.6 : 1
                 Image {
                     id: fileIcon

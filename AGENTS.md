@@ -9,6 +9,7 @@ src/udeck/emulator_saves/ - 原生存档、历史快照与云同步。
 src/udeck/runtime_console/ - 应用运行统计、进程身份与退出编排。
 tests/ - pytest 回归与独立进程探针。见该目录 AGENTS.md。
 docs/ - 设计、运行说明与验证记录。
+docs/motion/ - 桌面短过渡与输入连续性验证。
 packaging/ - 会话入口、服务与运行包装。
 debian/ - Debian 单包构建与安装脚本。
 tools/ - 开发、构建与设备诊断工具。
@@ -20,6 +21,7 @@ vendor/ - 随包集成的上游组件。
 pyproject.toml - Python 依赖、入口、pytest 与 Ruff 配置。
 uv.lock - 开发依赖锁定版本；使用 uv 0.13.7。
 .python-version - 开发解释器版本 3.13.18。
+src/udeck/qml_cache.py - 按源码内容隔离 Qt 编译缓存。
 </config>
 
 沿用已有模块和测试布局。只为本次触及的边界补充文档。

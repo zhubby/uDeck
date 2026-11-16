@@ -1,5 +1,5 @@
 """
-[INPUT]: 依赖终端控制器、Qt Quick 与会话 D-Bus。
+[INPUT]: 依赖终端控制器、Qt Quick、源码缓存标识与会话 D-Bus。
 [OUTPUT]: 提供多窗口协调、最近窗口激活和整应用退出请求。
 [POS]: Terminal 独立进程入口；逐窗口保留会话关闭确认。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
@@ -24,6 +24,7 @@ from ..core import ConfigStore
 from ..i18n import Msg, render, tr
 from ..icons import IconProvider
 from ..performance import StartupTrace
+from ..qml_cache import configure_qml_cache
 from ..sounds import InterfaceSounds
 from . import APP_ID, INTERFACE, OBJECT_PATH, __version__
 from .controller import TerminalController
@@ -232,6 +233,7 @@ def main(argv=None, *, request=None, options=None, trace=None):
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
     if os.environ.get("QT_QPA_PLATFORM") == "offscreen":
         os.environ.setdefault("QT_QUICK_BACKEND", "software")
+    configure_qml_cache()
     application = QApplication(["udeck-terminal"])
     trace.mark('qtReady')
     application.setQuitOnLastWindowClosed(False)

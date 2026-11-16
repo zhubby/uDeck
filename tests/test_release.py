@@ -1,5 +1,13 @@
+"""
+[INPUT]: 依赖发布构建器、Debian 安装清单与源码目录。
+[OUTPUT]: 验证版本一致性、Python 载荷完整性和安装入口。
+[POS]: 发布边界回归；包生命周期由独立 Debian 探针验证。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import importlib.util
 import os
+import shlex
 import shutil
 import subprocess
 from pathlib import Path
@@ -7,6 +15,25 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_debian_payload_contains_every_python_module_at_its_import_path():
+    installed = set()
+    for line in (ROOT / "debian/udeck.install").read_text().splitlines():
+        fields = shlex.split(line, comments=True)
+        if not fields:
+            continue
+        *patterns, destination = fields
+        for pattern in patterns:
+            for source in ROOT.glob(pattern):
+                if source.is_dir():
+                    installed.update(Path(destination) / source.name / path.relative_to(source)
+                                     for path in source.rglob("*.py"))
+                elif source.suffix == ".py":
+                    installed.add(Path(destination) / source.name)
+    expected = {Path("usr/lib/python3/dist-packages") / path.relative_to(ROOT / "src")
+                for path in (ROOT / "src/udeck").rglob("*.py")}
+    assert not expected - installed, sorted(str(path) for path in expected - installed)
 
 
 def release_module():
