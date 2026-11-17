@@ -51,7 +51,7 @@ media-takeover-2026-11-13.md: 音乐与视频播放抢占（0.2.9）。
 multi-wifi-2026-11-06.md: uDeck 0.1.5 多无线网卡。
 power-audio-2026-11-07.md: 电池功率与蓝牙音频管理交付记录。
 running-icons-2026-11-12.md: Running 与首页的内置应用图标统一。
-release-1.0.0.md: 1.0.0 发布约定、回归修复和 arm64 容器验证记录。
+release-1.0.0.md: 1.0.0 发布、arm64 验证、实机卸载重装与 VS Code 清理记录。
 screenshots/: 界面验证截图。
 settings-2026-11-08.md: 时区设置与键位测试交付记录。
 settings-icons-2026-11-11.md: 系统与应用设置图标。
