@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+/*
+[INPUT]: 依赖视频控制器、共享主题和播放状态。
+[OUTPUT]: 显示视频、字幕和控件；报告窗口坐标中的指针活动。
+[POS]: 视频应用的播放视图；页面过渡不计入指针活动。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+*/
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -20,10 +26,10 @@ Item {
         onActiveChanged: if (!active) controller.pointerPressed(false)
         sourceComponent: Item {
             HoverHandler {
-                property point previousPosition: Qt.point(-1, -1)
+                property point previousScenePosition: Qt.point(-1, -1)
                 onPointChanged: {
-                    if (point.position.x !== previousPosition.x || point.position.y !== previousPosition.y) {
-                        previousPosition = point.position
+                    if (point.scenePosition.x !== previousScenePosition.x || point.scenePosition.y !== previousScenePosition.y) {
+                        previousScenePosition = point.scenePosition
                         if (hovered) controller.pointerActivity()
                     }
                 }
