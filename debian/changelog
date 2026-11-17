@@ -1,3 +1,13 @@
+udeck (1.0.0) unstable; urgency=medium
+
+  * Publish the complete button-first desktop suite for uConsole CM4.
+  * Include the runtime Console, application details and ordered termination.
+  * Add short interface transitions and preserve continuous button input.
+  * Build verified arm64 packages only when a GitHub Release is published.
+  * Version release artifacts and verify package metadata before publication.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Tue, 17 Nov 2026 10:00:00 +0800
+
 udeck (0.2.24) unstable; urgency=medium
 
   * Hide the button calibration status on the Home page.

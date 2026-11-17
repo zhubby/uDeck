@@ -120,12 +120,16 @@ docker run --rm --platform linux/arm64 -v "$PWD:/workspace" \
 
 uv 0.13.7 与 Python 3.13.18 仅用于开发及 Release 宿主机校验；源码使用者可通过 `uv sync --locked --extra dev` 重建开发环境。Debian 构建与测试仍由系统 Python、APT 的 Qt 6.8 和原生库完成，锁文件不固定 APT 依赖；安装后的设备无需 uv 或 uv 管理的 Python。
 
+版本只定义在 `src/udeck/__init__.py` 的 `__version__`。桌面、独立应用和 setuptools 共用它。稳定版本采用无前导零的 `X.Y.Z`；Git 标签为 `vX.Y.Z`，Debian changelog 首条版本为 `X.Y.Z`。增加不兼容行为时提升主版本，增加兼容功能时提升次版本，修复问题时提升补丁版本。
+
 GitHub Actions **只监听 `release: published`**，不监听 push、pull_request、tag push 或 workflow_dispatch。发布步骤：
 
 1. 同步源码版本与 `debian/changelog`，提交构建所需文件。
 2. 创建匹配的 `vX.Y.Z` 标签并发布 GitHub Release；草稿保存不触发构建。
 3. Action 使用原生 arm64 runner，校验标签、源码及 changelog 后，安装固定 uv，执行 `uv lock --check`、`uv sync --locked --extra dev` 和 Ruff；任一失败即停止。随后在 Debian 13 容器中构建并运行软件包安装/卸载/重装与默认终端检查。
-4. 所有检查通过后才将产物附加到该 Release。重新运行同一次发布会替换同名附件。
+4. 构建器核对 deb 内部的包名 `udeck`、版本与架构 `arm64`。所有检查通过后，保存为版本化 Actions 制品 `udeck-X.Y.Z-arm64`，并将相同文件附加到该 Release。重新运行同一次发布会替换同名制品和附件。
+
+例如 `v1.0.0` 发布 `udeck_1.0.0_arm64.deb` 与 `udeck_1.0.0_arm64.tar.xz`。`build-manifest.json` 记录发布标签、源码提交、工作区状态、包内元数据与包哈希；`SHA256SUMS` 覆盖全部发布文件。安装器和元数据文件沿用固定名称，其版本由所属 Release、制品名称与构建清单确定。
 
 普通 tag push 只创建标签，不构建；从草稿转为已发布 Release 才构建。稳定版本格式为 `vX.Y.Z`，版本不匹配时停止。Release 构建禁止 `nocheck` 跳过测试。默认分支保留该工作流，发布标签也必须包含该工作流及打包文件。
 

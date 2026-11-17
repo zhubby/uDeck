@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Build the complete arm64 Debian suite and matching source in an isolated directory."""
+"""
+[INPUT]: 依赖唯一源码版本、Debian 工具链、安装资源和 Git 身份。
+[OUTPUT]: 校验稳定版本与包元数据，输出 deb、源码、安装套件和校验清单。
+[POS]: 本地和 Release 共用的 arm64 构建入口；原生测试由 debian/rules 执行。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import argparse
 import ast
@@ -11,6 +16,7 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+from email.parser import Parser
 from pathlib import Path
 
 
@@ -18,7 +24,8 @@ def release_version(root, tag=None):
     module = ast.parse((root / "src/udeck/__init__.py").read_text())
     version = next(ast.literal_eval(node.value) for node in module.body
                    if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == "__version__" for target in node.targets))
-    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+    component = r"(?:0|[1-9][0-9]*)"
+    if not isinstance(version, str) or not re.fullmatch(rf"{component}\.{component}\.{component}", version):
         raise ValueError("Release version must use the stable X.Y.Z format")
     if tag is not None and tag != "v" + version:
         raise ValueError(f"Release tag must be v{version}; received {tag!r}")
@@ -34,7 +41,18 @@ def sha256sums(directory):
     (directory / "SHA256SUMS").write_text("".join(lines))
 
 
-def assemble(root, built, output, version):
+def package_metadata(package, version):
+    control = subprocess.check_output(["dpkg-deb", "--field", str(package)], text=True)
+    fields = Parser().parsestr(control)
+    for field, expected in {"Package": "udeck", "Version": version, "Architecture": "arm64"}.items():
+        if fields.get(field) != expected:
+            raise ValueError(f"{package.name}: {field} must be {expected!r}; received {fields.get(field)!r}")
+    return {"file": package.name, "package": fields["Package"], "version": fields["Version"],
+            "architecture": fields["Architecture"], "control": control,
+            "sha256": hashlib.sha256(package.read_bytes()).hexdigest()}
+
+
+def assemble(root, built, output, version, tag=None):
     binaries = [f"udeck_{version}_arm64.deb"]
     expected = list(binaries)
     expected += [f"udeck_{version}.{suffix}" for suffix in ("dsc", "tar.xz")]
@@ -57,12 +75,8 @@ def assemble(root, built, output, version):
     git = subprocess.run([*git_arguments, "rev-parse", "HEAD"], cwd=root, text=True, capture_output=True, check=False)
     revision = git.stdout.strip() if git.returncode == 0 else None
     dirty = bool(subprocess.check_output([*git_arguments, "status", "--porcelain"], cwd=root, text=True)) if revision else None
-    packages = []
-    for name in binaries:
-        metadata = subprocess.check_output(["dpkg-deb", "--field", str(output / name)], text=True)
-        packages.append({"file": name, "control": metadata,
-                         "sha256": hashlib.sha256((output / name).read_bytes()).hexdigest()})
-    manifest = {"version": version, "gitRevision": revision, "gitDirty": dirty, "architecture": "arm64",
+    packages = [package_metadata(output / name, version) for name in binaries]
+    manifest = {"version": version, "releaseTag": tag, "gitRevision": revision, "gitDirty": dirty, "architecture": "arm64",
                 "target": "uConsole CM4 v3.1 / Debian 13 (trixie)", "packages": packages,
                 "physicalAcceptance": "Not established by this build; see INSTALL.md"}
     (output / "build-manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
@@ -102,10 +116,10 @@ def main(argv=None):
         ignored = shutil.ignore_patterns("__pycache__", "*.pyc", "._*", "*.egg-info", ".pytest_cache", ".ruff_cache")
         for name in ("src", "vendor", "packaging", "tools", "tests", "debian", "docs", ".github"):
             shutil.copytree(root / name, source / name, ignore=ignored)
-        for name in ("README.md", "pyproject.toml", "uv.lock", ".python-version", "LICENSE"):
+        for name in ("AGENTS.md", "README.md", "pyproject.toml", "uv.lock", ".python-version", "LICENSE"):
             shutil.copy2(root / name, source / name)
         subprocess.run(["dpkg-buildpackage", "--build=full", "--no-sign"], cwd=source, check=True)
-        assemble(root, built, options.output.resolve(), version)
+        assemble(root, built, options.output.resolve(), version, options.tag)
     print(options.output.resolve())
     return 0
 

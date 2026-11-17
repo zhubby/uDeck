@@ -19,7 +19,7 @@ app_settings_device_probe.py: 独立进程探针，验证 app_settings_device �
 apps_games_probe.py: 独立进程探针，验证 apps_games 流程。
 apps_ipc_probe.py: 独立进程探针，验证 apps_ipc 流程。
 apps_native_probe.py: 独立进程探针，验证 apps_native 流程。
-audio_qml_probe.py: 独立进程探针，验证 audio_qml 流程。
+audio_qml_probe.py: 等待弹窗过渡结束，校验音频菜单布局、焦点和设备选择。
 battery_qml_probe.py: 独立进程探针，验证 battery_qml 流程。
 browser_interaction_probe.py: 独立进程探针，验证 browser_interaction 流程。
 conftest.py: 共享离屏 QApplication 与 Qt 对象回收夹具。
@@ -50,7 +50,7 @@ native_terminal_probe.py: 独立进程探针，验证 native_terminal 流程。
 network_files_web_probe.py: 独立进程探针，验证 network_files_web 流程。
 reader_mobi_probe.py: 独立进程探针，验证 reader_mobi 流程。
 settings_icons_probe.py: 独立进程探针，验证 settings_icons 流程。
-settings_qml_probe.py: 独立进程探针，验证 settings_qml 流程。
+settings_qml_probe.py: 等待过渡完成，校验设置、系统信息和按键测试布局。
 sharing_qml_probe.py: 独立进程探针，验证 sharing_qml 流程。
 shortcuts_qml_probe.py: 独立进程探针，验证 shortcuts_qml 流程。
 system_device_probe.py: 独立进程探针，验证 system_device 流程。
@@ -72,7 +72,7 @@ test_apps_review.py: 应用启动、游戏暂停确认与异步取消的回归�
 test_apps_routing.py: 输入归属、会话恢复与原生命令窗口激活的回归测试。
 test_apps_saves.py: pytest 回归入口，验证 apps_saves 边界。
 test_audio.py: pytest 回归入口，验证 audio 边界。
-test_audio_qml.py: pytest 回归入口，验证 audio_qml 边界。
+test_audio_qml.py: 双尺寸、双语言和双主题的音频菜单回归。
 test_backend.py: pytest 回归入口，验证 backend 边界。
 test_battery.py: pytest 回归入口，验证 battery 边界。
 test_battery_qml.py: pytest 回归入口，验证 battery_qml 边界。
@@ -108,7 +108,7 @@ test_games_catalog.py: pytest 回归入口，验证 games_catalog 边界。
 test_games_management.py: pytest 回归入口，验证 games_management 边界。
 test_games_qml.py: pytest 回归入口，验证 games_qml 边界。
 test_games_regressions.py: pytest 回归入口，验证 games_regressions 边界。
-test_home.py: pytest 回归入口，验证 home 边界。
+test_home.py: 首页固定入口、Console 名称与焦点恢复回归。
 test_home_qml.py: pytest 回归入口，验证 home_qml 边界。
 test_hotspot.py: pytest 回归入口，验证 hotspot 边界。
 test_hotspot_qml.py: pytest 回归入口，验证 hotspot_qml 边界。
@@ -139,7 +139,7 @@ test_preflight.py: pytest 回归入口，验证 preflight 边界。
 test_qml.py: pytest 回归入口，验证 qml 边界。
 test_reader_layout.py: pytest 回归入口，验证 reader_layout 边界。
 test_reader_mobi.py: pytest 回归入口，验证 reader_mobi 边界。
-test_release.py: 发布版本、Debian Python 载荷完整性与安装入口回归。
+test_release.py: 稳定版本、包元数据、Python 载荷与安装入口回归。
 test_qml_cache.py: 相同时间戳的源码更新、缓存复用和环境覆盖回归。
 test_safety.py: pytest 回归入口，验证 safety 边界。
 test_samba_install_guard.py: pytest 回归入口，验证 samba_install_guard 边界。

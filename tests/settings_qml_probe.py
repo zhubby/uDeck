@@ -1,4 +1,9 @@
-"""Render settings and exercise keyboard edges through the real QQuickWindow."""
+"""
+[INPUT]: 依赖模拟设置、桌面 QML 和真实 Qt 键盘事件。
+[OUTPUT]: 等待弹窗过渡结束，校验设置布局、滚动和按键边沿。
+[POS]: 设置界面的独立进程探针；不更改真实系统设置。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import argparse
 import json
@@ -8,7 +13,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from PySide6.QtCore import QDateTime, QEvent, Qt, QUrl
+from PySide6.QtCore import QDateTime, QEvent, QObject, Qt, QUrl
 from PySide6.QtGui import QGuiApplication, QKeyEvent
 from PySide6.QtQml import QQmlApplicationEngine, QQmlEngine, QQmlExpression
 from PySide6.QtTest import QTest
@@ -90,6 +95,13 @@ def run():
 
     def capture(name):
         QTest.qWait(150)
+        if controller.modal:
+            shade = window.findChild(QObject, "modalShade")
+            assert shade is not None
+            deadline = time.monotonic() + 2
+            while shade.property("opacity") < 1 and time.monotonic() < deadline:
+                QTest.qWait(20)
+            assert shade.property("shown") and shade.property("opacity") == 1, "Settings dialog did not finish opening"
         # Wayland may defer a positioner's polish until the next rendered frame.
         # Grab that frame before inspecting geometry so both describe the same UI.
         image = window.grabWindow()

@@ -2,6 +2,7 @@
 Python 3.13.18 + PySide6 6.8.3 + Qt Quick + Debian 13 + labwc
 
 <directory>
+.github/ - 仅在 Release 发布时构建和分发 arm64 制品。
 src/udeck/ - 桌面、系统接口与应用入口。
 src/udeck/apps/ - 共享应用框架与六类独立应用。
 src/udeck/apps/emulator/ - 游戏库、RetroArch 与存档编排。见该目录 AGENTS.md。
@@ -19,6 +20,7 @@ vendor/ - 随包集成的上游组件。
 </directory>
 
 <config>
+src/udeck/__init__.py - 唯一版本源；标签和 Debian 版本必须一致。
 pyproject.toml - Python 依赖、入口、pytest 与 Ruff 配置。
 README.md - 英文项目概览、实机截图与安装入口。
 uv.lock - 开发依赖锁定版本；使用 uv 0.13.7。

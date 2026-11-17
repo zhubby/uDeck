@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖音频 QML 探针和隔离截图目录。
+[OUTPUT]: 校验双尺寸、双语言和双主题的七类音频菜单。
+[POS]: 音频界面回归入口；布局断言在过渡结束后执行。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 import os
 import subprocess

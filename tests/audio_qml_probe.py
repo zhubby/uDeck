@@ -1,12 +1,18 @@
-"""Exercise Bluetooth audio routing menus without changing real audio devices."""
+"""
+[INPUT]: 依赖模拟音频状态、桌面 QML 和 Qt 事件循环。
+[OUTPUT]: 在弹窗过渡结束后校验音频菜单布局、焦点和设备选择。
+[POS]: 音频界面回归的独立进程探针；不更改真实音频设备。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import argparse
 import json
 import tempfile
+import time
 from copy import deepcopy
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QUrl
+from PySide6.QtCore import QObject, Qt, QUrl
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine, QQmlEngine, QQmlExpression
 from PySide6.QtTest import QTest
@@ -52,7 +58,13 @@ def run():
         controller.chooseModal(next(i for i, option in enumerate(controller.modal["options"]) if option.get("id") == identifier))
 
     def capture(name):
-        QTest.qWait(100)
+        QTest.qWait(20)
+        shade = window.findChild(QObject, "modalShade")
+        assert shade is not None
+        deadline = time.monotonic() + 2
+        while shade.property("opacity") < 1 and time.monotonic() < deadline:
+            QTest.qWait(20)
+        assert shade.property("shown") and shade.property("opacity") == 1, "Audio dialog did not finish opening"
         expression = QQmlExpression(QQmlEngine.contextForObject(window), window, """
             JSON.stringify((function() {
                 const result = {texts: []}

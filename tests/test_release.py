@@ -1,10 +1,11 @@
 """
 [INPUT]: 依赖发布构建器、Debian 安装清单与源码目录。
-[OUTPUT]: 验证版本一致性、Python 载荷完整性和安装入口。
+[OUTPUT]: 验证版本一致性、包元数据、Python 载荷和安装入口。
 [POS]: 发布边界回归；包生命周期由独立 Debian 探针验证。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
+import hashlib
 import importlib.util
 import os
 import shlex
@@ -70,6 +71,38 @@ def test_stale_debian_changelog_is_rejected_before_build(source):
     (source / "debian/changelog").write_text("udeck (0.2.0) unstable; urgency=medium\n")
     with pytest.raises(ValueError, match="changelog"):
         release_module().release_version(source, "v0.2.1")
+
+
+@pytest.mark.parametrize("version", ["01.2.3", "1.2", "1.0.0-rc.1", "1.0.0+build", "version"])
+def test_release_requires_a_stable_semantic_version(source, version):
+    (source / "src/udeck/__init__.py").write_text(f"__version__ = {version!r}\n")
+    with pytest.raises(ValueError, match="stable"):
+        release_module().release_version(source)
+
+
+@pytest.mark.parametrize("field,value", [("Package", "other"), ("Version", "0.2.0"), ("Architecture", "amd64")])
+def test_mislabeled_binary_is_rejected_before_publication(tmp_path, monkeypatch, field, value):
+    module = release_module()
+    fields = {"Package": "udeck", "Version": "0.2.1", "Architecture": "arm64"}
+    fields[field] = value
+    control = "".join(f"{key}: {value}\n" for key, value in fields.items())
+    monkeypatch.setattr(module.subprocess, "check_output", lambda *args, **kwargs: control)
+    package = tmp_path / "udeck_0.2.1_arm64.deb"
+    package.write_bytes(b"binary with an apparently correct filename")
+    with pytest.raises(ValueError, match=field):
+        module.package_metadata(package, "0.2.1")
+
+
+def test_manifest_package_metadata_comes_from_the_verified_binary(tmp_path, monkeypatch):
+    module = release_module()
+    control = "Package: udeck\nVersion: 0.2.1\nArchitecture: arm64\nDescription: uDeck\n desktop suite\n"
+    monkeypatch.setattr(module.subprocess, "check_output", lambda *args, **kwargs: control)
+    package = tmp_path / "udeck_0.2.1_arm64.deb"
+    package.write_bytes(b"verified binary payload")
+    metadata = module.package_metadata(package, "0.2.1")
+    assert metadata == {"file": package.name, "package": "udeck", "version": "0.2.1",
+                        "architecture": "arm64", "control": control,
+                        "sha256": hashlib.sha256(package.read_bytes()).hexdigest()}
 
 
 def test_installer_reexecutes_absolute_path_after_changing_directory(tmp_path):

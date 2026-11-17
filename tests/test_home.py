@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖桌面控制器、模拟后端和隔离偏好存储。
+[OUTPUT]: 校验首页固定入口、Console 导航名称和焦点恢复。
+[POS]: 首页控制回归；启动请求使用模拟后端或隔离替身。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 import time
 
@@ -40,7 +47,7 @@ def test_home_has_seven_fixed_shortcuts_independent_of_favorites_and_recent(cont
         "Terminal", "Music", "Video", "Reader", "Emulator", "Browser", "Settings"
     ]
     assert state["pages"] == ["home", "apps", "windows", "files"]
-    assert state["pageNames"] == ["Home", "Apps", "Running", "Files"]
+    assert state["pageNames"] == ["Home", "Apps", "Console", "Files"]
 
 
 def test_missing_apps_keep_their_home_slots_and_cannot_launch(controller, monkeypatch):
