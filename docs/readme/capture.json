@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-17",
+  "source": "grim capture of the installed uDeck session on uConsole CM4",
+  "version": "0.2.24",
+  "mock": false,
+  "resolution": [
+    1280,
+    720
+  ],
+  "images": [
+    {
+      "file": "home.png",
+      "capturedAt": "2026-11-17T01:39:55.464156+00:00",
+      "width": 1280,
+      "height": 720,
+      "sha256": "442a5fdaa10a199222a2230932eaccd9caf044f7f6a15ae94031de0b65a205dd"
+    },
+    {
+      "file": "console.png",
+      "capturedAt": "2026-11-17T01:42:01.708550+00:00",
+      "width": 1280,
+      "height": 720,
+      "sha256": "8147fb93d3ddc13f946ac3de549afedbd0aae2978ec43259f3bee7a42354d1e6"
+    },
+    {
+      "file": "emulator.png",
+      "capturedAt": "2026-11-17T01:40:02.172183+00:00",
+      "width": 1280,
+      "height": 720,
+      "sha256": "2e08ede01eada66eecab34f04285bc0d6c67e49663e754e7dc2c4feb6d6f3997"
+    }
+  ],
+  "restoration": {
+    "processesPreserved": true,
+    "preferencesPreserved": true,
+    "emulatorSelectionRestored": true,
+    "desktopPageRestored": true,
+    "foregroundRestored": true,
+    "outputPowerRestored": true
+  },
+  "qmlErrors": []
+}

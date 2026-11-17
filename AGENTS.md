@@ -10,6 +10,7 @@ src/udeck/runtime_console/ - 应用运行统计、进程身份与退出编排。
 tests/ - pytest 回归与独立进程探针。见该目录 AGENTS.md。
 docs/ - 设计、运行说明与验证记录。
 docs/motion/ - 桌面短过渡与输入连续性验证。
+docs/readme/ - 英文首页的实机截图与来源记录。
 packaging/ - 会话入口、服务与运行包装。
 debian/ - Debian 单包构建与安装脚本。
 tools/ - 开发、构建与设备诊断工具。
@@ -19,6 +20,7 @@ vendor/ - 随包集成的上游组件。
 
 <config>
 pyproject.toml - Python 依赖、入口、pytest 与 Ruff 配置。
+README.md - 英文项目概览、实机截图与安装入口。
 uv.lock - 开发依赖锁定版本；使用 uv 0.13.7。
 .python-version - 开发解释器版本 3.13.18。
 src/udeck/qml_cache.py - 按源码内容隔离 Qt 编译缓存。
