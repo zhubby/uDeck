@@ -1,7 +1,13 @@
-"""Independent sharing controls, owned by the shell rather than the Files page."""
+"""
+[INPUT]: 依赖共享服务客户端、后台执行器和桌面模态状态。
+[OUTPUT]: 提供 Web 与 SMB 菜单、独立状态快照和增量发布。
+[POS]: 桌面共享交互层；隐藏且已关闭的服务不重复查询。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
 from pathlib import Path
 
 from PySide6.QtCore import QTimer
@@ -62,10 +68,12 @@ class SharingControls:
     def _network_dirty(self, value):
         self._shares["web"]["dirty"] = value
 
-    def _network_poll(self):
+    def _network_poll(self, *, force=False):
         if not self.mock and not self._sharing_closing:
-            for protocol in self._shares:
-                self._sharing_request(protocol, "status")
+            visible = any(modal.get('source', '').startswith('sharing') for modal in self._modals)
+            for protocol, share in self._shares.items():
+                if force or visible or not share['loaded'] or share['state']['enabled']:
+                    self._sharing_request(protocol, "status")
 
     def _sharing_request(self, protocol, operation, value=None):
         share = self._shares[protocol]
@@ -79,8 +87,8 @@ class SharingControls:
         share.update(busy=True, pending=operation != "status")
         if operation != "status":
             share["error"] = ""
-        self._sharing_refresh()
-        self._publish()
+            self._sharing_refresh()
+            self._publish()
 
         def work():
             client = None
@@ -108,9 +116,10 @@ class SharingControls:
     def _sharing_result(self, message):
         protocol, operation, result, error = message
         share = self._shares[protocol]
+        previous = (share['state'], share['draft'], share['dirty'], share['pending'], share['error'])
         share.update(busy=False, pending=False)
         if result:
-            share.update(state=result, loaded=True)
+            share.update(state=deepcopy(result), loaded=True)
             if not share["dirty"] or operation != "status" and not error:
                 share["draft"] = {key: list(result[key]) if key == "networks" else result[key]
                                   for key in ("root", "duration", "networks")}
@@ -122,8 +131,10 @@ class SharingControls:
                 self.notify(error)
         elif operation != "status" or share.get("error_operation") == "status":
             share["error"] = ""
-        self._sharing_refresh()
-        self._publish()
+        current = (share['state'], share['draft'], share['dirty'], share['pending'], share['error'])
+        if current != previous:
+            self._sharing_refresh()
+            self._publish()
         queued = share.pop("queued", None)
         if queued:
             self._sharing_request(protocol, *queued)
@@ -181,7 +192,7 @@ class SharingControls:
 
     def _sharing_menu(self):
         self._menu(tr(Msg.SHARING), self._sharing_root_options(), source="sharing")
-        self._network_poll()
+        self._network_poll(force=True)
 
     def _sharing_open(self, protocol):
         source = "sharing-" + protocol

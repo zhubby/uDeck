@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖隔离 evdev 设备与 Qt 事件循环。
+[OUTPUT]: 验证物理按钮边沿、输入归属与断线重连。
+[POS]: 输入层回归；不连接真实输入设备。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import os
 import sys
 from types import SimpleNamespace
@@ -94,6 +101,39 @@ def test_foreground_status_and_button_ownership_are_released_together(stock_game
     assert status["foreground"] is False
     assert status["grabbed"] is False
     assert gamepad.device is None
+
+
+def test_repeated_foreground_keeps_device_and_held_buttons_without_status_churn(stock_gamepad):
+    gamepad, device, events = stock_gamepad
+    statuses, edges = [], []
+    gamepad.status.connect(statuses.append)
+    gamepad.button.connect(lambda action, pressed: edges.append((action, pressed)))
+    gamepad.set_foreground(True)
+    events[:] = [SimpleNamespace(type=1, code=289, value=1)]
+    gamepad._read()
+    statuses.clear()
+
+    gamepad.set_foreground(True)
+
+    assert not statuses
+    assert gamepad.device is device and gamepad.grabbed
+    assert gamepad.reconnect.isActive()
+    assert edges == [("accept", True)]
+    gamepad.set_foreground(False)
+    assert edges[-1] == ("accept", False)
+    assert not gamepad.reconnect.isActive()
+    statuses.clear()
+    gamepad.set_foreground(False)
+    assert not statuses
+
+
+def test_foreground_disconnect_still_reconnects_without_a_focus_change(stock_gamepad):
+    gamepad, device, _ = stock_gamepad
+    gamepad.set_foreground(True)
+    gamepad._close()
+    assert gamepad.device is None and gamepad.reconnect.isActive()
+    gamepad._connect()
+    assert gamepad.device is device and gamepad.grabbed
 
 
 @pytest.mark.parametrize("name", ["ClockworkPI uConsole Mouse", "ClockworkPI uConsole Keyboard"])

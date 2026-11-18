@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖隔离桌面控制器和共享状态回调。
+[OUTPUT]: 验证共享菜单、后台查询边界和重复状态去重。
+[POS]: 共享界面回归；不启动真实共享或修改系统配置。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 
 from PySide6.QtCore import QCoreApplication
@@ -50,6 +57,65 @@ def test_saved_configuration_loads_into_open_menu_and_preserves_edits(tmp_path):
         assert unavailable["command"] == "toggle-network"
         controller._network_command("toggle", "home")
         assert controller.network_draft["networks"] == ["other"]
+    finally:
+        controller.close()
+        application.processEvents()
+
+
+def test_hidden_stopped_shares_do_not_poll_but_running_shares_keep_status(tmp_path, monkeypatch):
+    application = QCoreApplication.instance() or QCoreApplication([])
+    controller = ShellController(MockBackend(), config=ConfigStore(tmp_path/'settings.json'), mock=True)
+    requests = []
+    monkeypatch.setattr(controller, '_sharing_request', lambda *args: requests.append(args))
+    try:
+        controller.mock = False
+        for share in controller._shares.values():
+            share['loaded'] = True
+        controller._network_poll()
+        assert requests == []
+        controller.network_access['enabled'] = True
+        controller._network_poll()
+        assert requests == [('web', 'status')]
+        requests.clear()
+        controller._network_poll(force=True)
+        assert requests == [('web', 'status'), ('smb', 'status')]
+    finally:
+        controller.close()
+        application.processEvents()
+
+
+def test_open_sharing_menu_refreshes_stopped_protocols(tmp_path, monkeypatch):
+    application = QCoreApplication.instance() or QCoreApplication([])
+    controller = ShellController(MockBackend(), config=ConfigStore(tmp_path/'settings.json'), mock=True)
+    requests = []
+    monkeypatch.setattr(controller, '_sharing_request', lambda *args: requests.append(args))
+    try:
+        controller.mock = False
+        for share in controller._shares.values():
+            share['loaded'] = True
+        controller._sharing_menu()
+        assert requests == [('web', 'status'), ('smb', 'status')]
+        requests.clear()
+        controller._network_poll()
+        assert requests == [('web', 'status'), ('smb', 'status')]
+    finally:
+        controller.close()
+        application.processEvents()
+
+
+def test_identical_share_status_does_not_republish_desktop_view(tmp_path):
+    application = QCoreApplication.instance() or QCoreApplication([])
+    controller = ShellController(MockBackend(), config=ConfigStore(tmp_path/'settings.json'), mock=True)
+    updates = []
+    try:
+        saved = {**controller.network_access, 'state':'running', 'enabled':True, 'networks':['home']}
+        controller._network_result(('status', saved, ''))
+        controller.viewChanged.connect(lambda: updates.append(True))
+        controller._shares['web']['busy'] = True
+        controller._network_result(('status', dict(saved), ''))
+        assert updates == [] and not controller._shares['web']['busy']
+        controller._network_result(('status', {**saved, 'enabled':False, 'state':'stopped'}, ''))
+        assert updates == [True]
     finally:
         controller.close()
         application.processEvents()

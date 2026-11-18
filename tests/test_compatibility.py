@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖隔离窗口、输入输出与真实桌面控制器。
+[OUTPUT]: 验证桌面连续导航与应用输入交接的边界。
+[POS]: 应用路由回归；覆盖会话锁定、指针隔离和焦点切换。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 from types import SimpleNamespace
 
 import pytest
@@ -306,6 +313,37 @@ def test_home_handoff_stops_injection_before_shell_takes_focus(routing):
     routing.router.shoulder('next-page')
     assert routing.events == before
     assert routing.ownership[-1] is False
+
+
+def test_desktop_page_handoff_keeps_input_ready_without_releasing_device(routing):
+    routing.router.window_active(True)
+    routing.ownership.clear()
+    routing.router.leave_menu()
+    assert routing.router.mode == 'desktop'
+    assert False not in routing.ownership
+    routing.router.action('next-page')
+    assert routing.controller.navigation.page == 'apps'
+
+
+def test_duplicate_input_status_does_not_republish_the_view(routing):
+    controller = routing.controller
+    controller.input_status({'foreground': True})
+    publications = []
+    controller.viewChanged.connect(lambda: publications.append(True))
+    controller.input_status({'foreground': True})
+    assert not publications
+    controller.input_status({'foreground': False})
+    assert publications == [True]
+
+
+def test_duplicate_ungrab_still_clears_diagnostic_held_buttons(routing):
+    controller = routing.controller
+    controller.input_status({'grabbed': False})
+    controller._open_key_test()
+    controller.testButton('accept', True, 'gamepad')
+    assert controller.modal['pressed'] == ['accept']
+    controller.input_status({'grabbed': False})
+    assert controller.modal['pressed'] == []
 
 
 def test_protocol_failure_still_allows_shell_navigation(routing):

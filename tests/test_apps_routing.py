@@ -13,6 +13,7 @@ from PySide6.QtCore import QCoreApplication, QObject, Signal
 from udeck.app_routing import APP_IDS
 from udeck.apps.common.controller import AppController
 from udeck.apps.common.input import AppInput
+from udeck.apps.common import input as input_module
 from udeck.apps.common.library import Source, scan
 from udeck.apps.emulator.controller import EmulatorController, content_hash
 from udeck.compatibility import application_profile
@@ -71,6 +72,84 @@ def test_app_input_rechecks_window_focus_and_rejects_stale_generations():
     assert actions == ["next-tab"] and not inputs.routed
     inputs.close()
     assert application
+
+
+@pytest.fixture
+def native_inputs(monkeypatch):
+    application = QCoreApplication.instance() or QCoreApplication([])
+    queries = []
+    state = {'available': True, 'generation': 2, 'enabled': True}
+
+    class Remote:
+        def __init__(self, *args):
+            queries.append('interface')
+
+        def isValid(self):
+            return True
+
+        def call(self, *args):
+            import json
+            queries.append('state')
+            return SimpleNamespace(type=lambda: input_module.QDBusMessage.MessageType.ReplyMessage,
+                                   arguments=lambda: [json.dumps(state)])
+
+    monkeypatch.setattr(input_module, 'QDBusInterface', Remote)
+    controller = QObject()
+    controller.window = SimpleNamespace(isActive=lambda: True)
+    controller.dispatch = lambda action: None
+    inputs = AppInput(controller, APP_IDS['reader'], {})
+    yield inputs, queries, state
+    inputs.close()
+    assert application
+
+
+def test_background_apps_do_not_poll_desktop_input_authorization(native_inputs):
+    inputs, queries, _ = native_inputs
+    inputs.sync()
+    assert not inputs.timer.isActive()
+    assert queries == []
+
+
+def test_foreground_app_uses_broker_pushes_after_authorization(native_inputs):
+    inputs, queries, state = native_inputs
+    inputs.set_foreground(True)
+    assert inputs.routed and queries == ['interface', 'state']
+    assert not inputs.timer.isActive()
+    inputs.set_foreground(False)
+    inputs.sync()
+    assert queries == ['interface', 'state'] and not inputs.routed
+
+
+def test_input_broker_restart_invalidates_generation_without_background_queries(native_inputs):
+    inputs, queries, _ = native_inputs
+    inputs.set_foreground(True)
+    inputs.set_foreground(False)
+    inputs.watcher.serviceOwnerChanged.emit('io.github.zhubby.uDeck', ':1.1', ':1.2')
+    assert inputs.generation == -1 and not inputs.routed
+    assert queries == ['interface', 'state']
+    inputs.set_foreground(True)
+    assert inputs.generation == 2 and inputs.routed
+
+
+def test_foreground_focus_race_retries_until_broker_pushes_route(native_inputs):
+    inputs, _, state = native_inputs
+    state['enabled'] = False
+    inputs.set_foreground(True)
+    assert inputs.timer.isActive() and not inputs.routed
+    inputs.route(3, True)
+    assert inputs.routed and not inputs.timer.isActive()
+
+
+def test_standalone_fallback_retries_only_while_foreground(native_inputs, monkeypatch):
+    inputs, queries, state = native_inputs
+    state['available'] = False
+    pointer = []
+    monkeypatch.setattr(inputs.pointer, 'start', lambda: pointer.append('start'))
+    inputs.set_foreground(True)
+    assert pointer == ['start'] and inputs.timer.isActive()
+    inputs.set_foreground(False)
+    inputs.sync()
+    assert not inputs.timer.isActive() and queries == ['interface', 'state']
 
 
 def test_nested_menus_skip_disabled_rows_and_preserve_parent_focus_and_draft(tmp_path):

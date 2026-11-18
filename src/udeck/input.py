@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖 evdev 设备报告、输入配置与 Qt 事件循环。
+[OUTPUT]: 提供按钮边沿、语义动作和输入归属状态。
+[POS]: 物理手柄输入层；归属改变时释放，断线后定时重连。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import sys
 
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
@@ -80,6 +87,9 @@ class Gamepad(QObject):
                 "verified": source == "calibrated" and ACTIONS <= actions | self.keyboard_directions}
 
     def set_foreground(self, foreground):
+        foreground = bool(foreground)
+        if foreground == self.foreground:
+            return
         self.foreground = foreground
         self.status.emit({"foreground": foreground})
         if foreground:

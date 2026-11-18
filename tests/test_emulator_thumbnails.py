@@ -1,4 +1,9 @@
-"""Real local images and HTTP responses exercise thumbnail matching and publication."""
+"""
+[INPUT]: 依赖本地图像、可控 HTTP 响应与真实 Qt 网络事件。
+[OUTPUT]: 验证封面匹配、应用重试预算与完整图像发布。
+[POS]: 封面下载回归；应用重试次数独立于 Qt 传输重试。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import threading
 import time
@@ -181,7 +186,8 @@ def test_timeout_after_http_headers_retries_and_discards_partial_body(applicatio
     downloader.start([item], tmp_path)
     wait_for(lambda: not downloader.running)
     assert downloader.status["saved"] == 3 and downloader.status["failed"] == 0
-    assert len(requests) == 6
+    assert downloader.status["retried"] == 3
+    assert len(requests) >= 6  # Qt 还会重试断开的复用连接。
     files = list(tmp_path.glob("Nintendo - Game Boy/*/Partial.png"))
     assert len(files) == 3 and all(path.read_bytes() == png for path in files)
 

@@ -1,4 +1,9 @@
-"""Headless file service, managed by the user's systemd instance on Linux."""
+"""
+[INPUT]: 依赖用户和系统 D-Bus、网络发现与共享生命周期。
+[OUTPUT]: 提供 Web 共享控制、按需网络状态和有界期限检查。
+[POS]: 用户服务入口；关闭时停止网络发现，启用后检查连接撤销。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 # D-Bus signatures in annotations are protocol types, not Python forward references.
 # ruff: noqa: F821
 
@@ -24,7 +29,9 @@ class Control(ServiceInterface):
         self.manager, self.system_bus = manager, system_bus
 
     @method()
-    def Status(self) -> 's':
+    async def Status(self) -> 's':
+        if not self.manager.value['enabled']:
+            self.manager.candidates = await discover(self.system_bus)
         return json.dumps(self.manager.status())
 
     @method()
@@ -54,6 +61,19 @@ class Control(ServiceInterface):
         return payload
 
 
+async def _poll(manager, system_bus, bus):
+    if not manager.value['enabled']:
+        return
+    candidates = await discover(system_bus)
+    owner_alive = True
+    if manager.deadline is not None:
+        reply = await bus.call(Message(destination="org.freedesktop.DBus", path="/org/freedesktop/DBus",
+                                      interface="org.freedesktop.DBus", member="NameHasOwner",
+                                      signature="s", body=[manager.owner]))
+        owner_alive = not reply.error_name and bool(reply.body[0])
+    await manager.tick(candidates=candidates, owner_alive=owner_alive)
+
+
 async def serve(config=None):
     manager = ShareManager(config)
     bus = await MessageBus().connect()
@@ -74,14 +94,7 @@ async def serve(config=None):
     previous = ""
     try:
         while not done.is_set():
-            candidates = await discover(system_bus)
-            owner_alive = True
-            if manager.deadline is not None:
-                reply = await bus.call(Message(destination="org.freedesktop.DBus", path="/org/freedesktop/DBus",
-                                                interface="org.freedesktop.DBus", member="NameHasOwner",
-                                                signature="s", body=[manager.owner]))
-                owner_alive = not reply.error_name and bool(reply.body[0])
-            await manager.tick(candidates=candidates, owner_alive=owner_alive)
+            await _poll(manager, system_bus, bus)
             state = json.dumps(manager.status())
             if state != previous:
                 control.Changed(state)

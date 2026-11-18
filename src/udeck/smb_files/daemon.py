@@ -1,4 +1,9 @@
-"""Authenticated system D-Bus control for uDeck's dedicated Samba service."""
+"""
+[INPUT]: 依赖系统 D-Bus 调用方身份、Polkit 和 SMB 生命周期。
+[OUTPUT]: 提供专用 SMB 控制、按需网络状态和调用方授权。
+[POS]: 特权服务入口；关闭时停止网络发现，启用后检查连接撤销。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 # D-Bus annotations are wire signatures.
 # ruff: noqa: F821
 
@@ -106,6 +111,8 @@ class Dispatcher:
                 raise ValueError("Unsupported SMB method or signature")
             actor = await credentials(self.bus, message.sender)
             if message.member == "Status":
+                if not self.manager.value['enabled']:
+                    self.manager.candidates = await discover(self.bus)
                 result = self.manager.status()
             else:
                 await authorize(self.bus, message.sender)
@@ -120,6 +127,14 @@ class Dispatcher:
         except Exception as error:
             reply = Message.new_method_return(message, "s", [json.dumps({"error": str(error)})])
         await self.bus.send(reply)
+
+
+async def _poll(manager, bus):
+    if not manager.value['enabled']:
+        return
+    candidates = await discover(bus)
+    alive = await owner_alive(bus, manager.owner) if manager.deadline is not None else True
+    await manager.tick(candidates=candidates, owner_alive=alive)
 
 
 async def serve():
@@ -141,7 +156,7 @@ async def serve():
         await manager.runtime.stop()
         while not done.is_set():
             try:
-                await manager.tick(candidates=await discover(bus), owner_alive=await owner_alive(bus, manager.owner) if manager.deadline is not None else True)
+                await _poll(manager, bus)
             except Exception as error:
                 manager.errors = [str(error)]
                 # Revocation failures must remain visible and retry termination.

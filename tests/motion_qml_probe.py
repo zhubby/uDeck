@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实桌面 QML、隔离配置与可控启动时钟。
-[OUTPUT]: 验证焦点改向、模态关闭隔离与局部启动反馈。
+[OUTPUT]: 验证局部导航、焦点改向、模态隔离与启动反馈。
 [POS]: 独立进程回归探针，不修改设备安装包或用户数据。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -61,8 +61,27 @@ def run():
         assert item is not None, ("missing visual", name)
         return item
 
+    original_snapshot = controller._snapshot
+    snapshot_reads = []
+
+    def measured_snapshot(compact=False):
+        snapshot_reads.append(True)
+        return original_snapshot(compact)
+
     try:
         QTest.qWait(200)
+        controller._snapshot = measured_snapshot
+        for page, name in (("home", "homeStrip"), ("apps", "applicationGrid")):
+            controller.setPage(page)
+            controller.select(0)
+            QTest.qWait(200)
+            snapshot_reads.clear()
+            for key, expected in ((Qt.Key_Right, 1), (Qt.Key_Left, 0)):
+                QTest.keyClick(window, key)
+                application.processEvents()
+                assert visual(name).property("currentIndex") == expected, "导航未立即同步选中项"
+            assert not snapshot_reads, "移动选中项重新序列化了完整桌面和应用列表"
+        controller._snapshot = original_snapshot
         controller.setPage("apps")
         controller.select(0)
         QTest.qWait(200)
@@ -175,6 +194,7 @@ def run():
         print(json.dumps({"qmlErrors": errors, "focusRetargeted": True, "dialogInputIsolated": True,
                           "launchImmediate": True, "pageDelegatesRetained": True, "reducedMotion": reduced}))
     finally:
+        controller._snapshot = original_snapshot
         delete(engine)
         controller.close()
         application.processEvents()

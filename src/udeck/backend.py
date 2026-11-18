@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖系统 D-Bus、音频命令、硬件读数与异步事件循环。
+[OUTPUT]: 提供隔离状态快照、系统操作和授权提示。
+[POS]: 系统服务线程；音频播放活动不重复发布相同控制状态。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import asyncio
 import json
 import math
@@ -383,7 +390,8 @@ class SystemBackend(WifiBackend, QObject):
             value.update(available="sinks" not in errors or "sources" not in errors,
                          outputError=errors.get("sinks", ""), inputError=errors.get("sources", ""),
                          cardError=errors.get("cards", ""))
-            self.publish("audio", value)
+            if self.state["audio"] != value:
+                self.publish("audio", value)
 
     async def _execute_audio(self, action, payload):
         await self.refresh_audio()

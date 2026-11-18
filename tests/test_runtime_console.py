@@ -102,6 +102,55 @@ def test_failed_pid_query_waits_for_next_refresh_before_retrying(monkeypatch):
         console.close()
 
 
+def test_unchanged_application_info_does_not_republish_console_summary(monkeypatch):
+    from udeck.runtime_console import service
+
+    monkeypatch.setattr(service.QDBusConnection, "sessionBus", lambda: None)
+    console = RuntimeConsole()
+    app = "io.github.zhubby.uDeck.Emulator"
+    console.owners[app], console.pids[app], console.visible = ":1.10", 101, True
+    callbacks, summaries = [], []
+    monkeypatch.setattr(console, "_call", lambda *args: callbacks.append(args[-1]))
+    console.summaryChanged.connect(lambda: summaries.append(True))
+    reply = SimpleNamespace(arguments=lambda: ['{"state":"paused","relatedWindows":[]}'],
+                            type=lambda: service.QDBusMessage.MessageType.ReplyMessage)
+    try:
+        console._poll_info(app)
+        callbacks.pop()(reply)
+        assert console.row(app)["runtimeState"] == "paused"
+        assert summaries == [True]
+        console._poll_info(app)
+        callbacks.pop()(reply)
+        assert summaries == [True]
+    finally:
+        console.close()
+
+
+@pytest.mark.parametrize("reopened", [False, True])
+def test_application_info_from_previous_visibility_cannot_change_current_state(monkeypatch, reopened):
+    from udeck.runtime_console import service
+
+    monkeypatch.setattr(service.QDBusConnection, "sessionBus", lambda: None)
+    console = RuntimeConsole()
+    app = "io.github.zhubby.uDeck.Emulator"
+    console.owners[app], console.pids[app], console.visible = ":1.10", 101, True
+    callbacks = []
+    monkeypatch.setattr(console, "_call", lambda *args: callbacks.append(args[-1]))
+    reply = SimpleNamespace(arguments=lambda: ['{"state":"paused","relatedWindows":[]}'],
+                            type=lambda: service.QDBusMessage.MessageType.ReplyMessage)
+    try:
+        console._poll_info(app)
+        stale = callbacks.pop()
+        console.set_visible(False)
+        if reopened:
+            monkeypatch.setattr(console, "refresh", lambda: None)
+            console.set_visible(True)
+        stale(reply)
+        assert app not in console.infos
+    finally:
+        console.close()
+
+
 @pytest.mark.parametrize("unsupported", [False, True])
 def test_native_quit_uses_lifecycle_method_before_runtime_info_arrives(monkeypatch, unsupported):
     from udeck.runtime_console import service

@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖系统后端、窗口服务与各桌面交互模块。
-[OUTPUT]: 提供桌面快照、导航、Console 详情桥接与模态操作。
+[OUTPUT]: 提供轻量视图、完整诊断、局部导航与 Console 模态操作。
 [POS]: 桌面交互入口；运行采样和进程终止由 runtime_console 承担。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -46,6 +46,7 @@ CATEGORY_NAMES = {"All": tr(Msg.ALL_APPS), "Development": tr(Msg.DEVELOPMENT), "
 
 class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiControls, FileControls, ShortcutControls, SharingControls, SoundFeedback):
     changed = Signal()
+    viewChanged = Signal()
     present = Signal()
     calibrationRequested = Signal()
     calibrationDirection = Signal(str)
@@ -177,9 +178,17 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
     def snapshotJson(self):
         return self._snapshot()
 
-    @Property(str, notify=changed)
+    @Property(str, notify=viewChanged)
     def viewSnapshotJson(self):
         return self._snapshot(compact=True)
+
+    @Property(int, notify=changed)
+    def selectedIndex(self):
+        return self.navigation.index
+
+    @Property(str, notify=changed)
+    def navigationZone(self):
+        return self.navigation.zone
 
     @Property(QObject, constant=True)
     def fileModel(self):
@@ -197,13 +206,14 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
     def _snapshot(self, compact=False):
         items = self._items()
         selected = max(0, min(self.navigation.index, len(items) - 1))
+        data = {key: self.data[key] for key in ("battery", "bluetooth", "input")} if compact else self.data
         modal = {key: value for key, value in self.modal.items() if not compact or key not in ("items", "option")}
         if not compact and modal.get("secret"):
             modal["text"] = ""
         titles = {"home": tr(Msg.START_HERE), "apps": CATEGORY_NAMES[self.category], "windows": tr(Msg.CONSOLE), "files": tr(Msg.TRASH) if self.data["directory"] == "trash:///" else Path(self.data["directory"]).name or "/", "settings": tr(Msg.DEVICE_SETTINGS)}
         descriptions = {"home": tr(Msg.CHOOSE_A_DESTINATION_WITH_LEFT_RIGHT), "apps": tr(Msg.APPS_VALUE0, value0=len(items)) + (tr(Msg.SEARCH_VALUE0_SUFFIX, value0=self.query) if self.query else tr(Msg.X_FILTER_AND_ACTIONS_SUFFIX)), "windows": tr(Msg.SELECT_A_WINDOW_TO_CONTINUE), "files": self.data["directory"], "settings": tr(Msg.EVERYDAY_CONTROLS_WITHIN_REACH)}
         return json.dumps(render({
-            **{key: value for key, value in self.data.items() if not compact or key != "files"},
+            **data,
             "mock": self.mock, "page": self.navigation.page,
             "language": self.language, "theme": self.theme,
             "startup": self.startup, "appLaunch": self.app_launch,
@@ -316,6 +326,12 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         if self.startup["phase"] not in ("preparing", "scanning"):
             self.navigation.index = max(0, min(self.navigation.index, len(items) - 1))
         self._file_sync()
+        self.viewChanged.emit()
+        self.changed.emit()
+
+    def _publish_navigation(self):
+        items = self._items()
+        self.navigation.index = max(0, min(self.navigation.index, len(items) - 1))
         self.changed.emit()
 
     @Slot(object)
@@ -519,7 +535,10 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         self.console_exit_focused = False
         if self.navigation.page == "files":
             self.file_section = "list"
-        self._publish()
+        if self.navigation.page in ("home", "apps") and not self.modal:
+            self._publish_navigation()
+        else:
+            self._publish()
 
     @Slot(str, str)
     @interaction
@@ -641,7 +660,11 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
             self._context(items[min(self.navigation.index, len(items) - 1)] if items else None)
         elif action == "search":
             self._text_prompt(tr(Msg.SEARCH_APPS), tr(Msg.ENTER_AN_APP_NAME_THEN_PRESS_A_OR_ENTER_TO_SEARCH), "search", self.query)
-        self._publish()
+        if (action in ("left", "right", "up", "down") and before[0] == after[0]
+                and self.navigation.page in ("home", "apps")):
+            self._publish_navigation()
+        else:
+            self._publish()
 
     def _activate(self, item):
         if item.get("disabled"):
@@ -1303,7 +1326,10 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         if values.get("pointer", {}).get("blockedDevices") == 0:
             self._clear_test_inputs("shoulder")
             self._clear_test_inputs("pointer")
-        self.data["input"].update(values)
+        current = self.data["input"]
+        if all(key in current and current[key] == value for key, value in values.items()):
+            return
+        current.update(values)
         self._publish()
 
     def close(self):

@@ -6,7 +6,7 @@
 __init__.py: Console 运行服务包入口。
 processes.py: proc 快照、应用进程树统计与 pidfd 终止。
 model.py: 按应用身份增量更新的 Qt 列表模型。
-service.py: 定时重试身份查询、可见期采样与有序退出。
+service.py: 可见期采样、状态去重、过期回包隔离与有序退出。
 controls.py: 桌面导航、详情操作与退出确认的桥接。
 
 窗口列表提供应用入口，不提供进程身份。

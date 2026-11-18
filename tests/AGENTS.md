@@ -5,10 +5,10 @@
 
 test_runtime_console_processes.py: proc 快照、资源聚合和 pidfd 终止身份回归。
 test_runtime_console_apps.py: 轻量应用状态与原生存档退出回归。
-test_runtime_console.py: 身份查询失败、应用聚合、详情和有序退出回归。
+test_runtime_console.py: 重复与过期状态、身份查询、详情和有序退出回归。
 runtime_console_qml_probe.py: 指标控件复用、单行尺寸和详情输入的 QML 探针。
 test_runtime_console_qml.py: Console 详情交互、中英文与双主题尺寸回归。
-motion_qml_probe.py: 焦点改向、弹窗关闭隔离和启动反馈的真实 QML 探针。
+motion_qml_probe.py: 零全量快照的选中项移动、焦点改向与弹窗隔离探针。
 test_motion_qml.py: 双主题与减少动画的桌面短过渡回归。
 motion_extended_probe.py: 补位、Toast、封面与共享应用输入的真实 Qt 探针。
 test_motion_extended_qml.py: 完整动效的双主题与减少动画回归。
@@ -39,7 +39,7 @@ hotspot_nm_profile_probe.py: 独立进程探针，验证 hotspot_nm_profile 流�
 hotspot_qml_probe.py: 独立进程探针，验证 hotspot_qml 流程。
 i18n_qml_probe.py: 独立进程探针，验证 i18n_qml 流程。
 input_prompts_qml_probe.py: 独立进程探针，验证 input_prompts_qml 流程。
-interface_sounds_qml_probe.py: 独立进程探针，验证 interface_sounds_qml 流程。
+interface_sounds_qml_probe.py: 音效开关、快捷设置与离屏零播放线程的 QML 探针。
 launch_qml_probe.py: 独立进程探针，验证 launch_qml 流程。
 libretro_fixtures.py: 测试夹具，为 libretro_fixtures 提供隔离数据。
 media_takeover_probe.py: 独立进程探针，验证 media_takeover 流程。
@@ -52,6 +52,7 @@ reader_mobi_probe.py: 独立进程探针，验证 reader_mobi 流程。
 settings_icons_probe.py: 独立进程探针，验证 settings_icons 流程。
 settings_qml_probe.py: 等待过渡完成，校验设置、系统信息和按键测试布局。
 sharing_qml_probe.py: 独立进程探针，验证 sharing_qml 流程。
+test_sharing_daemon_polling.py: 关闭时零网络发现、启用后撤销检查和按需状态回归。
 shortcuts_qml_probe.py: 独立进程探针，验证 shortcuts_qml 流程。
 system_device_probe.py: 独立进程探针，验证 system_device 流程。
 terminal_appearance_probe.py: 独立进程探针，验证 terminal_appearance 流程。
@@ -69,16 +70,16 @@ test_app_settings.py: pytest 回归入口，验证 app_settings 边界。
 test_apps_core.py: pytest 回归入口，验证 apps_core 边界。
 test_apps_native.py: pytest 回归入口，验证 apps_native 边界。
 test_apps_review.py: 应用启动、游戏暂停确认与异步取消的回归测试。
-test_apps_routing.py: 输入归属、会话恢复与原生命令窗口激活的回归测试。
+test_apps_routing.py: 前台授权、后台零查询、服务重启和原生窗口激活回归。
 test_apps_saves.py: pytest 回归入口，验证 apps_saves 边界。
-test_audio.py: pytest 回归入口，验证 audio 边界。
+test_audio.py: 音频状态去重、设备切换与服务错误恢复回归。
 test_audio_qml.py: 双尺寸、双语言和双主题的音频菜单回归。
 test_backend.py: pytest 回归入口，验证 backend 边界。
 test_battery.py: pytest 回归入口，验证 battery 边界。
 test_battery_qml.py: pytest 回归入口，验证 battery_qml 边界。
 test_browser_interactions.py: pytest 回归入口，验证 browser_interactions 边界。
 test_cli.py: pytest 回归入口，验证 cli 边界。
-test_compatibility.py: pytest 回归入口，验证 compatibility 边界。
+test_compatibility.py: 桌面连续导航、应用输入交接与重复状态回归。
 test_console.py: pytest 回归入口，验证 console 边界。
 test_console_qml.py: pytest 回归入口，验证 console_qml 边界。
 test_core.py: pytest 回归入口，验证 core 边界。
@@ -95,9 +96,9 @@ test_emulator_save_daemon.py: pytest 回归入口，验证 emulator_save_daemon 
 test_emulator_save_management.py: pytest 回归入口，验证 emulator_save_management 边界。
 test_emulator_save_sync.py: pytest 回归入口，验证 emulator_save_sync 边界。
 test_emulator_save_ui.py: pytest 回归入口，验证 emulator_save_ui 边界。
-test_emulator_thumbnails.py: pytest 回归入口，验证 emulator_thumbnails 边界。
+test_emulator_thumbnails.py: 封面发布、应用重试预算与 Qt 传输重试边界回归。
 test_file_icons.py: pytest 回归入口，验证 file_icons 边界。
-test_files_controller.py: pytest 回归入口，验证 files_controller 边界。
+test_files_controller.py: 文件交互、轻量视图与完整诊断的边界回归。
 test_files_features.py: pytest 回归入口，验证 files_features 边界。
 test_files_jobs.py: pytest 回归入口，验证 files_jobs 边界。
 test_files_locations_trash.py: pytest 回归入口，验证 files_locations_trash 边界。
@@ -115,9 +116,10 @@ test_hotspot_qml.py: pytest 回归入口，验证 hotspot_qml 边界。
 test_hotspot_ui.py: pytest 回归入口，验证 hotspot_ui 边界。
 test_i18n.py: pytest 回归入口，验证 i18n 边界。
 test_i18n_qml.py: pytest 回归入口，验证 i18n_qml 边界。
-test_input.py: pytest 回归入口，验证 input 边界。
+test_input.py: 物理按钮边沿、幂等输入归属与断线重连回归。
 test_input_prompts.py: pytest 回归入口，验证 input_prompts 边界。
-test_interface_sounds.py: pytest 回归入口，验证 interface_sounds 边界。
+test_interface_sounds.py: 语义音效限频、前台取消与播放线程连续性回归。
+test_interface_audio.py: 单流复用、空闲暂停、PCM 短写和设备恢复回归。
 test_interface_sounds_qml.py: pytest 回归入口，验证 interface_sounds_qml 边界。
 test_key_test.py: pytest 回归入口，验证 key_test 边界。
 test_key_test_device.py: pytest 回归入口，验证 key_test_device 边界。
@@ -131,10 +133,10 @@ test_network_files.py: pytest 回归入口，验证 network_files 边界。
 test_network_files_client.py: pytest 回归入口，验证 network_files_client 边界。
 test_network_files_edges.py: pytest 回归入口，验证 network_files_edges 边界。
 test_network_files_lifecycle.py: pytest 回归入口，验证 network_files_lifecycle 边界。
-test_network_files_ui.py: pytest 回归入口，验证 network_files_ui 边界。
+test_network_files_ui.py: 共享菜单、后台查询边界与重复状态去重回归。
 test_network_files_web.py: pytest 回归入口，验证 network_files_web 边界。
 test_performance_tools.py: pytest 回归入口，验证 performance_tools 边界。
-test_pointer.py: pytest 回归入口，验证 pointer 边界。
+test_pointer.py: 指针归属、sysfs 预筛选、错误回退与设备路径复用回归。
 test_preflight.py: pytest 回归入口，验证 preflight 边界。
 test_qml.py: pytest 回归入口，验证 qml 边界。
 test_reader_layout.py: pytest 回归入口，验证 reader_layout 边界。

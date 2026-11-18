@@ -1,3 +1,18 @@
+udeck (1.0.1) unstable; urgency=medium
+
+  * Reuse one PCM audio stream on a dedicated interface playback thread.
+  * Coalesce delayed feedback and discard cancelled or stale sounds.
+  * Update Home and Apps selection without rebuilding the desktop snapshot.
+  * Keep invisible system inventories out of the desktop view payload.
+  * Retain input ownership while switching between desktop pages.
+  * Ignore unchanged audio controls and stale Console status replies.
+  * Refresh audio output readiness on device notifications.
+  * Filter input capabilities before opening non-pointer evdev interfaces.
+  * Suspend idle PCM streams and stop background input authorization polling.
+  * Skip disabled sharing discovery and unchanged desktop sharing updates.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Tue, 17 Nov 2026 20:00:00 +0800
+
 udeck (1.0.0) unstable; urgency=medium
 
   * Publish the complete button-first desktop suite for uConsole CM4.

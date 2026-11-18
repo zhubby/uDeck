@@ -1,6 +1,6 @@
 /*
 [INPUT]: 依赖桌面控制器、ShellDialog 与页面组件。
-[OUTPUT]: 提供即时导航、页面短过渡与启动反馈。
+[OUTPUT]: 提供局部选择更新、页面短过渡与启动反馈。
 [POS]: ConsoleScreen 展示运行模型，其余页面沿用各自布局。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -60,9 +60,6 @@ Window {
         const gridY = applicationGrid.contentY
         const listY = itemList.contentY
         const pageChanged = renderedPage !== "" && renderedPage !== viewState.page
-        const navigationStamp = [viewState.page, viewState.zone, viewState.index].join(":")
-        if (shellDialog.closing && renderedNavigation !== navigationStamp) shellDialog.finishClose()
-        renderedNavigation = navigationStamp
         const stamp = JSON.stringify(viewState.items)
         if (stamp !== modelStamps[viewState.page]) {
             modelStamps[viewState.page] = stamp
@@ -82,17 +79,25 @@ Window {
             itemList.forceLayout()
             applicationGrid.contentY = gridY
             itemList.contentY = listY
-        } else if (viewState.page === "home")
+        } else syncSelection(true)
+        shellDialog.syncView()
+    }
+
+    function syncSelection(force) {
+        const navigationStamp = [viewState.page, controller.navigationZone, controller.selectedIndex].join(":")
+        if (!force && renderedNavigation === navigationStamp) return
+        if (shellDialog.closing && renderedNavigation !== navigationStamp) shellDialog.finishClose()
+        renderedNavigation = navigationStamp
+        if (viewState.page === "home")
             homeScreen.positionSelection()
         else if (viewState.page === "apps")
-            applicationGrid.positionViewAtIndex(viewState.index, GridView.Contain)
+            applicationGrid.positionViewAtIndex(controller.selectedIndex, GridView.Contain)
         else if (viewState.page === "files")
             filesScreen.positionSelection()
         else if (viewState.page === "windows")
             consoleScreen.positionSelection()
         else
-            itemList.positionViewAtIndex(viewState.index, ListView.Contain)
-        shellDialog.syncView()
+            itemList.positionViewAtIndex(controller.selectedIndex, ListView.Contain)
     }
 
     Component.onCompleted: syncView()
@@ -106,7 +111,8 @@ Window {
 
     Connections {
         target: controller
-        function onChanged() { Qt.callLater(window.syncView) }
+        function onViewChanged() { Qt.callLater(window.syncView) }
+        function onChanged() { Qt.callLater(window.syncSelection) }
         function onFilePreviewScroll(amount) { shellDialog.scrollPreview(amount) }
         function onPresent() {
             if (windowedPreview)
@@ -253,8 +259,8 @@ Window {
                     property bool current: viewState.activeTab === modelData
                     width: (navigation.width - navigation.spacing * (viewState.pages.length - 1)) / viewState.pages.length; height: 56; radius: 10
                     color: current ? window.colors.selectedTab : "transparent"
-                    border.width: current && viewState.zone === "tabs" && !dialog.kind ? 3 : 1
-                    border.color: current && viewState.zone === "tabs" && !dialog.kind ? window.accent : (current ? window.colors.tabBorder : "transparent")
+                    border.width: current && controller.navigationZone === "tabs" && !dialog.kind ? 3 : 1
+                    border.color: current && controller.navigationZone === "tabs" && !dialog.kind ? window.accent : (current ? window.colors.tabBorder : "transparent")
                     Row {
                         anchors.centerIn: parent; spacing: 12
                         Image { source: "image://desktop/" + ["go-home", "view-grid", "view-list-details", "folder"][index]; width: 27; height: 27; anchors.verticalCenter: parent.verticalCenter }
@@ -310,8 +316,8 @@ Window {
                 summary: controller.runtimeConsole.summary
                 colors: window.colors
                 fontFamily: window.fontFamily
-                index: viewState.index
-                contentFocused: viewState.zone === "content" && !dialog.kind
+                index: controller.selectedIndex
+                contentFocused: controller.navigationZone === "content" && !dialog.kind
                 exitFocused: viewState.consoleExitFocused
                 language: viewState.language
                 hoverSurface: navigationPointer
@@ -327,8 +333,8 @@ Window {
                 colors: window.colors
                 fontFamily: window.fontFamily
                 language: viewState.language
-                index: viewState.index
-                contentFocused: viewState.zone === "content" && !dialog.kind
+                index: controller.selectedIndex
+                contentFocused: controller.navigationZone === "content" && !dialog.kind
                 reducedMotion: viewState.reducedMotion
                 launchState: viewState.appLaunch
             }
@@ -344,8 +350,8 @@ Window {
                 language: viewState.language
                 fileModel: controller.fileModel
                 reducedMotion: viewState.reducedMotion || false
-                currentIndex: viewState.index
-                contentFocused: viewState.zone === "content" && !dialog.kind
+                currentIndex: controller.selectedIndex
+                contentFocused: controller.navigationZone === "content" && !dialog.kind
                 busy: viewState.busy
             }
 
@@ -356,20 +362,20 @@ Window {
                 visible: viewState.page === "apps"
                 model: window.itemModel
                 cellWidth: width / 5; cellHeight: 174
-                currentIndex: viewState.index
+                currentIndex: controller.selectedIndex
                 keyNavigationEnabled: false
                 interactive: false
                 boundsBehavior: Flickable.StopAtBounds
                 ScrollBar.vertical: ScrollBar { palette: window.colors.controls; policy: ScrollBar.AsNeeded; interactive: false }
                 FocusFrame {
                     objectName: "appFocus"; parent: applicationGrid.contentItem
-                    target: applicationGrid.currentItem; active: applicationGrid.visible && viewState.zone === "content" && !dialog.kind
+                    target: applicationGrid.currentItem; active: applicationGrid.visible && controller.navigationZone === "content" && !dialog.kind
                     accent: window.accent; reducedMotion: viewState.reducedMotion; radius: 12
                 }
                 delegate: Rectangle {
                     required property var modelData
                     required property int index
-                    property bool selected: viewState.index === index && viewState.zone === "content"
+                    property bool selected: controller.selectedIndex === index && controller.navigationZone === "content"
                     readonly property bool launchPending: !!viewState.appLaunch.pending && modelData.id === viewState.appLaunch.applicationId
                     width: applicationGrid.cellWidth - 14; height: 158; radius: 12
                     scale: launchPending ? 0.98 : 1
@@ -389,19 +395,19 @@ Window {
                 anchors.fill: parent
                 visible: viewState.page === "settings"
                 model: window.settingsModel
-                spacing: 10; currentIndex: viewState.index; keyNavigationEnabled: false
+                spacing: 10; currentIndex: controller.selectedIndex; keyNavigationEnabled: false
                 interactive: false
                 boundsBehavior: Flickable.StopAtBounds
                 ScrollBar.vertical: ScrollBar { palette: window.colors.controls; policy: ScrollBar.AsNeeded; interactive: false }
                 FocusFrame {
                     objectName: "settingsFocus"; parent: itemList.contentItem
-                    target: itemList.currentItem; active: itemList.visible && viewState.zone === "content" && !dialog.kind
+                    target: itemList.currentItem; active: itemList.visible && controller.navigationZone === "content" && !dialog.kind
                     accent: window.accent; reducedMotion: viewState.reducedMotion
                 }
                 delegate: Rectangle {
                     required property var modelData
                     required property int index
-                    property bool selected: viewState.index === index && viewState.zone === "content"
+                    property bool selected: controller.selectedIndex === index && controller.navigationZone === "content"
                     width: itemList.width - 12; height: Math.max(84, systemSettingText.implicitHeight + 20); radius: 10
                     color: selected ? window.colors.selected : window.colors.panel
                     border.width: 1; border.color: window.colors.rowBorder

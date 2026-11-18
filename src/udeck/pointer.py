@@ -1,6 +1,14 @@
+"""
+[INPUT]: 依赖 sysfs 能力位图、evdev 输入与 Qt 事件循环。
+[OUTPUT]: 提供指针独占、肩键边沿和轨迹球移动。
+[POS]: 会话指针归属层；先筛除无关接口，再打开 evdev。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import fcntl
 import struct
 import time
+from pathlib import Path
 
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
@@ -26,6 +34,7 @@ class PointerGuard(QObject):
         self.foreground = False
         self.last_status = None
         self.built_in_only = built_in_only
+        self.sysfs_root = Path('/sys/class/input')
         self.timer = QTimer(self)
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self._scan)
@@ -49,6 +58,8 @@ class PointerGuard(QObject):
         for path in set(self.devices) - paths:
             self._remove(path)
         for path in paths - self.devices.keys():
+            if self._pointer_candidate(path) is False:
+                continue
             device = None
             try:
                 device = InputDevice(path)
@@ -89,6 +100,26 @@ class PointerGuard(QObject):
                 if device is not None:
                     device.close()
         self._report(errors)
+
+    def _pointer_candidate(self, path):
+        # evdev 关闭接口会等待内核同步；轮询时先读静态能力。
+        folder = self.sysfs_root / Path(path).name / 'device/capabilities'
+
+        def bitmap(name):
+            words = (folder / name).read_text().split()
+            if not words:
+                raise ValueError('Empty input capability bitmap')
+            word_bits = struct.calcsize('L') * 8
+            return sum(int(word, 16) << (index * word_bits)
+                       for index, word in enumerate(reversed(words)))
+
+        try:
+            if not bitmap('key') & (1 << 272):
+                return False
+            return bitmap('rel') & 3 == 3 or bitmap('abs') & 3 == 3
+        except (OSError, ValueError):
+            # sysfs 不可读时沿用 evdev 校验，不缓存设备路径。
+            return None
 
     def _report(self, errors):
         status = {"scope": "session", "active": self.timer.isActive(),

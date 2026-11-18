@@ -1,0 +1,1479 @@
+{
+  "status": "passed",
+  "device": "uConsole CM4, Debian 13.5 arm64, Qt 6.8.2, labwc, V3D",
+  "version": "1.0.1 local uncommitted test build",
+  "package": {
+    "status": "passed",
+    "sourceFilesCompared": 813,
+    "checksumsVerified": 12,
+    "tests": {
+      "passed": 1857,
+      "skipped": 7,
+      "warnings": 21,
+      "seconds": 844.03
+    },
+    "sha256": "15e227758b26f408f3ff65a03477b8b5b032406c34b08838efcbf7111a779dfd",
+    "localUncommittedBuild": true
+  },
+  "cpuDenominators": {
+    "processPercent": "100 percent is one logical CPU",
+    "systemPercent": "100 percent is all four logical CPUs"
+  },
+  "idleBaseline": {
+    "status": "passed",
+    "seconds": 30.071,
+    "logicalCpus": 4,
+    "systemBusyPercent": 10.646,
+    "swapPagesIn": 0,
+    "swapPagesOut": 0,
+    "throttled": "throttled=0x0",
+    "page": "home",
+    "groups": [
+      {
+        "name": "udeck",
+        "cpuPercentOneCore": 7.416,
+        "peakOneSecondCpuPercentOneCore": 15.028,
+        "pssMiB": 132.57,
+        "rssSumMiB": 258.023,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-browser",
+        "cpuPercentOneCore": 1.629,
+        "peakOneSecondCpuPercentOneCore": 8.971,
+        "pssMiB": 320.963,
+        "rssSumMiB": 608.371,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-emulator",
+        "cpuPercentOneCore": 1.762,
+        "peakOneSecondCpuPercentOneCore": 2.996,
+        "pssMiB": 109.81,
+        "rssSumMiB": 234.273,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-emulator-saves",
+        "cpuPercentOneCore": 0.2,
+        "peakOneSecondCpuPercentOneCore": 1.013,
+        "pssMiB": 18.805,
+        "rssSumMiB": 32.691,
+        "swapPssMiB": 1.645
+      },
+      {
+        "name": "udeck-music",
+        "cpuPercentOneCore": 0.931,
+        "peakOneSecondCpuPercentOneCore": 2.008,
+        "pssMiB": 88.945,
+        "rssSumMiB": 212.734,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-network-files",
+        "cpuPercentOneCore": 2.062,
+        "peakOneSecondCpuPercentOneCore": 5.019,
+        "pssMiB": 30.313,
+        "rssSumMiB": 58.043,
+        "swapPssMiB": 11.566
+      },
+      {
+        "name": "udeck-reader",
+        "cpuPercentOneCore": 0.432,
+        "peakOneSecondCpuPercentOneCore": 1.051,
+        "pssMiB": 104.525,
+        "rssSumMiB": 240.254,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-session",
+        "cpuPercentOneCore": 0.0,
+        "peakOneSecondCpuPercentOneCore": 0.0,
+        "pssMiB": 1.197,
+        "rssSumMiB": 1.82,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-terminal",
+        "cpuPercentOneCore": 0.067,
+        "peakOneSecondCpuPercentOneCore": 1.051,
+        "pssMiB": 100.708,
+        "rssSumMiB": 227.07,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-video",
+        "cpuPercentOneCore": 0.998,
+        "peakOneSecondCpuPercentOneCore": 2.0,
+        "pssMiB": 89.039,
+        "rssSumMiB": 212.875,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck.smb_files.daemon",
+        "cpuPercentOneCore": 4.223,
+        "peakOneSecondCpuPercentOneCore": 6.994,
+        "pssMiB": 23.426,
+        "rssSumMiB": 49.074,
+        "swapPssMiB": 0.0
+      }
+    ],
+    "threads": [
+      {
+        "comm": "python3",
+        "cpuPercentOneCore": 4.223,
+        "peakOneSecondCpuPercentOneCore": 6.994
+      },
+      {
+        "comm": "udeck",
+        "cpuPercentOneCore": 2.793,
+        "peakOneSecondCpuPercentOneCore": 7.999
+      },
+      {
+        "comm": "udeck-ui-audio",
+        "cpuPercentOneCore": 2.66,
+        "peakOneSecondCpuPercentOneCore": 4.052
+      },
+      {
+        "comm": "udeck-network-f",
+        "cpuPercentOneCore": 2.062,
+        "peakOneSecondCpuPercentOneCore": 5.353
+      },
+      {
+        "comm": "data-loop.0",
+        "cpuPercentOneCore": 1.297,
+        "peakOneSecondCpuPercentOneCore": 2.141
+      },
+      {
+        "comm": "udeck-emulator",
+        "cpuPercentOneCore": 1.097,
+        "peakOneSecondCpuPercentOneCore": 2.0
+      },
+      {
+        "comm": "udeck-video",
+        "cpuPercentOneCore": 0.831,
+        "peakOneSecondCpuPercentOneCore": 1.998
+      },
+      {
+        "comm": "QPulseAudioEngi",
+        "cpuPercentOneCore": 0.765,
+        "peakOneSecondCpuPercentOneCore": 2.004
+      },
+      {
+        "comm": "udeck-music",
+        "cpuPercentOneCore": 0.765,
+        "peakOneSecondCpuPercentOneCore": 1.071
+      },
+      {
+        "comm": "QtWebEngineProc",
+        "cpuPercentOneCore": 0.665,
+        "peakOneSecondCpuPercentOneCore": 5.981
+      },
+      {
+        "comm": "Thread (pooled)",
+        "cpuPercentOneCore": 0.599,
+        "peakOneSecondCpuPercentOneCore": 2.0
+      },
+      {
+        "comm": "VizCompositorTh",
+        "cpuPercentOneCore": 0.565,
+        "peakOneSecondCpuPercentOneCore": 2.0
+      },
+      {
+        "comm": "pipewire-pulse",
+        "cpuPercentOneCore": 0.565,
+        "peakOneSecondCpuPercentOneCore": 1.055
+      },
+      {
+        "comm": "data-loop.0",
+        "cpuPercentOneCore": 0.565,
+        "peakOneSecondCpuPercentOneCore": 2.001
+      },
+      {
+        "comm": "QSGRenderThread",
+        "cpuPercentOneCore": 0.366,
+        "peakOneSecondCpuPercentOneCore": 1.051
+      },
+      {
+        "comm": "udeck-reader",
+        "cpuPercentOneCore": 0.266,
+        "peakOneSecondCpuPercentOneCore": 1.055
+      },
+      {
+        "comm": "udeck-browser",
+        "cpuPercentOneCore": 0.233,
+        "peakOneSecondCpuPercentOneCore": 1.055
+      },
+      {
+        "comm": "udeck",
+        "cpuPercentOneCore": 0.2,
+        "peakOneSecondCpuPercentOneCore": 1.999
+      }
+    ],
+    "displayPowerRestored": true
+  },
+  "idleOptimized": {
+    "status": "passed",
+    "seconds": 30.07,
+    "logicalCpus": 4,
+    "systemBusyPercent": 6.033,
+    "swapPagesIn": 0,
+    "swapPagesOut": 0,
+    "throttled": "throttled=0x0",
+    "page": "home",
+    "groups": [
+      {
+        "name": "udeck",
+        "cpuPercentOneCore": 3.625,
+        "peakOneSecondCpuPercentOneCore": 19.62,
+        "pssMiB": 112.162,
+        "rssSumMiB": 236.129,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-browser",
+        "cpuPercentOneCore": 1.097,
+        "peakOneSecondCpuPercentOneCore": 5.195,
+        "pssMiB": 322.845,
+        "rssSumMiB": 611.141,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-emulator",
+        "cpuPercentOneCore": 1.497,
+        "peakOneSecondCpuPercentOneCore": 3.002,
+        "pssMiB": 111.784,
+        "rssSumMiB": 236.742,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-emulator-saves",
+        "cpuPercentOneCore": 0.2,
+        "peakOneSecondCpuPercentOneCore": 1.008,
+        "pssMiB": 18.804,
+        "rssSumMiB": 32.695,
+        "swapPssMiB": 1.641
+      },
+      {
+        "name": "udeck-music",
+        "cpuPercentOneCore": 0.599,
+        "peakOneSecondCpuPercentOneCore": 1.053,
+        "pssMiB": 87.897,
+        "rssSumMiB": 212.391,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-network-files",
+        "cpuPercentOneCore": 1.896,
+        "peakOneSecondCpuPercentOneCore": 4.998,
+        "pssMiB": 30.304,
+        "rssSumMiB": 58.047,
+        "swapPssMiB": 11.562
+      },
+      {
+        "name": "udeck-reader",
+        "cpuPercentOneCore": 0.166,
+        "peakOneSecondCpuPercentOneCore": 1.021,
+        "pssMiB": 103.088,
+        "rssSumMiB": 239.566,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-session",
+        "cpuPercentOneCore": 0.0,
+        "peakOneSecondCpuPercentOneCore": 0.0,
+        "pssMiB": 1.196,
+        "rssSumMiB": 1.82,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-terminal",
+        "cpuPercentOneCore": 0.1,
+        "peakOneSecondCpuPercentOneCore": 1.0,
+        "pssMiB": 100.213,
+        "rssSumMiB": 227.156,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck-video",
+        "cpuPercentOneCore": 0.665,
+        "peakOneSecondCpuPercentOneCore": 1.912,
+        "pssMiB": 87.624,
+        "rssSumMiB": 212.234,
+        "swapPssMiB": 0.0
+      },
+      {
+        "name": "udeck.smb_files.daemon",
+        "cpuPercentOneCore": 0.033,
+        "peakOneSecondCpuPercentOneCore": 0.981,
+        "pssMiB": 22.237,
+        "rssSumMiB": 47.898,
+        "swapPssMiB": 0.0
+      }
+    ],
+    "threads": [
+      {
+        "comm": "udeck-network-f",
+        "cpuPercentOneCore": 1.896,
+        "peakOneSecondCpuPercentOneCore": 4.998
+      },
+      {
+        "comm": "udeck",
+        "cpuPercentOneCore": 1.696,
+        "peakOneSecondCpuPercentOneCore": 16.677
+      },
+      {
+        "comm": "udeck",
+        "cpuPercentOneCore": 1.33,
+        "peakOneSecondCpuPercentOneCore": 4.152
+      },
+      {
+        "comm": "udeck-emulator",
+        "cpuPercentOneCore": 0.898,
+        "peakOneSecondCpuPercentOneCore": 1.962
+      },
+      {
+        "comm": "udeck-video",
+        "cpuPercentOneCore": 0.665,
+        "peakOneSecondCpuPercentOneCore": 1.862
+      },
+      {
+        "comm": "Thread (pooled)",
+        "cpuPercentOneCore": 0.632,
+        "peakOneSecondCpuPercentOneCore": 1.929
+      },
+      {
+        "comm": "udeck-music",
+        "cpuPercentOneCore": 0.532,
+        "peakOneSecondCpuPercentOneCore": 1.053
+      },
+      {
+        "comm": "QtWebEngineProc",
+        "cpuPercentOneCore": 0.333,
+        "peakOneSecondCpuPercentOneCore": 3.001
+      },
+      {
+        "comm": "VizCompositorTh",
+        "cpuPercentOneCore": 0.333,
+        "peakOneSecondCpuPercentOneCore": 1.021
+      },
+      {
+        "comm": "udeck-browser",
+        "cpuPercentOneCore": 0.233,
+        "peakOneSecondCpuPercentOneCore": 1.038
+      },
+      {
+        "comm": "QSGRenderThread",
+        "cpuPercentOneCore": 0.233,
+        "peakOneSecondCpuPercentOneCore": 2.001
+      },
+      {
+        "comm": "udeck-emulator-",
+        "cpuPercentOneCore": 0.2,
+        "peakOneSecondCpuPercentOneCore": 1.021
+      },
+      {
+        "comm": "udeck-reader",
+        "cpuPercentOneCore": 0.166,
+        "peakOneSecondCpuPercentOneCore": 1.0
+      },
+      {
+        "comm": "udeck",
+        "cpuPercentOneCore": 0.166,
+        "peakOneSecondCpuPercentOneCore": 1.912
+      },
+      {
+        "comm": "udeck-terminal",
+        "cpuPercentOneCore": 0.1,
+        "peakOneSecondCpuPercentOneCore": 1.001
+      },
+      {
+        "comm": "QDBusConnection",
+        "cpuPercentOneCore": 0.1,
+        "peakOneSecondCpuPercentOneCore": 1.053
+      },
+      {
+        "comm": "labwc",
+        "cpuPercentOneCore": 0.1,
+        "peakOneSecondCpuPercentOneCore": 1.039
+      },
+      {
+        "comm": "udeck-video",
+        "cpuPercentOneCore": 0.067,
+        "peakOneSecondCpuPercentOneCore": 1.999
+      }
+    ],
+    "displayPowerRestored": true
+  },
+  "idleComparison": [
+    {
+      "name": "udeck",
+      "beforeCpuPercentOneCore": 7.416,
+      "afterCpuPercentOneCore": 3.625,
+      "cpuReductionPercent": 51.12,
+      "beforePssMiB": 132.57,
+      "afterPssMiB": 112.162
+    },
+    {
+      "name": "udeck-browser",
+      "beforeCpuPercentOneCore": 1.629,
+      "afterCpuPercentOneCore": 1.097,
+      "cpuReductionPercent": 32.66,
+      "beforePssMiB": 320.963,
+      "afterPssMiB": 322.845
+    },
+    {
+      "name": "udeck-emulator",
+      "beforeCpuPercentOneCore": 1.762,
+      "afterCpuPercentOneCore": 1.497,
+      "cpuReductionPercent": 15.04,
+      "beforePssMiB": 109.81,
+      "afterPssMiB": 111.784
+    },
+    {
+      "name": "udeck-emulator-saves",
+      "beforeCpuPercentOneCore": 0.2,
+      "afterCpuPercentOneCore": 0.2,
+      "cpuReductionPercent": 0.0,
+      "beforePssMiB": 18.805,
+      "afterPssMiB": 18.804
+    },
+    {
+      "name": "udeck-music",
+      "beforeCpuPercentOneCore": 0.931,
+      "afterCpuPercentOneCore": 0.599,
+      "cpuReductionPercent": 35.66,
+      "beforePssMiB": 88.945,
+      "afterPssMiB": 87.897
+    },
+    {
+      "name": "udeck-network-files",
+      "beforeCpuPercentOneCore": 2.062,
+      "afterCpuPercentOneCore": 1.896,
+      "cpuReductionPercent": 8.05,
+      "beforePssMiB": 30.313,
+      "afterPssMiB": 30.304
+    },
+    {
+      "name": "udeck-reader",
+      "beforeCpuPercentOneCore": 0.432,
+      "afterCpuPercentOneCore": 0.166,
+      "cpuReductionPercent": 61.57,
+      "beforePssMiB": 104.525,
+      "afterPssMiB": 103.088
+    },
+    {
+      "name": "udeck-session",
+      "beforeCpuPercentOneCore": 0.0,
+      "afterCpuPercentOneCore": 0.0,
+      "cpuReductionPercent": null,
+      "beforePssMiB": 1.197,
+      "afterPssMiB": 1.196
+    },
+    {
+      "name": "udeck-terminal",
+      "beforeCpuPercentOneCore": 0.067,
+      "afterCpuPercentOneCore": 0.1,
+      "cpuReductionPercent": -49.25,
+      "beforePssMiB": 100.708,
+      "afterPssMiB": 100.213
+    },
+    {
+      "name": "udeck-video",
+      "beforeCpuPercentOneCore": 0.998,
+      "afterCpuPercentOneCore": 0.665,
+      "cpuReductionPercent": 33.37,
+      "beforePssMiB": 89.039,
+      "afterPssMiB": 87.624
+    },
+    {
+      "name": "udeck.smb_files.daemon",
+      "beforeCpuPercentOneCore": 4.223,
+      "afterCpuPercentOneCore": 0.033,
+      "cpuReductionPercent": 99.22,
+      "beforePssMiB": 23.426,
+      "afterPssMiB": 22.237
+    }
+  ],
+  "callSources": {
+    "baseline": {
+      "seconds": 12.01,
+      "sharing": {
+        "smb": {
+          "enabled": false,
+          "state": "stopped"
+        },
+        "web": {
+          "enabled": true,
+          "state": "running"
+        }
+      },
+      "desktopMethodCalls": {
+        "NativeInputState": 60
+      }
+    },
+    "optimized": {
+      "seconds": 12.11,
+      "sharing": {
+        "smb": {
+          "enabled": false,
+          "state": "stopped"
+        },
+        "web": {
+          "enabled": true,
+          "state": "running"
+        }
+      },
+      "desktopMethodCalls": {
+        "NativeInputState": 12
+      }
+    }
+  },
+  "audio": {
+    "baseline": {
+      "idle": {
+        "seconds": 5.7,
+        "cpuPercentOneCore": 2.807,
+        "supplyCallbacks": 570
+      },
+      "sparsePlayback": {
+        "seconds": 9.847,
+        "cpuPercentOneCore": 2.843,
+        "supplyCallbacks": 984
+      },
+      "continuousPlayback": {
+        "seconds": 10.0,
+        "cpuPercentOneCore": 3.2,
+        "supplyCallbacks": 1001
+      },
+      "idleAfterPlayback": {
+        "seconds": 3.001,
+        "cpuPercentOneCore": 2.666,
+        "supplyCallbacks": 301
+      },
+      "status": "passed",
+      "mode": "baseline",
+      "streamStarts": 1,
+      "streamResumes": 0,
+      "acceptedRequests": 60,
+      "fullSamplesVerified": 60,
+      "audioUnderruns": 0,
+      "scope": "One real PCM output on CM4; same 10 sparse and 50 continuous ticks, unchanged audio bytes."
+    },
+    "candidate": {
+      "idle": {
+        "seconds": 5.8,
+        "cpuPercentOneCore": 0.0,
+        "supplyCallbacks": 0
+      },
+      "sparsePlayback": {
+        "seconds": 9.998,
+        "cpuPercentOneCore": 2.1,
+        "supplyCallbacks": 600
+      },
+      "continuousPlayback": {
+        "seconds": 9.997,
+        "cpuPercentOneCore": 3.301,
+        "supplyCallbacks": 999
+      },
+      "idleAfterPlayback": {
+        "seconds": 3.003,
+        "cpuPercentOneCore": 0.0,
+        "supplyCallbacks": 0
+      },
+      "status": "passed",
+      "mode": "candidate",
+      "streamStarts": 1,
+      "streamResumes": 11,
+      "acceptedRequests": 60,
+      "fullSamplesVerified": 60,
+      "audioUnderruns": 0,
+      "scope": "One real PCM output on CM4; same 10 sparse and 50 continuous ticks, unchanged audio bytes."
+    },
+    "installed": {
+      "idle": {
+        "seconds": 5.706,
+        "cpuPercentOneCore": 0.0,
+        "supplyCallbacks": 0
+      },
+      "sparsePlayback": {
+        "seconds": 9.875,
+        "cpuPercentOneCore": 2.532,
+        "supplyCallbacks": 600
+      },
+      "continuousPlayback": {
+        "seconds": 9.997,
+        "cpuPercentOneCore": 3.101,
+        "supplyCallbacks": 999
+      },
+      "idleAfterPlayback": {
+        "seconds": 3.002,
+        "cpuPercentOneCore": 0.0,
+        "supplyCallbacks": 0
+      },
+      "status": "passed",
+      "mode": "installed",
+      "streamStarts": 1,
+      "streamResumes": 11,
+      "acceptedRequests": 60,
+      "fullSamplesVerified": 60,
+      "audioUnderruns": 0,
+      "scope": "One real PCM output on CM4; same 10 sparse and 50 continuous ticks, unchanged audio bytes."
+    }
+  },
+  "behavior": {
+    "input": {
+      "status": "passed",
+      "mode": "installed",
+      "backgroundQueries": 0,
+      "authorizedIdleQueries": 0,
+      "backgroundOwnerChangeQueries": 0,
+      "foregroundBrokerLossFallback": true,
+      "foregroundBrokerRecovery": true,
+      "realDbusOwnerSignals": true,
+      "inputHardware": "substitutes; no device grabbing"
+    },
+    "web": {
+      "status": "passed",
+      "mode": "installed",
+      "idleSeconds": 10.4,
+      "backgroundNetworkQueries": 0,
+      "statusRequests": 2,
+      "onDemandNetworkQueries": 2,
+      "firstCandidateCount": 2,
+      "lastCandidateCount": 2,
+      "realSystemNetworkReads": true,
+      "userShareUntouched": true
+    }
+  },
+  "navigation": {
+    "mode": "installed-load-fullscreen-hardware-filters-fcitx-qt5ct-with-sound",
+    "platform": "wayland",
+    "applicationCount": 63,
+    "timezoneCount": 486,
+    "snapshotBytes": 6344,
+    "phases": {
+      "home-selection": {
+        "dispatchMs": {
+          "count": 24,
+          "median": 13.771,
+          "p95": 18.815,
+          "max": 21.805,
+          "sum": 347.396
+        },
+        "processEventsMs": {
+          "count": 24,
+          "median": 0.124,
+          "p95": 2.188,
+          "max": 2.443,
+          "sum": 10.132
+        },
+        "snapshotMs": {},
+        "publishMs": {},
+        "messageKeysReads": 0,
+        "firstFrameSignalMs": {
+          "count": 24,
+          "median": 10.675,
+          "p95": 20.423,
+          "max": 20.613,
+          "sum": 267.658
+        },
+        "soundRequestMs": {
+          "count": 24,
+          "median": 0.353,
+          "p95": 0.843,
+          "max": 2.753,
+          "sum": 12.019
+        },
+        "soundFlushMs": {
+          "count": 24,
+          "median": 0.444,
+          "p95": 1.092,
+          "max": 2.505,
+          "sum": 13.913
+        },
+        "soundStopMs": {},
+        "soundPlayMs": {
+          "count": 24,
+          "median": 0.072,
+          "p95": 0.211,
+          "max": 0.47,
+          "sum": 2.623
+        },
+        "actualSoundStarts": 24,
+        "pcmBytesWritten": 103680,
+        "audioUnderruns": 0,
+        "frameSignalGapMs": {
+          "count": 241,
+          "median": 16.626,
+          "p95": 17.6,
+          "max": 21.929,
+          "sum": 3967.591
+        },
+        "frameSignalGapsOver50Ms": 0,
+        "heartbeatGapMs": {
+          "count": 869,
+          "median": 5.108,
+          "p95": 6.106,
+          "max": 23.811,
+          "sum": 4409.004
+        }
+      },
+      "apps-selection": {
+        "dispatchMs": {
+          "count": 24,
+          "median": 13.788,
+          "p95": 15.305,
+          "max": 18.14,
+          "sum": 336.255
+        },
+        "processEventsMs": {
+          "count": 24,
+          "median": 0.139,
+          "p95": 0.871,
+          "max": 3.017,
+          "sum": 8.651
+        },
+        "snapshotMs": {},
+        "publishMs": {},
+        "messageKeysReads": 0,
+        "firstFrameSignalMs": {
+          "count": 24,
+          "median": 10.769,
+          "p95": 17.677,
+          "max": 18.55,
+          "sum": 265.664
+        },
+        "soundRequestMs": {
+          "count": 24,
+          "median": 0.367,
+          "p95": 0.576,
+          "max": 1.092,
+          "sum": 10.388
+        },
+        "soundFlushMs": {
+          "count": 24,
+          "median": 0.402,
+          "p95": 1.193,
+          "max": 1.662,
+          "sum": 11.127
+        },
+        "soundStopMs": {},
+        "soundPlayMs": {
+          "count": 24,
+          "median": 0.081,
+          "p95": 0.253,
+          "max": 0.301,
+          "sum": 2.664
+        },
+        "actualSoundStarts": 24,
+        "pcmBytesWritten": 103680,
+        "audioUnderruns": 0,
+        "frameSignalGapMs": {
+          "count": 238,
+          "median": 16.614,
+          "p95": 17.807,
+          "max": 19.635,
+          "sum": 3911.328
+        },
+        "frameSignalGapsOver50Ms": 0,
+        "heartbeatGapMs": {
+          "count": 860,
+          "median": 5.117,
+          "p95": 6.252,
+          "max": 16.234,
+          "sum": 4366.787
+        }
+      },
+      "pages": {
+        "dispatchMs": {
+          "count": 16,
+          "median": 14.718,
+          "p95": 23.233,
+          "max": 23.233,
+          "sum": 230.507
+        },
+        "processEventsMs": {
+          "count": 16,
+          "median": 6.789,
+          "p95": 15.833,
+          "max": 15.833,
+          "sum": 105.518
+        },
+        "snapshotMs": {
+          "count": 16,
+          "median": 3.022,
+          "p95": 6.343,
+          "max": 6.343,
+          "sum": 48.246
+        },
+        "publishMs": {
+          "count": 16,
+          "median": 14.088,
+          "p95": 22.388,
+          "max": 22.388,
+          "sum": 219.83
+        },
+        "messageKeysReads": 16,
+        "firstFrameSignalMs": {
+          "count": 16,
+          "median": 18.896,
+          "p95": 42.546,
+          "max": 42.546,
+          "sum": 338.054
+        },
+        "soundRequestMs": {
+          "count": 16,
+          "median": 0.337,
+          "p95": 0.469,
+          "max": 0.469,
+          "sum": 5.638
+        },
+        "soundFlushMs": {
+          "count": 16,
+          "median": 0.487,
+          "p95": 1.3,
+          "max": 1.3,
+          "sum": 9.064
+        },
+        "soundStopMs": {},
+        "soundPlayMs": {
+          "count": 16,
+          "median": 0.089,
+          "p95": 0.573,
+          "max": 0.573,
+          "sum": 2.554
+        },
+        "actualSoundStarts": 16,
+        "pcmBytesWritten": 227008,
+        "audioUnderruns": 0,
+        "frameSignalGapMs": {
+          "count": 165,
+          "median": 16.53,
+          "p95": 17.35,
+          "max": 18.79,
+          "sum": 2504.477
+        },
+        "frameSignalGapsOver50Ms": 0,
+        "heartbeatGapMs": {
+          "count": 552,
+          "median": 5.115,
+          "p95": 6.686,
+          "max": 37.787,
+          "sum": 3055.8
+        }
+      }
+    },
+    "hardwareInput": true,
+    "inputMethod": "fcitx",
+    "platformTheme": "qt5ct",
+    "windowActive": true,
+    "soundEffects": 8,
+    "audioThread": "udeck-ui-audio",
+    "destroyedInitialControls": {},
+    "qmlErrors": []
+  },
+  "endurance": {
+    "status": "passed",
+    "cycles": 30,
+    "keyTaps": 3660,
+    "elapsedSeconds": 268.75,
+    "pageSwitches": 120,
+    "modalCycles": 30,
+    "summary": {
+      "apps-navigation": {
+        "count": 1500,
+        "medianMs": 2.0785,
+        "p95Ms": 6.858,
+        "maxMs": 81.47,
+        "over50Ms": 1,
+        "over100Ms": 0
+      },
+      "console-navigation": {
+        "count": 600,
+        "medianMs": 5.314,
+        "p95Ms": 22.656,
+        "maxMs": 54.711,
+        "over50Ms": 1,
+        "over100Ms": 0
+      },
+      "home-navigation": {
+        "count": 1500,
+        "medianMs": 2.067,
+        "p95Ms": 7.747,
+        "maxMs": 27.546,
+        "over50Ms": 0,
+        "over100Ms": 0
+      },
+      "modal-close": {
+        "count": 30,
+        "medianMs": 1.6015000000000001,
+        "p95Ms": 5.162,
+        "maxMs": 9.385,
+        "over50Ms": 0,
+        "over100Ms": 0
+      },
+      "modal-open": {
+        "count": 30,
+        "medianMs": 1.6164999999999998,
+        "p95Ms": 5.768,
+        "maxMs": 8.102,
+        "over50Ms": 0,
+        "over100Ms": 0
+      },
+      "pages": {
+        "count": 120,
+        "medianMs": 38.6085,
+        "p95Ms": 62.819,
+        "maxMs": 76.176,
+        "over50Ms": 33,
+        "over100Ms": 0
+      },
+      "setup": {
+        "count": 4,
+        "medianMs": 5.5035,
+        "p95Ms": 11.05,
+        "maxMs": 11.05,
+        "over50Ms": 0,
+        "over100Ms": 0
+      }
+    },
+    "memory": [
+      {
+        "cycle": 1,
+        "elapsedSeconds": 10.58,
+        "RssKiB": 247676,
+        "PssKiB": 121698,
+        "SwapPssKiB": 0,
+        "fdCount": 51,
+        "threadCount": 17
+      },
+      {
+        "cycle": 2,
+        "elapsedSeconds": 19.54,
+        "RssKiB": 248720,
+        "PssKiB": 122742,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 3,
+        "elapsedSeconds": 28.34,
+        "RssKiB": 248712,
+        "PssKiB": 122734,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 4,
+        "elapsedSeconds": 37.31,
+        "RssKiB": 248756,
+        "PssKiB": 122778,
+        "SwapPssKiB": 0,
+        "fdCount": 52,
+        "threadCount": 17
+      },
+      {
+        "cycle": 5,
+        "elapsedSeconds": 46.13,
+        "RssKiB": 248788,
+        "PssKiB": 122810,
+        "SwapPssKiB": 0,
+        "fdCount": 51,
+        "threadCount": 17
+      },
+      {
+        "cycle": 6,
+        "elapsedSeconds": 54.94,
+        "RssKiB": 248828,
+        "PssKiB": 122850,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 7,
+        "elapsedSeconds": 63.74,
+        "RssKiB": 248864,
+        "PssKiB": 122886,
+        "SwapPssKiB": 0,
+        "fdCount": 53,
+        "threadCount": 17
+      },
+      {
+        "cycle": 8,
+        "elapsedSeconds": 72.63,
+        "RssKiB": 248904,
+        "PssKiB": 122926,
+        "SwapPssKiB": 0,
+        "fdCount": 51,
+        "threadCount": 17
+      },
+      {
+        "cycle": 9,
+        "elapsedSeconds": 81.48,
+        "RssKiB": 248940,
+        "PssKiB": 122962,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 10,
+        "elapsedSeconds": 90.38,
+        "RssKiB": 248968,
+        "PssKiB": 122990,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 11,
+        "elapsedSeconds": 99.24,
+        "RssKiB": 249008,
+        "PssKiB": 123030,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 12,
+        "elapsedSeconds": 108.03,
+        "RssKiB": 249044,
+        "PssKiB": 123066,
+        "SwapPssKiB": 0,
+        "fdCount": 53,
+        "threadCount": 17
+      },
+      {
+        "cycle": 13,
+        "elapsedSeconds": 117.01,
+        "RssKiB": 249048,
+        "PssKiB": 123070,
+        "SwapPssKiB": 0,
+        "fdCount": 51,
+        "threadCount": 17
+      },
+      {
+        "cycle": 14,
+        "elapsedSeconds": 126.01,
+        "RssKiB": 249076,
+        "PssKiB": 123098,
+        "SwapPssKiB": 0,
+        "fdCount": 51,
+        "threadCount": 17
+      },
+      {
+        "cycle": 15,
+        "elapsedSeconds": 134.88,
+        "RssKiB": 249688,
+        "PssKiB": 123710,
+        "SwapPssKiB": 0,
+        "fdCount": 54,
+        "threadCount": 17
+      },
+      {
+        "cycle": 16,
+        "elapsedSeconds": 143.86,
+        "RssKiB": 249728,
+        "PssKiB": 123750,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 17,
+        "elapsedSeconds": 152.76,
+        "RssKiB": 249752,
+        "PssKiB": 123774,
+        "SwapPssKiB": 0,
+        "fdCount": 51,
+        "threadCount": 17
+      },
+      {
+        "cycle": 18,
+        "elapsedSeconds": 161.57,
+        "RssKiB": 249852,
+        "PssKiB": 123874,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 19,
+        "elapsedSeconds": 170.46,
+        "RssKiB": 249888,
+        "PssKiB": 123910,
+        "SwapPssKiB": 0,
+        "fdCount": 51,
+        "threadCount": 17
+      },
+      {
+        "cycle": 20,
+        "elapsedSeconds": 179.26,
+        "RssKiB": 249856,
+        "PssKiB": 123878,
+        "SwapPssKiB": 0,
+        "fdCount": 51,
+        "threadCount": 17
+      },
+      {
+        "cycle": 21,
+        "elapsedSeconds": 188.31,
+        "RssKiB": 249880,
+        "PssKiB": 123902,
+        "SwapPssKiB": 0,
+        "fdCount": 51,
+        "threadCount": 17
+      },
+      {
+        "cycle": 22,
+        "elapsedSeconds": 197.23,
+        "RssKiB": 250868,
+        "PssKiB": 124890,
+        "SwapPssKiB": 0,
+        "fdCount": 51,
+        "threadCount": 17
+      },
+      {
+        "cycle": 23,
+        "elapsedSeconds": 206.08,
+        "RssKiB": 250844,
+        "PssKiB": 124866,
+        "SwapPssKiB": 0,
+        "fdCount": 51,
+        "threadCount": 17
+      },
+      {
+        "cycle": 24,
+        "elapsedSeconds": 215.01,
+        "RssKiB": 250876,
+        "PssKiB": 124890,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 25,
+        "elapsedSeconds": 223.83,
+        "RssKiB": 250912,
+        "PssKiB": 124934,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 26,
+        "elapsedSeconds": 232.63,
+        "RssKiB": 250944,
+        "PssKiB": 124966,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 27,
+        "elapsedSeconds": 241.53,
+        "RssKiB": 250980,
+        "PssKiB": 125002,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 28,
+        "elapsedSeconds": 250.41,
+        "RssKiB": 251008,
+        "PssKiB": 125030,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 29,
+        "elapsedSeconds": 259.33,
+        "RssKiB": 251040,
+        "PssKiB": 125062,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      },
+      {
+        "cycle": 30,
+        "elapsedSeconds": 268.26,
+        "RssKiB": 251076,
+        "PssKiB": 125098,
+        "SwapPssKiB": 0,
+        "fdCount": 50,
+        "threadCount": 17
+      }
+    ],
+    "scope": "Existing keyboard EV_KEY input with paired releases; D-Bus queue response, not optical input-to-pixel.",
+    "displayPowerRestored": true
+  },
+  "nativeControls": {
+    "status": "passed",
+    "shoulderPageAssertions": 122,
+    "gamepadMenuKeyTaps": 5,
+    "images": [
+      "01-home.png",
+      "02-shoulder-next-apps.png",
+      "03-shoulder-previous-home.png",
+      "04-gamepad-quick-settings.png",
+      "05-gamepad-volume-menu.png",
+      "06-gamepad-close-volume-home.png",
+      "07-gamepad-reopen-settings.png",
+      "08-gamepad-close-settings-home.png"
+    ],
+    "immediateReadBeforeInputCount": 0,
+    "shoulderInputToDiagnosticMs": {
+      "count": 120,
+      "median": 31.9025,
+      "p95": 46.288,
+      "max": 54.278,
+      "over100Ms": 0
+    },
+    "inputPath": "EV_KEY through existing built-in mouse and gamepad interfaces; no manual physical key presses",
+    "visualAcceptance": "Eight screenshots inspected: Home and Apps focus, Quick settings, Volume, and return to Home.",
+    "measurement": "Press starts timer; release after 20 ms; poll Diagnose until expected page, bounded at 800 ms."
+  },
+  "appFocus": {
+    "status": "passed",
+    "checks": [
+      {
+        "app": "music",
+        "foregroundAuthorized": true,
+        "shoulderTransitions": 4,
+        "originalTabRestored": true
+      },
+      {
+        "app": "video",
+        "foregroundAuthorized": true,
+        "shoulderTransitions": 4,
+        "originalTabRestored": true
+      },
+      {
+        "app": "reader",
+        "foregroundAuthorized": true,
+        "shoulderTransitions": 4,
+        "originalTabRestored": true
+      },
+      {
+        "app": "emulator",
+        "foregroundAuthorized": true,
+        "shoulderTransitions": 4,
+        "originalTabRestored": true
+      }
+    ],
+    "displayPowerRestored": true,
+    "inputPath": "Existing built-in EV_KEY mouse shoulders; no manual key press acceptance"
+  },
+  "installation": {
+    "status": "passed",
+    "sha256": "15e227758b26f408f3ff65a03477b8b5b032406c34b08838efcbf7111a779dfd",
+    "installedFilesVerified": 537,
+    "protectedFilesPreserved": true,
+    "webShareProcessPreserved": true,
+    "rollbackReady": true
+  },
+  "deployment": {
+    "status": "passed",
+    "reloadedApps": [
+      "music",
+      "video",
+      "reader",
+      "emulator"
+    ],
+    "terminalPreserved": true,
+    "browserPreserved": true,
+    "webShareProcessPreserved": true,
+    "protectedFilesPreserved": true,
+    "sessionRestarted": false
+  },
+  "installedFunctionalChecks": {
+    "status": "passed",
+    "version": "1.0.1",
+    "installedSourceFilesChecked": 537,
+    "pluginHashVerified": true,
+    "checks": [
+      {
+        "name": "desktop-smoke-1",
+        "seconds": 4.72,
+        "exitCode": 0
+      },
+      {
+        "name": "desktop-smoke-2",
+        "seconds": 4.13,
+        "exitCode": 0
+      },
+      {
+        "name": "music-smoke",
+        "seconds": 4.51,
+        "exitCode": 0
+      },
+      {
+        "name": "music-ipc",
+        "seconds": 8.5,
+        "exitCode": 0
+      },
+      {
+        "name": "video-smoke",
+        "seconds": 4.43,
+        "exitCode": 0
+      },
+      {
+        "name": "video-ipc",
+        "seconds": 8.59,
+        "exitCode": 0
+      },
+      {
+        "name": "browser-smoke",
+        "seconds": 4.94,
+        "exitCode": 0
+      },
+      {
+        "name": "browser-ipc",
+        "seconds": 9.07,
+        "exitCode": 0
+      },
+      {
+        "name": "reader-smoke",
+        "seconds": 4.41,
+        "exitCode": 0
+      },
+      {
+        "name": "reader-ipc",
+        "seconds": 8.55,
+        "exitCode": 0
+      },
+      {
+        "name": "emulator-smoke",
+        "seconds": 5.29,
+        "exitCode": 0
+      },
+      {
+        "name": "emulator-ipc",
+        "seconds": 9.12,
+        "exitCode": 0
+      },
+      {
+        "name": "native-terminal-pty",
+        "seconds": 1.68,
+        "exitCode": 0
+      },
+      {
+        "name": "default-terminal",
+        "seconds": 2.44,
+        "exitCode": 0
+      },
+      {
+        "name": "video-pointer",
+        "seconds": 4.2,
+        "exitCode": 0
+      },
+      {
+        "name": "video-pointer-hold",
+        "seconds": 4.49,
+        "exitCode": 0
+      },
+      {
+        "name": "audio-menu",
+        "seconds": 4.48,
+        "exitCode": 0
+      },
+      {
+        "name": "system-information",
+        "seconds": 4.93,
+        "exitCode": 0
+      },
+      {
+        "name": "interface-sounds",
+        "seconds": 3.7,
+        "exitCode": 0
+      },
+      {
+        "name": "motion-classic",
+        "seconds": 6.27,
+        "exitCode": 0
+      },
+      {
+        "name": "extended-motion-classic",
+        "seconds": 5.71,
+        "exitCode": 0
+      },
+      {
+        "name": "console-classic",
+        "seconds": 4.46,
+        "exitCode": 0
+      },
+      {
+        "name": "motion-dark",
+        "seconds": 5.86,
+        "exitCode": 0
+      },
+      {
+        "name": "extended-motion-dark",
+        "seconds": 5.06,
+        "exitCode": 0
+      },
+      {
+        "name": "console-dark",
+        "seconds": 3.94,
+        "exitCode": 0
+      }
+    ]
+  },
+  "finalHealth": {
+    "status": "passed",
+    "appCount": 6,
+    "protectedFilesPreserved": true,
+    "packageSha256": "15e227758b26f408f3ff65a03477b8b5b032406c34b08838efcbf7111a779dfd",
+    "dpkgVerifyPassed": true,
+    "dpkgAuditPassed": true,
+    "idleSettlingSamples": [
+      {
+        "second": 0,
+        "RssKiB": 252044,
+        "PssKiB": 126099,
+        "SwapPssKiB": 0,
+        "fdCount": 52,
+        "threadCount": 17
+      },
+      {
+        "second": 10,
+        "RssKiB": 252044,
+        "PssKiB": 126099,
+        "SwapPssKiB": 0,
+        "fdCount": 54,
+        "threadCount": 17
+      },
+      {
+        "second": 20,
+        "RssKiB": 252056,
+        "PssKiB": 126111,
+        "SwapPssKiB": 0,
+        "fdCount": 56,
+        "threadCount": 17
+      },
+      {
+        "second": 30,
+        "RssKiB": 252072,
+        "PssKiB": 126127,
+        "SwapPssKiB": 0,
+        "fdCount": 53,
+        "threadCount": 17
+      }
+    ],
+    "debuggersRemaining": [],
+    "throttled": "throttled=0x0",
+    "displayPowerRestored": true
+  },
+  "limits": [
+    "Browser and Terminal processes preserved; Browser retains old input polling until normal restart.",
+    "Active Web share process preserved; new stopped-service behavior verified on a private bus.",
+    "EV_KEY injection and software frame signals do not establish manual input, speaker, or optical latency acceptance.",
+    "Fresh desktop and four fresh app processes prevent attributing PSS differences solely to code."
+  ]
+}

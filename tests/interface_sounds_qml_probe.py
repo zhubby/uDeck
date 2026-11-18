@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖真实桌面 QML、隔离偏好和静默音效入口。
+[OUTPUT]: 验证双语言音效开关、快捷设置及离屏零播放。
+[POS]: 独立进程探针；静默窗口不创建播放线程。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import argparse
 import json
 import tempfile
@@ -91,7 +98,7 @@ def run():
                                     if option.get("id") == "ui-sounds"))
         assert controller.modal.get("source") == "quick-settings"
         assert not ConfigStore(controller.config.path).data["preferences"]["uiSounds"]
-        assert not sounds._effects and not sounds._pending
+        assert sounds._thread is None and not sounds._pending
         assert not errors, errors
         print(json.dumps({"captures": captures, "qmlErrors": errors, "events": events,
                           "playback": "silent headless preview", "samples": len(SOUND_FILES)}))

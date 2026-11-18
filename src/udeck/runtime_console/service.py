@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖会话 D-Bus、窗口元数据、proc 快照和 ConsoleModel。
-[OUTPUT]: 提供有界身份查询、实时统计与身份固定的有序退出。
+[OUTPUT]: 提供有界身份查询、增量状态和身份固定的有序退出。
 [POS]: Console 独立运行服务；后台任务不操作 Qt 或激活游戏。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -204,12 +204,15 @@ class RuntimeConsole(QObject):
             return
         if app not in NATIVE_APPS:
             return
+        generation = self.generation
         def received(reply):
-            if self.owners.get(app) != owner:
+            if not self.visible or generation != self.generation or self.owners.get(app) != owner:
                 return
             try:
                 info = json.loads(reply.arguments()[0]) if reply.type() != QDBusMessage.MessageType.ErrorMessage else {}
                 if not isinstance(info, dict) or not isinstance(info.get("relatedWindows", []), list):
+                    return
+                if self.infos.get(app) == info:
                     return
                 self.infos[app] = info
                 self._rebuild()

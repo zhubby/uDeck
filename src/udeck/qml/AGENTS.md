@@ -3,7 +3,7 @@
 
 成员清单：
 
-Main.qml: 桌面导航、模态界面和页面装配。
+Main.qml: 局部选择绑定、模态界面和页面装配。
 ShellDialog.qml: 保留关闭画面的模态视图与输入隔离。
 FocusFrame.qml: 单一焦点边框，连续导航立即改向。
 MotionTimings.qml: 减少动画开关与统一短过渡时长。

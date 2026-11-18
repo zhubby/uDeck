@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖隔离音频服务、系统后端与桌面控制器。
+[OUTPUT]: 验证音频状态去重、设备切换和错误恢复。
+[POS]: 音频集成回归；不读写真实系统音频配置。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import asyncio
 import json
 import os
@@ -84,6 +91,28 @@ def test_microphone_enumeration_excludes_monitors_and_marks_bluetooth(audio_serv
     assert audio["outputs"][1]["bluetooth"] is True
     assert audio["inputs"][1]["cardId"] == "bluez_card.headset"
     assert audio["inputs"][0]["volume"] == pytest.approx(0.5)
+
+
+def test_playback_activity_does_not_republish_unchanged_audio_controls(audio_server):
+    backend, state, _ = audio_server
+    updates = []
+    backend.updated.connect(updates.append)
+    asyncio.run(backend.refresh_audio())
+    assert len(updates) == 1
+    state["sinks"][0]["state"] = "RUNNING"
+    asyncio.run(backend.refresh_audio())
+    state["sinks"][0]["state"] = "IDLE"
+    asyncio.run(backend.refresh_audio())
+    assert len(updates) == 1
+    state["sinks"][0]["mute"] = True
+    asyncio.run(backend.refresh_audio())
+    assert len(updates) == 2 and updates[-1]["audio"]["muted"]
+    state["fail"].add("sinks")
+    asyncio.run(backend.refresh_audio())
+    assert len(updates) == 3 and updates[-1]["audio"]["outputError"]
+    state["fail"].clear()
+    asyncio.run(backend.refresh_audio())
+    assert len(updates) == 4 and not updates[-1]["audio"]["outputError"]
 
 
 def test_audio_subscription_ignores_query_clients_but_keeps_device_changes(monkeypatch):

@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖窗口焦点、会话隔离、物理手柄与虚拟输入。
+[OUTPUT]: 提供桌面导航和应用按钮、指针及焦点交接。
+[POS]: 输入归属编排层；桌面内切页保留设备归属。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import math
 import time
 
@@ -444,8 +451,11 @@ class ApplicationRouter(QObject):
         self.return_target = None
         self.command_pending = None
         self.release()
-        self.mode = 'transition'
-        self.gamepad.set_foreground(False)
+        if self.shell:
+            self.refresh()
+        else:
+            self.mode = 'transition'
+            self.gamepad.set_foreground(False)
 
     def _gone(self):
         self.leave_menu()

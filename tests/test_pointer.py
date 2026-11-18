@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖指针服务、隔离 evdev 和 sysfs 能力位图。
+[OUTPUT]: 验证输入归属、热插拔与无关设备的无打开筛选。
+[POS]: 指针边界回归；阻止定时扫描再次阻塞桌面主线程。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import os
 import sys
 import time
@@ -10,7 +17,7 @@ from udeck.pointer import PointerGuard
 
 
 @pytest.fixture
-def pointer_device(monkeypatch):
+def pointer_device(monkeypatch, tmp_path):
     application = QCoreApplication.instance() or QCoreApplication([])
     reader, writer = os.pipe()
     events = []
@@ -27,6 +34,7 @@ def pointer_device(monkeypatch):
         InputDevice=lambda path: device, list_devices=lambda: [device.path],
     ))
     guard = PointerGuard()
+    guard.sysfs_root = tmp_path / 'input'
     guard._test_application = application
     yield guard, device, events, ownership
     guard.close()
@@ -256,3 +264,57 @@ def test_unchanged_pointer_scan_does_not_republish_the_ui_every_second(pointer_d
     guard._scan()
     guard._scan()
     assert len(updates) == 1
+
+
+def sysfs_capabilities(guard, path, capabilities):
+    from pathlib import Path
+
+    folder = guard.sysfs_root / Path(path).name / 'device/capabilities'
+    folder.mkdir(parents=True, exist_ok=True)
+    for name in ('key', 'rel', 'abs'):
+        value = sum(1 << code for code in capabilities.get(name, ()))
+        words = []
+        while value:
+            words.insert(0, format(value & ((1 << 64) - 1), 'x'))
+            value >>= 64
+        (folder / name).write_text(' '.join(words or ['0']) + '\n')
+
+
+def test_polling_does_not_open_or_close_non_pointer_interfaces(pointer_device, monkeypatch):
+    guard, device, _, _ = pointer_device
+    sysfs_capabilities(guard, device.path, {'key': [28, 103, 288], 'abs': [0, 1]})
+    opened = []
+    monkeypatch.setattr(sys.modules['evdev'], 'InputDevice', lambda path: opened.append(path) or device)
+    guard.start()
+    guard._scan()
+    guard._scan()
+    assert opened == []
+
+
+@pytest.mark.parametrize('axes', ['rel', 'abs'])
+def test_sysfs_pointer_candidates_still_use_evdev_ownership_checks(pointer_device, axes):
+    guard, device, _, ownership = pointer_device
+    sysfs_capabilities(guard, device.path, {'key': [272, 273, 274], axes: [0, 1]})
+    guard.start()
+    assert ownership == ['grab']
+
+
+def test_hotplug_rechecks_capabilities_at_a_reused_event_path(pointer_device, monkeypatch):
+    guard, device, _, ownership = pointer_device
+    sysfs_capabilities(guard, device.path, {'key': [28, 103]})
+    guard.start()
+    assert ownership == []
+    monkeypatch.setattr(sys.modules['evdev'], 'list_devices', lambda: [])
+    guard._scan()
+    monkeypatch.setattr(sys.modules['evdev'], 'list_devices', lambda: [device.path])
+    sysfs_capabilities(guard, device.path, {'key': [272], 'rel': [0, 1]})
+    guard._scan()
+    assert ownership == ['grab']
+
+
+def test_unreadable_sysfs_keeps_evdev_fallback(pointer_device):
+    guard, device, _, ownership = pointer_device
+    sysfs_capabilities(guard, device.path, {'key': [272], 'rel': [0, 1]})
+    (guard.sysfs_root / 'event8/device/capabilities/key').write_text('invalid')
+    guard.start()
+    assert ownership == ['grab']

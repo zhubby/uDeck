@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖桌面控制器、隔离文件目录与可控异步任务。
+[OUTPUT]: 验证文件操作、局部视图与完整诊断快照的边界。
+[POS]: 桌面文件交互回归；真实 QML 布局由独立探针验证。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 import threading
 import time
@@ -85,6 +92,16 @@ def test_compact_view_omits_file_arrays_without_changing_external_snapshot(contr
     assert instance.fileModel.rowCount() == len(public["items"])
     instance.setPage("home")
     assert "files" not in json.loads(instance.viewSnapshotJson)
+
+
+def test_invisible_system_inventory_does_not_increase_desktop_view_payload(controller):
+    instance, application, directory = controller
+    instance.setPage("home")
+    original = instance.viewSnapshotJson
+    zones = [f"Region/City_{index}" for index in range(2000)]
+    instance.data["timezone"]["zones"] = zones
+    assert len(instance.viewSnapshotJson) == len(original), "未显示的系统清单增加了页面更新成本"
+    assert json.loads(instance.snapshotJson)["timezone"]["zones"] == zones
 
 
 def test_bookmarks_and_sort_preferences_survive_other_application_saves(controller):
