@@ -11,9 +11,9 @@ import pytest
 from PySide6.QtCore import QCoreApplication, QObject, Signal
 
 from udeck.app_routing import APP_IDS
+from udeck.apps.common import input as input_module
 from udeck.apps.common.controller import AppController
 from udeck.apps.common.input import AppInput
-from udeck.apps.common import input as input_module
 from udeck.apps.common.library import Source, scan
 from udeck.apps.emulator.controller import EmulatorController, content_hash
 from udeck.compatibility import application_profile
