@@ -1,4 +1,9 @@
-"""Platform-directory scanning with bounded disc references."""
+"""
+[INPUT]: 依赖共享 Library、Libretro 列表和单轮封面目录索引。
+[OUTPUT]: 提供后台列表与封面解析、扫描代次和封面修订隔离。
+[POS]: Emulator 游戏库；工作线程构造独占结果，Qt 线程发布。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import copy
 import hashlib
@@ -220,19 +225,32 @@ class PlaylistReadSignals(QObject):
 
 
 class PlaylistReadTask(QRunnable):
-    def __init__(self, generation, directory, root, catalog, identities, cache, cancel):
+    def __init__(self, generation, directory, root, catalog, identities, cache, cancel,
+                 previous, thumbnail_path, preferred, thumbnail_revision):
         super().__init__()
         self.generation, self.directory, self.root = generation, directory, root
         self.catalog, self.identities, self.cache, self.cancel = catalog, identities, cache, cancel
+        self.previous, self.thumbnail_path, self.preferred = previous, thumbnail_path, preferred
+        self.thumbnail_revision = thumbnail_revision
         self.signals = PlaylistReadSignals()
 
     def run(self):
         from .playlists import read_library
+        from .thumbnails import apply_library_thumbnails
 
         try:
             result = read_library(self.directory, self.root, self.catalog, self.identities,
                                   self.cancel.is_set, self.cache)
-            self.signals.done.emit(self.generation, (result, self.identities), None)
+            for playlist in result.playlists:
+                if playlist['error']:
+                    kept = [item for item in self.previous if item.get('playlistPath') == playlist['path']]
+                    result.items.extend(kept)
+                    playlist['count'] = len(kept)
+            apply_library_thumbnails(result.items, self.thumbnail_path, self.preferred,
+                                     cancelled=self.cancel.is_set)
+            if self.cancel.is_set():
+                raise OSError(tr(Msg.SCAN_CANCELLED))
+            self.signals.done.emit(self.generation, (result, self.identities, self.thumbnail_revision), None)
         except (OSError, ValueError) as error:
             self.signals.done.emit(self.generation, None, error_text(error))
 
@@ -242,6 +260,7 @@ class EmulatorLibrary(Library):
         super().__init__("emulator", state, parent)
         self.catalog, self.reports, self.playlists = catalog, {}, []
         self.suspended = False
+        self.thumbnail_revision = 0
         self.reload_configuration()
 
     def reload_configuration(self):
@@ -348,9 +367,13 @@ class EmulatorLibrary(Library):
         self.generation += 1
         self.pending = {"playlists"}
         self.check_sources()
+        previous = [dict(item) for item in self.items]
         task = PlaylistReadTask(self.generation, self.playlist_path, self.root_path,
                                 copy.deepcopy(self.catalog), copy.deepcopy(self.identities),
-                                {i["path"]: i for i in self.items}, self.cancel)
+                                {i["path"]: i for i in previous}, self.cancel, previous,
+                                self.thumbnail_path,
+                                self.state.data['preferences'].get('thumbnailType', 'Named_Boxarts'),
+                                self.thumbnail_revision)
         task.signals.done.connect(self._playlist_done)
         self.tasks.append(task)
         QThreadPool.globalInstance().start(task)
@@ -364,16 +387,17 @@ class EmulatorLibrary(Library):
         if error:
             self.errors["playlists"] = error
         else:
-            result, identities = payload
-            # A malformed external edit must not silently erase its last good collection.
-            for playlist in result.playlists:
-                if playlist["error"]:
-                    kept = [i for i in self.items if i.get("playlistPath") == playlist["path"]]
-                    result.items.extend(kept)
-                    playlist["count"] = len(kept)
+            result, identities, thumbnail_revision = payload
+            if thumbnail_revision != self.thumbnail_revision:
+                self.refresh()
+                return
+            from .thumbnails import preferred_cover
+
             self.items, self.playlists, self.identities = result.items, result.playlists, identities
+            preferred = self.state.data['preferences'].get('thumbnailType', 'Named_Boxarts')
             for item in self.items:
                 item["romRoot"] = self.root_path
+                item['cover'] = preferred_cover(item.get('thumbnails', {}), preferred)
             existing = {s.path: s for s in self.sources}
             existing.update({s.path: s for s in result.sources})
             self.sources = list(existing.values())
@@ -388,7 +412,6 @@ class EmulatorLibrary(Library):
                 self.state.save()
             except OSError as failure:
                 self.errors["state"] = error_text(failure)
-            self.reload_thumbnails(emit=False)
         self.changed.emit()
 
     def _done(self, generation, source_id, items, report):
@@ -418,11 +441,11 @@ class EmulatorLibrary(Library):
         return item
 
     def reload_thumbnails(self, emit=True):
-        from .thumbnails import apply_thumbnails
+        from .thumbnails import apply_library_thumbnails
 
+        self.thumbnail_revision += 1
         preferred = self.state.data["preferences"].get("thumbnailType", "Named_Boxarts")
-        for item in self.items:
-            apply_thumbnails(item, self.thumbnail_path, preferred)
+        apply_library_thumbnails(self.items, self.thumbnail_path, preferred)
         if emit:
             self.changed.emit()
 

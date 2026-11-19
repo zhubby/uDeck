@@ -1,4 +1,9 @@
-"""Exercise Games menus with real Qt key events, in an isolated preview."""
+"""
+[INPUT]: 依赖隔离游戏库、真实 Qt 按键和封面夹具。
+[OUTPUT]: 验证游戏菜单、标题、封面身份保留与失败回退。
+[POS]: 模拟器界面的独立进程验收，不连接运行中的游戏。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import json
 import sys
@@ -100,8 +105,13 @@ def run(root, language, theme, mode="menus"):
     def platform_artwork(owner, icon, *, covered=False):
         fallback = owner.findChild(QQuickItem, "fallbackPlatformIcon")
         assert fallback is not None, "Games without artwork must display a platform icon"
-        cover = owner.findChild(QQuickItem, "coverImage")
-        wait(lambda: fallback.isVisible() != covered and cover.isVisible() == covered)
+        artwork = fallback.parentItem()
+
+        def matches_display():
+            cover = artwork.findChild(QQuickItem, "coverImage")
+            return cover is not None and fallback.isVisible() != covered and cover.isVisible() == covered
+
+        wait(matches_display)
         if not covered:
             wait(lambda: fallback.property("paintedWidth") > 0)
         assert fallback.property("source").toString().endswith("/platform-icons/" + icon + ".svg")
@@ -174,7 +184,8 @@ def run(root, language, theme, mode="menus"):
             assert field("playTime").property("text") == ("2 h 3 min" if language == "en" else "2 小时 3 分钟")
             catalog.cores["vba_next"].name = "A very long core name that must stay on a single line"
             controller.publish()
-            wait(lambda: field("core").x() < -5)
+            QTest.qWait(1400)
+            assert field("core").x() == 0, "secondary metadata must stay still"
             assert field("core").property("lineCount") == 1
             QTest.keyClick(window, Qt.Key.Key_F3)
             wait(lambda: field("core").x() == 0)
@@ -237,7 +248,7 @@ def run(root, language, theme, mode="menus"):
                 assert "\n" not in title_text.property("text")
                 side_title = window.findChild(QQuickItem, "selectedGameTitle")
                 side_text = side_title.findChild(QQuickItem, "cardTitleText")
-                wait(lambda label=side_text: label.x() < -5)
+                assert side_text.x() == 0, "duplicate sidebar title must stay still"
                 assert side_text.property("lineCount") == 1 and "\n" not in side_text.property("text")
                 caption = next(child for child in card.childItems() if child.inherits("QQuickColumn"))
                 assert caption.y() + caption.height() <= card.height() - 9
@@ -304,10 +315,28 @@ def run(root, language, theme, mode="menus"):
             broken_path = image_path.with_suffix(".jpg")
             image_path.rename(broken_path)
             controller.library.reload_thumbnails()
-            platform_artwork(grid.property("currentItem"), "gb")
+            wait(lambda: any(str(broken_path) in unquote(error) for error in errors))
+            platform_artwork(panel, "gb", covered=True)
+            sidebar_art = panel.findChild(QQuickItem, "fallbackPlatformIcon").parentItem()
+            assert sidebar_art.property("displayedSource") == QUrl.fromLocalFile(str(image_path)).toString()
+            assert sidebar_art.property("displayedIdentity") == controller.selectedItem["gameId"]
+            QTest.keyClick(window, Qt.Key.Key_Return)
+            platform_artwork(details, "gb", covered=True)
+            assert details.property("displayedSource") == QUrl.fromLocalFile(str(image_path)).toString()
+            QTest.keyClick(window, Qt.Key.Key_Escape)
+            controller.select(next(row["id"] for row in controller.rows() if row["title"] == "NES"))
+            platform_artwork(panel, "nes")
+            assert not sidebar_art.property("displayedSource"), "The previous game cover survived a new title"
+            QTest.keyClick(window, Qt.Key.Key_Return)
+            platform_artwork(details, "nes")
+            assert not details.property("displayedSource")
+            QTest.keyClick(window, Qt.Key.Key_Escape)
+            controller.select(next(row["id"] for row in controller.rows() if row["title"] == "GB"))
             platform_artwork(panel, "gb")
+            assert not sidebar_art.property("displayedSource"), "A failed new identity restored its old cover"
             QTest.keyClick(window, Qt.Key.Key_Return)
             platform_artwork(details, "gb")
+            assert not details.property("displayedSource")
             frame("invalid-cover-platform-fallback")
             expected_errors = [error for error in errors if str(broken_path) in unquote(error)]
             assert expected_errors, "The corrupt cover must be attempted before falling back"
@@ -323,7 +352,8 @@ def run(root, language, theme, mode="menus"):
                 title_text = title_view.findChild(QQuickItem, "cardTitleText")
                 side_title = window.findChild(QQuickItem, "selectedGameTitle")
                 side_text = side_title.findChild(QQuickItem, "cardTitleText")
-                wait(lambda label=title_text, side=side_text: label.x() < -5 and side.x() < -5)
+                wait(lambda label=title_text: label.x() < -5)
+                assert side_text.x() == 0
                 assert title_text.property("lineCount") == side_text.property("lineCount") == 1
                 platform_artwork(card, "gba")
                 platform_artwork(panel, "gba")
@@ -332,14 +362,15 @@ def run(root, language, theme, mode="menus"):
             QTest.qWait(1300)
             assert title_text.x() == side_text.x() == 0
             QTest.keyClick(window, Qt.Key.Key_Escape)
-            wait(lambda: title_text.x() < -5 and side_text.x() < -5)
+            wait(lambda: title_text.x() < -5)
+            assert side_text.x() == 0
             frame("favorite-title-scrolling")
             assert not errors, errors
             print(json.dumps({"qmlErrors": errors, "expectedInvalidImageErrors": len(expected_errors),
                               "language": language, "theme": theme,
                               "platforms": tested_platforms,
                               "checks": ["all-platform-game-title-scroll", "single-line-newline-label",
-                                         "selected-sidebar-scroll-reset", "recent-favorite-title-scroll",
+                                         "selected-sidebar-stationary", "recent-favorite-title-scroll",
                                          "menu-scroll-reset", "platform-placeholders-card-sidebar-details",
                                          "mixed-platform-and-unknown-placeholders", "cover-precedence-invalid-fallback"]}))
             return
@@ -554,16 +585,18 @@ def run(root, language, theme, mode="menus"):
         activate(render(tr(Msg.EMU_SNAPSHOT), language))
         assert "/Named_Snaps/" in controller.current["cover"]
         frame("thumbnail-snapshot")
-        cover = window.findChild(QQuickItem, "gameArtwork").findChild(QQuickItem, "coverImage")
-        wait(lambda: cover.property("paintedHeight") > 0)
-        assert abs(cover.property("paintedWidth") / cover.property("paintedHeight") - 160 / 90) < 0.02
+        def displayed_cover():
+            return window.findChild(QQuickItem, "gameArtwork").findChild(QQuickItem, "coverImage")
+
+        wait(lambda: displayed_cover().property("paintedHeight") > 0)
+        assert abs(displayed_cover().property("paintedWidth") / displayed_cover().property("paintedHeight") - 160 / 90) < 0.02
         controller.preview_images()
         activate(render(tr(Msg.EMU_BOXART), language))
         assert "/Named_Boxarts/" in controller.current["cover"]
         frame("thumbnail-boxart")
-        wait(lambda: cover.property("paintedHeight") > 0 and
-             abs(cover.property("paintedWidth") / cover.property("paintedHeight") - 80 / 120) < 0.02)
-        assert abs(cover.property("paintedWidth") / cover.property("paintedHeight") - 80 / 120) < 0.02
+        wait(lambda: displayed_cover().property("paintedHeight") > 0 and
+             abs(displayed_cover().property("paintedWidth") / displayed_cover().property("paintedHeight") - 80 / 120) < 0.02)
+        assert abs(displayed_cover().property("paintedWidth") / displayed_cover().property("paintedHeight") - 80 / 120) < 0.02
 
         # A scan is previewed before any list changes, and Back cancels it.
         added = rom_root / "gb/Added preview.gb"

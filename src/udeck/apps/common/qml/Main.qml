@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
-[INPUT]: 依赖应用控制器、增量库模型和共享桌面组件。
-[OUTPUT]: 提供共享窗口、焦点过渡与关闭期间隔离的菜单。
+[INPUT]: 依赖应用控制器、增量库模型和共享短过渡组件。
+[OUTPUT]: 提供交接后的窗口、连续切页和身份隔离封面。
 [POS]: 五类应用的窗口外壳，内容视图由各应用加载。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -16,8 +16,8 @@ Window {
     readonly property var msg: controller.messageKeys
     width: 1280; height: 720
     minimumWidth: 800; minimumHeight: 500
-    visible: true
-    visibility: windowed ? Window.Windowed : Window.FullScreen
+    property bool presentationReady: true
+    visibility: presentationReady ? (windowed ? Window.Windowed : Window.FullScreen) : Window.Hidden
     color: window.colors.background
     title: "uDeck " + appName
     readonly property string appName: window.tr(({music: msg.MUSIC, video: msg.VIDEO, browser: msg.BROWSER,
@@ -35,9 +35,26 @@ Window {
     property string gameInfoStamp: ""
     property string focusedInputId: ""
     property var retainedMenu: ({})
-    property string renderedContent: ""
+    property string renderedPage: ""
+    property int renderedTab: -1
+    property string renderedMenuId: ""
     property string renderedNavigation: ""
     Shared.MotionTimings { id: motion; reducedMotion: controller.reducedMotion }
+    Shared.SelectionViewport {
+        id: cardViewport; objectName: "appCardViewport"
+        view: cards; active: cards.visible && window.active && !window.state.menu.title
+        reducedMotion: controller.reducedMotion
+    }
+    Shared.SelectionViewport {
+        id: tabViewport; objectName: "appTabViewport"
+        view: tabbar; active: tabbar.visible && window.active && !window.state.menu.title
+        reducedMotion: controller.reducedMotion
+    }
+    Shared.SelectionViewport {
+        id: menuViewport; objectName: "appMenuViewport"
+        view: options; active: modal.shown && window.active
+        reducedMotion: controller.reducedMotion
+    }
     property bool allowClose: false
     property bool videoFull: state.app === "video" && state.page === "player"
     property color ink: window.colors.text
@@ -50,9 +67,17 @@ Window {
         const navigation = [state.page, state.tab, state.selected].join(":")
         if (modal.closing && renderedNavigation !== navigation) modal.finish()
         renderedNavigation = navigation
-        const page = [state.page, state.tab, state.folder, state.platform || ""].join(":")
-        if (renderedContent && renderedContent !== page) content.replay()
-        renderedContent = page
+        if (renderedPage && (renderedPage !== state.page || renderedTab !== state.tab)) {
+            const order = {library: 0, album: 1, "game-details": 1, document: 2, player: 2, "game-running": 2}
+            const direction = renderedPage === state.page ? Math.sign(state.tab - renderedTab)
+                : Math.sign((order[state.page] || 0) - (order[renderedPage] || 0))
+            content.replay(direction || 1)
+        }
+        renderedPage = state.page; renderedTab = state.tab
+        const menuId = state.menu.id || ""
+        if (menuId && renderedMenuId && menuId !== renderedMenuId && modal.opacity > 0.99)
+            menuContent.replay(Number(menuId) >= Number(renderedMenuId) ? 1 : -1)
+        renderedMenuId = menuId
         const tabs = JSON.stringify(state.tabs)
         const options = (state.menu.title ? state.menu : retainedMenu).options || []
         const menu = JSON.stringify(options)
@@ -124,7 +149,7 @@ Window {
                 anchors.fill: parent; anchors.leftMargin: 28; anchors.rightMargin: 28
                 orientation: ListView.Horizontal; clip: true; spacing: 14
                 model: window.tabModel; currentIndex: window.state.tab
-                onCurrentIndexChanged: positionViewAtIndex(currentIndex,ListView.Contain)
+                highlightFollowsCurrentItem: false
                 delegate: Rectangle {
                     required property string modelData
                     required property int index
@@ -140,6 +165,7 @@ Window {
             id: content
             objectName: "appPageContent"
             reducedMotion: controller.reducedMotion
+            fadeEnabled: false
             enterX: 6; enterDuration: motion.page
             Layout.fillWidth: true; Layout.fillHeight: true; clip: true
             RowLayout {
@@ -161,8 +187,8 @@ Window {
                         cellHeight: listMode ? 78 : window.state.platformsView ? 208 : window.state.app==="reader" ? 190 : 238
                         model: controller.cardModel
                         currentIndex: controller.selectedIndex
+                        highlightFollowsCurrentItem: false
                         onColumnsChanged: controller.setColumns(columns)
-                        onCurrentIndexChanged: if(currentIndex>=0) Qt.callLater(function(){cards.positionViewAtIndex(cards.currentIndex,GridView.Contain)})
                         ScrollBar.vertical: ScrollBar { palette: window.colors.controls; }
                         Shared.FocusFrame {
                             objectName: "appCardFocus"; parent: cards.contentItem
@@ -179,7 +205,7 @@ Window {
                             radius: 10
                             color: modelData.id===window.state.selected ? window.colors.selected : window.colors.panel
                             border.width: 1; border.color: window.colors.border
-                            Artwork { objectName: "cardArtwork"; fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-(window.state.app==="emulator"?cardTitleMetrics.height+cardSubtitleMetrics.height+32:80); cover: card.modelData.cover||""; fallbackIcon: window.state.app === "emulator" ? controller.platformIcon(card.modelData.platform || "") : ""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" || card.modelData.kind === "playlist" }
+                            Artwork { objectName: "cardArtwork"; fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-(window.state.app==="emulator"?cardTitleMetrics.height+cardSubtitleMetrics.height+32:80); identity: card.modelData.gameId || card.modelData.id; cover: card.modelData.cover||""; fallbackIcon: window.state.app === "emulator" ? controller.platformIcon(card.modelData.platform || "") : ""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" || card.modelData.kind === "playlist" }
                             Column {
                                 x: cards.listMode ? 80 : 12; y: cards.listMode ? 12 : art.y+art.height+8
                                 width: parent.width-x-12; spacing: 4
@@ -190,8 +216,9 @@ Window {
                                     text: ((card.modelData.gameId||card.modelData.id)===window.state.current.id ? "▶  " : "")+card.modelData.title
                                     textColor: window.ink
                                     resetKey: card.modelData.id
-                                    active: window.state.app === "emulator" && card.modelData.id === window.state.selected
-                                        && window.active && !window.state.menu.title
+                                    reducedMotion: controller.reducedMotion
+                                    selected: card.modelData.id === window.state.selected
+                                    active: cards.visible && window.active && !window.state.menu.title
                                 }
                                 Text { font.family: window.fontFamily; width: parent.width; height: cardSubtitleMetrics.height; text: card.modelData.subtitle||""; color: window.muted; font.pixelSize: 17; elide: Text.ElideRight }
                             }
@@ -250,6 +277,7 @@ Window {
                                 fontFamily: window.fontFamily; colors: window.colors
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: Math.max(80, Math.min(170, selectedGameBody.height - 180))
+                                identity: controller.selectedItem.gameId || controller.selectedItem.id || ""
                                 cover: controller.selectedItem.cover || ""
                                 fallbackIcon: window.state.app === "emulator" ? controller.platformIcon(controller.selectedItem.platform || "") : ""
                                 kind: "emulator"
@@ -260,7 +288,8 @@ Window {
                                 fontFamily: window.fontFamily; pixelSize: 25; textColor: window.ink
                                 text: controller.selectedItem.title || ""
                                 resetKey: controller.selectedItem.id || ""
-                                active: window.active && !window.state.menu.title
+                                reducedMotion: controller.reducedMotion
+                                active: false
                             }
                             ColumnLayout {
                                 objectName: "selectedGameInfo"
@@ -285,14 +314,15 @@ Window {
                                             fontFamily: window.fontFamily; pixelSize: 17; textColor: window.ink
                                             text: modelData.value
                                             resetKey: controller.selectedItem.id || ""
-                                            active: window.active && !window.state.menu.title
+                                            reducedMotion: controller.reducedMotion
+                                            active: false
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    Artwork { visible: window.state.app === "music"; fontFamily: window.fontFamily; colors: window.colors; Layout.fillWidth: true; Layout.preferredHeight: 170; cover: window.state.current.cover || ""; kind: window.state.app }
+                    Artwork { visible: window.state.app === "music"; fontFamily: window.fontFamily; colors: window.colors; Layout.fillWidth: true; Layout.preferredHeight: 170; identity: window.state.current.id || ""; cover: window.state.current.cover || ""; kind: window.state.app }
                     Text { font.family: window.fontFamily; visible: window.state.app==="music"; Layout.fillWidth: true; text: window.state.current.title||window.tr(msg.CHOOSE_A_TRACK); wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight; color: window.ink; font.pixelSize: 25 }
                     Text { font.family: window.fontFamily; visible: window.state.app==="music"; text: window.time((window.state.media||{}).position)+" / "+window.time((window.state.media||{}).duration); color: window.muted; font.pixelSize: 19 }
                     SuiteButton { fontFamily: window.fontFamily; colors: window.colors; visible: window.state.app==="music" && !!window.state.current.id; text: window.tr(msg.NOW_PLAYING); onActivated: controller.command("now-playing") }
@@ -355,17 +385,27 @@ Window {
         anchors.fill: parent; shown: !!window.state.menu.title; z: 10
         reducedMotion: controller.reducedMotion
         enterDuration: motion.enter; leaveDuration: motion.leave
+        onHidden: if (!window.state.menu.title) window.retainedMenu = ({})
         Rectangle { anchors.fill: parent; color: window.colors.scrim }
         MouseArea { anchors.fill: parent; acceptedButtons: Qt.AllButtons; onWheel: function(wheel) { wheel.accepted = true } }
         Rectangle {
+            id: menuPanel; objectName: "appMenuPanel"
             enabled: modal.shown
             transform: Translate { y: 8 * (1 - modal.opacity) }
             anchors.centerIn: parent; width: Math.min(parent.width-72,780)
             height: Math.min(parent.height-64,modalContents.implicitHeight+48)
             radius: 16; color: window.colors.dialog; border.color: window.colors.dialogBorder
+            Behavior on height {
+                enabled: !controller.reducedMotion && modal.shown && modal.opacity > 0.99
+                NumberAnimation { duration: 120; easing.type: Easing.OutCubic }
+            }
+            Shared.MotionItem {
+                id: menuContent; objectName: "appMenuContent"
+                anchors.fill: parent; reducedMotion: controller.reducedMotion
+                fadeEnabled: false; enterX: 4; enterDuration: 120
             ColumnLayout {
                 id: modalContents; anchors.fill: parent; anchors.margins: 24; spacing: 16
-                Text { font.family: window.fontFamily; Layout.fillWidth: true; text: modal.menu.title||""; font.pixelSize: 30; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
+                Text { objectName: "appMenuTitle"; font.family: window.fontFamily; Layout.fillWidth: true; text: modal.menu.title||""; font.pixelSize: 30; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
                 Text { font.family: window.fontFamily; objectName: "menuBody"; Layout.fillWidth: true; visible: !!modal.menu.body; text: modal.menu.body||""; textFormat: Text.PlainText; font.pixelSize: 21; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: modal.menu.bodyLines || 5; elide: Text.ElideRight }
                 TextField { font.family: window.fontFamily; palette: window.colors.controls;
                     id: draft; objectName: "menuDraft"; visible: !!modal.menu.input; Layout.fillWidth: true
@@ -393,7 +433,7 @@ Window {
                     id: options; objectName: "menuList"; Layout.fillWidth: true; Layout.fillHeight: true
                     Layout.preferredHeight: contentHeight; Layout.minimumHeight: 0; clip: true; spacing: 5
                     model: window.menuModel; currentIndex: modal.menu.index||0
-                    onCurrentIndexChanged: Qt.callLater(function(){options.positionViewAtIndex(options.currentIndex,ListView.Contain)})
+                    highlightFollowsCurrentItem: false
                     ScrollBar.vertical: ScrollBar { palette: window.colors.controls;}
                     Shared.FocusFrame {
                         objectName: "appMenuFocus"; parent: options.contentItem
@@ -445,6 +485,7 @@ Window {
                     hints: [{keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: window.tr(msg.CONFIRM)},
                             {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: window.tr(msg.BACK)}]
                 }
+            }
             }
         }
     }

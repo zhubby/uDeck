@@ -1,8 +1,8 @@
-"""Stock uConsole key reports, based on ClockworkPi's two firmware layers.
-
-The firmware does not send Fn, keyboard backlight or keyboard lock events. The
-power switch belongs to the system, not the USB keyboard. Keep these visible
-without including them in the number of keys the application can observe.
+"""
+[INPUT]: 依赖机身固件两层键位、Linux 报告和 Qt 键码。
+[OUTPUT]: 提供诊断键帽和统一键名，标明固件内部按键。
+[POS]: 硬件报告与诊断视图的映射；内部按键不计入可观测数量。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
 from PySide6.QtCore import Qt

@@ -1,6 +1,6 @@
 /*
 [INPUT]: 依赖桌面控制器、ShellDialog 与页面组件。
-[OUTPUT]: 提供局部选择更新、页面短过渡与启动反馈。
+[OUTPUT]: 提供模型更新后的选择恢复、安全区滚动与切页反馈。
 [POS]: ConsoleScreen 展示运行模型，其余页面沿用各自布局。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -30,6 +30,7 @@ Window {
     property var itemModel: []
     property var homeModel: []
     property var settingsModel: []
+    property var settingsEntries: []
     property var modelStamps: ({})
     property string renderedPage: ""
     property string renderedTheme: ""
@@ -65,13 +66,20 @@ Window {
             modelStamps[viewState.page] = stamp
             if (viewState.page === "home")
                 homeModel = viewState.items
-            else if (viewState.page === "apps")
+            else if (viewState.page === "apps") {
                 itemModel = viewState.items
-            else if (viewState.page === "settings")
-                settingsModel = viewState.items
+                applicationGrid.currentIndex = Qt.binding(function() { return controller.selectedIndex })
+            } else if (viewState.page === "settings") {
+                const identities = viewState.items.map(function(item) { return item.id })
+                settingsEntries = viewState.items
+                if (JSON.stringify(identities) !== JSON.stringify(settingsModel)) {
+                    settingsModel = identities
+                    itemList.currentIndex = Qt.binding(function() { return controller.selectedIndex })
+                }
+            }
         }
         if (viewState.reducedMotion) content.finish()
-        else if (pageChanged) content.replay()
+        else if (pageChanged) content.replay(pageDirection(renderedPage, viewState.page))
         renderedPage = viewState.page
         renderedTheme = viewState.theme
         if (keepScroll) {
@@ -83,6 +91,16 @@ Window {
         shellDialog.syncView()
     }
 
+    function pageDirection(previous, current) {
+        const pages = viewState.pages
+        const before = pages.indexOf(previous === "settings" ? "home" : previous)
+        const after = pages.indexOf(current === "settings" ? "home" : current)
+        let delta = after - before
+        if (delta > pages.length / 2) delta -= pages.length
+        if (delta < -pages.length / 2) delta += pages.length
+        return delta < 0 ? -1 : 1
+    }
+
     function syncSelection(force) {
         const navigationStamp = [viewState.page, controller.navigationZone, controller.selectedIndex].join(":")
         if (!force && renderedNavigation === navigationStamp) return
@@ -91,13 +109,13 @@ Window {
         if (viewState.page === "home")
             homeScreen.positionSelection()
         else if (viewState.page === "apps")
-            applicationGrid.positionViewAtIndex(controller.selectedIndex, GridView.Contain)
+            applicationViewport.ensureVisible()
         else if (viewState.page === "files")
             filesScreen.positionSelection()
         else if (viewState.page === "windows")
             consoleScreen.positionSelection()
         else
-            itemList.positionViewAtIndex(controller.selectedIndex, ListView.Contain)
+            settingsViewport.ensureVisible()
     }
 
     Component.onCompleted: syncView()
@@ -303,6 +321,7 @@ Window {
             id: content
             objectName: "pageContent"
             enterX: 6; enterDuration: motion.page
+            fadeEnabled: false
             reducedMotion: viewState.reducedMotion
             x: 28; y: viewState.page === "files" ? 165 : viewState.page === "home" ? 250 : 265; width: parent.width - 56; height: parent.height - y - 85
             clip: true
@@ -363,6 +382,7 @@ Window {
                 model: window.itemModel
                 cellWidth: width / 5; cellHeight: 174
                 currentIndex: controller.selectedIndex
+                highlightFollowsCurrentItem: false
                 keyNavigationEnabled: false
                 interactive: false
                 boundsBehavior: Flickable.StopAtBounds
@@ -396,6 +416,7 @@ Window {
                 visible: viewState.page === "settings"
                 model: window.settingsModel
                 spacing: 10; currentIndex: controller.selectedIndex; keyNavigationEnabled: false
+                highlightFollowsCurrentItem: false
                 interactive: false
                 boundsBehavior: Flickable.StopAtBounds
                 ScrollBar.vertical: ScrollBar { palette: window.colors.controls; policy: ScrollBar.AsNeeded; interactive: false }
@@ -405,8 +426,8 @@ Window {
                     accent: window.accent; reducedMotion: viewState.reducedMotion
                 }
                 delegate: Rectangle {
-                    required property var modelData
                     required property int index
+                    readonly property var setting: window.settingsEntries[index] || ({})
                     property bool selected: controller.selectedIndex === index && controller.navigationZone === "content"
                     width: itemList.width - 12; height: Math.max(84, systemSettingText.implicitHeight + 20); radius: 10
                     color: selected ? window.colors.selected : window.colors.panel
@@ -415,7 +436,7 @@ Window {
                         id: systemSettingIcon; objectName: "systemSettingIcon"
                         x: 18; anchors.verticalCenter: parent.verticalCenter
                         height: systemSettingText.implicitHeight; width: height
-                        iconName: modelData.icon || "application-x-executable"
+                        iconName: setting.icon || "application-x-executable"
                         colors: window.colors
                         sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
                     }
@@ -423,16 +444,25 @@ Window {
                         id: systemSettingText; anchors.verticalCenter: parent.verticalCenter
                         x: systemSettingIcon.x + systemSettingIcon.width + 18
                         width: parent.width - x - 28; spacing: 4
-                        Text { textFormat: Text.PlainText; width: parent.width - (modelData.value !== undefined ? 190 : 30); text: modelData.name; elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 25; color: modelData.disabled ? window.muted : window.ink }
-                        Text { textFormat: Text.PlainText; width: parent.width; visible: !!modelData.subtitle; text: modelData.subtitle || ""; elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted }
+                        Text { textFormat: Text.PlainText; width: parent.width - (setting.value !== undefined ? 190 : 30); text: setting.name || ""; elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 25; color: setting.disabled ? window.muted : window.ink }
+                        Text { textFormat: Text.PlainText; width: parent.width; visible: !!setting.subtitle; text: setting.subtitle || ""; elide: Text.ElideRight; font.family: window.fontFamily; font.pixelSize: 24; color: window.muted }
                     }
                     Rectangle {
-                        visible: modelData.value !== undefined
+                        visible: setting.value !== undefined
                         anchors.right: parent.right; anchors.rightMargin: 26; y: 28; width: 170; height: 7; radius: 4; color: window.colors.rowTrack
-                        Rectangle { width: parent.width * (modelData.value || 0); height: parent.height; radius: 4; color: window.accent }
+                        Rectangle { width: parent.width * (setting.value || 0); height: parent.height; radius: 4; color: window.accent }
                     }
-                    Text { textFormat: Text.PlainText; visible: modelData.value === undefined; anchors.right: parent.right; anchors.rightMargin: 25; anchors.verticalCenter: parent.verticalCenter; text: "›"; font.family: window.fontFamily; font.pixelSize: 32; color: window.muted }
+                    Text { textFormat: Text.PlainText; visible: setting.value === undefined; anchors.right: parent.right; anchors.rightMargin: 25; anchors.verticalCenter: parent.verticalCenter; text: "›"; font.family: window.fontFamily; font.pixelSize: 32; color: window.muted }
                 }
+            }
+
+            SelectionViewport {
+                id: applicationViewport
+                view: applicationGrid; active: applicationGrid.visible; reducedMotion: viewState.reducedMotion
+            }
+            SelectionViewport {
+                id: settingsViewport
+                view: itemList; active: itemList.visible; reducedMotion: viewState.reducedMotion
             }
 
             Column {
@@ -529,6 +559,7 @@ Window {
         colors: window.colors
         fontFamily: window.fontFamily
         shown: window.viewState.appLaunch.visible
+        requestId: window.viewState.appLaunch.requestId || ""
         applicationName: window.viewState.appLaunch.name || ""
         applicationIcon: window.viewState.appLaunch.icon || "application-x-executable"
         homeKind: window.viewState.appLaunch.homeKind || ""

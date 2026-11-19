@@ -1,4 +1,8 @@
-"""Desktop-side routing, authorized only by compositor-reported active windows.
+"""
+[INPUT]: 依赖合成器前台窗口、指针肩键和应用 D-Bus 身份。
+[OUTPUT]: 提供带代次的输入授权和肩键转发。
+[POS]: 桌面侧输入路由；合成器窗口身份是授权依据。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
 
 SPDX-License-Identifier: GPL-2.0-or-later
 """

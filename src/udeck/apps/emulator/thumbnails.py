@@ -1,4 +1,9 @@
-"""Libretro thumbnail lookup and cancellable, non-overwriting HTTP downloads."""
+"""
+[INPUT]: 依赖 Libretro 命名、本地目录与 Qt 网络事件。
+[OUTPUT]: 提供单项查找、单轮批量索引和可取消封面下载。
+[POS]: 封面文件边界；批量索引不跨刷新或下载轮次保存。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import os
 import re
@@ -16,6 +21,7 @@ from udeck.i18n import Msg, tr
 from .playlists import database_name
 
 KINDS = ("Named_Boxarts", "Named_Snaps", "Named_Titles")
+SUFFIXES = ('.png', '.jpg', '.jpeg', '.bmp', '.tga')
 TRANSIENT_ERRORS = {
     QNetworkReply.NetworkError.TimeoutError, QNetworkReply.NetworkError.OperationCanceledError,
     QNetworkReply.NetworkError.RemoteHostClosedError, QNetworkReply.NetworkError.TemporaryNetworkFailureError,
@@ -49,14 +55,60 @@ def thumbnail_folder(root, database, kind):
     return directory
 
 
-def find_thumbnails(item, root):
+class _ThumbnailLookup:
+    def __init__(self, root, cancelled=lambda: False):
+        self.root = root
+        self.cancelled = cancelled
+        self.folders = {}
+
+    def directory(self, database, kind):
+        key = (database_name(database), kind)
+        if key not in self.folders:
+            directory = thumbnail_folder(self.root, *key)
+            names = set()
+            if directory is not None:
+                try:
+                    with os.scandir(directory) as entries:
+                        for entry in entries:
+                            if self.cancelled():
+                                raise OSError(tr(Msg.SCAN_CANCELLED))
+                            if not entry.is_symlink() and entry.is_file(follow_symlinks=False):
+                                names.add(entry.name)
+                except OSError:
+                    if self.cancelled():
+                        raise
+                    pass
+            self.folders[key] = directory, names
+        return self.folders[key][0]
+
+    def find(self, item):
+        images = {}
+        database = database_name(item.get('dbName'))
+        candidates = thumbnail_names(item)
+        for kind in KINDS:
+            directory = self.directory(database, kind)
+            if directory is None:
+                continue
+            names = self.folders[(database, kind)][1]
+            for name in candidates:
+                found = next((name + suffix for suffix in SUFFIXES
+                              if name + suffix in names), None)
+                if found:
+                    images[kind] = (directory / found).absolute().as_uri()
+                    break
+        return images
+
+
+def find_thumbnails(item, root, *, lookup=None):
+    if lookup is not None:
+        return lookup.find(item)
     images = {}
     for kind in KINDS:
         directory = thumbnail_folder(root, item.get("dbName"), kind)
         if directory is None:
             continue
         for name in thumbnail_names(item):
-            found = next((directory / (name + suffix) for suffix in (".png", ".jpg", ".jpeg", ".bmp", ".tga")
+            found = next((directory / (name + suffix) for suffix in SUFFIXES
                           if (directory / (name + suffix)).is_file()
                           and not (directory / (name + suffix)).is_symlink()), None)
             if found:
@@ -65,10 +117,22 @@ def find_thumbnails(item, root):
     return images
 
 
-def apply_thumbnails(item, root, preferred="Named_Boxarts"):
-    images = find_thumbnails(item, root)
+def preferred_cover(images, preferred):
+    return next((images[k] for k in (preferred, *KINDS) if k in images), '')
+
+
+def apply_thumbnails(item, root, preferred="Named_Boxarts", *, lookup=None):
+    images = find_thumbnails(item, root, lookup=lookup)
     item["thumbnails"] = images
-    item["cover"] = next((images[k] for k in (preferred, *KINDS) if k in images), "")
+    item["cover"] = preferred_cover(images, preferred)
+
+
+def apply_library_thumbnails(items, root, preferred="Named_Boxarts", *, cancelled=lambda: False):
+    lookup = _ThumbnailLookup(root, cancelled)
+    for item in items:
+        if cancelled():
+            raise OSError(tr(Msg.SCAN_CANCELLED))
+        apply_thumbnails(item, root, preferred, lookup=lookup)
 
 
 class ThumbnailDownloader(QObject):
@@ -89,10 +153,11 @@ class ThumbnailDownloader(QObject):
         self.status = {"total": 0, "done": 0, "saved": 0, "missing": 0, "failed": 0,
                        "retried": 0, "cancelled": False, "errors": []}
         seen = set()
+        lookup = _ThumbnailLookup(root)
         for item in items:
-            existing = find_thumbnails(item, root)
+            existing = find_thumbnails(item, root, lookup=lookup)
             for kind in KINDS:
-                directory = thumbnail_folder(root, item.get("dbName"), kind)
+                directory = lookup.directory(item.get("dbName"), kind)
                 names = thumbnail_names(item)
                 if directory is None or not names or kind in existing:
                     continue

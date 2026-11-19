@@ -1,4 +1,8 @@
-"""Foreground input ownership shared with uDeck, with local stock-device fallback.
+"""
+[INPUT]: 依赖终端窗口焦点、桌面授权和机身输入设备。
+[OUTPUT]: 提供终端输入归属、肩键路由和诊断状态。
+[POS]: 终端输入边界；桌面路由不可用时读取本地设备。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
 
 SPDX-License-Identifier: GPL-2.0-or-later
 """

@@ -1,4 +1,8 @@
-"""Stable native application identities. Kept in the shell package.
+"""
+[INPUT]: 依赖图形会话的 Wayland、X11 或会话标识。
+[OUTPUT]: 提供套件应用身份、会话 D-Bus 名和对象路径。
+[POS]: 桌面与应用共用的路由身份约定。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
 
 SPDX-License-Identifier: GPL-2.0-or-later
 """

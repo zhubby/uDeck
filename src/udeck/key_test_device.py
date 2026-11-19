@@ -1,11 +1,12 @@
-"""Read stock keyboard reports only while the diagnostic is open and focused.
-
-This observer never grabs devices or changes shortcuts. Consumer keys may be
-handled by the compositor before Qt sees them, so read their actual evdev
-reports as well. The existing gamepad/pointer owners retain their ownership.
+"""
+[INPUT]: 依赖 sysfs 身份、机身键盘报告和 Qt 事件循环。
+[OUTPUT]: 提供硬件按键边沿、可观测键集合与断线清理。
+[POS]: 按键诊断的只读观察者；扫描先筛除无关接口。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
 import sys
+from pathlib import Path
 
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
@@ -24,6 +25,7 @@ class KeyTestReader(QObject):
         self.enabled = False
         self._closed = False
         self.devices = {}
+        self.sysfs_root = Path('/sys/class/input')
         self.last_status = None
         self.timer = QTimer(self)
         self.timer.setInterval(1000)
@@ -54,6 +56,8 @@ class KeyTestReader(QObject):
         for path in set(self.devices) - paths:
             self._remove(path)
         for path in paths - self.devices.keys():
+            if not self._candidate(path):
+                continue
             device = None
             try:
                 device = InputDevice(path)
@@ -73,6 +77,18 @@ class KeyTestReader(QObject):
                     device.close()
         self._report()
         self.warning.emit(tr(Msg.SOME_SYSTEM_KEYS_CANNOT_BE_READ_CHECK_INPUT_DEVICE_ACCESS) if failed or not self.devices else "")
+
+    def _candidate(self, path):
+        # 关闭 evdev 会等待内核同步；每轮扫描先读取静态身份。
+        folder = self.sysfs_root / Path(path).name / 'device'
+        try:
+            vendor = int((folder / 'id/vendor').read_text().strip(), 16)
+            product = int((folder / 'id/product').read_text().strip(), 16)
+            name = (folder / 'name').read_text().strip()
+        except (OSError, ValueError):
+            return True
+        return (vendor, product) == (0x1EAF, 0x0024) and any(
+            part in name for part in ('Keyboard', 'Consumer'))
 
     def _report(self):
         status = {"keyTestNativeKeys": sorted({key for entry in self.devices.values() for key in entry["keys"]})}

@@ -65,6 +65,12 @@ def run():
         while shade.property("opacity") < 1 and time.monotonic() < deadline:
             QTest.qWait(20)
         assert shade.property("shown") and shade.property("opacity") == 1, "Audio dialog did not finish opening"
+        window.grabWindow()
+        panel = window.findChild(QObject, "dialogPanel")
+        QTest.qWait(10)
+        while panel.property("resizing") and time.monotonic() < deadline:
+            QTest.qWait(20)
+        assert not panel.property("resizing"), "Audio dialog did not finish resizing"
         expression = QQmlExpression(QQmlEngine.contextForObject(window), window, """
             JSON.stringify((function() {
                 const result = {texts: []}

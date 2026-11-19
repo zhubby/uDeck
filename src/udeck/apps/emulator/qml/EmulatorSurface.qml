@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+/*
+[INPUT]: 依赖游戏身份、预检结果、主题和共享应用组件。
+[OUTPUT]: 提供按游戏身份保留封面的详情与启动入口。
+[POS]: 模拟器详情视图；共享窗口加载并传入状态。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+*/
 import QtQuick
 import QtQuick.Layouts
 import "../../../qml" as Shared
@@ -12,7 +18,7 @@ Item {
     property var appState:host?host.state:({current:{},gameChecks:{}})
     RowLayout {
         anchors.fill: parent; anchors.margins: 48; spacing: 40
-        Artwork { objectName: "gameArtwork"; fontFamily: surface.host.fontFamily; colors: surface.colors; Layout.preferredWidth: 300; Layout.preferredHeight: 330; cover: appState.current.cover||""; fallbackIcon: controller.platformIcon(appState.current.platform || ""); kind: "emulator" }
+        Artwork { objectName: "gameArtwork"; fontFamily: surface.host.fontFamily; colors: surface.colors; Layout.preferredWidth: 300; Layout.preferredHeight: 330; identity: appState.current.gameId || appState.current.id || ""; cover: appState.current.cover||""; fallbackIcon: controller.platformIcon(appState.current.platform || ""); kind: "emulator" }
         ColumnLayout {
             Layout.fillWidth: true; spacing: 18
             Text { font.family: surface.host.fontFamily; Layout.fillWidth:true;text:appState.current.title||"";color:surface.colors.text;font.pixelSize:36;wrapMode:Text.Wrap;maximumLineCount:3;elide:Text.ElideRight }

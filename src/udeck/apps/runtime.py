@@ -1,7 +1,7 @@
 """
 [INPUT]: 依赖应用控制器、Qt Quick、源码缓存标识与会话 D-Bus。
-[OUTPUT]: 提供单实例入口、轻量状态、退出请求和控制器工厂。
-[POS]: 应用共用运行层；模拟器确认暂停后再显示前台。
+[OUTPUT]: 提供单实例入口、交接显示和断线回退、退出请求与控制器工厂。
+[POS]: 应用共用运行层；输入释放和游戏暂停先于前台显示。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QTimer, QUrl, Slot
-from PySide6.QtDBus import QDBusConnection, QDBusInterface, QDBusMessage
+from PySide6.QtDBus import QDBusConnection, QDBusInterface, QDBusMessage, QDBusPendingCallWatcher
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow  # noqa: F401
 from PySide6.QtWidgets import QApplication
@@ -28,6 +28,31 @@ from udeck.icons import IconProvider
 from udeck.performance import StartupTrace
 from udeck.qml_cache import configure_qml_cache
 from udeck.sounds import InterfaceSounds
+
+
+def present_after_input_handoff(bus, app_id, parent, present, *, prepare=None):
+    message = QDBusMessage.createMethodCall('io.github.zhubby.uDeck', '/io/github/zhubby/uDeck',
+                                            'io.github.zhubby.uDeck.Control', 'PrepareNativeApp')
+    message.setArguments([app_id])
+    watcher = QDBusPendingCallWatcher(bus.asyncCall(message, 1000), parent)
+    completed = False
+
+    def finished(_watcher):
+        nonlocal completed
+        if completed:
+            return
+        completed = True
+        try:
+            if prepare and not watcher.isError() and watcher.reply().arguments() == [True]:
+                prepare(present)
+            else:
+                present()
+        finally:
+            watcher.deleteLater()
+
+    watcher.finished.connect(finished)
+    if watcher.isFinished():
+        finished(watcher)
 
 
 def make_controller(app, directory=None, language_path=None):
@@ -241,6 +266,7 @@ def main(argv=None, *, options=None, trace=None):
     engine.warnings.connect(lambda warnings: errors.extend(w.toString() for w in warnings))
     engine.rootContext().setContextProperty("controller", controller)
     engine.rootContext().setContextProperty("windowed", options.windowed or options.isolated)
+    engine.setInitialProperties({'presentationReady': options.isolated})
     engine.load(QUrl.fromLocalFile(str(Path(__file__).parent / "common/qml/Main.qml")))
     if not engine.rootObjects():
         controller.close()
@@ -258,7 +284,8 @@ def main(argv=None, *, options=None, trace=None):
     controller.window = window
     sounds = InterfaceSounds(controller.config_path, window, silent=os.environ.get("QT_QPA_PLATFORM") == "offscreen")
     controller.soundRequested.connect(sounds.request)
-    def show():
+    def present():
+        window.setProperty('presentationReady', True)
         window.showNormal() if options.windowed or options.isolated else window.showFullScreen()
         window.raise_()
         window.requestActivate()
@@ -269,6 +296,28 @@ def main(argv=None, *, options=None, trace=None):
         message.setArguments([app_id])
         if not options.isolated:
             bus.asyncCall(message)
+
+    activation_generation = 0
+
+    def show():
+        nonlocal activation_generation
+        activation_generation += 1
+        generation = activation_generation
+        if options.isolated:
+            present()
+        else:
+            def current_present():
+                if generation == activation_generation and not controller._closed:
+                    present()
+
+            def prepare(ready):
+                if generation == activation_generation and not controller._closed and controller.inputs:
+                    controller.inputs.prepare_foreground(ready)
+                else:
+                    ready()
+
+            present_after_input_handoff(bus, app_id, window, current_present, prepare=prepare)
+
     controller.present.connect(show)
     controller.closed.connect(application.quit)
     if not options.isolated and not options.no_input and sys.platform == "linux":

@@ -1,4 +1,9 @@
-"""Route stock trackball gestures without conflating recovery and release edges."""
+"""
+[INPUT]: 依赖指针按钮时间、窗口归属、会话状态与虚拟输入。
+[OUTPUT]: 提供短按点击、长按右键与前台指针移动。
+[POS]: 轨迹球手势边界；归属变化取消手势，防止跨窗口误触。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import math
 import time

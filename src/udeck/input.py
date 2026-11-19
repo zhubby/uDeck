@@ -1,11 +1,13 @@
 """
-[INPUT]: 依赖 evdev 设备报告、输入配置与 Qt 事件循环。
-[OUTPUT]: 提供按钮边沿、语义动作和输入归属状态。
-[POS]: 物理手柄输入层；归属改变时释放，断线后定时重连。
+[INPUT]: 依赖 sysfs 设备身份、evdev 报告、输入配置与 Qt 事件循环。
+[OUTPUT]: 提供按钮边沿、启动按键隔离和受控事件投递。
+[POS]: 物理手柄输入层；交接占用短重试，断线后定时重连。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
+import errno
 import sys
+from pathlib import Path
 
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
@@ -16,6 +18,7 @@ BUTTON_ACTIONS = {"accept", "back", "context", "quick-settings"}
 ACTIONS = DIRECTIONS | BUTTON_ACTIONS
 STOCK_FINGERPRINT = "1eaf:0024:20230713"
 STOCK_BUTTONS = {289: "accept", 290: "back", 288: "context", 291: "quick-settings"}
+GRAB_RETRY_MILLISECONDS = 30
 
 
 class ButtonState:
@@ -58,8 +61,11 @@ class Gamepad(QObject):
         self.device = None
         self.notifier = None
         self.foreground = False
+        self.delivery_enabled = True
         self.grabbed = False
         self.calibrating = False
+        self.ignored_buttons = set()
+        self.sysfs_root = Path('/sys/class/input')
         self._load_profile(self.profile)
         self.axis_actions = {}
         self.axis_positions = {}
@@ -100,6 +106,22 @@ class Gamepad(QObject):
             self._close()
             self.status.emit({"foreground": False, "grabbed": False})
 
+    def _candidate(self, path):
+        device = self.sysfs_root / Path(path).name / 'device'
+        try:
+            vendor = int((device / 'id/vendor').read_text().strip(), 16)
+            product = int((device / 'id/product').read_text().strip(), 16)
+            name = (device / 'name').read_text().strip()
+        except (OSError, ValueError):
+            return True
+        return (vendor, product) == (0x1EAF, 0x0024) and not any(
+            kind in name for kind in ('Keyboard', 'Consumer', 'Mouse'))
+
+    def set_delivery_enabled(self, enabled):
+        self.delivery_enabled = bool(enabled)
+        if self.notifier:
+            self.notifier.setEnabled(self.delivery_enabled)
+
     def _connect(self):
         if self.device is not None or not self.foreground or sys.platform != "linux":
             return
@@ -107,6 +129,8 @@ class Gamepad(QObject):
             from evdev import InputDevice, ecodes, list_devices
 
             for path in list_devices():
+                if not self._candidate(path):
+                    continue
                 candidate = InputDevice(path)
                 capabilities = candidate.capabilities()
                 buttons = capabilities.get(ecodes.EV_KEY, [])
@@ -125,6 +149,7 @@ class Gamepad(QObject):
                     source = "stock" if effective else "unconfigured"
                 self._load_profile(effective)
                 self.notifier = QSocketNotifier(candidate.fd, QSocketNotifier.Type.Read, self)
+                self.notifier.setEnabled(self.delivery_enabled)
                 self.notifier.activated.connect(self._read)
                 self.status.emit({"available": True, "name": candidate.name,
                                   "fingerprint": self.fingerprint,
@@ -139,17 +164,21 @@ class Gamepad(QObject):
         if self.device is None or self.grabbed or not self.foreground:
             return
         try:
-            if self.device.active_keys():
-                QTimer.singleShot(60, self._try_grab)
-                return
+            held = set(self.device.active_keys())
             self.device.grab()
+            self.ignored_buttons = held
             self.grabbed = True
             self.status.emit({"grabbed": True})
-        except OSError:
+        except OSError as error:
+            if error.errno == errno.EBUSY:
+                QTimer.singleShot(GRAB_RETRY_MILLISECONDS, self._try_grab)
+                return
             self._close()
             self.status.emit({"grabbed": False, "message": tr(Msg.COULD_NOT_ACQUIRE_GAMEPAD_INPUT)})
 
     def _read(self, *arguments):
+        if not self.delivery_enabled:
+            return
         try:
             from evdev import ecodes
 
@@ -161,6 +190,10 @@ class Gamepad(QObject):
                     self.status.emit({"grabbed": False, "message": tr(Msg.INPUT_EVENTS_WERE_LOST_RELEASE_THE_BUTTONS_AND_TRY_AGAIN)})
                     return
                 if event.type == ecodes.EV_KEY:
+                    if event.code in self.ignored_buttons:
+                        if event.value == 0:
+                            self.ignored_buttons.discard(event.code)
+                        continue
                     was_pressed = event.code in self.router.pressed
                     action = self.router.key(event.code, event.value)
                     if (self.fingerprint == STOCK_FINGERPRINT and event.code in (296, 297)
@@ -213,7 +246,7 @@ class Gamepad(QObject):
                 self.repeat.start(350)
 
     def _repeat_direction(self):
-        if self.foreground and self.held_direction and not self.calibrating:
+        if self.foreground and self.delivery_enabled and self.held_direction and not self.calibrating:
             self.action.emit(self.held_direction)
             self.repeat.setInterval(90)
 
@@ -235,6 +268,7 @@ class Gamepad(QObject):
         for action in sorted(self.pressed_directions):
             self.direction.emit(action, False)
         self.pressed_directions.clear()
+        self.ignored_buttons.clear()
         self.router.reset()
         self.axis_actions.clear()
         self.axis_positions.clear()

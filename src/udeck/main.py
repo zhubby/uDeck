@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖系统服务、桌面控制器、输入路由和源码缓存标识。
-[OUTPUT]: 提供桌面窗口、会话 D-Bus 与设备生命周期。
+[OUTPUT]: 提供桌面窗口、显示前输入释放、会话 D-Bus 与设备生命周期。
 [POS]: 桌面图形入口；创建 Qt 窗口前隔离编译缓存。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -119,6 +119,10 @@ class Control(QObject):
     @Slot(str, result=str)
     def NativeInputState(self, app_id):
         return json.dumps(self.suite_broker.state(app_id))
+
+    @Slot(str, result=bool)
+    def PrepareNativeApp(self, app_id):
+        return bool(self.application_router and self.application_router.prepare_native_activation(app_id))
 
     @Slot(str)
     def ActivateNativeApp(self, app_id):

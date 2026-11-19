@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖会话 D-Bus、窗口元数据、proc 快照和 ConsoleModel。
-[OUTPUT]: 提供有界身份查询、增量状态和身份固定的有序退出。
+[OUTPUT]: 提供所有者去重、有界身份查询和身份固定的退出。
 [POS]: Console 独立运行服务；后台任务不操作 Qt 或激活游戏。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -169,7 +169,7 @@ class RuntimeConsole(QObject):
         app = self._services.get(name)
         if not app or self.closed or self.mock:
             return
-        if self.owners.get(app) == owner:
+        if self.owners.get(app, "") == owner:
             return
         self.owners.pop(app, None)
         self.pids.pop(app, None)

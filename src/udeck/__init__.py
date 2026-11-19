@@ -5,4 +5,4 @@
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"

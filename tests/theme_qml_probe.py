@@ -1,4 +1,9 @@
-"""Render both themes and exercise live global changes in all native windows."""
+"""
+[INPUT]: 依赖八个原生窗口、主题同步和真实 Qt 过渡。
+[OUTPUT]: 验证主题、字体、输入身份与稳定菜单滚动位置。
+[POS]: 跨窗口主题探针；终端与应用使用隔离状态。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import argparse
 import json
@@ -308,13 +313,26 @@ def run():
             controller.menus[-1]["index"] = 8
             controller.publish()
             QTest.qWait(40)
+            settled = QQmlExpression(QQmlEngine.contextForObject(app_window), app_window, """
+                Math.abs(menuPanel.height - Math.min(window.height - 64, modalContents.implicitHeight + 48)) < 0.1
+                    && !menuViewport.animating
+            """)
+
+            def menu_settled(settled=settled):
+                value, undefined = settled.evaluate()
+                assert not undefined and not settled.hasError(), settled.error().toString()
+                return value
+
+            wait(menu_settled)
+            QTest.qWait(20)
+            wait(menu_settled)
             menu = app_window.findChild(QObject, "menuList")
             menu.setProperty("contentY", menu.property("contentY") + 15)
             menu_scrolls.append((menu, menu.property("contentY")))
         shell.setTheme("classic")
         wait(lambda: all(c.theme == "classic" for c, _, _ in apps))
         for menu, scroll in menu_scrolls:
-            assert abs(menu.property("contentY") - scroll) < 1
+            assert abs(menu.property("contentY") - scroll) < 1, (scroll, menu.property("contentY"))
         shell.setTheme("dark")
         shell.activateSetting("wifi")
         capture(window, "shell-dark-wifi")

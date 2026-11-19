@@ -1,12 +1,14 @@
-"""Exercise real labwc, independent clients, shortcut IPC, isolation and PNG capture.
-
-Run under dbus-run-session in a Linux test environment. The compositor, home,
-configurations and all clients belong to this probe. No physical acceptance.
+"""
+[INPUT]: 依赖独占测试总线、私有 labwc 和独立 Qt 客户端。
+[OUTPUT]: 验证快捷键、IPC、方向隔离和截屏。
+[POS]: Linux 会话探针；从自有合成器获取 X11 显示号。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
 import json
 import os
 import select
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -76,19 +78,24 @@ def run(output_dir):
         (config / 'autostart').write_text('#!/bin/sh\nexit 0\n')
         (config / 'autostart').chmod(0o700)
         compositor_log = (output_dir / 'labwc.log').open('w')
-        compositor = subprocess.Popen(['labwc', '--config-dir', str(config), '-s', '/bin/true'], stdout=compositor_log, stderr=compositor_log)
+        display_file = private / 'xwayland-display'
+        startup = shlex.join([sys.executable, '-c',
+                              'import os,sys;from pathlib import Path;Path(sys.argv[1]).write_text(os.environ.get("DISPLAY", ""))',
+                              str(display_file)])
+        compositor = subprocess.Popen(['labwc', '--config-dir', str(config), '-s', startup], stdout=compositor_log, stderr=compositor_log)
         os.environ['LABWC_PID'] = str(compositor.pid)
         processes = []
         application = None
         try:
             deadline = time.monotonic() + 8
-            while not (runtime / 'wayland-0').exists():
+            while not (runtime / 'wayland-0').exists() or not display_file.exists():
                 if compositor.poll() is not None or time.monotonic() > deadline:
                     raise RuntimeError('Disposable compositor failed; see labwc.log')
                 time.sleep(0.02)
             os.environ['WAYLAND_DISPLAY'] = 'wayland-0'
-            # Xwayland is normally lazy; labwc uses DISPLAY=:0 in this private container.
-            os.environ['DISPLAY'] = ':0'
+            display = display_file.read_text().strip()
+            assert display.startswith(':'), 'Private compositor did not publish an Xwayland display'
+            os.environ['DISPLAY'] = display
             application = QGuiApplication([])
             application.setDesktopFileName(APP_ID)
             windows, virtual = WindowService(), VirtualInput()

@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖独立进程中的真实 Qt 应用与原始内容。
+[OUTPUT]: 验证显示交接、应用引擎、菜单和翻译。
+[POS]: 应用 QML 和运行层的集成回归入口。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 import os
 import shutil
@@ -5,6 +12,27 @@ import subprocess
 import sys
 
 import pytest
+
+
+@pytest.mark.parametrize('mode', ['managed', 'direct'])
+def test_first_window_waits_for_input_handoff_and_direct_probes_stay_visible(mode):
+    result = subprocess.run([sys.executable, 'tests/app_input_handoff_probe.py', mode],
+                            env={**os.environ, 'PYTHONPATH': 'src', 'QT_QPA_PLATFORM': 'offscreen',
+                                 'QT_QUICK_BACKEND': 'software'},
+                            capture_output=True, text=True, timeout=20)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert json.loads(result.stdout.strip().splitlines()[-1]) == {'mode': mode, 'passed': True}
+
+
+def test_cold_start_only_accepts_a_registered_application_in_the_current_session():
+    if sys.platform != 'linux' or not shutil.which('dbus-run-session'):
+        pytest.skip('Requires a Linux session bus')
+    result = subprocess.run(['dbus-run-session', '--', sys.executable, 'tests/app_input_handoff_probe.py', 'registry'],
+                            env={**os.environ, 'PYTHONPATH': 'src', 'QT_QPA_PLATFORM': 'offscreen',
+                                 'QT_QUICK_BACKEND': 'software'},
+                            capture_output=True, text=True, timeout=20)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert json.loads(result.stdout.strip().splitlines()[-1]) == {'mode': 'registry', 'passed': True}
 
 
 def test_native_probe_wait_services_python_workers_before_the_wait_finishes():

@@ -1,6 +1,6 @@
 /*
-[INPUT]: 依赖主页条目、启动身份、主题和减少动画开关。
-[OUTPUT]: 提供主页卡片、单一焦点与即时启动反馈。
+[INPUT]: 依赖主页条目、SelectionViewport、启动身份和主题。
+[OUTPUT]: 提供主页卡片、安全区滚动和即时启动反馈。
 [POS]: 桌面主页视图；控制器负责选择和启动。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -23,15 +23,12 @@ Item {
     readonly property var selectedItem: items[index] || ({})
 
     function positionSelection() {
-        shortcuts.positionViewAtIndex(index, ListView.Contain)
-        // Keep room for the selected card's scale at either edge.
-        const start = index * (tileWidth + shortcuts.spacing)
-        const minimum = start + tileWidth - shortcuts.width + shortcuts.rightMargin
-        const maximum = start - shortcuts.leftMargin
-        shortcuts.contentX = Math.max(minimum, Math.min(shortcuts.contentX, maximum))
+        viewport.ensureVisible()
     }
-
-    onWidthChanged: Qt.callLater(positionSelection)
+    SelectionViewport {
+        id: viewport
+        view: shortcuts; active: screen.visible; reducedMotion: screen.reducedMotion
+    }
 
     ListView {
         id: shortcuts
@@ -41,10 +38,11 @@ Item {
         height: Math.min(236, Math.max(160, parent.height - 108))
         orientation: ListView.Horizontal
         spacing: 18
-        leftMargin: 10
+        leftMargin: 12
         rightMargin: leftMargin
         model: screen.items
         currentIndex: screen.index
+        highlightFollowsCurrentItem: false
         keyNavigationEnabled: false
         interactive: false
         boundsBehavior: Flickable.StopAtBounds
@@ -109,7 +107,7 @@ Item {
                         color: tile.selected ? screen.colors.accent : screen.colors.text
                         font.family: screen.fontFamily
                         font.pixelSize: 26
-                        font.weight: tile.selected ? Font.DemiBold : Font.Normal
+                        font.weight: Font.Medium
                     }
                 }
             }

@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖隔离窗口、输入输出与真实桌面控制器。
-[OUTPUT]: 验证桌面连续导航与应用输入交接的边界。
+[OUTPUT]: 验证连续导航、应用交接和激活超时的精确恢复。
 [POS]: 应用路由回归；覆盖会话锁定、指针隔离和焦点切换。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -81,6 +81,206 @@ def focus(routing, identifier='10', app_id='firefox'):
     routing.windows.rows = [{'id': identifier, 'appId': app_id, 'name': 'Owned application', 'active': True, 'parentId': ''}]
     routing.router.window_active(False)
     routing.windows.changed.emit(routing.windows.rows)
+
+
+def test_native_activation_releases_input_before_presenting_the_target(routing):
+    from udeck.app_routing import APP_IDS
+
+    router = routing.router
+    routing.windows.rows = [{'id': 'music', 'appId': APP_IDS['music'], 'active': False}]
+    router.window_active(True)
+    assert routing.ownership[-1] is True
+
+    assert router.prepare_native_activation(APP_IDS['music'])
+    assert routing.ownership[-1] is False
+    assert router.mode == 'transition' and not routing.windows.requests
+    router.refresh()
+    assert routing.ownership[-1] is False
+
+    router.window_active(False)
+    routing.windows.rows[0]['active'] = True
+    routing.windows.changed.emit(routing.windows.rows)
+    assert router.mode == 'native' and not router.activation_pending
+    assert not router.activation_timer.isActive()
+
+
+@pytest.mark.parametrize('retry', [False, True])
+def test_late_native_focus_clears_its_activation_timeout_and_owned_menu(routing, retry):
+    from udeck.app_routing import APP_IDS
+
+    router = routing.router
+    routing.windows.rows = [{'id': 'emulator', 'appId': APP_IDS['emulator'], 'active': False}]
+    router.window_active(True)
+    assert router.prepare_native_activation(APP_IDS['emulator'])
+    router._activation_expired()
+    assert router.error and router.menu_open and routing.controller.modal
+    if retry:
+        assert router.prepare_native_activation(APP_IDS['emulator'])
+    router.window_active(False)
+    routing.windows.rows[0]['active'] = True
+    routing.windows.changed.emit(routing.windows.rows)
+    assert router.mode == 'native' and not router.activation_pending
+    assert not router.error and not router.menu_open and not routing.controller.modal
+
+
+@pytest.mark.parametrize('retry', [False, True])
+def test_activation_timeout_recovers_when_qt_focus_arrives_after_toplevel_state(routing, retry):
+    from udeck.app_routing import APP_IDS
+
+    router = routing.router
+    routing.windows.rows = [{'id': 'emulator', 'appId': APP_IDS['emulator'], 'active': False}]
+    router.window_active(True)
+    assert router.prepare_native_activation(APP_IDS['emulator'])
+    routing.windows.rows[0]['active'] = True
+    routing.windows.changed.emit(routing.windows.rows)
+    assert router.activation_pending
+    router._activation_expired()
+    if retry:
+        assert router.prepare_native_activation(APP_IDS['emulator'])
+    router.window_active(False)
+    assert router.mode == 'native' and not router.activation_pending
+    assert not router.error and not router.menu_open and not routing.controller.modal
+
+
+@pytest.mark.parametrize('failure', ['direction', 'protocol'])
+def test_late_native_focus_preserves_a_new_device_or_protocol_error(routing, failure):
+    from udeck.app_routing import APP_IDS
+
+    router = routing.router
+    routing.windows.rows = [{'id': 'emulator', 'appId': APP_IDS['emulator'], 'active': False}]
+    router.window_active(True)
+    assert router.prepare_native_activation(APP_IDS['emulator'])
+    router._activation_expired()
+    if failure == 'direction':
+        router.direction_status({'available': False, 'error': 'Keyboard disconnected after timeout'})
+    else:
+        routing.windows.failed.emit('Window protocol disconnected after timeout')
+    current_error = router.error
+    router.window_active(False)
+    routing.windows.rows[0]['active'] = True
+    routing.windows.changed.emit(routing.windows.rows)
+    assert router.error == current_error
+    if failure == 'direction':
+        assert router.mode == 'native' and not router.menu_open and not routing.controller.modal
+    else:
+        assert router.mode == 'suspended' and router.protocol_failed
+
+
+def test_late_native_focus_preserves_another_applications_control_menu(routing):
+    from udeck.app_routing import APP_IDS
+
+    router = routing.router
+    routing.windows.rows = [{'id': 'emulator', 'appId': APP_IDS['emulator'], 'active': False}]
+    router.window_active(True)
+    assert router.prepare_native_activation(APP_IDS['emulator'])
+    router._activation_expired()
+    router.leave_menu()
+    routing.controller._cancel_modals()
+    routing.windows.rows.append({'id': 'other', 'appId': 'external.application', 'name': 'Other', 'active': True})
+    router.window_active(False)
+    routing.windows.changed.emit(routing.windows.rows)
+    router.open_menu()
+    owned_menu = routing.controller.modal['key']
+    router.window_active(True)
+    routing.windows.rows[0]['active'] = True
+    routing.windows.rows[1]['active'] = False
+    router.window_active(False)
+    routing.windows.changed.emit(routing.windows.rows)
+    assert router.menu_open and router.return_target['id'] == 'other'
+    assert routing.controller.modal['key'] == owned_menu
+
+
+def test_activation_timeout_waits_for_an_unambiguous_matching_window(routing):
+    from udeck.app_routing import APP_IDS
+
+    router = routing.router
+    routing.windows.rows = [{'id': 'emulator', 'appId': APP_IDS['emulator'], 'active': False}]
+    router.window_active(True)
+    assert router.prepare_native_activation(APP_IDS['emulator'])
+    router._activation_expired()
+    error, menu = router.error, routing.controller.modal['key']
+    router.window_active(False)
+    routing.windows.rows[0]['active'] = True
+    routing.windows.rows.append({'id': 'other', 'appId': 'external.application', 'active': True})
+    routing.windows.changed.emit(routing.windows.rows)
+    assert router.error == error and routing.controller.modal['key'] == menu
+    routing.windows.rows[1]['active'] = False
+    routing.windows.rows[0]['appId'] = 'different.application'
+    routing.windows.changed.emit(routing.windows.rows)
+    assert router.error == error and routing.controller.modal['key'] == menu
+    routing.windows.rows[0]['appId'] = APP_IDS['emulator']
+    routing.windows.changed.emit(routing.windows.rows)
+    assert router.mode == 'native' and not router.error and not router.menu_open
+
+
+def test_native_cold_start_releases_input_until_its_first_window_has_focus(routing, monkeypatch):
+    from udeck.app_routing import APP_IDS
+
+    monkeypatch.setattr('udeck.compatibility.native_service_registered', lambda _app_id: True)
+    router = routing.router
+    router.window_active(True)
+    assert router.prepare_native_activation(APP_IDS['music'])
+    assert routing.ownership[-1] is False and router.mode == 'transition'
+    router.refresh()
+    assert routing.ownership[-1] is False
+    routing.windows.rows = [{'id': 'other', 'appId': 'external.application', 'active': False}]
+    routing.windows.changed.emit(routing.windows.rows)
+    assert router.mode == 'transition' and router.activation_pending
+    routing.windows.rows.append({'id': 'music', 'appId': APP_IDS['music'], 'active': True})
+    router.window_active(False)
+    routing.windows.changed.emit(routing.windows.rows)
+    assert router.mode == 'native' and not router.activation_pending
+    assert not router.activation_timer.isActive() and not routing.windows.requests
+
+
+def test_failed_native_cold_start_restores_desktop_input_after_its_deadline(routing, monkeypatch):
+    from PySide6.QtCore import QEventLoop, QTimer
+
+    from udeck.app_routing import APP_IDS
+
+    monkeypatch.setattr('udeck.compatibility.native_service_registered', lambda _app_id: True)
+    router = routing.router
+    router.window_active(True)
+    router.activation_timer.setInterval(20)
+    assert router.prepare_native_activation(APP_IDS['music'])
+    assert routing.ownership[-1] is False
+    loop = QEventLoop()
+    QTimer.singleShot(100, loop.quit)
+    loop.exec()
+    assert not router.activation_pending and not router.activation_timer.isActive()
+    assert router.mode == 'desktop' and routing.ownership[-1] is True
+
+
+def test_native_cold_start_rejects_an_application_without_a_current_session_service(routing, monkeypatch):
+    from udeck.app_routing import APP_IDS
+
+    monkeypatch.setattr('udeck.compatibility.native_service_registered', lambda _app_id: False)
+    routing.router.window_active(True)
+    routing.ownership.clear()
+    assert not routing.router.prepare_native_activation(APP_IDS['music'])
+    assert not routing.ownership and not routing.router.activation_pending
+
+
+@pytest.mark.parametrize('unsafe', ['unknown-app', 'locked-session', 'suspended', 'failed-protocol'])
+def test_native_input_preparation_rejects_an_invalid_target_or_session(routing, unsafe):
+    from udeck.app_routing import APP_IDS
+
+    router = routing.router
+    routing.windows.rows = [{'id': 'music', 'appId': APP_IDS['music'], 'active': False}]
+    router.window_active(True)
+    app_id = APP_IDS['music']
+    if unsafe == 'unknown-app':
+        app_id = 'external.application'
+    elif unsafe == 'locked-session':
+        router.session_safe = False
+    elif unsafe == 'suspended':
+        router.suspended = True
+    elif unsafe == 'failed-protocol':
+        router.protocol_failed = True
+    routing.ownership.clear()
+
+    assert not router.prepare_native_activation(app_id)
+    assert not routing.ownership and not router.activation_pending
 
 
 def test_keyboard_mode_routes_abxy_and_shoulders_without_typing_letters(routing):

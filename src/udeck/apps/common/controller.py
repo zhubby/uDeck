@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖共享应用状态、库扫描与 Qt 导航信号。
-[OUTPUT]: 提供应用导航、减少动画状态、运行摘要与有序退出。
+[OUTPUT]: 提供应用导航、桌面焦点请求、运行摘要与有序退出。
 [POS]: 独立应用控制器的公共生命周期与交互基类。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -486,8 +486,6 @@ class AppController(SoundFeedback):
                                                  "io.github.zhubby.uDeck.Control", method)
         if not self.isolated:
             QDBusConnection.sessionBus().asyncCall(message)
-        if method == "Home" and self.window:
-            self.window.showMinimized()
 
     @Slot(str)
     @interaction

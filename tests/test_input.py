@@ -1,16 +1,17 @@
 """
 [INPUT]: 依赖隔离 evdev 设备与 Qt 事件循环。
-[OUTPUT]: 验证物理按钮边沿、输入归属与断线重连。
+[OUTPUT]: 验证按钮边沿、sysfs 预筛选、输入交接与断线重连。
 [POS]: 输入层回归；不连接真实输入设备。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
+import errno
 import os
 import sys
 from types import SimpleNamespace
 
 import pytest
-from PySide6.QtCore import QCoreApplication
+from PySide6.QtCore import QCoreApplication, QEventLoop, QTimer
 
 from udeck import input as input_module
 from udeck.input import ButtonState, Gamepad
@@ -132,6 +133,147 @@ def test_foreground_disconnect_still_reconnects_without_a_focus_change(stock_gam
     gamepad.set_foreground(True)
     gamepad._close()
     assert gamepad.device is None and gamepad.reconnect.isActive()
+    gamepad._connect()
+    assert gamepad.device is device and gamepad.grabbed
+
+
+def test_busy_focus_handoff_accepts_back_without_waiting_for_device_reconnect(stock_gamepad):
+    gamepad, device, events = stock_gamepad
+    attempts, actions = [], []
+
+    def grab():
+        attempts.append(True)
+        if len(attempts) == 1:
+            raise OSError(errno.EBUSY, 'Previous window still owns the gamepad')
+
+    device.grab = grab
+    gamepad.action.connect(actions.append)
+    gamepad.set_foreground(True)
+    loop = QEventLoop()
+    QTimer.singleShot(200, loop.quit)
+    loop.exec()
+    events[:] = [SimpleNamespace(type=1, code=290, value=1),
+                 SimpleNamespace(type=1, code=290, value=0)]
+    gamepad._read()
+    assert actions == ['back']
+
+
+def test_held_launch_button_does_not_block_a_fresh_back_press(stock_gamepad):
+    gamepad, device, events = stock_gamepad
+    device.active_keys = lambda: [289]
+    actions = []
+    gamepad.action.connect(actions.append)
+    gamepad.set_foreground(True)
+    assert gamepad.grabbed
+    events[:] = [SimpleNamespace(type=1, code=code, value=value) for code, value in (
+        (289, 1), (290, 1), (290, 0), (289, 0), (289, 1), (289, 0))]
+    gamepad._read()
+    assert actions == ['back', 'accept']
+
+
+def test_prepared_device_keeps_back_events_until_foreground_delivery_is_enabled(stock_gamepad):
+    gamepad, _, events = stock_gamepad
+    actions = []
+    gamepad.action.connect(actions.append)
+    gamepad.set_delivery_enabled(False)
+    gamepad.set_foreground(True)
+    assert gamepad.grabbed and not gamepad.notifier.isEnabled()
+    events[:] = [SimpleNamespace(type=1, code=290, value=1), SimpleNamespace(type=1, code=290, value=0)]
+    gamepad._read()
+    assert actions == []
+    gamepad.set_delivery_enabled(True)
+    gamepad._read()
+    assert actions == ['back']
+
+
+def test_busy_focus_handoff_stops_retrying_when_the_window_loses_focus(stock_gamepad):
+    gamepad, device, _ = stock_gamepad
+    attempts = []
+
+    def grab():
+        attempts.append(True)
+        raise OSError(errno.EBUSY, 'Previous window still owns the gamepad')
+
+    device.grab = grab
+    gamepad.set_foreground(True)
+    gamepad.set_foreground(False)
+    loop = QEventLoop()
+    QTimer.singleShot(100, loop.quit)
+    loop.exec()
+    assert len(attempts) == 1
+    assert not gamepad.grabbed and gamepad.device is None
+    assert not gamepad.reconnect.isActive()
+
+
+def test_device_removal_during_busy_handoff_returns_to_device_reconnect(stock_gamepad):
+    gamepad, device, _ = stock_gamepad
+    attempts = []
+
+    def grab():
+        attempts.append(True)
+        raise OSError(errno.EBUSY if len(attempts) == 1 else errno.ENODEV, 'Device unavailable')
+
+    device.grab = grab
+    gamepad.set_foreground(True)
+    loop = QEventLoop()
+    QTimer.singleShot(100, loop.quit)
+    loop.exec()
+    assert len(attempts) == 2
+    assert not gamepad.grabbed and gamepad.device is None
+    assert gamepad.reconnect.isActive()
+
+
+def test_gamepad_handoff_does_not_open_unrelated_input_interfaces(stock_gamepad, tmp_path, monkeypatch):
+    gamepad, device, _ = stock_gamepad
+    gamepad.sysfs_root = tmp_path
+    unrelated = '/dev/input/event0'
+    for path, name, vendor, product in (
+        (unrelated, 'ClockworkPI uConsole Keyboard', '1eaf', '0024'),
+        (device.path, 'ClockworkPI uConsole', '1eaf', '0024'),
+    ):
+        base = tmp_path / path.rsplit('/', 1)[1] / 'device'
+        (base / 'id').mkdir(parents=True)
+        (base / 'name').write_text(name)
+        (base / 'id/vendor').write_text(vendor)
+        (base / 'id/product').write_text(product)
+    opened = []
+    keyboard = SimpleNamespace(name='ClockworkPI uConsole Keyboard', info=device.info,
+                               capabilities=device.capabilities, close=lambda: None)
+
+    def open_device(path):
+        opened.append(path)
+        return device if path == device.path else keyboard
+
+    monkeypatch.setattr(sys.modules['evdev'], 'list_devices', lambda: [unrelated, device.path])
+    monkeypatch.setattr(sys.modules['evdev'], 'InputDevice', open_device)
+    gamepad.set_foreground(True)
+    assert gamepad.grabbed
+    assert opened == [device.path]
+
+
+@pytest.mark.parametrize('vendor', [None, 'invalid'])
+def test_unreadable_sysfs_identity_falls_back_to_evdev_validation(stock_gamepad, tmp_path, vendor):
+    gamepad, device, _ = stock_gamepad
+    gamepad.sysfs_root = tmp_path
+    if vendor is not None:
+        base = tmp_path / 'event7/device/id'
+        base.mkdir(parents=True)
+        (base / 'vendor').write_text(vendor)
+    gamepad.set_foreground(True)
+    assert gamepad.device is device and gamepad.grabbed
+
+
+def test_reused_input_path_is_rechecked_after_hotplug(stock_gamepad, tmp_path):
+    gamepad, device, _ = stock_gamepad
+    gamepad.sysfs_root = tmp_path
+    base = tmp_path / 'event7/device'
+    (base / 'id').mkdir(parents=True)
+    (base / 'id/vendor').write_text('1eaf')
+    (base / 'id/product').write_text('0024')
+    (base / 'name').write_text('ClockworkPI uConsole Keyboard')
+    gamepad.set_foreground(True)
+    assert gamepad.device is None and not gamepad.grabbed
+    (base / 'name').write_text('ClockworkPI uConsole')
     gamepad._connect()
     assert gamepad.device is device and gamepad.grabbed
 

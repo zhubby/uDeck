@@ -1,6 +1,6 @@
 /*
 [INPUT]: 依赖模态快照、主题、控制器和统一动效时长。
-[OUTPUT]: 提供弹窗短过渡、关闭画面保留与点击隔离。
+[OUTPUT]: 提供尺寸连续变化、关闭即时冻结几何与点击隔离。
 [POS]: Main 的模态视图；输入与操作仍由控制器决策。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -23,6 +23,7 @@ Rectangle {
     readonly property color muted: colors.muted
     readonly property color accent: colors.accent
     property string lastDialog: ""
+    property bool ready: false
     signal restoreFocus()
     MotionTimings { id: motion; reducedMotion: root.reducedMotion }
     function tr(key) { return controller.translate(key, viewState.language) }
@@ -58,10 +59,16 @@ Rectangle {
     }
     function syncView() {
         if (shown && dialog.kind === "menu")
-            menuList.positionViewAtIndex(dialog.index, ListView.Contain)
+            menuViewport.ensureVisible()
         const key = viewState.modal.key || ""
         if (key === lastDialog) return
+        const replacing = !!key && !!lastDialog && shown
         lastDialog = key
+        contentFade.stop()
+        if (replacing && !reducedMotion) {
+            modalColumn.opacity = Math.min(0.9, modalColumn.opacity)
+            contentFade.start()
+        } else modalColumn.opacity = 1
         previewContent.contentY = 0
         if (shown && dialog.kind === "text") {
             editor.text = dialog.text || ""
@@ -74,9 +81,19 @@ Rectangle {
         }
     }
     onViewStateChanged: if (viewState.modal.kind) retainedDialog = viewState.modal
-    onShownChanged: animateVisibility()
-    onReducedMotionChanged: if (reducedMotion) animateVisibility()
-    Component.onCompleted: animateVisibility()
+    onShownChanged: {
+        if (!shown) {
+            panel.stopResize()
+            panel.geometryReady = false
+        }
+        animateVisibility()
+        Qt.callLater(panel.syncGeometry)
+    }
+    onReducedMotionChanged: if (reducedMotion) {
+        animateVisibility(); panel.syncGeometry()
+        contentFade.stop(); modalColumn.opacity = 1
+    }
+    Component.onCompleted: { ready = true; animateVisibility(); panel.syncGeometry() }
     visible: shown || opacity > 0
     opacity: 0
     ParallelAnimation {
@@ -105,7 +122,10 @@ Rectangle {
         }
         objectName: "dialogPanel"
         anchors.centerIn: parent
-        width: dialog.kind === "key-test" ? Math.min(1160, parent.width - 48) : Math.min(810, parent.width - 96)
+        property real targetWidth: Math.max(0, dialog.kind === "key-test" ? Math.min(1160, parent.width - 48) : Math.min(810, parent.width - 96))
+        property bool geometryReady: false
+        readonly property bool resizing: resizeWidth.running || resizeHeight.running
+        width: targetWidth
         property real menuChromeHeight: dialog.kind === "menu" ? 96 + dialogTitle.implicitHeight + modalFooter.implicitHeight
             + (dialog.body ? dialogBody.implicitHeight + 20 : 0)
             + (viewState.toast ? modalToast.height + 20 : 0) : 0
@@ -116,15 +136,39 @@ Rectangle {
             + (dialog.truncated ? previewNotice.height + 20 : 0)
             + (viewState.toast ? modalToast.height + 20 : 0)
         property real previewHeight: Math.max(80, Math.min(240, parent.height - 64 - previewChromeHeight))
-        height: Math.min(parent.height - (dialog.kind === "key-test" ? 32 : 64), dialog.kind === "menu"
-            ? menuChromeHeight + menuRowsHeight : modalColumn.height + (dialog.kind === "key-test" ? 40 : 56))
+        property real targetHeight: Math.max(0, Math.min(parent.height - (dialog.kind === "key-test" ? 32 : 64), dialog.kind === "menu"
+            ? menuChromeHeight + menuRowsHeight : modalColumn.height + (dialog.kind === "key-test" ? 40 : 56)))
+        height: targetHeight
+        clip: true
         radius: 16; color: root.colors.dialog; border.width: 1; border.color: root.colors.dialogBorder
+        function stopResize() {
+            resizeWidth.stop(); resizeHeight.stop()
+        }
+        function syncGeometry() {
+            stopResize()
+            if (!root.shown) {
+                geometryReady = false
+                return
+            }
+            if (!geometryReady || !root.ready || root.reducedMotion) {
+                width = targetWidth; height = targetHeight
+                geometryReady = root.shown && targetWidth > 0 && targetHeight > 0
+            } else {
+                resizeWidth.to = targetWidth; resizeHeight.to = targetHeight
+                resizeWidth.start(); resizeHeight.start()
+            }
+        }
+        onTargetWidthChanged: Qt.callLater(syncGeometry)
+        onTargetHeightChanged: Qt.callLater(syncGeometry)
+        NumberAnimation { id: resizeWidth; target: panel; property: "width"; duration: 120; easing.type: Easing.OutCubic }
+        NumberAnimation { id: resizeHeight; target: panel; property: "height"; duration: 120; easing.type: Easing.OutCubic }
+        NumberAnimation { id: contentFade; target: modalColumn; property: "opacity"; to: 1; duration: 90; easing.type: Easing.OutCubic }
 
         Column {
             id: modalColumn
             objectName: "dialogContent"
             x: dialog.kind === "key-test" ? 20 : 28; y: dialog.kind === "key-test" ? 20 : 26
-            width: parent.width - 2 * x; spacing: dialog.kind === "key-test" ? 8 : dialog.kind === "console-details" ? 16 : 20
+            width: panel.targetWidth - 2 * x; spacing: dialog.kind === "key-test" ? 8 : dialog.kind === "console-details" ? 16 : 20
             Text { textFormat: Text.PlainText; id: dialogTitle; width: parent.width; text: dialog.title || ""; font.family: root.fontFamily; font.pixelSize: dialog.kind === "key-test" ? 28 : 32; font.weight: Font.DemiBold; color: root.ink; wrapMode: Text.Wrap; maximumLineCount: dialog.kind === "console-details" ? 1 : 2; elide: Text.ElideRight }
             Text { textFormat: Text.PlainText; id: dialogBody; visible: !!dialog.body && dialog.kind !== "file-preview"; width: parent.width; text: dialog.body || ""; font.family: root.fontFamily; font.pixelSize: 24; color: root.muted; wrapMode: Text.Wrap; maximumLineCount: 4; elide: Text.ElideRight }
 
@@ -178,6 +222,10 @@ Rectangle {
                 interactive: false
                 boundsBehavior: Flickable.StopAtBounds
                 ScrollBar.vertical: ScrollBar { palette: root.colors.controls; policy: ScrollBar.AsNeeded; interactive: false }
+                SelectionViewport {
+                    id: menuViewport; view: menuList
+                    active: root.shown && menuList.visible; reducedMotion: root.reducedMotion
+                }
                 FocusFrame {
                     objectName: "menuFocus"; parent: menuList.contentItem
                     target: menuList.currentItem; active: root.shown && menuList.visible

@@ -1,4 +1,9 @@
-"""Keep native button actions inside the foreground text input's ownership."""
+"""
+[INPUT]: 依赖 Qt 焦点对象、应用控制器和输入法预编辑状态。
+[OUTPUT]: 判定语义按键是否归前台输入法所有。
+[POS]: 桌面与应用共用的文本输入边界。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 from PySide6.QtCore import QCoreApplication
 

@@ -1,0 +1,359 @@
+{
+  "date": "2026-11-18",
+  "implementationStatus": "complete",
+  "verificationStatus": "functional-passed; performance-targets-not-all-met",
+  "sourceVerification": {
+    "status": "passed",
+    "mode": "one pytest process per test file, with final integration reruns",
+    "files": 135,
+    "initial": {
+      "passed": 1968,
+      "failed": 5,
+      "skipped": 9
+    },
+    "final": {
+      "passed": 1974,
+      "failed": 0,
+      "skipped": 9
+    },
+    "followups": {
+      "themeAndWifi": {
+        "passed": 12,
+        "log": "final-ui-integration.log"
+      },
+      "measurement": {
+        "passed": 12,
+        "log": "final-measurement-tests.log"
+      }
+    },
+    "initialMonolithicRun": {
+      "exitCode": 134,
+      "failedAt": "tests/test_terminal_controller.py native Qt abort at 76 percent",
+      "isolatedFilePassed": 24
+    },
+    "secondsInitialIsolated": 1171.68,
+    "postNativeFixes": {
+      "navigationAndAppsPassed": 28,
+      "dialogAndMotionPassed": 24,
+      "closureLog": "final-closure-tests.log"
+    }
+  },
+  "candidateSource": {
+    "filesVerified": 183,
+    "overlaySha256": "5845bef4afced9752f3bd36eceaf98b6ec9cd64fe0c1bcc4cb0879f5dda75bac",
+    "measuredDesktopQmlHashesMatchCurrentSource": true
+  },
+  "deviceComparison": {
+    "scope": "independent MockBackend windows on the same CM4",
+    "qt": {
+      "version": "6.8.2",
+      "pysideVersion": "6.8.2.1",
+      "platform": "wayland",
+      "graphicsApi": "OpenGL",
+      "refreshRateHz": 59.9010009765625,
+      "windowSize": [
+        1280,
+        720
+      ],
+      "environment": {
+        "QT_QPA_PLATFORM": "wayland",
+        "QT_QUICK_BACKEND": null,
+        "QSG_RHI_BACKEND": "opengl",
+        "QSG_RENDER_LOOP": "threaded",
+        "LIBGL_ALWAYS_SOFTWARE": null,
+        "UDECK_REDUCED_MOTION": null,
+        "QT_QUICK_CONTROLS_STYLE": "Basic"
+      }
+    },
+    "rounds": 3,
+    "inputsPerRound": 92,
+    "warmupSeconds": 5,
+    "idleSecondsEach": 3,
+    "toolSha256": "dfea3993931fa61f79bedc517e4d00f03ad406ad10d9e589c0b50449a74de5af",
+    "baseline": {
+      "status": "failed",
+      "inputs": {
+        "sent": 276,
+        "presented": 254,
+        "failed": 22,
+        "presentationRate": 0.9202898550724637
+      },
+      "logicalDeliveriesCompleted": 276,
+      "deadlineFailuresAlreadyInFlight": 22,
+      "activeFrameGapMs": {
+        "count": 1458,
+        "medianMs": 16.705993504729122,
+        "p95Ms": 17.96208298765123,
+        "p99Ms": 25.10798000730574,
+        "maxMs": 60.968794976361096
+      },
+      "navigationFirstPresentationMs": {
+        "count": 200,
+        "medianMs": 24.50828702421859,
+        "p95Ms": 31.702294014394283,
+        "p99Ms": 32.76109101716429,
+        "maxMs": 35.134476027451456
+      },
+      "pageModalFirstPresentationMs": {
+        "count": 54,
+        "medianMs": 40.94812698895112,
+        "p95Ms": 83.26993405353278,
+        "p99Ms": 103.82923192810267,
+        "maxMs": 103.82923192810267
+      },
+      "thresholdResults": {
+        "activeFrameP95": {
+          "valueMs": 17.96208298765123,
+          "limitMs": 20.86776480561799,
+          "passed": true,
+          "status": "passed"
+        },
+        "activeFrameP99": {
+          "valueMs": 25.10798000730574,
+          "limitMs": 33.38842368898879,
+          "passed": true,
+          "status": "passed"
+        },
+        "activeFrameMax": {
+          "valueMs": 60.968794976361096,
+          "limitMs": 50.082635533483185,
+          "passed": false,
+          "status": "failed"
+        },
+        "navigationFirstP95": {
+          "valueMs": 31.702294014394283,
+          "limitMs": 33.38842368898879,
+          "passed": true,
+          "status": "passed"
+        },
+        "pageModalFirstP95": {
+          "valueMs": 83.26993405353278,
+          "limitMs": 50.082635533483185,
+          "passed": false,
+          "status": "failed"
+        },
+        "allInputsPresented": {
+          "sent": 276,
+          "presented": 254,
+          "passed": false
+        },
+        "coverageComplete": {
+          "passed": true,
+          "rounds": 3
+        },
+        "realDisplay": {
+          "passed": true,
+          "platform": "wayland"
+        },
+        "qmlErrors": {
+          "passed": true,
+          "count": 0
+        },
+        "idleNoContinuousRedraw": {
+          "passed": true,
+          "observedSwaps": [
+            0,
+            0
+          ],
+          "maximumClockSwaps": [
+            11,
+            11
+          ]
+        }
+      },
+      "observerCostMs": {
+        "count": 2363,
+        "medianMs": 1.0047229006886482,
+        "p95Ms": 1.4671050012111664,
+        "p99Ms": 1.9207079894840717,
+        "maxMs": 4.408924956806004
+      },
+      "activeCpuPercentOneCoreIncludingObserver": 42.377765733709296,
+      "pssKiBBefore": 112182,
+      "pssKiBAfter": 125403,
+      "idleCpuPercentOneCore": [
+        0.2868075799707351,
+        0.4621424332941726
+      ],
+      "idleSwaps": [
+        0,
+        0
+      ],
+      "seconds": 54.30448307399638
+    },
+    "candidate": {
+      "status": "failed",
+      "inputs": {
+        "sent": 276,
+        "presented": 248,
+        "failed": 28,
+        "presentationRate": 0.8985507246376812
+      },
+      "logicalDeliveriesCompleted": 276,
+      "deadlineFailuresAlreadyInFlight": 27,
+      "activeFrameGapMs": {
+        "count": 1413,
+        "medianMs": 16.69151207897812,
+        "p95Ms": 18.525740946643054,
+        "p99Ms": 25.435038027353585,
+        "maxMs": 51.8618009518832
+      },
+      "navigationFirstPresentationMs": {
+        "count": 196,
+        "medianMs": 22.81842293450609,
+        "p95Ms": 31.141854007728398,
+        "p99Ms": 34.43080198485404,
+        "maxMs": 35.82305693998933
+      },
+      "pageModalFirstPresentationMs": {
+        "count": 52,
+        "medianMs": 42.576199455652386,
+        "p95Ms": 87.48736104462296,
+        "p99Ms": 98.93343795556575,
+        "maxMs": 98.93343795556575
+      },
+      "thresholdResults": {
+        "activeFrameP95": {
+          "valueMs": 18.525740946643054,
+          "limitMs": 20.86776480561799,
+          "passed": true,
+          "status": "passed"
+        },
+        "activeFrameP99": {
+          "valueMs": 25.435038027353585,
+          "limitMs": 33.38842368898879,
+          "passed": true,
+          "status": "passed"
+        },
+        "activeFrameMax": {
+          "valueMs": 51.8618009518832,
+          "limitMs": 50.082635533483185,
+          "passed": false,
+          "status": "failed"
+        },
+        "navigationFirstP95": {
+          "valueMs": 31.141854007728398,
+          "limitMs": 33.38842368898879,
+          "passed": true,
+          "status": "passed"
+        },
+        "pageModalFirstP95": {
+          "valueMs": 87.48736104462296,
+          "limitMs": 50.082635533483185,
+          "passed": false,
+          "status": "failed"
+        },
+        "allInputsPresented": {
+          "sent": 276,
+          "presented": 248,
+          "passed": false
+        },
+        "coverageComplete": {
+          "passed": true,
+          "rounds": 3
+        },
+        "realDisplay": {
+          "passed": true,
+          "platform": "wayland"
+        },
+        "qmlErrors": {
+          "passed": true,
+          "count": 0
+        },
+        "idleNoContinuousRedraw": {
+          "passed": true,
+          "observedSwaps": [
+            0,
+            0
+          ],
+          "maximumClockSwaps": [
+            11,
+            11
+          ]
+        }
+      },
+      "observerCostMs": {
+        "count": 1775,
+        "medianMs": 1.6500480705872178,
+        "p95Ms": 2.069429960101843,
+        "p99Ms": 2.8326399624347687,
+        "maxMs": 4.992124042473733
+      },
+      "activeCpuPercentOneCoreIncludingObserver": 40.75694931786834,
+      "pssKiBBefore": 112454,
+      "pssKiBAfter": 124865,
+      "idleCpuPercentOneCore": [
+        0.2982511671571855,
+        0.32317327325232664
+      ],
+      "idleSwaps": [
+        0,
+        0
+      ],
+      "seconds": 54.58657780906651,
+      "latePresentationClassification": {
+        "stagedBeforeNextInputThenSwappedLate": 27,
+        "stagedAfterNextInputThenSwappedLate": 1,
+        "lateStagedInputId": 266,
+        "lateStageAfterNextPostMs": 2.79177,
+        "lateSwapAfterNextPostMs": 17.867381,
+        "logicalDeliveriesAndStateChanges": 276,
+        "failedActions": {
+          "rapidReversal20msRight": 12,
+          "rapidReversal20msLeft": 14,
+          "nextPage": 2
+        },
+        "note": "Original failed gates and denominator remain unchanged; next post time is not the processing completion time."
+      }
+    }
+  },
+  "deviceFunctional": {
+    "status": "passed",
+    "planned": 52,
+    "completed": 52,
+    "passed": 52,
+    "failed": [],
+    "allPassed": true,
+    "normalNavigationCases": 16,
+    "dialogCases": 16,
+    "sharedApplicationCases": 12,
+    "motionAndExtendedCases": 8,
+    "productionInputOpened": false,
+    "privateDbus": true,
+    "temporaryXdg": true,
+    "startupBarrier": "exposed, first swap, then 150ms stable geometry"
+  },
+  "production": {
+    "candidateInstalled": false,
+    "sessionRestarted": false,
+    "protectedPidsUnchanged": true,
+    "displayPowerRestored": true
+  },
+  "git": {
+    "committed": false,
+    "pushed": false,
+    "releasePublished": false
+  },
+  "physicalAcceptance": "pending; synthetic input and software presentation signals only",
+  "limitations": [
+    "Qt frameSwapped is not optical input-to-pixel latency.",
+    "The original per-input presentation denominator and all failed thresholds are retained.",
+    "States already in flight can present after the next 20ms reversal input.",
+    "renderedPage is maintained by deferred view synchronization; it is not a direct pixel identity.",
+    "Observer costs are measured and included; near-deadline counts do not prove product input loss.",
+    "Resource rates describe the private test process, not the installed production desktop.",
+    "The single-process full pytest run aborted; complete regression used per-file isolation and scoped reruns."
+  ],
+  "historicalFailures": [
+    "Direct render-thread Python callbacks with QTest waits/keyClick caused private-probe watchdogs.",
+    "Output power was off; subsequent preflight rejects unexposed measurements.",
+    "Functional runner v1 exceeded the Unix socket path limit before product assertions.",
+    "Functional runner v2 did not wait for the initial Wayland configure and viewport settling.",
+    "Native overshoot on scroll reversal and modal close was fixed by synchronous cancellation."
+  ],
+  "rawEvidenceSha256": {
+    "baseline-final-01.json": "7495cca738e2438b2eb427f8a72b584eef4a30ae9a7a7b5aea4dc37ea32a2912",
+    "candidate-final-01.json": "fe23c5f6abeabdab9452440ea10d7fc06598af39681dcb0b02b44a9b3af9ba0c",
+    "candidate-final-02.json": "27136c68f991b28d2cd6a4d0d0596c6c0c57e0b6fc558e3c604b9e4f2fdcb621"
+  }
+}

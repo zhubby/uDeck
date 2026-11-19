@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖窗口焦点、会话隔离、物理手柄与虚拟输入。
-[OUTPUT]: 提供桌面导航和应用按钮、指针及焦点交接。
+[INPUT]: 依赖窗口焦点、会话应用注册、物理手柄与虚拟输入。
+[OUTPUT]: 提供桌面导航、输入预释放和按窗口身份恢复激活超时。
 [POS]: 输入归属编排层；桌面内切页保留设备归属。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -10,11 +10,21 @@ import time
 
 from PySide6.QtCore import QObject, QTimer
 
-from .app_routing import NATIVE_APPS
+from .app_routing import NATIVE_APPS, service_name
 from .i18n import Msg, error_text, tr
 
 TERMINAL_APP = 'io.github.zhubby.uDeck.Terminal'
 MODE_NAMES = {'keyboard': tr(Msg.BUTTON_MODE), 'pointer': tr(Msg.POINTER_MODE), 'native': tr(Msg.NATIVE_INPUT)}
+
+
+def native_service_registered(app_id):
+    from PySide6.QtDBus import QDBusConnection
+
+    interface = QDBusConnection.sessionBus().interface()
+    if interface is None:
+        return False
+    reply = interface.isServiceRegistered(service_name(app_id))
+    return bool(reply.isValid() and reply.value())
 
 
 def application_profile(identifier):
@@ -53,11 +63,14 @@ class ApplicationRouter(QObject):
         self.return_target = None
         self.resume_pending = False
         self.activation_pending = False
+        self.activation_app_id = None
+        self.activation_timeout = None
         self.windows_revision = 0
         self.activation_revision = 0
         self.menu_open = False
         self.mode = 'suspended'
-        self.error = '' if self.enabled else tr(Msg.APP_COMPATIBILITY_REQUIRES_SESSION_AND_VIRTUAL_INPUT)
+        self._set_error('' if self.enabled else tr(Msg.APP_COMPATIBILITY_REQUIRES_SESSION_AND_VIRTUAL_INPUT),
+                        None if self.enabled else 'compatibility')
         self.key = None
         self.held = set()
         self.suppressed = set()
@@ -77,6 +90,9 @@ class ApplicationRouter(QObject):
         controller.applicationAction.connect(self.menu_action)
         controller.changed.connect(self._modal_changed)
 
+    def _set_error(self, message, source):
+        self.error, self.error_source = message, source
+
     def state(self):
         target = self.return_target if self.menu_open else self.target
         return {'available': self.enabled, 'mode': self.mode, 'application': (target or {}).get('application', ''),
@@ -93,6 +109,10 @@ class ApplicationRouter(QObject):
 
     def _windows(self, rows):
         self.windows_revision += 1
+        if self.activation_pending and self.activation_app_id:
+            prepared = next((entry for entry in rows if entry.get('appId') == self.activation_app_id), None)
+            if prepared:
+                self.return_target = self._window_target(rows, prepared)
         active = next((entry for entry in rows if entry.get('active')), None)
         self.target = self._window_target(rows, active)
         self.refresh()
@@ -114,7 +134,7 @@ class ApplicationRouter(QObject):
 
     def _failed(self, message):
         self.protocol_failed = True
-        self.error = message
+        self._set_error(message, 'protocol')
         self.refresh()
         self.controller.notify(self.error)
         self.controller.present.emit()
@@ -144,7 +164,8 @@ class ApplicationRouter(QObject):
     def direction_status(self, status):
         self.directions_available = bool(status.get('available'))
         if not self.directions_available:
-            self.error = status.get('error') or tr(Msg.BUILT_IN_DIRECTION_KEYS_ARE_UNAVAILABLE_POINTER_MODE_IS_DISABLED)
+            self._set_error(status.get('error') or tr(Msg.BUILT_IN_DIRECTION_KEYS_ARE_UNAVAILABLE_POINTER_MODE_IS_DISABLED),
+                            'direction')
             self.release()
             if self.mode == 'pointer' or self.resume_pending or self.activation_pending:
                 self.open_menu()
@@ -160,6 +181,8 @@ class ApplicationRouter(QObject):
 
     def refresh(self):
         safe = not self.suspended and self.session_safe and not self.protocol_failed
+        if safe and not self.shell:
+            self._recover_activation_timeout()
         target_active = bool(self.return_target and self.target and self.target['id'] == self.return_target['id'] and not self.shell
                              and (not self.activation_pending or self.windows_revision > self.activation_revision))
         if self.activation_pending and safe and not target_active:
@@ -167,6 +190,7 @@ class ApplicationRouter(QObject):
             self._publish()
             return
         self.activation_pending = False
+        self.activation_app_id = None
         self.activation_timer.stop()
         if safe and (self.resume_pending or self.menu_open and not self.shell):
             self.mode = 'transition'
@@ -177,7 +201,7 @@ class ApplicationRouter(QObject):
                    else 'suspended' if self.protocol_failed else self._desired(self.target) if self.target and self.enabled else 'native')
         if desired in ('keyboard', 'pointer') and not self.output.available:
             desired = 'suspended'
-            self.error = self.output.error or tr(Msg.VIRTUAL_INPUT_DISCONNECTED)
+            self._set_error(self.output.error or tr(Msg.VIRTUAL_INPUT_DISCONNECTED), 'virtual-input')
         identity = (desired, (self.target or {}).get('id') if not self.shell else '', self.suspended)
         if identity != self.key:
             self.release()
@@ -206,15 +230,43 @@ class ApplicationRouter(QObject):
         if not self.activation_pending:
             return
         self.activation_pending = False
+        self.activation_app_id = None
         self.command_pending = None
         if not self.return_target or not any(entry['id'] == self.return_target['id'] for entry in self.windows.entries()):
             self._gone()
             return
-        self.error = tr(Msg.THE_APP_IS_NOT_IN_THE_FOREGROUND_RETURN_TO_IT_AND_TRY_AGAIN)
+        self._set_error(tr(Msg.THE_APP_IS_NOT_IN_THE_FOREGROUND_RETURN_TO_IT_AND_TRY_AGAIN), 'activation-timeout')
         self.menu_open = True
         self._menu()
+        self.activation_timeout = {'windowId': self.return_target['id'],
+                                   'application': self.return_target['application'],
+                                   'revision': self.windows_revision, 'shellActive': self.shell,
+                                   'modalKey': self.controller.modal.get('key')}
         self.controller.notify(self.error)
         self.controller.present.emit()
+
+    def _recover_activation_timeout(self):
+        failure = self.activation_timeout
+        if (not failure or not self.target
+                or (self.windows_revision <= failure['revision'] and not failure['shellActive'])
+                or self.target['id'] != failure['windowId']
+                or self.target.get('application') != failure['application']):
+            return
+        if sum(bool(entry.get('active')) for entry in self.windows.entries()) != 1:
+            return
+        self.activation_timeout = None
+        if self.error_source == 'activation-timeout':
+            self._set_error('', None)
+        modal = self.controller.modal
+        if (self.return_target and self.return_target['id'] == failure['windowId']
+                and self.return_target.get('application') == failure['application']):
+            self.activation_pending = False
+            self.activation_app_id = None
+            self.activation_timer.stop()
+            if not modal or modal.get('key') == failure['modalKey']:
+                self.menu_open = self.resume_pending = False
+                if modal:
+                    self.controller._pop()
 
     def release(self):
         self.motion.stop()
@@ -286,6 +338,7 @@ class ApplicationRouter(QObject):
             return
         self.release()
         self.activation_pending = False
+        self.activation_app_id = None
         self.activation_timer.stop()
         self.resume_pending = False
         self.mode = 'transition'
@@ -395,6 +448,29 @@ class ApplicationRouter(QObject):
         self.resume()
         return True
 
+    def prepare_native_activation(self, app_id):
+        rows = self.windows.entries()
+        target = next((entry for entry in rows if entry.get('appId') == app_id), None)
+        if (app_id not in NATIVE_APPS or not self.enabled or self.suspended
+                or not self.session_safe or self.protocol_failed):
+            return False
+        if not target and not native_service_registered(app_id):
+            return False
+        if target and self.target and self.target['id'] == target['id'] and not self.shell:
+            return True
+        self.return_target = self._window_target(rows, target)
+        self.menu_open = self.resume_pending = False
+        self.command_pending = None
+        self.release()
+        self.gamepad.set_foreground(False)
+        self.activation_pending = True
+        self.activation_app_id = app_id
+        self.activation_revision = self.windows_revision
+        self.activation_timer.start()
+        self.mode = 'transition'
+        self._publish()
+        return True
+
     def resume(self):
         if not self.return_target or self.suspended or not self.session_safe:
             return
@@ -411,7 +487,7 @@ class ApplicationRouter(QObject):
         if not success:
             self.release()
             self.resume_pending = False
-            self.error = self.isolation.error
+            self._set_error(self.isolation.error, 'configuration')
             if self.return_target:
                 self.menu_open = True
                 self._menu()
@@ -421,7 +497,7 @@ class ApplicationRouter(QObject):
             self.refresh()
             return
         if not self.protocol_failed and self.directions_available:
-            self.error = ''
+            self._set_error('', None)
         if self.resume_pending and not self.suspended and self.session_safe and not self.protocol_failed:
             self.resume_pending = False
             target = self.return_target
@@ -432,6 +508,7 @@ class ApplicationRouter(QObject):
             self.controller._cancel_modals()
             try:
                 self.activation_pending = True
+                self.activation_app_id = None
                 self.activation_revision = self.windows_revision
                 self.activation_timer.start()
                 self.windows.request(target['id'], 'activate')
@@ -447,6 +524,7 @@ class ApplicationRouter(QObject):
         self.menu_open = False
         self.resume_pending = False
         self.activation_pending = False
+        self.activation_app_id = None
         self.activation_timer.stop()
         self.return_target = None
         self.command_pending = None

@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实 Console 服务、Qt 模型和桌面控制器。
-[OUTPUT]: 验证应用聚合、实时详情、稳定选择和退出确认。
+[OUTPUT]: 验证所有者变化去重、实时详情和身份固定的退出。
 [POS]: Console 的异步服务与桌面导航集成回归。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -75,6 +75,50 @@ def test_owner_discovery_reconciles_cached_owner_and_ignores_hidden_reply(monkey
         console._discover()
         calls.pop()[-1](reply(error="org.freedesktop.DBus.Error.NameHasNoOwner"))
         assert app not in console.owners
+    finally:
+        console.close()
+
+
+def test_owner_discovery_publishes_only_real_owner_transitions(monkeypatch):
+    from udeck.runtime_console import service
+
+    monkeypatch.setattr(service.QDBusConnection, "sessionBus", lambda: None)
+    console = RuntimeConsole()
+    app = "io.github.zhubby.uDeck.Emulator"
+    console._services = {app: app}
+    console.visible = True
+    calls, summaries = [], []
+    monkeypatch.setattr(console, "_call", lambda *args: calls.append(args))
+    console.summaryChanged.connect(lambda: summaries.append(console.summary["count"]))
+
+    def discover(owner=""):
+        console._discover()
+        reply = SimpleNamespace(arguments=lambda: [owner] if owner else [],
+                                type=lambda: service.QDBusMessage.MessageType.ReplyMessage if owner else service.QDBusMessage.MessageType.ErrorMessage,
+                                errorName=lambda: "" if owner else "org.freedesktop.DBus.Error.NameHasNoOwner")
+        calls.pop()[-1](reply)
+
+    try:
+        for _ in range(3):
+            discover()
+        assert summaries == []
+        assert console.model.rows == []
+
+        discover(":1.10")
+        assert console.owners[app] == ":1.10"
+        assert console.row(app)["applicationKey"] == app
+        assert summaries == [1]
+
+        discover(":1.11")
+        assert console.owners[app] == ":1.11"
+        assert summaries == [1, 1]
+
+        discover()
+        assert app not in console.owners and console.row(app) is None
+        assert summaries == [1, 1, 0]
+        for _ in range(3):
+            discover()
+        assert summaries == [1, 1, 0]
     finally:
         console.close()
 

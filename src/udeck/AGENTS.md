@@ -10,13 +10,13 @@ audio.py: PulseAudio 与 PipeWire 设备状态归一。
 backend.py: 系统服务、音频状态去重、蓝牙授权和网络授权。
 battery.py: 电池测量读取与展示数据。
 cli.py: 命令入口、诊断和控制请求。
-compatibility.py: 应用输入交接与桌面内连续导航。
+compatibility.py: 输入预释放、按窗口身份恢复激活超时与错误来源隔离。
 console.py: 全局 Console 面板及焦点恢复。
 controller.py: 桌面交互编排；局部选择与轻量视图独立于完整诊断。
 core.py: 导航、偏好存储和主题语言基础。
 cursor.py: 指针光标图像与位置。
 desktop.py: 桌面应用索引与 Exec 解析。
-directions.py: 物理方向输入读取。
+directions.py: 方向接口连接预筛选、修饰键隔离与松键读取。
 emulator_saves/: 原生存档、历史快照和云同步。
 file_controller.py: 文件页面交互与任务编排。
 file_icons.py: 文件类型到图标的映射。
@@ -33,16 +33,16 @@ hotspot_backend.py: 设备绑定的 NetworkManager 热点配置。
 hotspot_controller.py: 热点菜单与按钮导航。
 i18n.py: 稳定消息标识、翻译和错误文案渲染。
 icons.py: 随包图像与应用图标提供器。
-input.py: 按钮边沿、幂等输入归属和游戏手柄重连。
+input.py: sysfs 预筛选、启动按键隔离、事件投递开关与交接重试。
 interface_audio.py: 单条复用 PCM 音频流、空闲暂停、字节写入与设备恢复。
 ipc_client.py: 无 Qt 依赖的已有实例启动转发。
 key_test.py: 诊断弹窗中的按键边沿观测。
-key_test_device.py: 诊断激活期间的键盘报告读取。
+key_test_device.py: 诊断激活期间的 sysfs 预筛选与键盘报告读取。
 key_test_layout.py: uConsole 两层固件的键帽映射。
 launch.py: 应用启动身份、请求与状态跟踪。
 launch_controller.py: 桌面启动交互与反馈。
 locales/: 中英文稳定消息目录。
-main.py: 桌面启动、系统服务和输入路由组装。
+main.py: 桌面启动、系统服务、显示前输入释放与输入路由组装。
 menu_icons.py: 系统菜单图标与动作分离。
 messages.py: 全局稳定消息标识。
 mock.py: 桌面预览的隔离系统状态。

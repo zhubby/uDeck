@@ -1,6 +1,6 @@
 /*
-[INPUT]: 依赖文件模型、目录快照、主题与减少动画开关。
-[OUTPUT]: 提供文件网格、路径焦点与任务进度。
+[INPUT]: 依赖文件模型、目录快照、SelectionViewport和主题。
+[OUTPUT]: 提供文件网格、安全区滚动和合并布局。
 [POS]: 桌面文件视图；文件操作与选择由控制器决策。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -22,21 +22,52 @@ Item {
     readonly property int columns: Math.max(1, Math.floor(width / 210))
     readonly property bool taskActive: !!state.task.active
     readonly property var current: state.current || {}
+    property bool layoutPending: true
     function tr(source) { return controller.translate(source, language) }
     function syncColumns() {
+        layoutPending = true
         if (visible) {
             controller.setFileGridColumns(columns)
-            Qt.callLater(positionSelection)
+            Qt.callLater(layoutSelection)
         }
     }
-    function positionSelection() {
+    function invalidateLayout() {
+        layoutPending = true
+        if (visible) Qt.callLater(layoutSelection)
+    }
+    function layoutSelection() {
+        if (!visible || !layoutPending) return
+        layoutPending = false
         fileGrid.forceLayout()
-        fileGrid.positionViewAtIndex(currentIndex, GridView.Contain)
-        breadcrumbs.positionViewAtIndex(state.breadcrumbIndex, ListView.Contain)
+        gridViewport.ensureVisible(true)
+        breadcrumbViewport.ensureVisible(true)
+    }
+    function positionSelection() {
+        if (!visible) return
+        if (layoutPending) Qt.callLater(layoutSelection)
+        else {
+            gridViewport.ensureVisible()
+            breadcrumbViewport.ensureVisible()
+        }
     }
     onColumnsChanged: syncColumns()
     onVisibleChanged: syncColumns()
     Component.onCompleted: syncColumns()
+    SelectionViewport {
+        id: gridViewport
+        view: fileGrid; active: root.visible && !root.layoutPending; reducedMotion: root.reducedMotion
+    }
+    SelectionViewport {
+        id: breadcrumbViewport
+        view: breadcrumbs; active: root.visible; reducedMotion: root.reducedMotion
+    }
+    Connections {
+        target: root.fileModel
+        function onModelReset() { root.invalidateLayout() }
+        function onRowsInserted() { root.invalidateLayout() }
+        function onRowsRemoved() { root.invalidateLayout() }
+        function onLayoutChanged() { root.invalidateLayout() }
+    }
 
     Rectangle {
         width: parent.width; height: 40; radius: 8; color: root.colors.panel
@@ -47,6 +78,7 @@ Item {
             orientation: ListView.Horizontal; spacing: 3; clip: true
             model: root.state.breadcrumbs
             currentIndex: root.state.breadcrumbIndex
+            highlightFollowsCurrentItem: false
             interactive: false; keyNavigationEnabled: false
             FocusFrame {
                 parent: breadcrumbs.contentItem; target: breadcrumbs.currentItem
@@ -78,12 +110,14 @@ Item {
         x: 0; y: 52; width: parent.width
         height: Math.floor(availableHeight / cellHeight) * cellHeight
         cellWidth: width / root.columns
-        cellHeight: Math.max(112, Math.min(164, Math.floor(availableHeight / 2)))
+        cellHeight: Math.max(112, Math.min(164, Math.floor(Math.max(120, root.height - y - 58) / 2)))
         model: root.fileModel; currentIndex: root.currentIndex; clip: true
+        highlightFollowsCurrentItem: false
         interactive: false; keyNavigationEnabled: false
         boundsBehavior: Flickable.StopAtBounds
         ScrollBar.vertical: ScrollBar { palette: root.colors.controls; policy: ScrollBar.AsNeeded; interactive: false }
-        onHeightChanged: Qt.callLater(root.positionSelection)
+        onWidthChanged: root.invalidateLayout()
+        onHeightChanged: root.invalidateLayout()
         FocusFrame {
             objectName: "fileFocus"; parent: fileGrid.contentItem; target: fileGrid.currentItem
             active: root.visible && root.contentFocused && root.state.section === "list"

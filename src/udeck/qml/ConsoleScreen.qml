@@ -1,6 +1,6 @@
 /*
-[INPUT]: 依赖运行模型、显示格式、指针导航层与桌面选择。
-[OUTPUT]: 提供单行表格、焦点与补位过渡和退出提示。
+[INPUT]: 依赖运行模型、SelectionViewport、显示格式和指针层。
+[OUTPUT]: 提供单行表格、安全区滚动和同轨补位焦点。
 [POS]: Console 专用视图；指标更新保留代理、选择与滚动位置。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -30,7 +30,11 @@ Item {
         return controller.runtimeConsole.summaryText
     }
     function positionSelection() {
-        if (visible) list.positionViewAtIndex(index, ListView.Contain)
+        viewport.ensureVisible()
+    }
+    SelectionViewport {
+        id: viewport
+        view: list; active: root.visible; reducedMotion: root.reducedMotion
     }
 
     Rectangle { anchors.fill: parent; radius: 7; color: root.colors.panel; border.width: 1; border.color: root.colors.rowBorder }
@@ -58,6 +62,7 @@ Item {
         x: 0; y: 32; width: parent.width; height: parent.height - 32
         model: root.appModel
         currentIndex: root.index
+        highlightFollowsCurrentItem: false
         keyNavigationEnabled: false
         interactive: false
         clip: true
@@ -67,6 +72,8 @@ Item {
             objectName: "consoleFocus"; parent: list.contentItem
             target: list.currentItem; active: root.contentFocused && root.visible
             accent: root.colors.accent; reducedMotion: root.reducedMotion; radius: 3
+            visualOffsetY: list.currentItem ? list.currentItem.visualY - list.currentItem.y : 0
+            followTargetMotion: !!list.currentItem && list.currentItem.reflowing
         }
         delegate: Rectangle {
             id: row
@@ -83,6 +90,7 @@ Item {
             readonly property bool selected: root.index === index && root.contentFocused
             property real visualY: 0
             property bool positioned: false
+            readonly property bool reflowing: rowMove.running
             function positionRow() {
                 if (!positioned) { visualY = y; return }
                 rowMove.stop()

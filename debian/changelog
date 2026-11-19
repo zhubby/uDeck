@@ -1,3 +1,15 @@
+udeck (1.0.2) unstable; urgency=medium
+
+  * Retry transient gamepad ownership conflicts during window handoff.
+  * Filter unrelated input interfaces through sysfs before opening evdev.
+  * Release desktop input before presenting a native application window.
+  * Acquire application input before presentation and isolate held launch keys.
+  * Keep input events queued until Qt confirms foreground focus.
+  * Return Home without racing the desktop focus request with minimization.
+  * Preserve reconnect and focus-release behavior after device removal.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Wed, 18 Nov 2026 16:00:00 +0800
+
 udeck (1.0.1) unstable; urgency=medium
 
   * Reuse one PCM audio stream on a dedicated interface playback thread.

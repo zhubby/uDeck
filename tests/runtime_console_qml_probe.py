@@ -55,7 +55,7 @@ def visual_items(item):
 rows = [item for item in visual_items(window.contentItem()) if item.objectName().startswith("consoleRow-")]
 heights = [row.property("height") for row in rows]
 controller.select(8)
-QTest.qWait(80)
+QTest.qWait(120)
 before = view.property("contentY")
 data = [dict(row, cpuPercent=42.3) for row in controller.runtime_console.model.rows]
 controller.runtime_console.model.update(data)
@@ -79,7 +79,7 @@ def click(item, position=None):
 
 
 controller.select(0)
-QTest.qWait(40)
+QTest.qWait(120)
 exit_button = visual("consoleExit-io.github.zhubby.uDeck.0")
 pointer_position = exit_button.mapToScene(QPointF(exit_button.width() / 2, exit_button.height() / 2))
 QTest.mouseMove(window, pointer_position.toPoint())
@@ -103,7 +103,7 @@ report["hoverTracksScroll"] = True
 
 
 controller.select(0)
-QTest.qWait(40)
+QTest.qWait(120)
 click(visual("consoleRow-io.github.zhubby.uDeck.0"), QPointF(80, 24))
 assert controller.modal.get("kind") == "console-details", controller.modal
 assert controller.runtime_console.details["applicationKey"] == "io.github.zhubby.uDeck.0"

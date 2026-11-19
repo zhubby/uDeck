@@ -1,9 +1,15 @@
-"""Exercise the real Wi-Fi menus with isolated simulated data and keyboard input."""
+"""
+[INPUT]: 依赖真实 Wi-Fi 弹窗、隔离模拟数据和 Qt 键盘输入。
+[OUTPUT]: 验证过渡终态的十二种网络菜单边界与焦点恢复。
+[POS]: 独立 QML 探针；临时配置不连接系统网络服务。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import argparse
 import json
 import os
 import tempfile
+import time
 from copy import deepcopy
 from pathlib import Path
 
@@ -65,12 +71,30 @@ def run():
             controller.chooseModal(next(i for i, item in enumerate(controller.modal["options"]) if item.get("deviceId") == identifier))
 
         def capture(name):
-            QTest.qWait(80)
+            panel = window.findChild(QQuickItem, "dialogPanel")
+            shade = window.findChild(QQuickItem, "modalShade")
+            assert panel is not None and shade is not None
+            deadline, settled_since = time.monotonic() + 2, None
+            while time.monotonic() < deadline:
+                QTest.qWait(10)
+                settled = (panel.property("geometryReady") and not panel.property("resizing")
+                           and abs(panel.width() - panel.property("targetWidth")) < 0.1
+                           and abs(panel.height() - panel.property("targetHeight")) < 0.1
+                           and shade.opacity() >= 0.999)
+                if not settled:
+                    settled_since = None
+                elif settled_since is None:
+                    settled_since = time.monotonic()
+                elif time.monotonic() - settled_since >= 0.04:
+                    break
+            else:
+                raise AssertionError(("Wi-Fi 弹窗未达到稳定终态", name, panel.width(), panel.height(),
+                                      panel.property("targetWidth"), panel.property("targetHeight")))
             for item in window.findChildren(QQuickItem):
                 if item.objectName() in ("dialogPanel", "dialogContent") and item.isVisible():
                     pos = item.mapToItem(window.contentItem(), QPointF(0, 0))
                     assert pos.x() >= -1 and pos.y() >= -1, (name, item.objectName(), pos)
-                    assert pos.x() + item.width() <= window.width() + 1
+                    assert pos.x() + item.width() <= window.width() + 1, (name, item.objectName(), pos, item.width())
                     assert pos.y() + item.height() <= window.height() + 1, (name, item.objectName(), item.height())
             assert window.grabWindow().save(str(args.output / (name + ".png")))
             captures.append(name)

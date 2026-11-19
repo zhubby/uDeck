@@ -11,7 +11,7 @@ import sys
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QMetaObject, QPointF, Qt, QUrl
+from PySide6.QtCore import QPointF, Qt, QUrl
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtTest import QTest
@@ -94,11 +94,9 @@ def run():
         if reduced:
             assert abs(focus.x() - target.x()) < 1
         else:
-            focus.setX(start_x)
-            assert QMetaObject.invokeMethod(focus, "position")
-            assert any(child.property("property") == "x" and child.property("running") for child in focus.children())
+            assert abs(focus.x() - start_x) < 1, "焦点未从原位置连续移动"
             QTest.qWait(30)
-            assert start_x < focus.x() <= target.x(), (focus.x(), target.x())
+            assert start_x < focus.x() < target.x(), (focus.x(), target.x())
         for index in (3, 1, 4, 2):
             controller.select(index)
             assert controller.navigation.index == index

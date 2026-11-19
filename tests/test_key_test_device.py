@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖诊断读取器、临时 sysfs 身份与受控 evdev 报告。
+[OUTPUT]: 验证扫描不打开无关接口、身份回退与按键去重。
+[POS]: 按键诊断读取边界的回归入口；不访问机身设备。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import os
 import sys
 from types import SimpleNamespace
@@ -15,7 +22,7 @@ from udeck.mock import MockBackend
 
 
 @pytest.fixture
-def keyboard(monkeypatch):
+def keyboard(monkeypatch, tmp_path):
     application = QCoreApplication.instance() or QCoreApplication([])
     descriptor, writer = os.pipe()
     events, closed = [], []
@@ -30,6 +37,7 @@ def keyboard(monkeypatch):
         InputDevice=lambda path: device, list_devices=lambda: list(paths)))
     monkeypatch.setattr(key_test_device, "sys", SimpleNamespace(platform="linux"))
     reader = KeyTestReader()
+    reader.sysfs_root = tmp_path
     reader._test_application = application
     yield application, reader, device, events, paths, closed
     reader.close()
@@ -84,11 +92,61 @@ def test_closing_reader_cannot_reopen_devices_through_a_reset_notification(keybo
 
 @pytest.mark.parametrize("name,vendor", [("Unrelated keyboard", 0x1234), ("ClockworkPI uConsole Mouse", 0x1eaf),
                                          ("ClockworkPI uConsole", 0x1eaf)])
-def test_reader_does_not_open_other_keyboards_or_existing_input_owners(keyboard, name, vendor):
+def test_reader_rejects_unrelated_evdev_identity_when_sysfs_is_unavailable(keyboard, name, vendor):
     _, reader, device, _, _, closed = keyboard
     device.name, device.info.vendor = name, vendor
     reader.set_enabled(True)
     assert not reader.devices and closed
+
+
+@pytest.mark.parametrize("name,vendor,product", [
+    ("Other Keyboard", "1234", "0024"),
+    ("ClockworkPI uConsole Keyboard", "1eaf", "9999"),
+    ("ClockworkPI uConsole Mouse", "1eaf", "0024"),
+    ("ClockworkPI uConsole", "1eaf", "0024"),
+])
+def test_periodic_scan_never_opens_known_unrelated_interfaces(keyboard, monkeypatch, name, vendor, product):
+    _, reader, device, _, _, closed = keyboard
+    folder = reader.sysfs_root / "event4/device"
+    (folder / "id").mkdir(parents=True)
+    (folder / "id/vendor").write_text(vendor)
+    (folder / "id/product").write_text(product)
+    (folder / "name").write_text(name)
+    opened = []
+    monkeypatch.setattr(sys.modules["evdev"], "InputDevice", lambda path: opened.append(path) or device)
+    reader.set_enabled(True)
+    reader._scan()
+    assert not opened and not closed and not reader.devices
+
+
+@pytest.mark.parametrize("name", ["ClockworkPI uConsole Keyboard", "ClockworkPI uConsole Consumer Control"])
+def test_scan_accepts_diagnostic_interfaces_and_rechecks_reused_event_paths(keyboard, monkeypatch, name):
+    _, reader, device, _, paths, closed = keyboard
+    folder = reader.sysfs_root / "event4/device"
+    (folder / "id").mkdir(parents=True)
+    (folder / "id/vendor").write_text("1234")
+    (folder / "id/product").write_text("0024")
+    (folder / "name").write_text("Unrelated interface")
+    opened = []
+    monkeypatch.setattr(sys.modules["evdev"], "InputDevice", lambda path: opened.append(path) or device)
+    reader.set_enabled(True)
+    (folder / "id/vendor").write_text("1eaf")
+    (folder / "name").write_text(name)
+    device.name = name
+    reader._scan()
+    assert opened == ["/dev/input/event4"] and len(reader.devices) == 1
+    paths.clear()
+    reader._scan()
+    assert not reader.devices and closed
+
+
+def test_malformed_sysfs_identity_falls_back_to_evdev_validation(keyboard):
+    _, reader, _, _, _, _ = keyboard
+    folder = reader.sysfs_root / "event4/device/id"
+    folder.mkdir(parents=True)
+    (folder / "vendor").write_text("invalid")
+    reader.set_enabled(True)
+    assert len(reader.devices) == 1
 
 
 @pytest.mark.parametrize("qt_first", [True, False])

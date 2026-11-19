@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖真实主页、隔离配置与键盘事件。
+[OUTPUT]: 验证多尺寸主页布局、滚动终态与入口导航。
+[POS]: 主页截图和几何回归；中途轨迹另由连续性探针验证。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import argparse
 import json
 import tempfile
@@ -76,6 +83,7 @@ def run():
             QTest.qWait(30)
 
         def selected_visible():
+            QTest.qWait(120)
             tile = visual_item("homeTile-" + str(controller.navigation.index))
             assert tile is not None
             position = tile.mapToItem(strip, QPointF(0, 0))

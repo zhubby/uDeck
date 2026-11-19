@@ -1,0 +1,181 @@
+{
+  "date": "2026-11-19",
+  "status": "installed-and-automated-acceptance-passed",
+  "version": "1.0.2",
+  "package": {
+    "version": "1.0.2",
+    "architecture": "arm64",
+    "bytes": 23404900,
+    "sha256": "7d1fc336452be44f9e3c8e9e2be8394ac1f6a2bc14b2f847ac43ccaaac9a5d12",
+    "publishedRelease": false
+  },
+  "rollbackPackageSha256": "7b755c104947104417ac94ebf1564f35c61ec2884234701ff0206970e2997aa9",
+  "installedFilesVerified": 645,
+  "installedSourceFilesMatched": 183,
+  "currentWorkspaceSourceFilesMatched": 183,
+  "session": {
+    "type": "real seat0 Wayland login session on VT9",
+    "launcher": "/usr/bin/udeck-session",
+    "transientUnit": "udeck-motion-candidate-1795050249.service",
+    "oldDesktop": {
+      "pid": 1433397,
+      "startTicks": "69336068",
+      "parent": 1404177
+    },
+    "newDesktop": {
+      "pid": 1709919,
+      "startTicks": "74356578",
+      "parent": 1709894
+    },
+    "logindSession": "1685",
+    "activeAfterAcceptance": true,
+    "configuredLoginChanged": false,
+    "oldGraphicalProcessesConfirmedExited": true,
+    "existingIdleAppsGracefullyReopened": [
+      "music",
+      "emulator"
+    ],
+    "rollbackUsed": false,
+    "startupFrameSeconds": 2.558
+  },
+  "acceptance": {
+    "scope": "External evdev, real Wayland windows, public D-Bus and screenshots. No optical or human physical-key acceptance.",
+    "pageTransitionsObserved": 24,
+    "pageObservationMaxMs": 86.861,
+    "homeNavigationPairsSent": 20,
+    "selectionVerification": "before, right, restored and final screenshots; sent pairs are not per-key success counts",
+    "quickSettingsOpenCloseVerified": 3,
+    "contextOpenCloseVerified": 3,
+    "apps": [
+      {
+        "app": "music",
+        "coldFirstBReturned": true,
+        "coldBToHomeObservedMs": 328.98,
+        "warmReturns": [
+          {
+            "delayMs": 0,
+            "BToHomeObservedMs": 497.046
+          },
+          {
+            "delayMs": 120,
+            "BToHomeObservedMs": 400.146
+          },
+          {
+            "delayMs": 600,
+            "BToHomeObservedMs": 215.471
+          }
+        ],
+        "firstBDismissedMenu": true,
+        "secondBReturned": true,
+        "qmlErrors": []
+      },
+      {
+        "app": "emulator",
+        "coldFirstBReturned": true,
+        "coldBToHomeObservedMs": 922.824,
+        "warmReturns": [
+          {
+            "delayMs": 0,
+            "BToHomeObservedMs": 585.396
+          },
+          {
+            "delayMs": 120,
+            "BToHomeObservedMs": 704.668
+          },
+          {
+            "delayMs": 600,
+            "BToHomeObservedMs": 422.582
+          }
+        ],
+        "firstBDismissedMenu": true,
+        "secondBReturned": true,
+        "qmlErrors": []
+      }
+    ],
+    "consoleWithTwoApplicationsAndDetails": "passed visual inspection",
+    "settingsScrollAndRestore": "passed visual inspection",
+    "visualScreenshotsInspected": 31,
+    "desktopIdentityUnchangedDuringAcceptance": true,
+    "inputReadyAfterAcceptance": true,
+    "serviceErrors": {},
+    "shortcutsApplied": true,
+    "dpkgVerifyEmpty": true,
+    "dpkgAuditEmpty": true,
+    "protectedConfigurationsUnchanged": true,
+    "protectedConfigurationCount": 5,
+    "finalPage": "home",
+    "display": "DSI-1 on"
+  },
+  "productionIdleSample": {
+    "seconds": 20.063,
+    "RssKiB": 247872,
+    "PssKiB": 138071,
+    "SwapPssKiB": 0,
+    "ticks": 3963,
+    "startTicks": "74356578",
+    "cpuPercentOneCore": 1.595,
+    "scope": "desktop process only; idle Home with Music and Emulator libraries open in background"
+  },
+  "priorValidation": {
+    "sourcePassed": 1974,
+    "sourceSkipped": 9,
+    "isolatedDeviceFunctionalPassed": 52,
+    "scope": "exact candidate source; not rerun during packaging or production deployment"
+  },
+  "limits": [
+    "Human physical-key and animation feel acceptance remains pending.",
+    "Public D-Bus and window observations are not optical input-to-pixel latency.",
+    "Production frame timing was not injected or measured in this deployment.",
+    "Prior isolated performance thresholds remain not all met; see motion-continuity-2026-11-18.json.",
+    "Rollback was prepared and prevalidated but was not triggered or failure-injected."
+  ],
+  "git": {
+    "committed": false,
+    "pushed": false,
+    "releasePublished": false,
+    "scope": "snapshot at completion of device acceptance; later delivery is recorded by Git history"
+  },
+  "rawEvidence": {
+    "deployment.json": "47e5e6f5c2fbda4873b4066c09cb9be00701fdcf1d7fe0cd9cea41668b954420",
+    "acceptance.json": "1c7ed7b049911baa112e61a639d672faffa4d9249f9d2a09df406dcaeb41801b",
+    "extended.json": "7b17657de19277ff2ca9482ce2a2f38d2f663c8b6eafeb3f62098e6a3f0ab5f3",
+    "final-verification.json": "e2393fa4b5c75feb53091124945c58fc3100eea833a6548eed7107a471cf2aeb",
+    "package-verification.json": "0253d87c31f2393edb0f691fae84cf434f6c41abc38da115114050ded66cb7b1",
+    "visual-review.png": "d4b198507d76468c588d0969736b7dd6c21c246ce8146fe3b882e503f632f099",
+    "extended-visual.png": "f296499e8d331f21edfdf6256ec714fb6a5c7f248520ccdc8003113427812af6"
+  },
+  "preDeliveryVerification": {
+    "sourceFilesStillMatched": 183,
+    "rawEvidenceDigestsMatched": 7,
+    "ruff": "passed",
+    "versionCheck": "1.0.2",
+    "diffCheck": "passed",
+    "inputRoutingThumbnailConsoleAndMeasurement": {
+      "passed": 195,
+      "skipped": 1
+    },
+    "navigationIsolated": {
+      "passed": 16,
+      "failed": 0
+    },
+    "appsAndDialogs": {
+      "passed": 28,
+      "failed": 0
+    },
+    "initialNavigationWithConcurrentRegression": {
+      "passed": 15,
+      "failed": 1,
+      "case": "scroll-dark",
+      "initialContentX": 190.0,
+      "cause": "undetermined"
+    },
+    "darkScrollIsolatedRepeats": {
+      "rounds": 3,
+      "passed": 6,
+      "failed": 0
+    },
+    "productChangesSinceDeployment": false,
+    "testAssertionsWeakened": false,
+    "fullSuiteRepeated": false
+  }
+}

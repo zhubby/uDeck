@@ -3,8 +3,10 @@
 
 成员清单：
 
-Main.qml: 局部选择绑定、模态界面和页面装配。
-ShellDialog.qml: 保留关闭画面的模态视图与输入隔离。
+SelectionViewport.qml: 安全区滚动、选择变更即时停止旧目标与隐藏停止。
+
+Main.qml: 稳定设置行身份、局部选择绑定、模态界面和页面装配。
+ShellDialog.qml: 弹窗尺寸连续变化、关闭即时冻结与输入隔离。
 FocusFrame.qml: 单一焦点边框，连续导航立即改向。
 MotionTimings.qml: 减少动画开关与统一短过渡时长。
 MotionItem.qml: 可立即结束的淡入淡出与轻微位移容器。
@@ -26,7 +28,7 @@ InterfaceFonts.qml: 中英文界面字体选择。
 KeyTestCap.qml: 键盘测试按键绘制。
 KeyTestPanel.qml: 键盘与控制器状态测试。
 LoadingIndicator.qml: 加载指示。
-LoadingOverlay.qml: 启动与应用打开遮罩。
+LoadingOverlay.qml: 按请求保留退出内容、前台交接立即隐藏。
 PointerIndicator.qml: 轨迹球指针提示。
 SettingsRow.qml: 设置菜单行。
 ShortcutRecorder.qml: 快捷键录制窗口。

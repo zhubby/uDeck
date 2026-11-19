@@ -102,6 +102,12 @@ def run():
             while shade.property("opacity") < 1 and time.monotonic() < deadline:
                 QTest.qWait(20)
             assert shade.property("shown") and shade.property("opacity") == 1, "Settings dialog did not finish opening"
+            window.grabWindow()
+            panel = window.findChild(QObject, "dialogPanel")
+            QTest.qWait(10)
+            while panel.property("resizing") and time.monotonic() < deadline:
+                QTest.qWait(20)
+            assert not panel.property("resizing"), "Settings dialog did not finish resizing"
         # Wayland may defer a positioner's polish until the next rendered frame.
         # Grab that frame before inspecting geometry so both describe the same UI.
         image = window.grabWindow()

@@ -1,3 +1,12 @@
+"""
+[INPUT]: 依赖 sysfs 身份、机身键盘报告和 Qt 事件循环。
+[OUTPUT]: 提供方向按下和松开，并隔离修饰键组合。
+[POS]: 桌面方向读取边界；连接前筛除非键盘接口。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
+from pathlib import Path
+
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
 from .i18n import Msg, error_text, tr
@@ -21,6 +30,7 @@ class DirectionReader(QObject):
         self.syncing = False
         self.available = False
         self.last_status = None
+        self.sysfs_root = Path('/sys/class/input')
         self.timer = QTimer(self)
         self.timer.setInterval(2000)
         self.timer.timeout.connect(self._connect)
@@ -36,6 +46,8 @@ class DirectionReader(QObject):
             from evdev import InputDevice, list_devices
 
             for path in list_devices():
+                if not self._candidate(path):
+                    continue
                 candidate = InputDevice(path)
                 fingerprint = f'{candidate.info.vendor:04x}:{candidate.info.product:04x}:{candidate.uniq}'
                 if fingerprint != STOCK_FINGERPRINT or candidate.name != 'ClockworkPI uConsole Keyboard':
@@ -54,6 +66,16 @@ class DirectionReader(QObject):
             self._disconnect()
             self._status(error_text(error))
             self.failed.emit(error_text(error))
+
+    def _candidate(self, path):
+        folder = self.sysfs_root / Path(path).name / 'device'
+        try:
+            vendor = int((folder / 'id/vendor').read_text().strip(), 16)
+            product = int((folder / 'id/product').read_text().strip(), 16)
+            name = (folder / 'name').read_text().strip()
+        except (OSError, ValueError):
+            return True
+        return (vendor, product) == (0x1EAF, 0x0024) and name == 'ClockworkPI uConsole Keyboard'
 
     def _status(self, error=''):
         status = {'available': self.available, 'error': error}

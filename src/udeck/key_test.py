@@ -1,4 +1,9 @@
-"""Observe input edges in the diagnostic dialog without changing input mappings."""
+"""
+[INPUT]: 依赖硬件和 Qt 按键边沿、统一键名与诊断弹窗状态。
+[OUTPUT]: 提供按键计数、按住状态、去重和长按退出。
+[POS]: 按键诊断交互层；只观察输入，不修改映射。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import sys
 

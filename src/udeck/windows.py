@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖 Wayland 窗口协议和 Qt 套接字通知。
+[OUTPUT]: 提供窗口身份、前台变化和窗口控制请求。
+[POS]: 合成器窗口适配层；桌面输入路由以此为依据。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import ctypes
 import sys
 

@@ -1,8 +1,14 @@
-"""Render real hotspot menus and radio states; no hardware is changed."""
+"""
+[INPUT]: 依赖隔离热点状态、真实弹窗和 Qt 布局过渡。
+[OUTPUT]: 验证过渡后的窗口边界、状态图标和按键导航。
+[POS]: 热点界面的离屏探针，不修改设备网络。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import argparse
 import json
 import tempfile
+import time
 from copy import deepcopy
 from pathlib import Path
 
@@ -53,7 +59,20 @@ def run():
             controller.chooseModal(next(i for i, item in enumerate(controller.modal["options"]) if item["action"] == action))
 
         def capture(name):
-            QTest.qWait(80)
+            shade = window.findChild(QQuickItem, "modalShade")
+            panel = window.findChild(QQuickItem, "dialogPanel")
+            application.processEvents()
+            deadline = time.monotonic() + 2
+            while ((shade.property("shown") and shade.opacity() < 1)
+                   or (not shade.property("shown") and shade.isVisible())) and time.monotonic() < deadline:
+                QTest.qWait(20)
+            assert shade.opacity() == (1 if shade.property("shown") else 0), name
+            window.grabWindow()
+            QTest.qWait(10)
+            while panel.property("resizing") and time.monotonic() < deadline:
+                QTest.qWait(20)
+            assert not panel.property("resizing"), name
+            image = window.grabWindow()
             for item in window.findChildren(QQuickItem):
                 if item.objectName() in ("dialogPanel", "dialogContent") and item.isVisible():
                     pos = item.mapToItem(window.contentItem(), QPointF(0, 0))
@@ -85,7 +104,7 @@ def run():
                 assert second["x"] >= first["x"] + first["width"] + 8, name
             for icon in icons:
                 assert icon["x"] > 300 and icon["x"] + icon["width"] <= window.width(), name
-            assert window.grabWindow().save(str(args.output / (name + ".png")))
+            assert image.save(str(args.output / (name + ".png")))
             captures.append(name)
 
         controller.activateSetting("hotspot")

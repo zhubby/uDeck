@@ -1,0 +1,751 @@
+{
+  "date": "2026-11-18",
+  "status": "installed_public_and_user_interaction_acceptance_passed",
+  "device": {
+    "model": "uConsole CM4",
+    "os": "Debian 13 arm64",
+    "qt": "6.8.2"
+  },
+  "scan": {
+    "before": {
+      "rounds": [
+        {
+          "trial": 0,
+          "ms": 196.676,
+          "opened": 9,
+          "closed": 7
+        },
+        {
+          "trial": 1,
+          "ms": 210.351,
+          "opened": 7,
+          "closed": 7
+        },
+        {
+          "trial": 2,
+          "ms": 210.293,
+          "opened": 7,
+          "closed": 7
+        },
+        {
+          "trial": 3,
+          "ms": 203.393,
+          "opened": 7,
+          "closed": 7
+        },
+        {
+          "trial": 4,
+          "ms": 187.393,
+          "opened": 7,
+          "closed": 7
+        },
+        {
+          "trial": 5,
+          "ms": 166.285,
+          "opened": 7,
+          "closed": 7
+        }
+      ],
+      "medianMs": 200.03449999999998,
+      "maxMs": 210.351,
+      "retainedInterfaces": 2
+    },
+    "candidate": {
+      "rounds": [
+        {
+          "trial": 0,
+          "ms": 7.333,
+          "opened": 2,
+          "closed": 0
+        },
+        {
+          "trial": 1,
+          "ms": 4.172,
+          "opened": 0,
+          "closed": 0
+        },
+        {
+          "trial": 2,
+          "ms": 4.107,
+          "opened": 0,
+          "closed": 0
+        },
+        {
+          "trial": 3,
+          "ms": 4.116,
+          "opened": 0,
+          "closed": 0
+        },
+        {
+          "trial": 4,
+          "ms": 7.43,
+          "opened": 0,
+          "closed": 0
+        },
+        {
+          "trial": 5,
+          "ms": 4.193,
+          "opened": 0,
+          "closed": 0
+        }
+      ],
+      "medianMs": 4.182499999999999,
+      "maxMs": 7.43,
+      "retainedInterfaces": 2
+    },
+    "installed": {
+      "rounds": [
+        {
+          "trial": 0,
+          "ms": 9.318,
+          "opened": 2,
+          "closed": 0
+        },
+        {
+          "trial": 1,
+          "ms": 5.114,
+          "opened": 0,
+          "closed": 0
+        },
+        {
+          "trial": 2,
+          "ms": 5.557,
+          "opened": 0,
+          "closed": 0
+        },
+        {
+          "trial": 3,
+          "ms": 7.395,
+          "opened": 0,
+          "closed": 0
+        },
+        {
+          "trial": 4,
+          "ms": 7.583,
+          "opened": 0,
+          "closed": 0
+        },
+        {
+          "trial": 5,
+          "ms": 5.915,
+          "opened": 0,
+          "closed": 0
+        }
+      ],
+      "medianMs": 6.654999999999999,
+      "maxMs": 9.318,
+      "retainedInterfaces": 2
+    }
+  },
+  "directionConnection": {
+    "before": {
+      "ms": 49.41996606066823,
+      "openedCount": 3,
+      "available": true
+    },
+    "candidate": {
+      "ms": 3.519642981700599,
+      "openedCount": 1,
+      "available": true
+    },
+    "installedTimingPending": false,
+    "installed": {
+      "ms": 3.4918150631710887,
+      "openedCount": 1,
+      "available": true
+    }
+  },
+  "liveDesktopBeforeOptimization": {
+    "status": "passed",
+    "label": "baseline",
+    "assertions": 1030,
+    "events": 513,
+    "summary": {
+      "home": {
+        "stateLatency": {
+          "count": 120,
+          "medianMs": 4.296,
+          "p95Ms": 9.074,
+          "maxMs": 16.153,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "qtFrameSignalLatency": {
+          "count": 120,
+          "medianMs": 11.432,
+          "p95Ms": 18.993,
+          "maxMs": 27.131,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "missing": []
+      },
+      "apps": {
+        "stateLatency": {
+          "count": 120,
+          "medianMs": 5.18,
+          "p95Ms": 12.053,
+          "maxMs": 23.598,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "qtFrameSignalLatency": {
+          "count": 120,
+          "medianMs": 10.12,
+          "p95Ms": 17.188,
+          "maxMs": 32.852,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "missing": []
+      },
+      "windows": {
+        "stateLatency": {
+          "count": 120,
+          "medianMs": 9.688,
+          "p95Ms": 20.393,
+          "maxMs": 40.899,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "qtFrameSignalLatency": {
+          "count": 120,
+          "medianMs": 16.432,
+          "p95Ms": 35.666,
+          "maxMs": 49.846,
+          "over50Ms": 0,
+          "over100Ms": 0
+        },
+        "missing": []
+      },
+      "shoulders": {
+        "stateLatency": {
+          "count": 72,
+          "medianMs": 42.25,
+          "p95Ms": 79.095,
+          "maxMs": 93.754,
+          "over50Ms": 20,
+          "over100Ms": 0
+        },
+        "qtFrameSignalLatency": {
+          "count": 72,
+          "medianMs": 52.747,
+          "p95Ms": 98.465,
+          "maxMs": 123.272,
+          "over50Ms": 41,
+          "over100Ms": 4
+        },
+        "missing": []
+      },
+      "menus": {
+        "stateLatency": {
+          "count": 80,
+          "medianMs": 15.24,
+          "p95Ms": 26.984,
+          "maxMs": 50.928,
+          "over50Ms": 1,
+          "over100Ms": 0
+        },
+        "qtFrameSignalLatency": {
+          "count": 80,
+          "medianMs": 28.02,
+          "p95Ms": 59.26,
+          "maxMs": 72.267,
+          "over50Ms": 9,
+          "over100Ms": 0
+        },
+        "missing": []
+      }
+    },
+    "scope": "Real stock evdev injection in live desktop; frame signal is not optical latency"
+  },
+  "tests": {
+    "arm64Baseline": {
+      "passed": 1876,
+      "skipped": 7,
+      "returncode": 0
+    },
+    "arm64FinalRuntime": {
+      "passed": 1885,
+      "skipped": 7,
+      "returncode": 0,
+      "scope": "Earlier input-scan candidate; not the final source snapshot"
+    },
+    "macosTargeted": {
+      "passed": 189
+    },
+    "deviceTargeted": {
+      "passed": 144
+    },
+    "runtimeSnapshotFilesMatched": 814,
+    "deviceIsolated": {
+      "status": "passed",
+      "checks": [
+        {
+          "name": "key-regressions",
+          "returncode": 0,
+          "seconds": 20.94
+        },
+        {
+          "name": "ui-cycles-shell",
+          "returncode": 0,
+          "seconds": 7.5
+        },
+        {
+          "name": "ui-cycles-terminal",
+          "returncode": 0,
+          "seconds": 5.08
+        },
+        {
+          "name": "ui-cycles-music",
+          "returncode": 0,
+          "seconds": 6.9
+        },
+        {
+          "name": "ui-cycles-video",
+          "returncode": 0,
+          "seconds": 4.94
+        },
+        {
+          "name": "ui-cycles-reader",
+          "returncode": 0,
+          "seconds": 4.64
+        },
+        {
+          "name": "ui-cycles-emulator",
+          "returncode": 0,
+          "seconds": 5.39
+        },
+        {
+          "name": "ui-cycles-browser",
+          "returncode": 0,
+          "seconds": 5.35
+        },
+        {
+          "name": "ui-repeat-music",
+          "returncode": 0,
+          "seconds": 2.92
+        },
+        {
+          "name": "ui-repeat-video",
+          "returncode": 0,
+          "seconds": 3.58
+        },
+        {
+          "name": "system-shortcuts",
+          "returncode": 0,
+          "seconds": 50.37
+        }
+      ],
+      "privateDbus": true,
+      "privateConfigs": true,
+      "physicalAcceptance": false,
+      "scope": "Actual arm64 device, isolated Qt/offscreen and disposable headless labwc",
+      "initialShortcutFailure": "Probe assumed X11 :0; final probe reads its own compositor display"
+    },
+    "deviceShortcuts": {
+      "passed": true,
+      "physicalAcceptance": false,
+      "checks": [
+        {
+          "platform": "wayland",
+          "default": true,
+          "rebound": true,
+          "oldDisabled": true,
+          "originalFocusRestored": true,
+          "realDesktopPNG": [
+            1280,
+            720
+          ]
+        },
+        {
+          "platform": "xcb",
+          "default": true,
+          "rebound": true,
+          "oldDisabled": true,
+          "originalFocusRestored": true,
+          "realDesktopPNG": [
+            1280,
+            720
+          ]
+        }
+      ],
+      "recordingIsolated": true,
+      "directionModePreservedBindings": true,
+      "recordingCancel": true,
+      "recordingTimeoutSeconds": 15,
+      "recordingFocusLoss": true,
+      "liveRollback": true,
+      "legacyReload": true,
+      "restartPersistence": true,
+      "powerConfirmationOnly": true,
+      "qmlErrors": []
+    },
+    "deviceInputIsolation": {
+      "case": "verify-input-isolation",
+      "status": "passed",
+      "privateCompositor": true,
+      "physicalAcceptance": false
+    },
+    "deviceTrackballConsole": {
+      "case": "verify-trackball-console",
+      "status": "passed",
+      "privateCompositor": true,
+      "physicalAcceptance": false
+    },
+    "ruff": "passed, excluding upstream references",
+    "arm64ColdCandidate": {
+      "passed": 1893,
+      "skipped": 7,
+      "returncode": 0,
+      "scope": "Earlier complete cold-start candidate; not a complete rerun of final source"
+    },
+    "arm64FinalHandoffDelta": {
+      "passed": 164,
+      "returncode": 0
+    },
+    "macosActivationRecovery": {
+      "passed": 105,
+      "returncode": 0
+    },
+    "runtimeSnapshotHistory": [
+      {
+        "filesMatched": 794,
+        "scope": "Earlier candidate snapshot"
+      }
+    ],
+    "runtimeSnapshotScope": "Final recovery-final source snapshot",
+    "arm64InstalledFinalTargeted": {
+      "passed": 369,
+      "skipped": 7,
+      "returncode": 0,
+      "scope": "Targeted regression of final arm64 installed source; not a full suite rerun"
+    }
+  },
+  "installation": {
+    "version": "1.0.2",
+    "packageBytes": 23400996,
+    "status": "passed",
+    "sha256": "7b755c104947104417ac94ebf1564f35c61ec2884234701ff0206970e2997aa9",
+    "installedFilesVerified": 537,
+    "protectedFilesPreserved": true,
+    "webSharePreserved": true,
+    "rollbackReady": true,
+    "desktopAbsent": false,
+    "desktopAcceptancePending": false,
+    "graphicalSessionRestarted": true,
+    "finalHealth": "passed_during_automated_acceptance",
+    "refresh": {
+      "status": "passed",
+      "desktop": {
+        "pid": 1433397,
+        "parent": 1404177,
+        "startTicks": "69336068"
+      },
+      "compositorPreserved": true,
+      "wrapperPreserved": true,
+      "configurationPreserved": true,
+      "webSharePreserved": true,
+      "serviceErrors": {},
+      "inputRestored": true
+    },
+    "evidence": "activation-deployment/installation.json"
+  },
+  "measurementIncident": {
+    "temporaryObserverInProduct": false,
+    "graphicalSessionExited": true,
+    "originalBrowserAndTerminalProcessesEnded": true,
+    "memoryStateRestored": false,
+    "isolatedReproduction": "PySide bool slot return conversion from void timer signal",
+    "nativeStack": [
+      "Shiboken::Conversions::SpecificConverter::toCpp",
+      "PySide::SignalManager::callPythonMetaMethod",
+      "QTimer::timeout"
+    ],
+    "correction": "Invoke exported slot through void callback",
+    "fixedExpiryCyclesContainer": 50,
+    "fixedExpiryCyclesDevice": 50,
+    "futureObserverScope": "independent test processes only"
+  },
+  "pending": [
+    "Physical trackball feel not separately confirmed",
+    "Firmware-internal Fn, light, lock and power controls"
+  ],
+  "physicalAcceptance": false,
+  "installationHistory": [
+    {
+      "version": "1.0.2",
+      "packageBytes": 23399488,
+      "status": "passed",
+      "sha256": "6c646f3c2fead9f87552d9ee957efe91f75f3935217ea51985c5213f987f80b1",
+      "installedFilesVerified": 537,
+      "protectedFilesPreserved": true,
+      "webSharePreserved": true,
+      "rollbackReady": true,
+      "desktopAbsent": true,
+      "desktopAcceptancePending": true,
+      "graphicalSessionRestarted": false,
+      "finalHealth": "passed"
+    },
+    {
+      "version": "1.0.2",
+      "packageBytes": 23400536,
+      "status": "passed",
+      "sha256": "6738d7909fc63aca159133c0e6350f12e09fc1515ec83644a646a892c833ad61",
+      "installedFilesVerified": 537,
+      "protectedFilesPreserved": true,
+      "webSharePreserved": true,
+      "rollbackReady": true,
+      "desktopAbsent": false,
+      "desktopAcceptancePending": true,
+      "graphicalSessionRestarted": true,
+      "finalHealth": "pending_final_candidate"
+    }
+  ],
+  "recovery": {
+    "status": "desktop_restored",
+    "realPamLogindSession": true,
+    "transient": true,
+    "configuredAutologinChanged": false,
+    "loginConfigurationChanged": false,
+    "greeterFallbackPreserved": true,
+    "publicInterfacesOnlyForSubsequentProbes": true
+  },
+  "emulatorStall": {
+    "status": "fixed_installed_public_interface_passed",
+    "libraryItems": 730,
+    "playlists": 4,
+    "cores": 242,
+    "externalSampleIntervalMs": 25,
+    "externalSampleDurationSeconds": 15,
+    "earlyOpenRequestSeconds": 5.878,
+    "earlyOpenReplySeconds": 8.509,
+    "isolatedThumbnailSeconds": 5.9174414000008255,
+    "isolatedThumbnailStatCalls": 38499,
+    "wholeProfileStatCalls": 95992,
+    "wholeProfileScope": "Two library refreshes and core reads; not one thumbnail pass",
+    "rootCause": "Synchronous per-game thumbnail candidate filesystem lookup on GUI thread",
+    "measurementScope": "External proc samples and independent process with copied state; profiler adds overhead",
+    "earlyOpenObservationScope": "Historical pre-fix failure retained; not current acceptance",
+    "installedProfile": {
+      "runId": "693896723867488",
+      "thumbnailOnlySeconds": 0.19417073507793248,
+      "thumbnailStatCalls": 36,
+      "libraryItems": 730,
+      "playlists": 4,
+      "cores": 242,
+      "wholeRoundSeconds": 10.004100185004063,
+      "wholeRoundScope": "Two library refreshes and core reads; not one thumbnail pass",
+      "scope": "Independent controller and cloned state; no window/input registration; profiler overhead included, not UI or optical latency",
+      "evidence": [
+        "emulator-stall/693896723867488-profile-result.json",
+        "emulator-stall/693896723867488-thumbnail.txt",
+        "emulator-stall/693896723867488-main.txt"
+      ]
+    },
+    "corrections": [
+      "Build one thumbnail directory index per operation; no persistent cross-round negative cache",
+      "Prepare initial covers in the existing worker and publish exclusive snapshots on GUI thread",
+      "Reject stale scan/download snapshots by revision; retry in background",
+      "Check shutdown and generation before work; late results cannot reopen tasks"
+    ]
+  },
+  "desktopAcceptance": {
+    "status": "passed",
+    "apps": [
+      "music",
+      "video",
+      "reader",
+      "emulator"
+    ],
+    "coldFirstB": 12,
+    "warmFirstB": 36,
+    "warmDelaysMs": [
+      0,
+      120,
+      600
+    ],
+    "menuSequences": 12,
+    "menuSequence": "X opens menu, first B dismisses menu, second B returns Home",
+    "simultaneousActiveObservations": 0,
+    "BToHomeObservation": {
+      "samples": 48,
+      "medianMs": 186.267,
+      "maxMs": 423.301
+    },
+    "warmOpenReplyObservation": {
+      "samples": 36,
+      "medianMs": 4.819,
+      "maxMs": 183.307
+    },
+    "warmOpenForegroundObservation": {
+      "samples": 36,
+      "medianMs": 118.492,
+      "maxMs": 485.635
+    },
+    "navigation": {
+      "status": "passed",
+      "pageTransitions": 72,
+      "pageObservation": {
+        "medianMs": 52.532,
+        "p95Ms": 107.446,
+        "maxMs": 148.721
+      },
+      "navigationPairsSent": 60,
+      "menuCyclesSent": 12,
+      "scope": "Page checked through public Diagnose. Selection and menus checked in screenshots; no frame or optical latency."
+    },
+    "diagnostic": {
+      "status": "screenshot_reviewed",
+      "checkedControls": 104,
+      "totalControls": 104,
+      "presses": 100,
+      "held": [],
+      "supplementalReports": [
+        99,
+        114,
+        115,
+        113,
+        224,
+        225
+      ],
+      "rawSubmissionStatus": "submitted",
+      "countersVerifiedByScreenshot": true,
+      "originalAudioRestored": true,
+      "originalBacklightRestored": true,
+      "audioCommandWarning": "XCB authorization warning; audio value restoration verified",
+      "evidence": [
+        "accepted/remaining-keys.json",
+        "accepted/all-104.png"
+      ],
+      "scope": "Synthetic evdev reports only; does not prove firmware-internal controls"
+    },
+    "heldB": {
+      "durationMs": 1500,
+      "returned": true,
+      "diagnosticClosed": true,
+      "destination": "Settings",
+      "screenshotReviewed": true,
+      "evidence": "accepted/hold-back.png"
+    },
+    "scope": "External evdev input, real window activation and public D-Bus; no process injection; timing observes public state and includes polling, not frame or optical latency",
+    "evidence": [
+      "accepted/returns.json",
+      "accepted/navigation.json"
+    ]
+  },
+  "activationCorrections": {
+    "coldInitialWindowHidden": true,
+    "coldPrereleaseRequiresCurrentSessionRegisteredNativeDbus": true,
+    "completedDbusCallsHandledWithIsFinishedAndOnceGuard": true,
+    "activationRecoveryIdentity": [
+      "window ID",
+      "app identity",
+      "window revision",
+      "shell focus",
+      "original modal key",
+      "explicit error source"
+    ],
+    "recoveryScope": "Only clear the matching activation timeout/error/menu on unique foreground recovery; preserve later device/protocol errors and other application menus",
+    "preparationLeaseMs": 1000,
+    "finalFocusConfirmation": "One additional zero-delay event turn and real window.isActive check before release",
+    "generationInvalidatedBy": [
+      "new preparation",
+      "focus changes",
+      "close"
+    ],
+    "unfocusedExpiry": "Close previous device descriptor and discard queued input; later activation cannot replay old B"
+  },
+  "installationHistoryScope": "Historical package states preserved as captured; pending fields do not describe the final installed package",
+  "runtimeHealth": {
+    "status": "passed",
+    "scope": "Health gate after automated acceptance, before subsequent application use",
+    "desktop": {
+      "pid": 1433397,
+      "parent": 1404177,
+      "startTicks": "69336068"
+    },
+    "sessionType": "wayland",
+    "seat": "seat0",
+    "vt": 9,
+    "logindActive": true,
+    "logindState": "active",
+    "transientRecoverySession": true,
+    "configuredAutologinChanged": false,
+    "inputForeground": true,
+    "inputGrabbed": true,
+    "compatibilityMode": "desktop",
+    "compatibilityError": "",
+    "serviceErrors": {},
+    "shortcutsApplied": true,
+    "protectedConfigurationCount": 5,
+    "protectedConfigurationsUnchangedAtHealthGate": true,
+    "sharingPreserved": true,
+    "evidence": "accepted/health-after-diagnostic.json"
+  },
+  "resourceSamples": [
+    {
+      "scope": "Run after diagnostic reports; possible manual interaction was not controlled. Not an idle baseline.",
+      "seconds": 12.304,
+      "cpuPercentOneCore": 9.915,
+      "RssKiB": 265120,
+      "PssKiB": 192411,
+      "SwapPssKiB": 0,
+      "threads": 18,
+      "fds": 51,
+      "rawSourceFieldNames": [
+        "idleSeconds",
+        "idleDesktop"
+      ],
+      "idleComparisonValid": false,
+      "evidence": "accepted/health-after-diagnostic.json"
+    }
+  ],
+  "postAcceptanceUse": {
+    "scope": "Subsequent observed application use; separate from completed automated acceptance",
+    "observedPageChangeAfterHealth": "Home to Files without test-script navigation",
+    "automatedReturnTrialsRequestedQuit": true,
+    "laterObservedApplications": [
+      "music",
+      "emulator"
+    ],
+    "secondHealthAttempt": {
+      "status": "stopped_at_configuration_hash_gate",
+      "resourceSampleStarted": false,
+      "configurationDifference": "Only settings.json .recent; other settings keys and four other protected files unchanged",
+      "consistentWith": "Application recent-history update during later use",
+      "configurationRolledBack": false,
+      "productHealthFailure": false
+    },
+    "laterApplicationsClosedByTest": false,
+    "lastReadOnlyDiagnosis": {
+      "sameDesktopIdentity": true,
+      "desktopPid": 1433397,
+      "page": "Home",
+      "foreground": true,
+      "compatibilityMode": "desktop",
+      "compatibilityError": "",
+      "serviceErrors": {},
+      "evidence": "accepted/final-observation.json",
+      "preferenceFieldsPreserved": true,
+      "packageVerifyEmpty": true,
+      "packageAuditEmpty": true
+    },
+    "physicalUserAttributionVerified": false
+  },
+  "physicalAcceptanceScope": "Full hardware control matrix; directional navigation, application B return and perceived responsiveness passed user confirmation",
+  "manualInteractionAcceptance": {
+    "status": "passed",
+    "date": "2026-11-18",
+    "source": "direct_user_reply",
+    "question": "uDeck 已在实机主界面恢复。现在实际按方向键、打开应用后按 B，体感是否还有卡顿或无响应？",
+    "feedback": "已恢复流畅，按键正常",
+    "confirmed": [
+      "Directional navigation",
+      "Application B return",
+      "Perceived responsiveness"
+    ],
+    "trackballFeelSeparatelyConfirmed": false,
+    "firmwareControlsConfirmed": false
+  }
+}

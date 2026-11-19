@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+/*
+[INPUT]: 依赖选中身份、文字尺寸、前台状态与减少动画。
+[OUTPUT]: 提供单次滚动；前台恢复保留完成状态，重选重播。
+[POS]: 选中卡片的主标题；次要文字保持静止。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+*/
 import QtQuick
 
 Item {
@@ -8,26 +14,42 @@ Item {
     property color textColor: "white"
     property int pixelSize: 20
     property bool active: false
+    property bool selected: active
+    property bool reducedMotion: controller.reducedMotion
     property string resetKey: ""
     property real offset: 0
     property bool ready: false
+    property bool completed: false
     readonly property real overflow: Math.max(0, label.implicitWidth - width)
-    readonly property bool scrolling: active && visible && overflow > 0
+    readonly property bool eligible: selected && active && visible && !reducedMotion && overflow > 0
+    readonly property bool scrolling: eligible && !completed
+    readonly property bool animating: scroll.running
     implicitHeight: metrics.height
     clip: true
 
-    function restart() {
+    function resume() {
         if (!ready) return
         scroll.stop()
         offset = 0
-        if (scrolling) scroll.start()
+        if (eligible && !completed) scroll.start()
     }
-    onScrollingChanged: restart()
-    onTextChanged: restart()
-    onWidthChanged: restart()
-    onOverflowChanged: restart()
-    onResetKeyChanged: restart()
-    Component.onCompleted: { ready = true; restart() }
+    function scheduleResume() {
+        if (!ready) return
+        scroll.stop(); offset = 0
+        Qt.callLater(resume)
+    }
+    function scheduleRestart() {
+        if (!ready) return
+        completed = false
+        scheduleResume()
+    }
+    onEligibleChanged: scheduleResume()
+    onSelectedChanged: scheduleRestart()
+    onTextChanged: scheduleRestart()
+    onWidthChanged: scheduleRestart()
+    onOverflowChanged: scheduleRestart()
+    onResetKeyChanged: scheduleRestart()
+    Component.onCompleted: { ready = true; scheduleRestart() }
 
     FontMetrics { id: metrics; font.family: title.fontFamily; font.pixelSize: title.pixelSize }
     Text {
@@ -48,14 +70,18 @@ Item {
     }
     SequentialAnimation {
         id: scroll
-        loops: Animation.Infinite
         PauseAnimation { duration: 1200 }
         NumberAnimation {
             target: title; property: "offset"
             from: 0; to: title.overflow
-            duration: Math.max(1000, title.overflow * 1000 / 36)
+            duration: Math.max(1, title.overflow * 1000 / 36)
         }
         PauseAnimation { duration: 1400 }
-        PropertyAction { target: title; property: "offset"; value: 0 }
+        NumberAnimation {
+            target: title; property: "offset"; to: 0
+            duration: Math.max(120, Math.min(360, title.overflow * 1000 / 180))
+            easing.type: Easing.InOutCubic
+        }
+        onFinished: { title.offset = 0; title.completed = true }
     }
 }

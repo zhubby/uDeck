@@ -1,13 +1,15 @@
 """
 [INPUT]: 依赖本地图像、可控 HTTP 响应与真实 Qt 网络事件。
-[OUTPUT]: 验证封面匹配、应用重试预算与完整图像发布。
-[POS]: 封面下载回归；应用重试次数独立于 Qt 传输重试。
+[OUTPUT]: 验证批量封面查找、临时目录索引与完整图像发布。
+[POS]: 封面查找和下载回归；索引仅在单次批处理内复用。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
+import os
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -238,3 +240,111 @@ def test_timeout_finishes_with_retryable_failures_and_no_partial_files(applicati
     downloader.start([item], tmp_path)
     wait_for(lambda: not downloader.running)
     assert downloader.status["missing"] == 2 and downloader.status["failed"] == 1
+
+
+def test_reload_thumbnails_bounds_filesystem_probes_by_directory(application, tmp_path, monkeypatch):
+    from test_emulator_playlist_library import thumbnail_library
+
+    library, state, _, _, boxart = thumbnail_library(tmp_path)
+    root = tmp_path / 'thumbnails'
+    library.items = [{'path': '/roms/Original.gb', 'title': 'Original', 'dbName': 'Nintendo - Game Boy'}
+                     for _ in range(100)]
+    original_stat = os.stat
+    probes = []
+
+    def stat(path, *args, **kwargs):
+        if isinstance(path, (str, bytes, os.PathLike)) and Path(path).is_relative_to(root):
+            probes.append(str(path))
+        return original_stat(path, *args, **kwargs)
+
+    monkeypatch.setattr(os, 'stat', stat)
+    try:
+        library.reload_thumbnails()
+        assert all(item['cover'] == boxart.as_uri() for item in library.items)
+        assert len(probes) < 12
+    finally:
+        library.close()
+        state.close()
+
+
+def test_reload_discovers_added_replaced_and_preferred_images(application, tmp_path):
+    from test_emulator_playlist_library import thumbnail_library
+
+    library, state, _, _, boxart = thumbnail_library(tmp_path)
+    library.items = [{'path': '/roms/Original.gb', 'title': 'Original', 'dbName': 'Nintendo - Game Boy'}]
+    try:
+        boxart.unlink()
+        library.reload_thumbnails()
+        assert library.items[0]['cover'] == ''
+        jpg = boxart.with_suffix('.jpg')
+        jpg.write_bytes(b'jpg')
+        library.reload_thumbnails()
+        assert library.items[0]['cover'] == jpg.as_uri()
+        boxart.write_bytes(b'png')
+        library.reload_thumbnails()
+        assert library.items[0]['cover'] == boxart.as_uri()
+        snap = boxart.parent.parent / 'Named_Snaps/Original.png'
+        snap.parent.mkdir()
+        snap.write_bytes(b'snap')
+        state.data['preferences']['thumbnailType'] = 'Named_Snaps'
+        library.reload_thumbnails()
+        assert library.items[0]['cover'] == snap.as_uri()
+        boxart.unlink()
+        boxart.symlink_to(jpg)
+        state.data['preferences']['thumbnailType'] = 'Named_Boxarts'
+        library.reload_thumbnails()
+        assert library.items[0]['cover'] == jpg.as_uri()
+    finally:
+        library.close()
+        state.close()
+
+
+def test_downloader_preparation_bounds_filesystem_probes_by_directory(application, tmp_path, monkeypatch):
+    from udeck.apps.emulator.thumbnails import ThumbnailDownloader
+
+    root = tmp_path / 'thumbnails'
+    items = [{'path': f'/roms/Game{index}.gb', 'title': f'Game{index}', 'dbName': 'Nintendo - Game Boy'}
+             for index in range(100)]
+    original_stat = os.stat
+    probes = []
+
+    def stat(path, *args, **kwargs):
+        if isinstance(path, (str, bytes, os.PathLike)) and Path(path).is_relative_to(root):
+            probes.append(str(path))
+        return original_stat(path, *args, **kwargs)
+
+    monkeypatch.setattr(os, 'stat', stat)
+    downloader = ThumbnailDownloader()
+    try:
+        downloader.start(items, root)
+        assert downloader.status['total'] == 300
+        assert len(probes) < 12
+    finally:
+        downloader.cancel()
+
+
+@pytest.mark.parametrize('boundary', ['root', 'database', 'kind'])
+def test_bulk_lookup_rejects_symbolic_link_directories(application, tmp_path, boundary):
+    from test_emulator_playlist_library import thumbnail_library
+
+    library, state, _, _, _ = thumbnail_library(tmp_path)
+    root = tmp_path / 'linked-thumbnails'
+    actual = tmp_path / 'actual'
+    database, kind = 'Nintendo - Game Boy', 'Named_Boxarts'
+    image_file(actual / database / kind / 'Original.png')
+    if boundary == 'root':
+        root.symlink_to(actual, target_is_directory=True)
+    elif boundary == 'database':
+        root.mkdir()
+        (root / database).symlink_to(actual / database, target_is_directory=True)
+    else:
+        (root / database).mkdir(parents=True)
+        (root / database / kind).symlink_to(actual / database / kind, target_is_directory=True)
+    library.thumbnail_path = str(root)
+    library.items = [{'path': '/roms/Original.gb', 'title': 'Original', 'dbName': database}]
+    try:
+        library.reload_thumbnails()
+        assert library.items[0]['thumbnails'] == {} and library.items[0]['cover'] == ''
+    finally:
+        library.close()
+        state.close()

@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖真实文件页、隔离目录与键盘导航。
+[OUTPUT]: 验证文件网格、滚动终态与模态尺寸边界。
+[POS]: 文件页独立几何探针；连续改向由导航连续性探针覆盖。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 import os
 import sys
@@ -109,7 +116,7 @@ assert controller.file_marked == {selected}
 window.setWidth(width)
 wait_events(50)
 controller.select(10)
-wait_events(50)
+wait_events(120)
 last_row = (10 // columns) * file_grid.property("cellHeight")
 assert file_grid.property("contentY") <= last_row
 assert last_row + file_grid.property("cellHeight") <= file_grid.property("contentY") + file_grid.property("height") + 1

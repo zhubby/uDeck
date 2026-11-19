@@ -1,15 +1,21 @@
 """
 [INPUT]: 依赖应用输入路由、模拟器控制器与隔离的 Qt 环境。
-[OUTPUT]: 验证输入归属、会话恢复与原生命令的窗口激活。
+[OUTPUT]: 验证交接显示、到期队列、断线回退与原生窗口激活。
 [POS]: 桌面和独立应用之间的路由回归测试。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
+import os
+import sys
 from types import SimpleNamespace
+from uuid import uuid4
 
 import pytest
-from PySide6.QtCore import QCoreApplication, QObject, Signal
+from PySide6.QtCore import QCoreApplication, QEventLoop, QObject, QTimer, Signal
+from PySide6.QtDBus import QDBusConnection, QDBusError, QDBusPendingCall, QDBusPendingCallWatcher
+from PySide6.QtGui import QWindow
 
+from udeck import input as gamepad_module
 from udeck.app_routing import APP_IDS
 from udeck.apps.common import input as input_module
 from udeck.apps.common.controller import AppController
@@ -27,6 +33,102 @@ class Windows(QObject):
 
 class Pointer(QObject):
     shoulder = Signal(str)
+
+
+def test_disconnected_desktop_connection_still_presents_the_application():
+    from udeck.apps.runtime import present_after_input_handoff
+
+    application = QCoreApplication.instance() or QCoreApplication([])
+    name = 'udeck-handoff-disconnected-' + uuid4().hex
+    connection = QDBusConnection.connectToBus('unix:path=/nonexistent/' + name, name)
+    assert not connection.isConnected()
+    events, parent = [], QObject()
+    try:
+        present_after_input_handoff(connection, APP_IDS['music'], parent,
+            lambda: events.append('present'), prepare=lambda _ready: events.append('prepare'))
+        loop = QEventLoop()
+        QTimer.singleShot(100, loop.quit)
+        loop.exec()
+        assert events == ['present']
+    finally:
+        QDBusConnection.disconnectFromBus(name)
+    assert application
+
+
+def test_immediately_completed_handoff_presents_once_when_finished_also_arrives():
+    from udeck.apps.runtime import present_after_input_handoff
+
+    application = QCoreApplication.instance() or QCoreApplication([])
+    pending = QDBusPendingCall.fromError(QDBusError(QDBusError.ErrorType.Disconnected, 'Desktop unavailable'))
+    events, parent = [], QObject()
+
+    def prepare(ready):
+        events.append('prepare')
+        ready()
+
+    present_after_input_handoff(SimpleNamespace(asyncCall=lambda *_arguments: pending), APP_IDS['music'],
+                               parent, lambda: events.append('present'), prepare=prepare)
+    watcher = parent.findChild(QDBusPendingCallWatcher)
+    watcher.finished[QDBusPendingCallWatcher].emit(watcher)
+    loop = QEventLoop()
+    QTimer.singleShot(100, loop.quit)
+    loop.exec()
+    assert events == ['present']
+    assert application
+
+
+@pytest.mark.parametrize('accepted', [True, False])
+def test_app_presentation_waits_for_desktop_input_release(monkeypatch, accepted):
+    from udeck.apps import runtime
+
+    application = QCoreApplication.instance() or QCoreApplication([])
+    events, watchers = [], []
+
+    class Watcher(QObject):
+        finished = Signal(object)
+
+        def __init__(self, pending, parent):
+            super().__init__(parent)
+            watchers.append(self)
+
+        def isError(self):
+            return False
+
+        def isFinished(self):
+            return False
+
+        def reply(self):
+            return SimpleNamespace(arguments=lambda: [accepted])
+
+    def send(message, timeout):
+        events.append((message.member(), message.arguments(), timeout))
+        return object()
+
+    monkeypatch.setattr(runtime, 'QDBusPendingCallWatcher', Watcher)
+    parent = QObject()
+    runtime.present_after_input_handoff(SimpleNamespace(asyncCall=send), APP_IDS['music'], parent,
+        lambda: events.append('present'), prepare=lambda ready: events.append(('prepare', ready)))
+    assert events == [('PrepareNativeApp', [APP_IDS['music']], 1000)]
+    watchers[0].finished.emit(watchers[0])
+    if accepted:
+        assert len(events) == 2 and events[1][0] == 'prepare'
+        events[1][1]()
+    assert events[-1] == 'present'
+    assert application
+
+
+def test_desktop_prepares_native_input_through_the_application_router():
+    from udeck.main import Control
+
+    application = QCoreApplication.instance() or QCoreApplication([])
+    prepared = []
+    control = Control(SimpleNamespace(), None)
+    control.application_router = SimpleNamespace(prepare_native_activation=lambda aid: prepared.append(aid) or True)
+    assert control.PrepareNativeApp(APP_IDS['music'])
+    assert prepared == [APP_IDS['music']]
+    control.application_router = None
+    assert not control.PrepareNativeApp(APP_IDS['music'])
+    assert application
 
 
 def test_suite_routes_shoulders_only_to_compositor_owner_and_invalidates_focus():
@@ -103,11 +205,207 @@ def native_inputs(monkeypatch):
     assert application
 
 
+@pytest.fixture
+def prepared_gamepad(monkeypatch, tmp_path):
+    application = QCoreApplication.instance()
+    quit_on_close = application.quitOnLastWindowClosed()
+    application.setQuitOnLastWindowClosed(False)
+    actions, devices = [], []
+
+    class Device:
+        name, uniq, path = 'ClockworkPI uConsole', '20230713', '/dev/input/event7'
+        info = SimpleNamespace(vendor=0x1eaf, product=0x24)
+
+        def __init__(self, _path):
+            self.fd, self.writer = os.pipe()
+            os.set_blocking(self.fd, False)
+            self.events, self.closed = [], False
+            devices.append(self)
+
+        def capabilities(self):
+            return {1: [288, 289, 290, 291]}
+
+        def active_keys(self):
+            return []
+
+        def grab(self):
+            pass
+
+        def ungrab(self):
+            pass
+
+        def read(self):
+            os.read(self.fd, 4096)
+            events, self.events = self.events, []
+            return events
+
+        def close(self):
+            if not self.closed:
+                self.closed = True
+                os.close(self.fd)
+                os.close(self.writer)
+
+    class Remote:
+        def __init__(self, *_arguments):
+            pass
+
+        def isValid(self):
+            return True
+
+        def call(self, *_arguments):
+            import json
+            return SimpleNamespace(type=lambda: input_module.QDBusMessage.MessageType.ReplyMessage,
+                arguments=lambda: [json.dumps({'available': True, 'generation': 1, 'enabled': True})])
+
+    monkeypatch.setattr(gamepad_module, 'sys', SimpleNamespace(platform='linux'))
+    monkeypatch.setattr(input_module, 'QDBusInterface', Remote)
+    monkeypatch.setitem(sys.modules, 'evdev', SimpleNamespace(InputDevice=Device,
+        list_devices=lambda: ['/dev/input/event7'],
+        ecodes=SimpleNamespace(EV_KEY=1, EV_SYN=0, EV_ABS=3, SYN_DROPPED=3, BTN_MISC=256)))
+    controller, window = QObject(), QWindow()
+    controller.window, controller.dispatch = window, actions.append
+    inputs = AppInput(controller, APP_IDS['reader'], {})
+    inputs.gamepad.sysfs_root = tmp_path
+
+    def pump():
+        loop = QEventLoop()
+        QTimer.singleShot(20, loop.quit)
+        loop.exec()
+
+    def activate():
+        window.show()
+        window.requestActivate()
+        application.processEvents()
+        assert window.isActive()
+
+    def back():
+        for value in (1, 0):
+            device = inputs.gamepad.device
+            device.events.append(SimpleNamespace(type=1, code=290, value=value))
+            os.write(device.writer, b'x')
+
+    yield SimpleNamespace(inputs=inputs, window=window, actions=actions, devices=devices,
+                          activate=activate, back=back, pump=pump)
+    inputs.close()
+    window.close()
+    application.setQuitOnLastWindowClosed(quit_on_close)
+
+
+@pytest.mark.parametrize('queued_focus_signal', [False, True])
+def test_expiring_preparation_keeps_queued_back_for_focus_in_the_same_event_turn(prepared_gamepad, queued_focus_signal):
+    context, inputs = prepared_gamepad, prepared_gamepad.inputs
+    inputs.prepare_foreground(lambda: None)
+    context.pump()
+    device = inputs.gamepad.device
+    context.back()
+    context.activate()
+    assert not inputs.foreground
+    if queued_focus_signal:
+        QTimer.singleShot(0, lambda: inputs.set_foreground(True))
+    inputs._expire_preparation()
+    assert inputs.gamepad.device is device
+    context.pump()
+    assert inputs.foreground and inputs.gamepad.grabbed
+    assert context.actions == ['back'] and not inputs.preparation.isActive()
+
+
+def test_unfocused_preparation_releases_after_one_turn_and_never_replays_old_back(prepared_gamepad):
+    context, inputs = prepared_gamepad, prepared_gamepad.inputs
+    inputs.prepare_foreground(lambda: None)
+    context.pump()
+    device = inputs.gamepad.device
+    context.back()
+    inputs._expire_preparation()
+    assert inputs.gamepad.device is device
+    context.pump()
+    assert device.closed and inputs.gamepad.device is None and not context.actions
+    context.activate()
+    inputs.set_foreground(True)
+    context.pump()
+    assert inputs.gamepad.device is not device and context.actions == []
+
+
+def test_unfocused_preparation_releases_without_renewing_its_lease(prepared_gamepad):
+    inputs = prepared_gamepad.inputs
+    inputs.prepare_foreground(lambda: None)
+    ownership = []
+    loop = QEventLoop()
+    QTimer.singleShot(400, lambda: ownership.append(inputs.gamepad.grabbed))
+    QTimer.singleShot(1500, loop.quit)
+    loop.exec()
+    assert ownership == [True]
+    assert inputs.gamepad.device is None and not inputs.preparation.isActive()
+
+
+@pytest.mark.parametrize('superseded_by', ['close', 'prepare'])
+def test_deferred_preparation_release_cannot_outlive_its_generation(prepared_gamepad, superseded_by):
+    context, inputs = prepared_gamepad, prepared_gamepad.inputs
+    inputs.prepare_foreground(lambda: None)
+    context.pump()
+    inputs._expire_preparation()
+    if superseded_by == 'close':
+        inputs.close()
+        context.activate()
+        inputs.set_foreground(True)
+        context.pump()
+        assert inputs.gamepad.device is None and not inputs.gamepad.foreground
+    else:
+        presented = []
+        inputs.prepare_foreground(lambda: presented.append('new'))
+        context.pump()
+        assert inputs.gamepad.grabbed and inputs.preparation.isActive()
+        assert presented == ['new']
+
+
 def test_background_apps_do_not_poll_desktop_input_authorization(native_inputs):
     inputs, queries, _ = native_inputs
     inputs.sync()
     assert not inputs.timer.isActive()
     assert queries == []
+
+
+def test_prepared_input_expires_without_focus_and_remains_after_confirmed_focus(native_inputs):
+    inputs, _, _ = native_inputs
+    inputs.controller.window = SimpleNamespace(isActive=lambda: False)
+    inputs.gamepad = SimpleNamespace(foreground=False, grabbed=False, device=object(), close=lambda: None)
+    inputs.gamepad.set_foreground = lambda active: setattr(inputs.gamepad, 'foreground', active)
+    inputs.gamepad.set_delivery_enabled = lambda active: setattr(inputs.gamepad, 'delivery_enabled', active)
+    inputs.prepare_foreground()
+    assert inputs.gamepad.foreground and not inputs.foreground
+    assert not inputs.gamepad.delivery_enabled
+    assert inputs.preparation.isActive()
+    inputs._expire_preparation()
+    QCoreApplication.processEvents()
+    assert not inputs.gamepad.foreground
+    inputs.prepare_foreground()
+    inputs.set_foreground(True)
+    assert not inputs.preparation.isActive()
+    assert inputs.gamepad.delivery_enabled
+    inputs._expire_preparation()
+    assert inputs.gamepad.foreground
+
+
+def test_prepared_window_waits_for_acquisition_and_timeout_falls_back_once(native_inputs):
+    inputs, _, _ = native_inputs
+    inputs.controller.window = SimpleNamespace(isActive=lambda: False)
+    inputs.gamepad = SimpleNamespace(foreground=False, grabbed=False, device=object(), close=lambda: None)
+    inputs.gamepad.set_foreground = lambda active: setattr(inputs.gamepad, 'foreground', active)
+    inputs.gamepad.set_delivery_enabled = lambda active: setattr(inputs.gamepad, 'delivery_enabled', active)
+    presented = []
+    inputs.prepare_foreground(lambda: presented.append('ready'))
+    assert inputs.gamepad.foreground and presented == []
+    inputs._gamepad_status({'grabbed': True})
+    QCoreApplication.processEvents()
+    assert presented == ['ready']
+    inputs._expire_preparation()
+    QCoreApplication.processEvents()
+    assert presented == ['ready'] and not inputs.gamepad.foreground
+
+    inputs.prepare_foreground(lambda: presented.append('fallback'))
+    inputs._expire_preparation()
+    QCoreApplication.processEvents()
+    QCoreApplication.processEvents()
+    assert presented == ['ready', 'fallback'] and not inputs.gamepad.foreground
 
 
 def test_foreground_app_uses_broker_pushes_after_authorization(native_inputs):
@@ -150,6 +448,25 @@ def test_standalone_fallback_retries_only_while_foreground(native_inputs, monkey
     inputs.set_foreground(False)
     inputs.sync()
     assert not inputs.timer.isActive() and queries == ['interface', 'state']
+
+
+def test_library_back_requests_home_without_racing_window_minimization(tmp_path, monkeypatch):
+    from udeck.apps.common import controller as controller_module
+
+    application = QCoreApplication.instance() or QCoreApplication([])
+    controller = AppController("browser", tmp_path, tmp_path / "settings.json")
+    requests, minimized = [], []
+    connection = SimpleNamespace(asyncCall=lambda message: requests.append(message.member()))
+    monkeypatch.setattr(controller_module, "QDBusConnection", SimpleNamespace(sessionBus=lambda: connection))
+    controller.window = SimpleNamespace(showMinimized=lambda: minimized.append(True))
+    try:
+        controller.back()
+        assert requests == ["Home"]
+        assert not minimized and not controller._closed
+    finally:
+        controller.window = None
+        controller.close()
+    assert application
 
 
 def test_nested_menus_skip_disabled_rows_and_preserve_parent_focus_and_draft(tmp_path):
