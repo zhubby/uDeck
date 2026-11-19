@@ -1,4 +1,4 @@
-# [INPUT]: 依赖已发布 Release、匹配标签和 Debian 构建入口。
+# [INPUT]: 依赖已发布 Release、匹配标签和 runner 预建的制品目录。
 # [OUTPUT]: 验证 arm64 deb，保存版本化 Actions 制品并附加 Release 附件。
 # [POS]: 唯一发布工作流；仅 release: published 触发。
 # [PROTOCOL]: Update this header on change, then check AGENTS.md
@@ -55,6 +55,7 @@ jobs:
         run: docker build -f tools/debian-build.Dockerfile -t udeck-debian-builder .
       - name: Build the package and matching source
         run: |
+          mkdir -p dist/release dist/previous
           docker run --rm \
             -e DEB_BUILD_OPTIONS=parallel=2 \
             -v "$GITHUB_WORKSPACE:/workspace" udeck-debian-builder \

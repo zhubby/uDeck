@@ -1,3 +1,10 @@
+udeck (1.0.4) unstable; urgency=medium
+
+  * Create release directories as the runner before starting the root builder.
+  * Preserve verified package downloads for upgrade and rollback validation.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Thu, 19 Nov 2026 16:46:00 +0800
+
 udeck (1.0.3) unstable; urgency=medium
 
   * Query input authorization asynchronously and keep Home returns lightweight.
