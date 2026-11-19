@@ -45,6 +45,7 @@ launch_controller.py: 桌面启动交互与反馈。
 locales/: 中英文稳定消息目录。
 main.py: 桌面启动、系统服务、显示前输入释放与输入路由组装。
 menu_icons.py: 系统菜单图标与动作分离。
+messages.py: Python 与 QML 共用的稳定消息标识。
 messages.py: 全局稳定消息标识。
 mock.py: 桌面预览的隔离系统状态。
 network_files/: 网络文件访问服务与网页。

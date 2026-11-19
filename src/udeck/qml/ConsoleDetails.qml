@@ -1,6 +1,6 @@
 /*
 [INPUT]: 依赖应用实时详情、ConsoleFormat、主题与模态选择。
-[OUTPUT]: 复用六个指标控件，提供进程信息和操作入口。
+[OUTPUT]: 复用八个指标控件，区分 PSS、RSS、独占内存与进程信息。
 [POS]: Main 模态容器内的详情内容；退出确认由控制器编排。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -17,13 +17,16 @@ Column {
     property bool reducedMotion: false
     readonly property var msg: controller.messageKeys
     readonly property bool available: !!details.available
-    readonly property var metricNames: ["State", "Cpu", "Memory", "Uptime", "Pid", "Processes"]
-    readonly property var metricLabels: [tr(msg.CONSOLE_STATE), "CPU", tr(msg.CONSOLE_MEMORY),
-        tr(msg.CONSOLE_UPTIME), tr(msg.CONSOLE_PID), tr(msg.CONSOLE_PROCESSES)]
+    readonly property var metricNames: ["State", "Cpu", "Uptime", "Memory", "Rss", "Private", "Pid", "Processes"]
+    readonly property var metricLabels: [tr(msg.CONSOLE_STATE), "CPU", tr(msg.CONSOLE_UPTIME),
+        tr(msg.CONSOLE_MEMORY), tr(msg.CONSOLE_MEMORY_RSS), tr(msg.CONSOLE_MEMORY_PRIVATE),
+        tr(msg.CONSOLE_PID), tr(msg.CONSOLE_PROCESSES)]
     readonly property var metricValues: [
         format.state(available ? details.runtimeState : "exited", language),
-        format.percent(details.cpuPercent), format.memory(details.memoryBytes, "MiB"),
-        format.uptime(details.uptimeSeconds), details.mainPid || "—", details.processCount ?? "—"
+        format.percent(details.cpuPercent), format.uptime(details.uptimeSeconds),
+        format.memory(details.memoryBytes, "MiB"),
+        format.memory(details.memoryRssBytes, "MiB"), format.memory(details.memoryPrivateBytes, "MiB"),
+        details.mainPid || "—", details.processCount ?? "—"
     ]
     spacing: 14
     function tr(key) { return controller.translate(key, language) }
@@ -32,13 +35,13 @@ Column {
     ConsoleFormat { id: format }
 
     Grid {
-        width: parent.width; columns: 2; columnSpacing: 20; rowSpacing: 8
+        width: parent.width; columns: 3; columnSpacing: 20; rowSpacing: 8
         Repeater {
-            model: 6
+            model: root.metricNames.length
             delegate: Column {
                 id: metric
                 required property int index
-                width: (root.width - 20) / 2; height: 52; spacing: 2
+                width: (root.width - 40) / 3; height: 52; spacing: 2
                 Text {
                     width: parent.width; text: root.metricLabels[metric.index]; textFormat: Text.PlainText
                     font.family: root.fontFamily; font.pixelSize: 18; color: root.colors.muted

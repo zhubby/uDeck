@@ -4,8 +4,8 @@
 成员清单：
 
 __init__.py: Console 运行服务包入口。
-processes.py: proc 快照、应用进程树统计与 pidfd 终止。
-model.py: 按应用身份增量更新的 Qt 列表模型。
+processes.py: proc 快照、仅对归属进程读取的 PSS/RSS/独占内存与 pidfd 终止。
+model.py: 按应用身份增量更新的 Qt 列表模型；传递三种内存口径。
 service.py: 可见期采样、空所有者去重、过期回包隔离与有序退出。
 controls.py: 桌面导航、详情操作与退出确认的桥接。
 

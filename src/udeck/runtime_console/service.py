@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖会话 D-Bus、窗口元数据、proc 快照和 ConsoleModel。
-[OUTPUT]: 提供所有者去重、有界身份查询和身份固定的退出。
+[OUTPUT]: 提供所有者去重、三种内存口径的实时行数据和身份固定的退出。
 [POS]: Console 独立运行服务；后台任务不操作 Qt 或激活游戏。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -309,12 +309,15 @@ class RuntimeConsole(QObject):
             if key in self.exiting:
                 state = "exiting"
             if self.mock:
-                values = {"cpuPercent": 3.4 + len(rows), "memoryBytes": (156 + len(rows) * 42) * 1048576,
+                values = {"cpuPercent": 3.4 + len(rows), "memoryBytes": (96 + len(rows) * 20) * 1048576,
+                          "memoryRssBytes": (206 + len(rows) * 20) * 1048576,
+                          "memoryPrivateBytes": (71 + len(rows) * 20) * 1048576,
                           "uptimeSeconds": 1200 + len(rows) * 90}
             rows.append({"applicationKey": key, "applicationName": render(entry.get("name") or first.get("name") or key.rsplit(".", 1)[-1], self.language),
                          "applicationIcon": entry.get("icon") or first.get("icon") or key,
                          "runtimeState": state, "cpuPercent": values.get("cpuPercent"),
                          "memoryBytes": values.get("memoryBytes"), "uptimeSeconds": values.get("uptimeSeconds"),
+                         "memoryRssBytes": values.get("memoryRssBytes"), "memoryPrivateBytes": values.get("memoryPrivateBytes"),
                          "canQuit": bool(windows or self.infos.get(key)) and key not in self.exiting
                                     and (self.mock or key not in NATIVE_APPS or bool(self.owners.get(key))),
                          "canForce": bool(self.mock or identity and sum(value == identity for value in self.identities.values()) == 1

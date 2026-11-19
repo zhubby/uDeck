@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实桌面 QML 与隔离的 Console 预览模型。
-[OUTPUT]: 等待可交互几何，再验证指标复用与模态输入边界。
+[OUTPUT]: 验证三种内存口径、指标复用与模态输入边界。
 [POS]: Console 视图的独立进程验收探针。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -138,17 +138,21 @@ QTest.keyClick(window, Qt.Key_Down)
 QTest.qWait(30)
 assert controller.modal["index"] == 2
 assert details_focus.property("target").objectName() == "consoleDetailsAction-2"
-metric_names = ["consoleDetails" + name for name in ("State", "Cpu", "Memory", "Uptime", "Pid", "Processes")]
+metric_names = ["consoleDetails" + name for name in ("State", "Cpu", "Memory", "Rss", "Private", "Uptime", "Pid", "Processes")]
 destroyed_metrics = []
 for name in metric_names:
     visual(name).destroyed.connect(lambda _object=None, name=name: destroyed_metrics.append(name))
-controller.runtime_console.model.update([dict(row, cpuPercent=87.6, memoryBytes=912 * 1048576, uptimeSeconds=5432)
+controller.runtime_console.model.update([dict(row, cpuPercent=87.6, memoryBytes=105 * 1048576,
+                                             memoryRssBytes=214 * 1048576, memoryPrivateBytes=74 * 1048576,
+                                             uptimeSeconds=5432)
                                        if row["applicationKey"] == "io.github.zhubby.uDeck.0" else row
                                        for row in controller.runtime_console.model.rows])
 controller.runtime_console.summaryChanged.emit()
 QTest.qWait(30)
 assert visual("consoleDetailsCpu").property("text") == "87.6%"
-assert visual("consoleDetailsMemory").property("text") == "912 MiB"
+assert visual("consoleDetailsMemory").property("text") == "105 MiB"
+assert visual("consoleDetailsRss").property("text") == "214 MiB"
+assert visual("consoleDetailsPrivate").property("text") == "74 MiB"
 assert visual("consoleDetailsUptime").property("text") == "01:30:32"
 assert controller.modal["index"] == 2
 assert not destroyed_metrics, ("metrics recreated during refresh", destroyed_metrics)
@@ -157,6 +161,14 @@ content = visual("dialogContent")
 assert content.y() + content.height() <= panel.height(), (content.height(), panel.height())
 if len(sys.argv) > 7:
     assert window.grabWindow().save(sys.argv[7])
+controller.runtime_console.model.update([dict(row, memoryBytes=None, memoryPrivateBytes=None)
+                                       if row["applicationKey"] == "io.github.zhubby.uDeck.0" else row
+                                       for row in controller.runtime_console.model.rows])
+controller.runtime_console.summaryChanged.emit()
+QTest.qWait(30)
+assert visual("consoleDetailsMemory").property("text") == "—"
+assert visual("consoleDetailsPrivate").property("text") == "—"
+assert visual("consoleDetailsRss").property("text") == "214 MiB"
 click(visual("consoleRow-io.github.zhubby.uDeck.1"), QPointF(2, 24))
 assert controller.modal["kind"] == "console-details"
 assert controller.runtime_console.details["applicationKey"] == "io.github.zhubby.uDeck.0"

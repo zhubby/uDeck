@@ -9,10 +9,10 @@ test_apps_motion_continuity.py: 共享应用动效的正常与减少动画回归
 navigation_continuity_probe.py: 独立桌面窗口的切页重入、滚动改向、设置刷新和补位轨迹探针。
 test_navigation_continuity_qml.py: 双主题导航中途状态的离屏回归入口。
 
-test_runtime_console_processes.py: proc 快照、资源聚合和 pidfd 终止身份回归。
+test_runtime_console_processes.py: 按应用采样的三种内存口径、失败隔离和 pidfd 终止身份回归。
 test_runtime_console_apps.py: 轻量应用状态与原生存档退出回归。
 test_runtime_console.py: 空所有者去重、身份变更、过期状态、详情和退出回归。
-runtime_console_qml_probe.py: 等待点击裁剪区与面板几何，验证指标复用和详情输入。
+runtime_console_qml_probe.py: 等待稳定几何，验证三种内存口径、指标复用和详情输入。
 test_runtime_console_qml.py: Console 详情交互、中英文与双主题尺寸回归。
 motion_qml_probe.py: 零全量快照的选中项移动、焦点改向与弹窗隔离探针。
 test_motion_qml.py: 双主题与减少动画的桌面短过渡回归。

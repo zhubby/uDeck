@@ -15,6 +15,8 @@ class Msg(StrEnum):
     CONSOLE_APPLICATION = "console_application"
     CONSOLE_STATE = "console_state"
     CONSOLE_MEMORY = "console_memory"
+    CONSOLE_MEMORY_RSS = "console_memory_rss"
+    CONSOLE_MEMORY_PRIVATE = "console_memory_private"
     CONSOLE_UPTIME = "console_uptime"
     CONSOLE_EXIT = "console_exit"
     CONSOLE_ACTIONS = "console_actions"

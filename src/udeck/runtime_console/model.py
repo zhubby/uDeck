@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖运行服务按应用身份生成的行数据。
-[OUTPUT]: 提供保持代理与滚动位置的 ConsoleModel。
+[OUTPUT]: 提供含 PSS、RSS 和独占内存的增量 ConsoleModel。
 [POS]: Console 的 Qt 列表模型；指标刷新只发送 dataChanged。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -10,7 +10,8 @@ from PySide6.QtCore import QAbstractListModel, QModelIndex, Qt
 
 class ConsoleModel(QAbstractListModel):
     fields = ("applicationKey", "applicationName", "applicationIcon", "runtimeState",
-              "cpuPercent", "memoryBytes", "uptimeSeconds", "canQuit", "canForce")
+              "cpuPercent", "memoryBytes", "uptimeSeconds", "canQuit", "canForce",
+              "memoryRssBytes", "memoryPrivateBytes")
 
     def __init__(self, parent=None):
         super().__init__(parent)

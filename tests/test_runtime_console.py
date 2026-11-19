@@ -350,15 +350,39 @@ def test_details_metrics_refresh_without_moving_the_selected_action(shell):
     console = shell.runtime_console
     console.identities["terminal"] = Identity(101, 1000)
     console.metrics["terminal"] = {"members": [Identity(101, 1000), Identity(102, 1100)]}
-    console.model.update([dict(row, cpuPercent=42.3, memoryBytes=912 * 1048576, uptimeSeconds=5432)
+    console.model.update([dict(row, cpuPercent=42.3, memoryBytes=912 * 1048576,
+                              memoryRssBytes=1200 * 1048576, memoryPrivateBytes=700 * 1048576, uptimeSeconds=5432)
                           if row["applicationKey"] == "terminal" else row for row in console.model.rows])
     console.summaryChanged.emit()
     assert console.details["cpuPercent"] == 42.3
     assert console.details["memoryBytes"] == 956301312
+    assert console.details["memoryRssBytes"] == 1258291200
+    assert console.details["memoryPrivateBytes"] == 734003200
     assert console.details["uptimeSeconds"] == 5432
     assert console.details["mainPid"] == 101
     assert console.details["processCount"] == 2
     assert shell.modal["index"] == 2
+
+
+def test_collected_memory_metrics_reach_the_details_without_an_rss_fallback():
+    console = RuntimeConsole(mock=True)
+    console.mock = False
+    identity = Identity(101, 1000)
+    app = "io.github.zhubby.uDeck.Music"
+    console.visible = True
+    console.owners[app] = ":1.12"
+    console.set_details(app)
+    values = {"cpuPercent": 1, "memoryBytes": None, "memoryRssBytes": 200 * 1048576,
+              "memoryPrivateBytes": None, "uptimeSeconds": 20, "members": [identity]}
+    try:
+        console._collected((console.generation, dict(console.owners),
+                            (None, {app: identity}, {app: values}, {}), None))
+        assert console.details["memoryBytes"] is None
+        assert console.details["memoryRssBytes"] == 209715200
+        assert console.details["memoryPrivateBytes"] is None
+        assert console.details["processCount"] == 1
+    finally:
+        console.close()
 
 
 def test_details_open_application_is_an_explicit_action(shell):

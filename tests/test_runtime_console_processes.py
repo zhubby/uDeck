@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖隔离的 proc 文件树和应用进程身份。
-[OUTPUT]: 验证整机 CPU、进程树 RSS、存活时间和终止身份校验。
+[OUTPUT]: 验证按应用分摊的内存、采样失败隔离与终止身份校验。
 [POS]: Console 运行统计的纯 Python 回归边界。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -23,6 +23,11 @@ def write_process(root, pid, *, parent=1, start=100, ticks=10, rss=8, name="game
     (directory / "stat").write_text(f"{pid} ({name}) " + " ".join(fields))
 
 
+def write_memory(root, pid, *, pss=20, clean=4, dirty=8):
+    (root / str(pid) / "smaps_rollup").write_text(
+        f"Rss: 32 kB\nPss: {pss} kB\nPrivate_Clean: {clean} kB\nPrivate_Dirty: {dirty} kB\n")
+
+
 @pytest.fixture
 def proc(tmp_path):
     (tmp_path / "stat").write_text("cpu 100 0 100 700 100 0 0 0 0 0\n")
@@ -32,6 +37,10 @@ def proc(tmp_path):
     write_process(tmp_path, 102, parent=101, start=1200)
     write_process(tmp_path, 103, parent=102, start=1300)
     write_process(tmp_path, 104, parent=101, start=1400)
+    write_memory(tmp_path, 101)
+    write_memory(tmp_path, 102, pss=18, clean=2)
+    write_memory(tmp_path, 103, pss=12, clean=0)
+    write_memory(tmp_path, 104, pss=14, clean=2, dirty=4)
     return tmp_path
 
 
@@ -45,15 +54,83 @@ def test_process_tree_metrics_exclude_a_separate_application(proc):
     write_process(proc, 104, parent=101, start=1400, ticks=20)
     (proc / "stat").write_text("cpu 160 0 140 700 100 0 0 0 0 0\n")
     second = read_snapshot(proc, ticks_per_second=100, page_size=4096)
-    result = measure(second, first, {"terminal": Identity(101, 1000), "browser": Identity(102, 1200)})
+    result = measure(second, first, {"terminal": Identity(101, 1000), "browser": Identity(102, 1200)}, proc=proc)
     assert result["terminal"]["cpuPercent"] == pytest.approx(30)
     assert result["browser"]["cpuPercent"] == pytest.approx(80)
-    assert result["terminal"]["memoryBytes"] == 2 * 8 * 4096
-    assert result["browser"]["memoryBytes"] == 2 * 8 * 4096
+    assert result["terminal"]["memoryBytes"] == 34 * 1024
+    assert result["browser"]["memoryBytes"] == 30 * 1024
+    assert result["terminal"]["memoryRssBytes"] == 64 * 1024
+    assert result["browser"]["memoryRssBytes"] == 64 * 1024
+    assert result["terminal"]["memoryPrivateBytes"] == 18 * 1024
+    assert result["browser"]["memoryPrivateBytes"] == 18 * 1024
     assert result["terminal"]["uptimeSeconds"] == 10
     assert result["browser"]["uptimeSeconds"] == 8
     assert second.memory_total == 4096 * 1024
     assert second.memory_available == 1024 * 1024
+
+
+@pytest.mark.parametrize("contents", [None, "Pss: invalid kB\n", "Pss: -1 kB\nPrivate_Clean: 0 kB\nPrivate_Dirty: 0 kB\n",
+                                     "Pss: 10 kB\nPrivate_Clean: 4 kB\n"])
+def test_incomplete_memory_sample_never_falls_back_to_rss_or_a_partial_tree(proc, contents):
+    from udeck.runtime_console.processes import Identity, measure, read_snapshot
+
+    if contents is None:
+        (proc / "103/smaps_rollup").unlink()
+    else:
+        (proc / "103/smaps_rollup").write_text(contents)
+    snapshot = read_snapshot(proc, page_size=4096)
+    result = measure(snapshot, None, {"browser": Identity(102, 1200)}, proc=proc)["browser"]
+    assert result["memoryBytes"] is None
+    assert result["memoryPrivateBytes"] is None
+    assert result["memoryRssBytes"] == 64 * 1024
+    assert len(result["members"]) == 2 and result["uptimeSeconds"] == 8
+
+
+def test_memory_sampling_only_reads_the_selected_application_tree(proc, monkeypatch):
+    from udeck.runtime_console.processes import Identity, measure, read_snapshot
+
+    snapshot = read_snapshot(proc)
+    original = type(proc).read_text
+    sampled = []
+    def read(path, *args, **kwargs):
+        if path.name == "smaps_rollup":
+            sampled.append(int(path.parent.name))
+        return original(path, *args, **kwargs)
+    monkeypatch.setattr(type(proc), "read_text", read)
+    result = measure(snapshot, None, {"browser": Identity(102, 1200)}, proc=proc)["browser"]
+    assert result["memoryBytes"] == 30 * 1024
+    assert set(sampled) == {102, 103}
+
+
+def test_denied_memory_read_preserves_other_application_metrics(proc, monkeypatch):
+    from udeck.runtime_console.processes import Identity, measure, read_snapshot
+
+    snapshot = read_snapshot(proc, page_size=4096)
+    original = type(proc).read_text
+    def read(path, *args, **kwargs):
+        if path == proc / "103/smaps_rollup":
+            raise PermissionError("protected process")
+        return original(path, *args, **kwargs)
+    monkeypatch.setattr(type(proc), "read_text", read)
+    result = measure(snapshot, None, {"terminal": Identity(101, 1000), "browser": Identity(102, 1200)}, proc=proc)
+    assert result["browser"]["memoryBytes"] is None
+    assert result["browser"]["memoryRssBytes"] == 64 * 1024
+    assert result["terminal"]["memoryBytes"] == 34 * 1024
+
+
+def test_memory_sample_is_discarded_when_pid_is_reused_during_read(proc, monkeypatch):
+    from udeck.runtime_console.processes import Identity, measure, read_snapshot
+
+    snapshot = read_snapshot(proc)
+    original = type(proc).read_text
+    def read(path, *args, **kwargs):
+        text = original(path, *args, **kwargs)
+        if path == proc / "103/smaps_rollup":
+            write_process(proc, 103, parent=102, start=9999)
+        return text
+    monkeypatch.setattr(type(proc), "read_text", read)
+    result = measure(snapshot, None, {"browser": Identity(102, 1200)}, proc=proc)["browser"]
+    assert result["memoryBytes"] is None and result["memoryPrivateBytes"] is None
 
 
 def test_first_cpu_sample_and_reused_pid_are_unavailable(proc):

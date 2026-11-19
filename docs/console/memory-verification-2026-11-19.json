@@ -1,0 +1,230 @@
+{
+  "date": "2026-11-19",
+  "status": "passed",
+  "scope": "Console 应用内存主值改为 PSS，详情保留 RSS 与 USS。",
+  "sourceSha256": {
+    "src/udeck/runtime_console/processes.py": "8f6d0a25501f0ad91d0c7700f3be6353484994f03829946545ed52e57e329d2e",
+    "src/udeck/runtime_console/model.py": "ff2e5383cb255b2f5969828837b7d94d4342f9f23bf8c8ebe4d225ebbffbed21",
+    "src/udeck/runtime_console/service.py": "4523bee9cfad9237a63292c48381611d84eed272d2f108af1b5d93ac47f9bc2f",
+    "src/udeck/qml/ConsoleDetails.qml": "6e3269236572253d04ed6bdec2faa41472cc4e0da1a8283f9bd43ca84b0c9c02",
+    "src/udeck/messages.py": "ca956b0586437536480a50134bb30b395a10784c0f4c3870ea672dc2a7f70062",
+    "src/udeck/locales/en.json": "aa3a869bd7f224c04d8788b5397e0b740f82f48b0029ed84019cd0c5ddd3baa2",
+    "src/udeck/locales/zh_CN.json": "83f8364a5483b585005120cb0a4fb8de9da04e4694ddc763cfb60b4fcb72752a"
+  },
+  "deviceSourceHashesMatch": true,
+  "local": {
+    "passed": 151,
+    "skipped": 1,
+    "consoleCore": {
+      "processesPassed": 14,
+      "processesSkipped": 1,
+      "servicePassed": 28,
+      "qmlMatrixPassed": 8
+    },
+    "relatedSuite": {
+      "status": "passed",
+      "files": [
+        {
+          "file": "tests/test_runtime_console_apps.py",
+          "pid": 26972,
+          "exitCode": 0,
+          "timedOut": false,
+          "seconds": 0.886,
+          "log": "000-test_runtime_console_apps.log",
+          "junit": "000-test_runtime_console_apps.xml",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_i18n.py",
+          "pid": 27050,
+          "exitCode": 0,
+          "timedOut": false,
+          "seconds": 1.683,
+          "log": "001-test_i18n.log",
+          "junit": "001-test_i18n.xml",
+          "tests": 29,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_console.py",
+          "pid": 27287,
+          "exitCode": 0,
+          "timedOut": false,
+          "seconds": 0.622,
+          "log": "002-test_console.log",
+          "junit": "002-test_console.xml",
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_console_qml.py",
+          "pid": 27296,
+          "exitCode": 0,
+          "timedOut": false,
+          "seconds": 13.188,
+          "log": "003-test_console_qml.log",
+          "junit": "003-test_console_qml.xml",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_home.py",
+          "pid": 27365,
+          "exitCode": 0,
+          "timedOut": false,
+          "seconds": 2.298,
+          "log": "004-test_home.log",
+          "junit": "004-test_home.xml",
+          "tests": 29,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_qml.py",
+          "pid": 27372,
+          "exitCode": 0,
+          "timedOut": false,
+          "seconds": 25.369,
+          "log": "005-test_qml.log",
+          "junit": "005-test_qml.xml",
+          "tests": 18,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "totals": {
+        "tests": 101,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "ruff": "passed",
+    "diffCheck": "passed"
+  },
+  "device": {
+    "host": "192.168.11.59",
+    "workspace": "/tmp/udeck-console-pss-20261119-lzckglwy",
+    "environment": "uConsole CM4 / Debian arm64 / PySide6 6.8.2 / offscreen + software + Basic",
+    "suite": {
+      "status": "passed",
+      "files": [
+        {
+          "file": "tests/test_runtime_console_processes.py",
+          "pid": 1889743,
+          "exitCode": 0,
+          "timedOut": false,
+          "seconds": 2.527,
+          "log": "000-test_runtime_console_processes.log",
+          "junit": "000-test_runtime_console_processes.xml",
+          "tests": 15,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_runtime_console.py",
+          "pid": 1889755,
+          "exitCode": 0,
+          "timedOut": false,
+          "seconds": 4.338,
+          "log": "001-test_runtime_console.log",
+          "junit": "001-test_runtime_console.xml",
+          "tests": 28,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "tests/test_runtime_console_qml.py",
+          "pid": 1889773,
+          "exitCode": 0,
+          "timedOut": false,
+          "seconds": 38.099,
+          "log": "002-test_runtime_console_qml.log",
+          "junit": "002-test_runtime_console_qml.xml",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "totals": {
+        "tests": 51,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "comparison": {
+      "applications": {
+        "Music": {
+          "identity": {
+            "pid": 1873073,
+            "start": 77371476
+          },
+          "members": [
+            {
+              "pid": 1873073,
+              "start": 77371476
+            }
+          ],
+          "pssMiB": 105.024,
+          "rssMiB": 213.641,
+          "ussMiB": 73.949,
+          "independentPssMiB": 105.024,
+          "independentUssMiB": 73.949
+        },
+        "Emulator": {
+          "identity": {
+            "pid": 1873493,
+            "start": 77374055
+          },
+          "members": [
+            {
+              "pid": 1873493,
+              "start": 77374055
+            }
+          ],
+          "pssMiB": 126.516,
+          "rssMiB": 235.754,
+          "ussMiB": 94.902,
+          "independentPssMiB": 126.516,
+          "independentUssMiB": 94.902
+        }
+      },
+      "samples": 10,
+      "processesInSnapshot": 276,
+      "snapshotAndMeasureMedianMs": 80.995,
+      "snapshotAndMeasureMaxMs": 106.906,
+      "measureMedianMs": 19.106,
+      "measureMaxMs": 20.59,
+      "readOnly": true,
+      "runningApplicationIdentitiesUnchanged": true
+    },
+    "installedPackageChanged": false,
+    "desktopRestarted": false,
+    "physicalKeyAcceptance": "not performed"
+  },
+  "coverage": [
+    "PSS 按进程树聚合并排除独立应用根",
+    "RSS 与 USS 单独传递到实时详情",
+    "仅采样归属进程的 smaps_rollup",
+    "无权限、缺失、损坏或不完整数据不回退为 RSS 或部分总量",
+    "采样期间 PID 复用后丢弃 PSS 与 USS",
+    "双语言、双主题、1280×720 与 960×600 三列详情布局",
+    "指标刷新保留控件、动作焦点和列表滚动",
+    "Linux pidfd 真实子进程终止测试"
+  ]
+}

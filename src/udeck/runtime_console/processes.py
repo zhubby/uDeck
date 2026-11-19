@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖 Linux proc、进程启动时刻与 pidfd 信号。
-[OUTPUT]: 提供身份验证、整机快照、应用资源聚合和进程树终止。
+[INPUT]: 依赖 Linux proc、按目标读取的 smaps_rollup 与 pidfd 信号。
+[OUTPUT]: 提供身份验证、整机快照、应用 PSS/RSS/独占内存和进程树终止。
 [POS]: Console 的无 Qt 数据层；不以进程名推断应用归属。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -91,7 +91,25 @@ def partition(snapshot, roots):
     return groups
 
 
-def measure(current, previous, roots):
+def _read_memory(identity, proc):
+    try:
+        values = {}
+        for line in (Path(proc) / str(identity.pid) / "smaps_rollup").read_text().splitlines():
+            name, _, value = line.partition(":")
+            if name in ("Pss", "Private_Clean", "Private_Dirty"):
+                amount, unit = value.split()
+                amount = int(amount)
+                if amount < 0 or unit != "kB":
+                    raise ValueError("Invalid memory counter")
+                values[name] = amount * 1024
+        if read_process(identity.pid, proc).identity != identity:
+            return None, None
+        return values["Pss"], values["Private_Clean"] + values["Private_Dirty"]
+    except (OSError, ValueError, IndexError, KeyError):
+        return None, None
+
+
+def measure(current, previous, roots, *, proc=Path("/proc")):
     denominator = current.total_ticks - previous.total_ticks if previous else 0
     result = {}
     for key, members in partition(current, roots).items():
@@ -102,9 +120,13 @@ def measure(current, previous, roots):
             old = previous.processes.get(process.identity.pid) if previous else None
             if old and old.identity == process.identity:
                 delta += max(0, process.ticks - old.ticks)
+        memory = [_read_memory(process.identity, proc) for process in members] if valid else []
+        complete = valid and all(pss is not None for pss, _private in memory)
         result[key] = {
             "cpuPercent": min(100.0, delta * 100 / denominator) if valid and denominator > 0 else None,
-            "memoryBytes": sum(p.rss for p in members) if valid else None,
+            "memoryBytes": sum(pss for pss, _private in memory) if complete else None,
+            "memoryRssBytes": sum(p.rss for p in members) if valid else None,
+            "memoryPrivateBytes": sum(private for _pss, private in memory) if complete else None,
             "uptimeSeconds": max(0, current.uptime - roots[key].start / current.ticks_per_second) if valid else None,
             "members": [p.identity for p in members],
         }
