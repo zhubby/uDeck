@@ -22,6 +22,7 @@ from shiboken6 import delete
 from udeck.app_routing import APP_IDS, object_path, service_name
 from udeck.apps import __version__
 from udeck.apps.common.library import EXTENSIONS
+from udeck.build_info import snapshot as build_snapshot
 from udeck.core import ConfigStore
 from udeck.i18n import Msg, tr
 from udeck.icons import IconProvider
@@ -155,9 +156,11 @@ class AppControl(QObject):
     @Slot(result=str)
     def Diagnose(self):
         return json.dumps({"app": self.controller.app, "version": __version__,
+                           "build": build_snapshot(),
                            "uptime": round(time.monotonic() - self.started, 2),
                            "qmlErrors": self.errors,
                            "performance": self.trace.snapshot(),
+                           "returnToHome": self.controller.return_trace.snapshot(),
                            "state": json.loads(self.controller.snapshotJson)}, ensure_ascii=False)
 
     @Slot(int, bool)
@@ -275,6 +278,8 @@ def main(argv=None, *, options=None, trace=None):
     trace.mark('qmlReady')
     window.frameSwapped.connect(trace.frame_swapped)
     window.activeChanged.connect(lambda: trace.active_changed(window.isActive()))
+    window.activeChanged.connect(lambda: controller.return_trace.mark('focusReleased')
+                                 if not window.isActive() else None)
     try:
         trace.graphics_api = window.rendererInterface().graphicsApi().name
     except (AttributeError, RuntimeError):

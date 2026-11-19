@@ -1,0 +1,58 @@
+# [INPUT]: 依赖 push/PR 源码、固定 uv 与 Debian 测试依赖。
+# [OUTPUT]: 校验版本、Ruff 和逐文件隔离的 pytest，保留失败证据。
+# [POS]: 日常验证工作流；不构建或发布 deb。
+# [PROTOCOL]: Update this header on change, then check AGENTS.md
+name: Check uDeck
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up pinned uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: "0.13.7"
+          enable-cache: true
+      - name: Check version, lock and lint
+        run: |
+          uv python install
+          uv lock --check
+          uv sync --locked --extra dev
+          uv run --locked --extra dev python tools/build-release --check-version
+          uv run --locked --extra dev ruff check src tests tools tools/build-release tools/test-suite
+      - name: Prepare Debian test environment
+        run: docker build -f tools/debian-build.Dockerfile -t udeck-checks .
+      - name: Run file-isolated Qt regression
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/workspace" udeck-checks \
+            python3 tools/build-terminal-plugin
+          docker run --rm \
+            -e UDECK_TERMINAL_PLUGIN_PATH=/workspace/build/terminal-plugin \
+            -e UDECK_REQUIRE_NATIVE=1 \
+            -v "$GITHUB_WORKSPACE:/workspace" udeck-checks \
+            dbus-run-session -- python3 tools/test-suite --output artifacts/ci-tests
+      - name: Preserve test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: test-results-${{ github.sha }}
+          path: artifacts/ci-tests/
+          if-no-files-found: warn
+          retention-days: 14

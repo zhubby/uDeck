@@ -1,4 +1,9 @@
-"""Native PDF rendering and isolated EPUB/MOBI/TXT reading sessions."""
+"""
+[INPUT]: 依赖共享应用生命周期、Qt PDF 和隔离文档服务。
+[OUTPUT]: 提供 PDF 图像、文档导航、阅读进度与桌面返回。
+[POS]: 阅读器控制边界；返回桌面前保存阅读进度。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import json
 import math
@@ -259,7 +264,7 @@ class ReaderController(AppController):
             self.save_position()
             self.persist()
             self.close_document()
-        super().back()
+        return super().back()
 
     def context(self):
         if self.page != "document":

@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实桌面 QML、隔离后端与可控导航序列。
-[OUTPUT]: 验证切页、滚动、焦点尺寸、模型刷新和补位连续性。
+[OUTPUT]: 验证同步发布、初始几何、滚动改向与补位连续性。
 [POS]: 独立进程探针；只操作临时配置与测试窗口。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -9,6 +9,7 @@ import json
 import os
 import shutil
 import sys
+import time
 from pathlib import Path
 
 from PySide6.QtCore import QPointF, Qt, QUrl
@@ -32,6 +33,28 @@ def visual(owner, name):
             return item
         pending.extend(item.childItems())
     raise AssertionError(("missing visual", name))
+
+
+def wait_for_initial_layout(window, application):
+    previous = None
+    stable_since = time.monotonic()
+    deadline = stable_since + 5
+    while time.monotonic() < deadline:
+        application.processEvents()
+        name = "itemList" if window.property("renderedPage") == "settings" else "homeStrip"
+        strip = visual(window, name)
+        item = strip.property("currentItem")
+        signature = (window.width(), window.height(), strip.width(), strip.height(),
+                     strip.property("contentX"), strip.property("contentY"),
+                     strip.property("contentWidth"), strip.property("contentHeight"),
+                     strip.property("currentIndex"), (item.x(), item.y()) if item else None)
+        now = time.monotonic()
+        if signature != previous:
+            previous, stable_since = signature, now
+        if strip.width() > 0 and strip.height() > 0 and item is not None and now - stable_since >= .15:
+            return
+        QTest.qWait(10)
+    raise AssertionError(("初始布局没有稳定", previous))
 
 
 def run():
@@ -66,8 +89,46 @@ def run():
     window = engine.rootObjects()[0]
     fixture = None
     try:
-        QTest.qWait(220)
-        if case == "page":
+        wait_for_initial_layout(window, application)
+        if case == "publication":
+            for page, surface_name, model_name in (("apps", "applicationGrid", "itemModel"), ("settings", "itemList", "settingsModel")):
+                controller.setPage(page)
+                assert window.property("renderedPage") == page, ("页面发布遗留到下一轮事件", page, window.property("renderedPage"))
+                model = window.property(model_name).toVariant()
+                assert len(model) == len(controller._items()), ("页面可见时模型未就绪", page, len(model))
+                assert visual(window, surface_name).isVisible()
+            controller.setPage("home")
+            assert window.property("renderedPage") == "home"
+            controller.dispatch("quick-settings")
+            shade = visual(window, "modalShade")
+            assert shade.property("shown") and shade.property("lastDialog") == controller.modal["key"], "弹窗显示和内容同步分属不同事件"
+        elif case == "initial-geometry":
+            engine.loadData(("""
+                import QtQuick
+                import "@SHARED@" as Shared
+                Item {
+                    width: 500; height: 200
+                    property alias viewportWidth: listing.width
+                    property alias scrollX: listing.contentX
+                    ListView {
+                        id: listing; width: -56; height: 100
+                        orientation: ListView.Horizontal; spacing: 18
+                        leftMargin: 12; rightMargin: 12
+                        model: 7; currentIndex: 0
+                        highlightFollowsCurrentItem: false
+                        interactive: false; cacheBuffer: 1200
+                        delegate: Item { width: 180; height: 100 }
+                    }
+                    Shared.SelectionViewport { view: listing }
+                }
+            """.replace("@SHARED@", QUrl.fromLocalFile(str(Path(main.__file__).parent / "qml")).toString())).encode(), QUrl())
+            fixture = engine.rootObjects()[-1]
+            QTest.qWait(40)
+            assert abs(fixture.property("scrollX") + 12) < 0.1, ("布局未就绪时移动了滚动位置", fixture.property("scrollX"))
+            fixture.setProperty("viewportWidth", 1190)
+            QTest.qWait(40)
+            assert abs(fixture.property("scrollX") + 12) < 0.1
+        elif case == "page":
             controller.setPage("apps")
             QTest.qWait(180)
             controller.setPage("windows")

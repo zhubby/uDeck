@@ -42,6 +42,13 @@ def test_a_swap_of_old_animation_state_is_not_a_response_to_new_input():
     assert result['inputResults'][0]['firstPresentationMs'] == pytest.approx(40)
 
 
+def test_page_marker_cannot_credit_a_frame_before_the_content_is_ready():
+    early = {**frame(1.002, index=1), 'ready': False}
+    visible = {**frame(1.040, index=1), 'ready': True}
+    result = motion.analyze_timeline([command(1, 1)], [early, visible], 60)
+    assert result['inputResults'][0]['firstPresentationMs'] == pytest.approx(40)
+
+
 def test_rapid_reversal_does_not_credit_a_later_return_to_a_skipped_selection():
     commands = [command(1, 1), command(1.02, 0), command(1.04, 1)]
     result = motion.analyze_timeline(commands, [frame(1.03, index=0), frame(1.05, index=1)], 60)

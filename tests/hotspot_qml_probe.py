@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖隔离热点状态、真实弹窗和 Qt 布局过渡。
-[OUTPUT]: 验证过渡后的窗口边界、状态图标和按键导航。
+[OUTPUT]: 验证窗口边界、密码输入与显示、状态图标和按键导航。
 [POS]: 热点界面的离屏探针，不修改设备网络。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -119,11 +119,14 @@ def run():
         controller.editText("uDeck Pocket")
         controller.dispatch("accept")
         invalid_password = "psk!42"
-        controller.editText(invalid_password)
+        editor = next(item for item in window.findChildren(QQuickItem) if item.property("displayText") is not None)
+        QTest.keyClick(window, Qt.Key.Key_A, Qt.KeyboardModifier.ControlModifier)
+        for character in invalid_password:
+            QTest.keyClick(window, character)
+        assert editor.property("text") == controller.modal["text"] == invalid_password
         controller.dispatch("accept")
         assert controller.modal["error"]
         capture("password-validation")
-        editor = next(item for item in window.findChildren(QQuickItem) if item.property("displayText") is not None)
         assert editor.property("displayText") != invalid_password
         QTest.keyClick(window, Qt.Key.Key_F10)
         QTest.qWait(30)

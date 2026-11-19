@@ -1,11 +1,17 @@
-"""Inspect battery details rendered by the real launcher using safe fixture data."""
+"""
+[INPUT]: 依赖真实电池弹窗、隔离测量数据与 Qt 布局终态。
+[OUTPUT]: 等待面板几何完成，验证测量刷新、文字与边界。
+[POS]: 电池弹窗的独立离屏探针，不读取实机电池。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import argparse
 import json
 import tempfile
+import time
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QUrl
+from PySide6.QtCore import QEventLoop, QObject, Qt, QTimer, QUrl
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine, QQmlEngine, QQmlExpression
 from PySide6.QtTest import QTest
@@ -50,6 +56,27 @@ def run():
     owner = controller.modal["key"]
     reports = []
 
+    def wait_for_dialog():
+        panel = window.findChild(QObject, "dialogPanel")
+        shade = window.findChild(QObject, "modalShade")
+        deadline, settled_since = time.monotonic() + 2, None
+        while time.monotonic() < deadline:
+            loop = QEventLoop()
+            QTimer.singleShot(10, loop.quit)
+            loop.exec()
+            settled = (panel.property("geometryReady") and not panel.property("resizing")
+                       and abs(panel.property("width") - panel.property("targetWidth")) < 0.1
+                       and abs(panel.property("height") - panel.property("targetHeight")) < 0.1
+                       and shade.property("opacity") >= 0.999)
+            if not settled:
+                settled_since = None
+            elif settled_since is None:
+                settled_since = time.monotonic()
+            elif time.monotonic() - settled_since >= 0.04:
+                return
+        raise AssertionError(("电池弹窗未达到稳定终态", panel.property("width"), panel.property("height"),
+                              panel.property("targetWidth"), panel.property("targetHeight")))
+
     def inspect():
         expression = QQmlExpression(QQmlEngine.contextForObject(window), window, """
             JSON.stringify((function() {
@@ -76,7 +103,7 @@ def run():
 
     def capture(name, state, expected):
         controller.backend.updated.emit({"battery": state})
-        QTest.qWait(100)
+        wait_for_dialog()
         assert controller.modal["key"] == owner
         report = inspect()
         assert [item["text"] for item in report["values"]] == expected, report

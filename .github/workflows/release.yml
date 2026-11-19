@@ -50,7 +50,7 @@ jobs:
           uv python install
           uv lock --check
           uv sync --locked --extra dev
-          uv run --locked --extra dev ruff check src tests tools tools/build-release
+          uv run --locked --extra dev ruff check src tests tools tools/build-release tools/test-suite
       - name: Prepare Debian 13 builder
         run: docker build -f tools/debian-build.Dockerfile -t udeck-debian-builder .
       - name: Build the package and matching source
@@ -61,10 +61,37 @@ jobs:
             python3 tools/build-release --tag "$RELEASE_TAG" --output dist/release
       - name: Prepare clean installation environment
         run: docker build -f tools/debian-test.Dockerfile -t udeck-debian-test .
-      - name: Verify clean install, defaults, remove and reinstall
+      - name: Find previous published release
+        id: previous
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/releases?per_page=100" > "$RUNNER_TEMP/udeck-releases.json"
+          previous_tag="$(python3 tools/build-release --previous-release-from "$RUNNER_TEMP/udeck-releases.json")"
+          echo "tag=$previous_tag" >> "$GITHUB_OUTPUT"
+      - name: Download previous release package
+        if: steps.previous.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIOUS_TAG: ${{ steps.previous.outputs.tag }}
+        run: |
+          mkdir -p dist/previous
+          gh release download "$PREVIOUS_TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern "udeck_${PREVIOUS_TAG#v}_arm64.deb" --pattern SHA256SUMS --dir dist/previous
+          (cd dist/previous && sha256sum --check --ignore-missing SHA256SUMS)
+      - name: Verify install, upgrade, rollback and configuration preservation
+        env:
+          PREVIOUS_TAG: ${{ steps.previous.outputs.tag }}
+        run: |
+          arguments=()
+          if [ -n "$PREVIOUS_TAG" ]; then
+            previous_package="dist/previous/udeck_${PREVIOUS_TAG#v}_arm64.deb"
+            test -f "$previous_package"
+            arguments=(--previous "/workspace/$previous_package")
+          fi
           docker run --rm -v "$GITHUB_WORKSPACE:/workspace:ro" \
-            udeck-debian-test python3 /workspace/tests/debian_package_probe.py /workspace/dist/release
+            udeck-debian-test python3 /workspace/tests/debian_package_probe.py \
+              /workspace/dist/release "${arguments[@]}"
       - name: Keep verified build artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-[INPUT]: 依赖唯一源码版本、Debian 工具链、安装资源和 Git 身份。
-[OUTPUT]: 校验稳定版本与包元数据，输出 deb、源码、安装套件和校验清单。
+[INPUT]: 依赖源码版本、分页发行记录、冻结的 Debian 输入和 Git 身份。
+[OUTPUT]: 校验版本和身份，隔离构建身份变量并输出包与构建清单。
 [POS]: 本地和 Release 共用的 arm64 构建入口；原生测试由 debian/rules 执行。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -9,6 +9,7 @@
 import argparse
 import ast
 import hashlib
+import io
 import json
 import os
 import re
@@ -19,13 +20,91 @@ import tempfile
 from email.parser import Parser
 from pathlib import Path
 
+IDENTITY_FILE = Path('src/udeck/_build_identity.py')
+STABLE_VERSION = r'(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)'
+SOURCE_ROOT_IGNORES = {'.git', '.venv', 'artifacts', 'build', 'dist'}
+SOURCE_CACHE_IGNORES = {'__pycache__', '.pytest_cache', '.ruff_cache'}
+SOURCE_PATH_IGNORES = {Path('docs/uconsole')}
+
+
+def source_identity(root, source, version):
+    """Hash the frozen source independently of archive timestamps and Git availability."""
+    content = hashlib.sha256()
+    files = 0
+    for path in sorted(source.rglob('*')):
+        relative = path.relative_to(source)
+        if (relative == IDENTITY_FILE or any(relative == ignored or ignored in relative.parents for ignored in SOURCE_PATH_IGNORES)
+                or relative.parts[0] in SOURCE_ROOT_IGNORES or any(part in SOURCE_CACHE_IGNORES for part in relative.parts)
+                or any(part.endswith('.egg-info') for part in relative.parts)
+                or path.name.startswith('._') or path.suffix == '.pyc'):
+            continue
+        if path.is_symlink():
+            kind, value = 'link', os.readlink(path).encode()
+        elif path.is_file():
+            kind, value = 'file', path.read_bytes()
+        else:
+            continue
+        executable = bool(path.lstat().st_mode & 0o111)
+        content.update(relative.as_posix().encode() + b'\0' + kind.encode() + b'\0')
+        content.update(str(int(executable)).encode() + b'\0' + hashlib.sha256(value).digest())
+        files += 1
+    git_arguments = ['git', '-c', f'safe.directory={root}']
+    try:
+        git = subprocess.run([*git_arguments, 'rev-parse', 'HEAD'], cwd=root, text=True, capture_output=True, check=False)
+        revision = git.stdout.strip() if git.returncode == 0 else None
+        dirty = bool(subprocess.check_output([*git_arguments, 'status', '--porcelain'], cwd=root, text=True)) if revision else None
+    except FileNotFoundError:
+        revision = dirty = None
+    supplied_revision = os.environ.get('UDECK_SOURCE_REVISION')
+    supplied_dirty = os.environ.get('UDECK_SOURCE_DIRTY')
+    if supplied_revision is not None or supplied_dirty is not None:
+        if (supplied_revision is None or supplied_dirty not in {'true', 'false'}
+                or not re.fullmatch(r'[0-9a-fA-F]{40,64}', supplied_revision)):
+            raise ValueError('Supplied source identity requires a full Git revision and true/false dirty flag')
+        if revision and revision != supplied_revision:
+            raise ValueError('Supplied source revision does not match the build checkout')
+        revision, dirty = supplied_revision, supplied_dirty == 'true'
+    identity = {'schema': 1, 'recorded': True, 'version': version, 'sourceRevision': revision,
+                'sourceDirty': dirty, 'sourceContentSha256': content.hexdigest(), 'sourceFileCount': files}
+    identity['buildId'] = hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+    return identity
+
+
+def stamp_identity(source, identity):
+    target = source / IDENTITY_FILE
+    target.write_text('"""\n[INPUT]: 构建器冻结的源码身份。\n'
+                      '[OUTPUT]: 提供包内 BUILD_IDENTITY 常量。\n'
+                      '[POS]: 自动生成载荷；不在运行时查询 Git。\n'
+                      '[PROTOCOL]: Update this header on change, then check AGENTS.md\n"""\n\n'
+                      'BUILD_IDENTITY = ' + repr(identity) + '\n')
+
+
+def package_identity(package):
+    data = subprocess.check_output(['dpkg-deb', '--fsys-tarfile', str(package)])
+    with tarfile.open(fileobj=io.BytesIO(data)) as archive:
+        name = './usr/lib/python3/dist-packages/udeck/_build_identity.py'
+        member = next((item for item in archive if item.name.removeprefix('./') == name.removeprefix('./')), None)
+        if member is None:
+            raise ValueError('Package is missing its frozen-source build identity')
+        try:
+            if not member.isfile():
+                raise ValueError('Package build identity is not a regular file')
+            module = ast.parse(archive.extractfile(member).read().decode())
+            identity = next(ast.literal_eval(node.value) for node in module.body
+                            if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == 'BUILD_IDENTITY'
+                                                                  for target in node.targets))
+        except (AttributeError, UnicodeDecodeError, SyntaxError, ValueError, StopIteration) as error:
+            raise ValueError('Package has an invalid frozen-source build identity') from error
+        if not isinstance(identity, dict):
+            raise ValueError('Package build identity must be a dictionary')
+        return identity
+
 
 def release_version(root, tag=None):
     module = ast.parse((root / "src/udeck/__init__.py").read_text())
     version = next(ast.literal_eval(node.value) for node in module.body
                    if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == "__version__" for target in node.targets))
-    component = r"(?:0|[1-9][0-9]*)"
-    if not isinstance(version, str) or not re.fullmatch(rf"{component}\.{component}\.{component}", version):
+    if not isinstance(version, str) or not re.fullmatch(STABLE_VERSION, version):
         raise ValueError("Release version must use the stable X.Y.Z format")
     if tag is not None and tag != "v" + version:
         raise ValueError(f"Release tag must be v{version}; received {tag!r}")
@@ -33,6 +112,23 @@ def release_version(root, tag=None):
     if not first_line.startswith(f"udeck ({version}) "):
         raise ValueError("debian/changelog must match the source release version")
     return version
+
+
+def previous_release(pages, version):
+    """Select the greatest lower stable version with a complete verified bundle."""
+    current = tuple(map(int, version.split('.')))
+    candidates = []
+    for page in pages:
+        for release in page:
+            tag = release.get('tag_name', '')
+            if release.get('draft') or release.get('prerelease') or not re.fullmatch('v' + STABLE_VERSION, tag):
+                continue
+            value = tag[1:]
+            number = tuple(map(int, value.split('.')))
+            assets = {item['name'] for item in release.get('assets', []) if item.get('state') == 'uploaded'}
+            if number < current and {f'udeck_{value}_arm64.deb', 'SHA256SUMS'} <= assets:
+                candidates.append((number, tag))
+    return max(candidates)[1] if candidates else ''
 
 
 def sha256sums(directory):
@@ -52,7 +148,7 @@ def package_metadata(package, version):
             "sha256": hashlib.sha256(package.read_bytes()).hexdigest()}
 
 
-def assemble(root, built, output, version, tag=None):
+def assemble(root, built, output, version, tag=None, identity=None):
     binaries = [f"udeck_{version}_arm64.deb"]
     expected = list(binaries)
     expected += [f"udeck_{version}.{suffix}" for suffix in ("dsc", "tar.xz")]
@@ -71,12 +167,13 @@ def assemble(root, built, output, version, tag=None):
     shutil.copy2(root / "packaging/samba-install-guard", output / "samba-install-guard")
     shutil.copy2(root / "docs/udeck/debian-distribution.md", output / "INSTALL.md")
     shutil.copy2(root / "debian/control", output / "DEPENDENCIES.debian-control")
-    git_arguments = ["git", "-c", f"safe.directory={root}"]
-    git = subprocess.run([*git_arguments, "rev-parse", "HEAD"], cwd=root, text=True, capture_output=True, check=False)
-    revision = git.stdout.strip() if git.returncode == 0 else None
-    dirty = bool(subprocess.check_output([*git_arguments, "status", "--porcelain"], cwd=root, text=True)) if revision else None
+    identity = identity or source_identity(root, root, version)
     packages = [package_metadata(output / name, version) for name in binaries]
-    manifest = {"version": version, "releaseTag": tag, "gitRevision": revision, "gitDirty": dirty, "architecture": "arm64",
+    for name in binaries:
+        if package_identity(output / name) != identity:
+            raise ValueError('Package build identity does not match the frozen source')
+    manifest = {"version": version, "releaseTag": tag, "gitRevision": identity['sourceRevision'], "gitDirty": identity['sourceDirty'],
+                "buildIdentity": identity, "architecture": "arm64",
                 "target": "uConsole CM4 v3.1 / Debian 13 (trixie)", "packages": packages,
                 "physicalAcceptance": "Not established by this build; see INSTALL.md"}
     (output / "build-manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
@@ -92,16 +189,28 @@ def assemble(root, built, output, version, tag=None):
     sha256sums(output)
 
 
+def build_package(source):
+    environment = dict(os.environ)
+    for name in ('UDECK_SOURCE_REVISION', 'UDECK_SOURCE_DIRTY'):
+        environment.pop(name, None)
+    subprocess.run(['dpkg-buildpackage', '--build=full', '--no-sign'],
+                   cwd=source, check=True, env=environment)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tag", help="Published release tag, exactly vX.Y.Z")
     parser.add_argument("--output", type=Path, default=Path("dist/release"))
     parser.add_argument("--check-version", action="store_true")
+    parser.add_argument('--previous-release-from', type=Path, help='Select a previous tag from paginated GitHub release JSON')
     options = parser.parse_args(argv)
     root = Path(__file__).resolve().parents[1]
     version = release_version(root, options.tag)
     if options.check_version:
         print(version)
+        return 0
+    if options.previous_release_from:
+        print(previous_release(json.loads(options.previous_release_from.read_text()), version))
         return 0
     if options.output.exists() and any(options.output.iterdir()):
         raise ValueError(f"Use an empty output directory to prevent mixing releases: {options.output}")
@@ -118,8 +227,13 @@ def main(argv=None):
             shutil.copytree(root / name, source / name, ignore=ignored)
         for name in ("AGENTS.md", "README.md", "pyproject.toml", "uv.lock", ".python-version", "LICENSE"):
             shutil.copy2(root / name, source / name)
-        subprocess.run(["dpkg-buildpackage", "--build=full", "--no-sign"], cwd=source, check=True)
-        assemble(root, built, options.output.resolve(), version, options.tag)
+        module_map = source / 'src/udeck/AGENTS.md'
+        module_map.write_text(module_map.read_text().replace('__init__.py:',
+                              '_build_identity.py: 构建器生成的源码提交、内容摘要与包身份。\n__init__.py:', 1))
+        identity = source_identity(root, source, version)
+        stamp_identity(source, identity)
+        build_package(source)
+        assemble(root, built, options.output.resolve(), version, options.tag, identity)
     print(options.output.resolve())
     return 0
 

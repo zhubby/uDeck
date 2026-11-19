@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖窗口焦点、桌面输入授权、物理手柄和指针服务。
-[OUTPUT]: 提供设备接管、焦点后投递和有代次的单轮到期确认。
+[OUTPUT]: 提供设备接管、异步授权、焦点后投递和代次隔离。
 [POS]: 共享应用输入边界；后台停止查询，已授权路由接收桌面推送。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -8,7 +8,12 @@
 import json
 
 from PySide6.QtCore import QObject, QTimer
-from PySide6.QtDBus import QDBusConnection, QDBusInterface, QDBusMessage, QDBusServiceWatcher
+from PySide6.QtDBus import (
+    QDBusConnection,
+    QDBusMessage,
+    QDBusPendingCallWatcher,
+    QDBusServiceWatcher,
+)
 
 from udeck.input import Gamepad
 from udeck.pointer import PointerGuard
@@ -20,6 +25,7 @@ class AppInput(QObject):
         self.controller, self.app_id = controller, app_id
         self.foreground, self.routed, self.generation = False, False, -1
         self._closed, self.preparation_generation = False, 0
+        self._query_generation, self._query = 0, None
         self.gamepad = Gamepad(profile, self)
         self.gamepad.action.connect(self.dispatch)
         self.gamepad.status.connect(self._gamepad_status)
@@ -42,6 +48,7 @@ class AppInput(QObject):
         if self._closed:
             return
         self.generation, self.routed = -1, False
+        self._invalidate_query()
         self._expire_preparation()
         self.sync()
 
@@ -96,6 +103,7 @@ class AppInput(QObject):
         self.preparation_generation += 1
         self.preparation.stop()
         self._prepared_present = None
+        self._invalidate_query()
         self.foreground, self.routed = active, False
         self.gamepad.set_delivery_enabled(active)
         self.gamepad.set_foreground(active)
@@ -104,15 +112,45 @@ class AppInput(QObject):
         else:
             self.timer.stop()
             self.pointer.close()
+            if hasattr(self.controller, 'return_trace'):
+                self.controller.return_trace.mark('inputReleased')
 
     def sync(self):
-        if not self.foreground:
+        if self._closed or not self.foreground or self._query is not None:
             return
-        remote = QDBusInterface("io.github.zhubby.uDeck", "/io/github/zhubby/uDeck",
-                                "io.github.zhubby.uDeck.Control", QDBusConnection.sessionBus())
-        broker = False
-        if remote.isValid():
-            reply = remote.call("NativeInputState", self.app_id)
+        message = QDBusMessage.createMethodCall('io.github.zhubby.uDeck',
+            '/io/github/zhubby/uDeck', 'io.github.zhubby.uDeck.Control', 'NativeInputState')
+        message.setArguments([self.app_id])
+        generation = self._query_generation
+        route_generation = self.generation
+        watcher = QDBusPendingCallWatcher(QDBusConnection.sessionBus().asyncCall(message, 1000), self)
+        self._query = watcher
+        watcher.finished.connect(lambda _watcher: self._query_finished(
+            watcher, generation, route_generation))
+        if watcher.isFinished():
+            self._query_finished(watcher, generation, route_generation)
+
+    def _invalidate_query(self):
+        self._query_generation += 1
+        if self._query is not None:
+            self._query.deleteLater()
+            self._query = None
+
+    def _query_finished(self, watcher, generation, route_generation):
+        if watcher is not self._query:
+            return
+        self._query = None
+        watcher.deleteLater()
+        if self._closed or not self.foreground or generation != self._query_generation:
+            return
+        if route_generation != self.generation:
+            if self.routed:
+                self.timer.stop()
+                self.pointer.close()
+            return
+        broker = self.routed
+        if not watcher.isError():
+            reply = watcher.reply()
             if reply.type() != QDBusMessage.MessageType.ErrorMessage and reply.arguments():
                 try:
                     state = json.loads(reply.arguments()[0])
@@ -154,6 +192,7 @@ class AppInput(QObject):
         if self._closed:
             return
         self._closed = True
+        self._invalidate_query()
         self.preparation_generation += 1
         self.foreground, self.routed = False, False
         self.preparation.stop()

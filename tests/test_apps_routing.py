@@ -26,6 +26,33 @@ from udeck.compatibility import application_profile
 from udeck.terminal_routing import SuiteInputBroker
 
 
+class PendingQuery(QObject):
+    finished = Signal(object)
+
+    def __init__(self, pending, parent):
+        super().__init__(parent)
+        self.state, self.ready = pending
+
+    def isFinished(self):
+        return self.ready
+
+    def isError(self):
+        return False
+
+    def reply(self):
+        import json
+        return SimpleNamespace(type=lambda: input_module.QDBusMessage.MessageType.ReplyMessage,
+                               arguments=lambda: [json.dumps(self.state)])
+
+
+class BrokerWatcher(QObject):
+    WatchModeFlag = input_module.QDBusServiceWatcher.WatchModeFlag
+    serviceOwnerChanged = Signal(str, str, str)
+
+    def __init__(self, *_args):
+        super().__init__()
+
+
 class Windows(QObject):
     changed = Signal(list)
     failed = Signal(str)
@@ -182,20 +209,15 @@ def native_inputs(monkeypatch):
     queries = []
     state = {'available': True, 'generation': 2, 'enabled': True}
 
-    class Remote:
-        def __init__(self, *args):
-            queries.append('interface')
+    def send(message, timeout):
+        queries.extend(['interface', 'state'])
+        assert message.member() == 'NativeInputState' and timeout == 1000
+        return dict(state), True
 
-        def isValid(self):
-            return True
-
-        def call(self, *args):
-            import json
-            queries.append('state')
-            return SimpleNamespace(type=lambda: input_module.QDBusMessage.MessageType.ReplyMessage,
-                                   arguments=lambda: [json.dumps(state)])
-
-    monkeypatch.setattr(input_module, 'QDBusInterface', Remote)
+    monkeypatch.setattr(input_module, 'QDBusConnection', SimpleNamespace(
+        sessionBus=lambda: SimpleNamespace(asyncCall=send)))
+    monkeypatch.setattr(input_module, 'QDBusPendingCallWatcher', PendingQuery)
+    monkeypatch.setattr(input_module, 'QDBusServiceWatcher', BrokerWatcher)
     controller = QObject()
     controller.window = SimpleNamespace(isActive=lambda: True)
     controller.dispatch = lambda action: None
@@ -245,20 +267,11 @@ def prepared_gamepad(monkeypatch, tmp_path):
                 os.close(self.fd)
                 os.close(self.writer)
 
-    class Remote:
-        def __init__(self, *_arguments):
-            pass
-
-        def isValid(self):
-            return True
-
-        def call(self, *_arguments):
-            import json
-            return SimpleNamespace(type=lambda: input_module.QDBusMessage.MessageType.ReplyMessage,
-                arguments=lambda: [json.dumps({'available': True, 'generation': 1, 'enabled': True})])
-
     monkeypatch.setattr(gamepad_module, 'sys', SimpleNamespace(platform='linux'))
-    monkeypatch.setattr(input_module, 'QDBusInterface', Remote)
+    monkeypatch.setattr(input_module, 'QDBusPendingCallWatcher', PendingQuery)
+    monkeypatch.setattr(input_module, 'QDBusConnection', SimpleNamespace(sessionBus=lambda:
+        SimpleNamespace(asyncCall=lambda *_args: ({'available': True, 'generation': 1, 'enabled': True}, True))))
+    monkeypatch.setattr(input_module, 'QDBusServiceWatcher', BrokerWatcher)
     monkeypatch.setitem(sys.modules, 'evdev', SimpleNamespace(InputDevice=Device,
         list_devices=lambda: ['/dev/input/event7'],
         ecodes=SimpleNamespace(EV_KEY=1, EV_SYN=0, EV_ABS=3, SYN_DROPPED=3, BTN_MISC=256)))
@@ -450,6 +463,40 @@ def test_standalone_fallback_retries_only_while_foreground(native_inputs, monkey
     assert not inputs.timer.isActive() and queries == ['interface', 'state']
 
 
+def test_pending_authorization_never_blocks_or_overlaps_and_ignores_old_focus(native_inputs, monkeypatch):
+    inputs, queries, state = native_inputs
+    pending = []
+
+    class DelayedQuery(PendingQuery):
+        def __init__(self, request, parent):
+            super().__init__((request[0], False), parent)
+            pending.append(self)
+
+    monkeypatch.setattr(input_module, 'QDBusPendingCallWatcher', DelayedQuery)
+    inputs.set_foreground(True)
+    assert not inputs.routed and len(pending) == 1
+    inputs.sync()
+    assert len(queries) == 2
+    heartbeat = []
+    QTimer.singleShot(0, lambda: heartbeat.append(True))
+    QCoreApplication.processEvents()
+    assert heartbeat == [True]
+    inputs.set_foreground(False)
+    inputs.set_foreground(True)
+    assert len(pending) == 2
+    pending[0].finished.emit(pending[0])
+    assert not inputs.routed and inputs._query is pending[1]
+    inputs.route(3, False)
+    pending[1].finished.emit(pending[1])
+    assert inputs.generation == 3 and not inputs.routed
+    inputs.sync()
+    inputs.route(4, True)
+    assert not inputs.pointer.timer.isActive()
+    pending[-1].finished.emit(pending[-1])
+    assert inputs.routed and inputs._query is None and not inputs.timer.isActive()
+    inputs.close()
+
+
 def test_library_back_requests_home_without_racing_window_minimization(tmp_path, monkeypatch):
     from udeck.apps.common import controller as controller_module
 
@@ -465,6 +512,26 @@ def test_library_back_requests_home_without_racing_window_minimization(tmp_path,
         assert not minimized and not controller._closed
     finally:
         controller.window = None
+        controller.close()
+    assert application
+
+
+def test_back_to_home_skips_rebuilding_the_background_application_view(tmp_path, monkeypatch):
+    from udeck.apps.common import controller as controller_module
+
+    application = QCoreApplication.instance() or QCoreApplication([])
+    controller = AppController('browser', tmp_path, tmp_path / 'settings.json')
+    requests, publications = [], []
+    connection = SimpleNamespace(asyncCall=lambda message: requests.append(message.member()))
+    monkeypatch.setattr(controller_module, 'QDBusConnection', SimpleNamespace(sessionBus=lambda: connection))
+    controller.publish = lambda: publications.append(True)
+    try:
+        controller.dispatch('back')
+        assert requests == ['Home']
+        assert publications == []
+        stages = controller.return_trace.snapshot()[-1]['stagesMs']
+        assert {'backRequested', 'requestSent', 'dispatchStateUpdated', 'dispatchPublished'} <= stages.keys()
+    finally:
         controller.close()
     assert application
 

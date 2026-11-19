@@ -1,7 +1,7 @@
 """
 [INPUT]: 依赖共享应用状态、库扫描与 Qt 导航信号。
-[OUTPUT]: 提供应用导航、桌面焦点请求、运行摘要与有序退出。
-[POS]: 独立应用控制器的公共生命周期与交互基类。
+[OUTPUT]: 提供导航、低成本桌面返回、有限阶段计时与有序退出。
+[POS]: 独立应用控制器基类；Home 交接跳过无用的库状态重建。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
@@ -18,6 +18,7 @@ from udeck.apps.common.state import AppState
 from udeck.core import ConfigStore, move_index
 from udeck.i18n import Msg, language_code, render, tr
 from udeck.i18n import translate as translate_message
+from udeck.performance import InteractionTrace
 from udeck.sounds import SoundFeedback, interaction
 from udeck.text_input import composing_action_blocked
 
@@ -44,6 +45,7 @@ class AppController(SoundFeedback):
         self.window = None
         self.inputs = None
         self.isolated = False
+        self.return_trace = InteractionTrace()
         self.page, self.tab, self.selected = "library", 0, ""
         self.columns = 3
         self.history, self.menus = [], []
@@ -339,8 +341,10 @@ class AppController(SoundFeedback):
     def back(self):
         if self.history:
             self.page, self.tab, self.folder, self.selected = self.history.pop()
+            return False
         else:
             self.desktop("Home")
+            return True
 
     def activate(self, row):
         if row.get("kind") == "folder":
@@ -387,7 +391,14 @@ class AppController(SoundFeedback):
             self.context()
         elif action == "back":
             self.feedback("back")
-            self.attempt(self.back)
+            if not self.history:
+                self.return_trace.begin()
+                self.return_trace.mark('backRequested')
+            returned_home = self.attempt(self.back)
+            if returned_home is True:
+                self.return_trace.mark('dispatchStateUpdated')
+                self.return_trace.mark('dispatchPublished')
+                return
         elif action in ("previous-tab", "next-tab"):
             self.setTab((self.tab + (-1 if action == "previous-tab" else 1)) % len(self.tabs()))
         elif action == "accept":
@@ -486,6 +497,8 @@ class AppController(SoundFeedback):
                                                  "io.github.zhubby.uDeck.Control", method)
         if not self.isolated:
             QDBusConnection.sessionBus().asyncCall(message)
+            if method == 'Home':
+                self.return_trace.mark('requestSent')
 
     @Slot(str)
     @interaction

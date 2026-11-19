@@ -1,6 +1,6 @@
 /*
 [INPUT]: 依赖 ListView/GridView 的当前代理、边界和可见状态。
-[OUTPUT]: 选择改变时立即停止旧滚动，再定位十二像素安全区。
+[OUTPUT]: 布局就绪后定位安全区，选择改变时立即停止旧滚动。
 [POS]: 焦点视图共用的滚动协调器；不改变选择或输入归属。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -30,6 +30,7 @@ Item {
     }
     function ensureVisible(immediate = false) {
         if (!ready || !active || !view || view.currentIndex < 0 || !view.count) return
+        if (view.width <= 0 || view.height <= 0) return
         let item = view.currentItem
         if (!item) {
             scroll.stop()

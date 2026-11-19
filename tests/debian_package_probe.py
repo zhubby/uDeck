@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Exercise real packages in a disposable Debian arm64 container (run as root)."""
+"""
+[INPUT]: 依赖真实 deb、匹配源码与独占 Debian arm64 容器。
+[OUTPUT]: 验证安装、同名升级回退、配置保留与包身份。
+[POS]: 发行包生命周期探针；禁止运行于正式设备。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import argparse
 import hashlib
@@ -19,6 +24,19 @@ def run(arguments, **options):
 def verify_packages(packages):
     result = run(["dpkg", "--verify", *packages], capture_output=True)
     assert not result.stdout.strip(), result.stdout
+
+
+def verify_payload(archive):
+    checked = 0
+    data = subprocess.check_output(['dpkg-deb', '--fsys-tarfile', str(archive)])
+    with tarfile.open(fileobj=io.BytesIO(data)) as stream:
+        for entry in stream:
+            if entry.isfile():
+                path = Path('/') / entry.name.removeprefix('./')
+                assert path.read_bytes() == stream.extractfile(entry).read(), path
+                checked += 1
+    assert checked
+    return checked
 
 
 def obsolete_installation(destination):
@@ -42,6 +60,7 @@ def obsolete_installation(destination):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("release", type=Path)
+    parser.add_argument('--previous', type=Path, help='Verified previous udeck deb for upgrade and rollback')
     options = parser.parse_args()
     release = options.release.resolve()
     if os.geteuid() != 0 or not Path("/.dockerenv").exists():
@@ -92,6 +111,18 @@ def main():
         if Path("/etc/samba/smb.conf") in preserved:
             assert Path("/etc/systemd/system/multi-user.target.wants/smbd.service").is_symlink()
 
+    def installed_identity():
+        return json.loads(subprocess.check_output(
+            ['python3', '-I', '-c', 'import json;from udeck.build_info import snapshot;print(json.dumps(snapshot()))'], text=True))
+
+    manifest = json.loads((release / 'build-manifest.json').read_text())
+
+    def current_identity():
+        identity = installed_identity()
+        assert identity == manifest['buildIdentity'], (identity, manifest['buildIdentity'])
+        assert identity['recorded'] is True and identity['version'] == version
+        return identity
+
     def defaults_enabled():
         assert terminal_selection() == ["Status: manual", "Value: /usr/bin/udeck-terminal"]
         assert system_list.read_text().splitlines()[0] == "io.github.zhubby.uDeck.Terminal.desktop"
@@ -116,8 +147,16 @@ def main():
             f"deb [trusted=yes] file:{repository} ./\n")
         version = subprocess.check_output(["dpkg-deb", "--field", str(packages["udeck"]), "Version"], text=True).strip()
         run(["apt-get", "update"])
+        if options.previous:
+            previous = options.previous.resolve()
+            assert subprocess.check_output(['dpkg-deb', '--field', str(previous), 'Package'], text=True).strip() == 'udeck'
+            run(['python3', str(release / 'samba-install-guard'), '--', 'apt-get', 'install', '-y',
+                 '--no-install-recommends', str(previous)])
+            unchanged()
+            verify_packages(['udeck'])
+            verify_payload(previous)
         # Ask for only udeck, with no recommendations masking required dependencies.
-        run(["python3", str(release / "samba-install-guard"), "--", "apt-get", "install", "-y", "--no-install-recommends", "udeck=" + version])
+        run(["python3", str(release / "samba-install-guard"), "--", "apt-get", "install", "-y", "--reinstall", "--no-install-recommends", "udeck=" + version])
         for unit in ("smbd", "nmbd"):
             assert not Path("/etc/systemd/system/multi-user.target.wants/" + unit + ".service").exists()
         for path in ("/usr/lib/systemd/system/udeck-smb.service", "/usr/lib/systemd/system/udeck-smb-manager.service",
@@ -139,7 +178,9 @@ def main():
             installed = subprocess.check_output(["dpkg-query", "-W", "-f=${Version}", name], text=True)
             assert installed == version
         run(["udeck-preflight", "--check-installed", "--json"])
+        identity = current_identity()
         verify_packages(packages)
+        verify_payload(packages['udeck'])
         info = json.loads(Path("/usr/share/udeck-terminal/build-info.json").read_text())
         plugin = Path("/usr/lib/udeck-terminal/qml/QMLTermWidget/libqmltermwidget.so")
         assert hashlib.sha256(plugin.read_bytes()).hexdigest() == info["pluginSha256"]
@@ -228,7 +269,30 @@ def main():
         run(["apt-get", "install", "-y", "--no-install-recommends", "udeck=" + version])
         unchanged()
         defaults_enabled()
+        current_identity()
+        lifecycle = {'previousPackage': None, 'upgradeRollback': 'not requested'}
+        if options.previous:
+            previous = options.previous.resolve()
+            previous_version = subprocess.check_output(['dpkg-deb', '--field', str(previous), 'Version'], text=True).strip()
+            previous_hash = hashlib.sha256(previous.read_bytes()).hexdigest()
+            run(['python3', str(release / 'samba-install-guard'), '--', 'apt-get', 'install', '-y',
+                 '--reinstall', '--allow-downgrades', '--no-install-recommends', str(previous)])
+            verify_packages(['udeck'])
+            verify_payload(previous)
+            unchanged()
+            defaults_enabled()
+            assert subprocess.check_output(['dpkg-query', '-W', '-f=${Version}', 'udeck'], text=True) == previous_version
+            run(['python3', str(release / 'samba-install-guard'), '--', 'apt-get', 'install', '-y',
+                 '--reinstall', '--allow-downgrades', '--no-install-recommends', str(packages['udeck'])])
+            verify_packages(['udeck'])
+            verify_payload(packages['udeck'])
+            unchanged()
+            defaults_enabled()
+            assert current_identity() == identity
+            lifecycle = {'previousPackage': {'version': previous_version, 'sha256': previous_hash},
+                         'upgradeRollback': 'previous install, current install, rollback, current reinstall passed'}
     print(json.dumps({"packageLifecycle": "passed", "installedSourceFilesChecked": checked,
+                      'buildIdentity': identity, **lifecycle,
                       "physicalAcceptance": "not checked"}))
 
 

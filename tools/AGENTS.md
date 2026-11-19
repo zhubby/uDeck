@@ -3,7 +3,8 @@
 
 benchmark-app-state.py: 控制器状态更新基准；不计 QML 解析和渲染。
 build-deb: shell 构建入口；委托 build-release 输出完整套件。
-build-release: 稳定版本门禁、arm64 构建、包元数据校验和发布归档。
+build-release: 稳定版本门禁、上一稳定包选择、构建身份环境隔离和发布归档。
+test-suite: 逐文件隔离 pytest；记录超时、JUnit 和汇总数据，不重试。
 build-terminal-plugin: 用匹配的 Qt 6.8 编译私有终端 QML 插件。
 configure-login.py: 登录配置的备份、应用与恢复。
 debian-build.Dockerfile: Debian 13 arm64 编译依赖与原生测试环境。

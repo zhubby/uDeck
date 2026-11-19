@@ -17,5 +17,7 @@ motion-continuity-2026-11-18.md: 连续输入、单次标题与弹窗中途关�
 motion-continuity-2026-11-18.json: 源码回归、同机独立渲染与正式进程保护的证据。
 motion-deployment-2026-11-19.md: 连续动效的正式安装、会话重建与外部输入验收。
 motion-deployment-2026-11-19.json: 安装包身份、正式桌面健康与原始证据摘要。
+responsiveness-roadmap-2026-11-19.md: 输入返回、QML 呈现、会话恢复和构建生命周期验证。
+responsiveness-roadmap-2026-11-19.json: 全套门禁、离屏对照、冻结源码与包生命周期的脱敏汇总。
 
 [PROTOCOL]: Update this header on change, then check AGENTS.md

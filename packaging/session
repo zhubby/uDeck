@@ -1,10 +1,15 @@
 #!/bin/sh
+# [INPUT]: 依赖 labwc 会话、输入法、授权代理和桌面监督器。
+# [OUTPUT]: 启动会话服务，退出时清理本会话创建的子进程。
+# [POS]: labwc 的会话入口；崩溃预算由 Python 监督器维护。
+# [PROTOCOL]: Update this header on change, then check AGENTS.md
 set -eu
 children=""
 shell_pid=""
 cleanup() {
     if [ -n "$shell_pid" ]; then
         kill "$shell_pid" 2>/dev/null || true
+        wait "$shell_pid" 2>/dev/null || true
     fi
     for child in $children; do
         kill "$child" 2>/dev/null || true
@@ -27,18 +32,9 @@ if ! pgrep -u "$(id -u)" -x lxpolkit >/dev/null; then
 fi
 swayidle -w timeout 600 "wlopm --off '*'" resume "wlopm --on '*'" &
 children="$children $!"
-attempt=0
-while [ "$attempt" -lt 3 ]; do
-    status=0
-    udeck &
-    shell_pid=$!
-    wait "$shell_pid" || status=$?
-    shell_pid=""
-    python3 -m udeck.session_config restore || true
-    if [ "$status" -eq 0 ]; then
-        exit 0
-    fi
-    attempt=$((attempt + 1))
-    sleep 1
-done
-exit 1
+status=0
+python3 -m udeck.session_supervisor &
+shell_pid=$!
+wait "$shell_pid" || status=$?
+shell_pid=""
+exit "$status"

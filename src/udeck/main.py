@@ -20,6 +20,7 @@ from PySide6.QtQml import QQmlApplicationEngine
 from shiboken6 import delete
 
 from . import __version__
+from .build_info import snapshot as build_snapshot
 from .console import ConsolePanel
 from .controller import ShellController
 from .core import ConfigStore
@@ -28,6 +29,7 @@ from .i18n import Msg, render, tr
 from .icons import IconProvider
 from .input import Gamepad
 from .mock import MockBackend
+from .performance import InteractionTrace
 from .pointer import PointerGuard
 from .qml_cache import configure_qml_cache
 from .sounds import InterfaceSounds
@@ -50,6 +52,7 @@ class Control(QObject):
         self.isolation = None
         self.console_panel = None
         self.shortcut_session = None
+        self.return_trace = InteractionTrace()
 
     @Slot()
     def Console(self):
@@ -58,9 +61,12 @@ class Control(QObject):
 
     @Slot()
     def Home(self):
+        self.return_trace.begin()
         if self.application_router:
             self.application_router.leave_menu()
+        self.return_trace.mark('menuReleased')
         self.controller.dispatch("home")
+        self.return_trace.mark('dispatched')
 
     @Slot()
     def Switcher(self):
@@ -138,6 +144,8 @@ class Control(QObject):
     def Diagnose(self):
         return json.dumps({
             "version": __version__, "mock": self.controller.mock,
+            "build": build_snapshot(),
+            "returnToHome": self.return_trace.snapshot(),
             "uptimeSeconds": round(time.monotonic() - self.started, 3),
             "firstFrameSeconds": self.first_frame,
             "startupFrameSeconds": self.startup_frame,
@@ -366,6 +374,15 @@ def main(argv=None):
             control.first_frame = round(time.monotonic() - started, 3)
 
     window.frameSwapped.connect(first_frame)
+    window.activeChanged.connect(lambda: control.return_trace.mark('windowActive')
+                                 if window.isActive() else None)
+    window.frameSwapped.connect(lambda: control.return_trace.mark('activeFrameSwapped')
+                               if window.isActive() else None)
+    controller.foregroundChanged.connect(lambda active: control.return_trace.mark('inputRoutingUpdated')
+                                        if active else None)
+    if gamepad:
+        gamepad.status.connect(lambda state: control.return_trace.mark('gamepadGrabbed')
+                               if state.get('grabbed') else None)
     window.frameSwapped.connect(controller.startupFrameSwapped)
     if windows:
         windows.start()

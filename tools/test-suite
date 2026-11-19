@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+"""
+[INPUT]: 依赖 pytest 文件、当前解释器与独立进程。
+[OUTPUT]: 逐文件执行测试，保留日志、JUnit 和完整失败汇总。
+[POS]: CI 与本地共用执行器；隔离 Qt 生命周期且不重试失败。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
+import argparse
+import json
+import os
+import signal
+import subprocess
+import sys
+import time
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+
+def terminate_group(process):
+    if process.poll() is not None:
+        return
+    if os.name == 'posix':
+        os.killpg(process.pid, signal.SIGKILL)
+    else:
+        process.kill()
+    process.wait()
+
+
+def junit_counts(path):
+    root = ET.parse(path).getroot()
+    suites = root.findall('testsuite') if root.tag == 'testsuites' else [root]
+    return {key: sum(int(suite.get(key, '0')) for suite in suites)
+            for key in ('tests', 'failures', 'errors', 'skipped')}
+
+
+def run_suite(root, files, output, timeout, python):
+    root, output = root.resolve(), output.resolve()
+    output.mkdir(parents=True, exist_ok=True)
+    if any(output.iterdir()):
+        raise ValueError('Use a new output directory; earlier evidence must remain intact')
+    environment = {**os.environ, 'QT_QPA_PLATFORM': 'offscreen', 'QT_QUICK_BACKEND': 'software',
+                   'QT_QUICK_CONTROLS_STYLE': 'Basic', 'PYTHONPATH': str(root / 'src'),
+                   'QTWEBENGINE_DISABLE_SANDBOX': '1'}
+    rows = []
+    for index, file in enumerate(files):
+        relative = file.resolve().relative_to(root).as_posix()
+        stem = f'{index:03d}-{file.stem}'
+        log_path, xml_path = output / (stem + '.log'), output / (stem + '.xml')
+        started = time.monotonic()
+        command = [python, '-m', 'pytest', '-q', relative, '--junitxml=' + str(xml_path),
+                   '-o', 'cache_dir=' + str(output / (stem + '-pytest-cache'))]
+        timed_out = False
+        with log_path.open('w') as log:
+            process = subprocess.Popen(command, cwd=root, env=environment, stdin=subprocess.DEVNULL,
+                                       stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+            try:
+                code = process.wait(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                timed_out = True
+                terminate_group(process)
+                code = process.returncode
+        try:
+            if xml_path.exists():
+                counts = junit_counts(xml_path)
+            else:
+                counts = {'tests': 0, 'failures': 0, 'errors': 1, 'skipped': 0}
+                code = code or 1
+        except ET.ParseError:
+            counts = {'tests': 0, 'failures': 0, 'errors': 1, 'skipped': 0}
+            code = code or 1
+        row = {'file': relative, 'pid': process.pid, 'exitCode': code, 'timedOut': timed_out,
+               'seconds': round(time.monotonic() - started, 3), 'log': log_path.name,
+               'junit': xml_path.name if xml_path.exists() else None, **counts}
+        rows.append(row)
+        print(json.dumps(row), flush=True)
+        report = {'status': 'failed' if any(row['exitCode'] or row['failures'] or row['errors'] for row in rows) else 'passed',
+                  'files': rows, 'totals': {key: sum(row[key] for row in rows)
+                                         for key in ('tests', 'failures', 'errors', 'skipped')}}
+        (output / 'summary.json').write_text(json.dumps(report, indent=2) + '\n')
+    if not rows:
+        raise ValueError('No test files selected')
+    return report
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('files', nargs='*', type=Path)
+    parser.add_argument('--output', type=Path, default=Path('artifacts/test-suite'))
+    parser.add_argument('--timeout', type=float, default=180)
+    options = parser.parse_args(argv)
+    root = Path(__file__).resolve().parents[1]
+    files = options.files or sorted((root / 'tests').glob('test_*.py'))
+    if options.timeout <= 0:
+        parser.error('--timeout must be positive')
+    report = run_suite(root, files, options.output, options.timeout, sys.executable)
+    return 0 if report['status'] == 'passed' else 1
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

@@ -1,6 +1,6 @@
 /*
 [INPUT]: 依赖桌面控制器、ShellDialog 与页面组件。
-[OUTPUT]: 提供模型更新后的选择恢复、安全区滚动与切页反馈。
+[OUTPUT]: 同步发布页面快照和模型，再恢复选择与切页反馈。
 [POS]: ConsoleScreen 展示运行模型，其余页面沿用各自布局。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -118,7 +118,10 @@ Window {
             settingsViewport.ensureVisible()
     }
 
-    Component.onCompleted: syncView()
+    Component.onCompleted: {
+        viewState = JSON.parse(controller.viewSnapshotJson)
+        syncView()
+    }
 
     Timer {
         interval: 1000
@@ -129,7 +132,10 @@ Window {
 
     Connections {
         target: controller
-        function onViewChanged() { Qt.callLater(window.syncView) }
+        function onViewChanged() {
+            window.viewState = JSON.parse(controller.viewSnapshotJson)
+            window.syncView()
+        }
         function onChanged() { Qt.callLater(window.syncSelection) }
         function onFilePreviewScroll(amount) { shellDialog.scrollPreview(amount) }
         function onPresent() {

@@ -5,6 +5,7 @@ __init__.py: 唯一版本源；桌面、独立应用和 setuptools 共用。
 app_routing.py: 独立应用的稳定身份和 D-Bus 路径。
 appearance.py: 界面主题选择；文档调色板独立。
 apps/: 共享应用框架和独立应用。
+build_info.py: 读取构建时冻结的提交、源码摘要与包身份。
 assets/: 随包图标、品牌、输入提示与界面音效。
 audio.py: PulseAudio 与 PipeWire 设备状态归一。
 backend.py: 系统服务、音频状态去重、蓝牙授权和网络授权。
@@ -47,7 +48,8 @@ menu_icons.py: 系统菜单图标与动作分离。
 messages.py: 全局稳定消息标识。
 mock.py: 桌面预览的隔离系统状态。
 network_files/: 网络文件访问服务与网页。
-performance.py: 内存中的启动和激活时间记录。
+performance.py: 内存中的启动、激活和交互阶段计时。
+session_supervisor.py: 滚动崩溃预算、正常退出和桌面子进程清理。
 pointer.py: sysfs 预筛选、指针输入归属与保护；轮询不打开非指针接口。
 preflight.py: 只读 CM4 系统和依赖兼容检测。
 qml/: 桌面视图、控件和动效。

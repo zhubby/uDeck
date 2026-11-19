@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实 Wi-Fi 弹窗、隔离模拟数据和 Qt 键盘输入。
-[OUTPUT]: 验证过渡终态的十二种网络菜单边界与焦点恢复。
+[OUTPUT]: 验证十二种网络菜单边界、密码输入与显示及焦点恢复。
 [POS]: 独立 QML 探针；临时配置不连接系统网络服务。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -103,11 +103,14 @@ def run():
         choose("wifi-connect")
         capture("network-menu")
         choose("wifi-password")
-        controller.editText("short")
+        editor = next(item for item in window.findChildren(QQuickItem) if item.property("displayText") is not None)
+        QTest.keyClick(window, Qt.Key.Key_A, Qt.KeyboardModifier.ControlModifier)
+        for character in "short":
+            QTest.keyClick(window, character)
+        assert editor.property("text") == controller.modal["text"] == "short"
         controller.dispatch("accept")
         assert controller.modal["error"] and controller.modal["text"] == "short"
         capture("password-validation")
-        editor = next(item for item in window.findChildren(QQuickItem) if item.property("displayText") is not None)
         hidden = editor.property("displayText")
         QTest.keyClick(window, Qt.Key.Key_F10)
         QTest.qWait(30)

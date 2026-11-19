@@ -12,7 +12,7 @@ architecture.md: uDeck v1 架构与边界。
 boot-2026-11-06.md: 0.1.1 全屏与开机默认会话配置记录。
 controller-mode-2026-11-06.md: 0.1.3 手柄交互与会话级鼠标屏蔽。
 debian-device-0.2.3.md: uDeck 0.2.3 CM4 实机部署记录。
-debian-distribution.md: uDeck Debian 发行与安装。
+debian-distribution.md: Debian 安装、冻结源码身份与 Release 升级回退验证。
 debian-release-2026-11-09.md: Debian 0.2.2 构建验证记录。
 debian-single-package-0.2.3.md: uDeck 0.2.3 单包发行验证。
 device-stability-2026-11-12.md: CM4 实机稳定性验证（2026-11-12）。

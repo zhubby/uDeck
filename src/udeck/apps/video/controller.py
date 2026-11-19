@@ -1,4 +1,9 @@
-"""Video resume, chapters and subtitles."""
+"""
+[INPUT]: 依赖共享媒体控制器、Qt 媒体元数据与字幕提取器。
+[OUTPUT]: 提供续播、章节、字幕、播放指针与桌面返回。
+[POS]: 视频控制边界；返回桌面前保存播放进度。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 from pathlib import Path
 
@@ -98,7 +103,7 @@ class VideoController(MediaController):
             self.media.player.pause()
             self.save_position()
             self.persist()
-        super().back()
+        return super().back()
 
     def track_menu(self, subtitles):
         player = self.media.player

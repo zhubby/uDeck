@@ -1,4 +1,9 @@
-"""Browser address parsing; web content is never an interface translation."""
+"""
+[INPUT]: 依赖共享应用生命周期、Qt 标签模型和本地书签状态。
+[OUTPUT]: 提供地址解析、标签导航、浏览状态与桌面返回。
+[POS]: 浏览器控制边界；网页内容不参与界面翻译。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import re
 import uuid
@@ -298,6 +303,7 @@ class BrowserController(AppController):
     @Slot(str)
     @interaction
     def dispatch(self, action):
+        returned_home = False
         if self.menus or action in ("context", "quick-settings", "previous-tab", "next-tab"):
             return super().dispatch(action)
         if action == "back":
@@ -306,7 +312,11 @@ class BrowserController(AppController):
             elif self.active_tab().can_back:
                 self.send("back")
             else:
+                self.return_trace.begin()
+                self.return_trace.mark('backRequested')
                 self.desktop("Home")
+                self.return_trace.mark('dispatchStateUpdated')
+                returned_home = True
         elif action in ("up", "down", "left", "right", "accept"):
             if self.active_tab().url == "about:blank":
                 if action == "accept":
@@ -315,6 +325,9 @@ class BrowserController(AppController):
                     self.start_index = 0 if action == "up" else 1
             else:
                 self.send("input", action=action, mode=self.web_mode)
+        if returned_home:
+            self.return_trace.mark('dispatchPublished')
+            return
         self.publish()
 
     @Slot(str)

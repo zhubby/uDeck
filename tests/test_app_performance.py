@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖应用状态、启动转发和内存计时。
+[OUTPUT]: 验证轻量更新、异步保存和交互代次快照。
+[POS]: 共享应用性能边界的回归入口。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import importlib
 import json
 import os
@@ -231,3 +238,22 @@ def test_startup_trace_retains_first_frame_and_distinguishes_activation_generati
     trace.request_activation()
     assert trace.snapshot()["activation"]["generation"] == 2
     assert trace.snapshot()["activation"]["toFrameMs"] is None
+
+
+def test_interaction_trace_bounds_history_and_rejects_stale_stages():
+    trace_class = importlib.import_module('udeck.performance').InteractionTrace
+    now = [10.0]
+    trace = trace_class(clock=lambda: now[0], limit=2)
+    trace.mark('ignored')
+    generation = trace.begin()
+    now[0] += .025
+    trace.mark('sent', generation)
+    snapshot = trace.snapshot()
+    assert snapshot[0]['stagesMs']['sent'] == 25
+    snapshot[0]['stagesMs']['sent'] = 999
+    assert trace.snapshot()[0]['stagesMs']['sent'] == 25
+    trace.begin()
+    trace.mark('stale', generation)
+    assert trace.snapshot()[-1]['stagesMs'] == {}
+    trace.begin()
+    assert [record['generation'] for record in trace.snapshot()] == [2, 3]

@@ -1,12 +1,13 @@
 """
 [INPUT]: 依赖真实桌面 QML 与隔离的 Console 预览模型。
-[OUTPUT]: 输出指标控件复用、行密度与模态输入边界。
+[OUTPUT]: 等待可交互几何，再验证指标复用与模态输入边界。
 [POS]: Console 视图的独立进程验收探针。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
 import json
 import sys
+import time
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QPointF, Qt, QUrl
@@ -74,7 +75,29 @@ def visual(name):
 
 def click(item, position=None):
     point = position or QPointF(item.width() / 2, item.height() / 2)
-    QTest.mouseClick(window, Qt.LeftButton, pos=item.mapToScene(point).toPoint())
+    deadline = time.monotonic() + 1
+    while True:
+        # 先处理布局轮次，避免点击尚在扩展面板裁剪区外的按钮。
+        QTest.qWait(10)
+        scene = item.mapToScene(point)
+        ready = item.isVisible() and item.isEnabled() and item.width() > 0 and item.height() > 0
+        ancestor = item
+        geometry = []
+        while ancestor is not None:
+            local = ancestor.mapFromScene(scene)
+            if ancestor.clip():
+                ready = ready and 0 <= local.x() < ancestor.width() and 0 <= local.y() < ancestor.height()
+            if ancestor.objectName() == "dialogPanel":
+                geometry = [ancestor.width(), ancestor.height(), ancestor.property("targetWidth"),
+                            ancestor.property("targetHeight"), ancestor.property("resizing"), local.x(), local.y()]
+                ready = (ready and ancestor.property("geometryReady") and not ancestor.property("resizing")
+                         and abs(ancestor.width() - ancestor.property("targetWidth")) < .1
+                         and abs(ancestor.height() - ancestor.property("targetHeight")) < .1)
+            ancestor = ancestor.parentItem()
+        if ready:
+            break
+        assert time.monotonic() < deadline, (item.objectName(), geometry, controller.modal)
+    QTest.mouseClick(window, Qt.LeftButton, pos=scene.toPoint())
     QTest.qWait(30)
 
 

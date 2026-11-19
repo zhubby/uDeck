@@ -1,8 +1,36 @@
-"""Small, memory-only startup and activation diagnostics; never records user content."""
+"""
+[INPUT]: 依赖单调时钟和进程启动时间。
+[OUTPUT]: 提供启动、激活和有界交互阶段的内存快照。
+[POS]: 桌面与应用共用的计时边界；不记录用户内容。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import os
 import time
 from pathlib import Path
+
+
+class InteractionTrace:
+    def __init__(self, clock=time.monotonic, limit=16):
+        self.clock, self.limit = clock, limit
+        self.generation, self.records = 0, []
+
+    def begin(self):
+        self.generation += 1
+        self.records.append({'generation': self.generation,
+                             'requestedAtMonotonic': self.clock(), 'stagesMs': {}})
+        del self.records[:-self.limit]
+        return self.generation
+
+    def mark(self, stage, generation=None):
+        if not self.records or generation is not None and generation != self.generation:
+            return
+        current = self.records[-1]
+        current['stagesMs'].setdefault(stage, round(max(
+            0, self.clock() - current['requestedAtMonotonic']) * 1000, 3))
+
+    def snapshot(self):
+        return [{**record, 'stagesMs': dict(record['stagesMs'])} for record in self.records]
 
 
 def process_started():

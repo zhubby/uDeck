@@ -568,7 +568,7 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
 
     def back(self):
         self.cancel_launch()
-        super().back()
+        return super().back()
 
     @Slot(int)
     def setTab(self, index):

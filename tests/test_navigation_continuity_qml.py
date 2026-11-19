@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖独立 Qt 导航探针、双主题和临时目录。
-[OUTPUT]: 验证切页重入、滚动改向、模型刷新和补位一致性。
+[OUTPUT]: 验证同步发布、初始布局、切页重入与滚动改向。
 [POS]: 导航连续性回归入口；离屏验证不作为实机帧率。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -14,7 +14,7 @@ import pytest
 
 
 @pytest.mark.parametrize("theme", ["classic", "dark"])
-@pytest.mark.parametrize("case", ["page", "scroll", "focus", "console", "files-layout", "files-scroll", "files-task", "settings-refresh"])
+@pytest.mark.parametrize("case", ["publication", "initial-geometry", "page", "scroll", "focus", "console", "files-layout", "files-scroll", "files-task", "settings-refresh"])
 def test_navigation_preserves_mid_transition_state(tmp_path, theme, case):
     result = subprocess.run(
         [sys.executable, "tests/navigation_continuity_probe.py", str(tmp_path), case, theme],

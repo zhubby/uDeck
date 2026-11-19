@@ -2,7 +2,7 @@
 Python 3.13.18 + PySide6 6.8.3 + Qt Quick + Debian 13 + labwc
 
 <directory>
-.github/ - 仅在 Release 发布时构建和分发 arm64 制品。
+.github/ - push/PR 检查；仅在 Release 发布时构建和分发 arm64 制品。
 src/udeck/ - 桌面、系统接口与应用入口。
 src/udeck/apps/ - 共享应用框架与六类独立应用。
 src/udeck/apps/emulator/ - 游戏库、RetroArch 与存档编排。见该目录 AGENTS.md。

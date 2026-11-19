@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 [INPUT]: 依赖指定源码、MockBackend、Qt 按键事件和只读电源查询。
-[OUTPUT]: 输出电源预检、连续时间线、补位轨迹和资源门槛。
+[OUTPUT]: 输出内容就绪帧、发布阶段、连续时间线与资源门槛。
 [POS]: 私有总线与临时配置中的全屏探针，不连接机身输入。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -65,6 +65,7 @@ def analyze_timeline(inputs, frames, refresh_hz):
             deadline = min(deadline, superseded)
         presented = next((frame for frame in frames
                           if command['started'] <= frame['stagedAt'] <= frame['at'] <= deadline
+                          and frame.get('ready', True)
                           and frame.get('scope') == command['scenario']
                           and all(frame['state'].get(key) == value
                                   for key, value in command['expected'].items())), None)
@@ -238,11 +239,13 @@ def run_probe(options, directory):
 
     surfaces = {page: visual(name) for page, name in (
         ('home', 'homeScreen'), ('apps', 'applicationGrid'), ('files', 'fileGrid'),
-        ('windows', 'consoleList'))}
+        ('windows', 'consoleList'), ('settings', 'itemList'))}
+    listings = {**surfaces, 'home': visual('homeStrip')}
     modal = visual('modalShade')
+    panel = visual('dialogPanel')
     console = visual('consoleScreen')
     recorder = PresentationRecorder()
-    inputs, frames, after_animations, observer_costs = [], recorder.frames, [], []
+    inputs, frames, after_animations, observer_costs, publications = [], recorder.frames, [], [], []
     epoch = time.perf_counter()
 
     class Observer:
@@ -286,8 +289,18 @@ def run_probe(options, directory):
             surface = surfaces.get(page)
             index = surface.property('index' if page == 'home' else 'currentIndex') if surface else None
             return {'page': page, 'index': index, 'modal': bool(modal.property('shown')),
+                    'itemCount': int(listings[page].property('count')),
                     'rowCount': int(surfaces['windows'].property('count')),
                     'exitFocused': bool(console.property('exitFocused'))}
+
+        def content_ready(self, state):
+            listing = listings[state['page']]
+            ready = (listing.isVisible() and listing.width() > 0 and listing.height() > 0
+                     and (state['itemCount'] == 0 or listing.property('currentItem') is not None))
+            if state['modal']:
+                return (ready and modal.opacity() > 0 and panel.width() > 0 and panel.height() > 0
+                        and bool(panel.property('geometryReady')))
+            return ready and (not modal.isVisible() or modal.opacity() < .999)
 
         def moving(self, track):
             animation, target = track['animation'], track['target']
@@ -331,8 +344,10 @@ def run_probe(options, directory):
                         'class': obj.metaObject().className(), 'target': target.objectName() if target is not None else None,
                         'parent': obj.parent().objectName() if obj.parent() is not None else None,
                         'property': obj.property('property'), 'from': str(obj.property('from')), 'to': str(obj.property('to'))}
+            state = self.visual_state()
             sample = {'stagedAt': time.perf_counter() - epoch, 'scope': self.scope,
-                      'moving': bool(kinds), 'motionKinds': kinds, 'state': self.visual_state(),
+                      'moving': bool(kinds), 'motionKinds': kinds, 'state': state,
+                      'ready': self.content_ready(state),
                       'trackedAnimationCount': len(self.animations), 'trackedRowCount': len(self.rows)}
             if self.scope and 'console-' in self.scope:
                 sample['consoleRows'] = [
@@ -352,6 +367,12 @@ def run_probe(options, directory):
 
     observer = Observer()
     observer.refresh_animations()
+    def published(stage):
+        publications.append({'at': time.perf_counter() - epoch, 'stage': stage,
+                             'scope': observer.scope, 'renderedPage': window.property('renderedPage')})
+    controller.viewChanged.connect(lambda: published('view-published'))
+    controller.changed.connect(lambda: published('selection-published'))
+    window.renderedPageChanged.connect(lambda: published('page-model-installed'))
     window.afterAnimating.connect(observer.after_animating)
     window.beforeSynchronizing.connect(observer.synchronizing, Qt.ConnectionType.DirectConnection)
     window.frameSwapped.connect(observer.swapped, Qt.ConnectionType.DirectConnection)
@@ -377,6 +398,8 @@ def run_probe(options, directory):
 
     def logical_state():
         return {'page': controller.navigation.page, 'index': controller.navigation.index,
+                'itemCount': controller.fileModel.rowCount() if controller.navigation.page == 'files'
+                    else len(controller._items()),
                 'modal': bool(controller.modal), 'rowCount': controller.consoleModel.rowCount(),
                 'exitFocused': bool(controller.console_exit_focused)}
 
@@ -479,7 +502,8 @@ def run_probe(options, directory):
             inputs.append(command)
             delivered = key_click(keymap[action])
             expected = logical_state()
-            command.update(expected=expected, changed=before != expected, deliveryCompleted=delivered)
+            command.update(expected=expected, changed=before != expected, deliveryCompleted=delivered,
+                           deliveryCompletedAt=time.perf_counter() - epoch)
             previous_started = started
             # 迟到后不追赶；每次实际发送之间保留目标最小间隔。
             due = epoch + started + interval_ms / 1000
@@ -585,9 +609,11 @@ def run_probe(options, directory):
                                         'observerCostMs': summarize_ms(observer_costs),
                                         'definition': 'Running numeric animations whose target value differs from destination, or Console rows whose visualY differs from y'},
                   'timeline': {'clock': 'perf_counter seconds since observer attachment',
-                               'frameSwapped': frames, 'afterAnimating': after_animations},
+                               'frameSwapped': frames, 'afterAnimating': after_animations,
+                               'publications': publications},
                   'limits': ['Synthetic Qt key events reach this independent window only; a FIFO barrier confirms delivery.',
                              'beforeSynchronizing latches the afterAnimating state for its render frame before frameSwapped.',
+                             'A credited frame requires visible content, its expected model count, a current delegate, and nonzero modal opening or closing progress.',
                              'Signal timestamps do not measure physical-key or optical latency.',
                              'First-presentation percentiles describe successes; every missing frame remains a failure.',
                              'Active gaps start at a presented frame whose numeric Qt animation has not reached its target; idle waits are excluded.',

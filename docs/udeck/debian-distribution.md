@@ -112,9 +112,15 @@ python3 tools/build-release --output dist/release
 
 ```sh
 docker build --platform linux/arm64 -f tools/debian-build.Dockerfile -t udeck-debian-builder .
+source_revision="$(git rev-parse HEAD)"
+source_dirty=false
+if [ -n "$(git status --porcelain)" ]; then source_dirty=true; fi
 docker run --rm --platform linux/arm64 -v "$PWD:/workspace" \
+  -e UDECK_SOURCE_REVISION="$source_revision" -e UDECK_SOURCE_DIRTY="$source_dirty" \
   udeck-debian-builder python3 tools/build-release --output dist/release
 ```
+
+linked worktree 的 `.git` 指向宿主路径。容器通过这两个环境变量接收宿主已解析的提交和工作区状态。两项必须同时提供；容器可读取 Git 时，构建器校验提交一致。构建器仍自行计算冻结源码的内容摘要。
 
 构建器在临时目录中构建插件及完整源码包，执行包括真实 PTY 的测试，再输出一个 arm64 `.deb`、`.dsc`、源码 `.tar.xz`、`.buildinfo`、`.changes`、套件压缩包、安装器、依赖清单、构建清单与 SHA-256。源码归档包含 vendor 原件、补丁、许可证、`uv.lock` 和 `.python-version`，不包含硬件参考资料、虚拟环境或开发缓存。
 
@@ -122,16 +128,19 @@ uv 0.13.7 与 Python 3.13.18 仅用于开发及 Release 宿主机校验；源码
 
 版本只定义在 `src/udeck/__init__.py` 的 `__version__`。桌面、独立应用和 setuptools 共用它。稳定版本采用无前导零的 `X.Y.Z`；Git 标签为 `vX.Y.Z`，Debian changelog 首条版本为 `X.Y.Z`。增加不兼容行为时提升主版本，增加兼容功能时提升次版本，修复问题时提升补丁版本。
 
-GitHub Actions **只监听 `release: published`**，不监听 push、pull_request、tag push 或 workflow_dispatch。发布步骤：
+日常 `checks.yml` 监听 push 和 pull_request，执行版本门禁、Ruff 与逐文件隔离测试，并保留日志和 JUnit。日常检查不构建 deb。
+
+发行工作流 `release.yml` **只监听 `release: published`**，不监听 push、pull_request、tag push 或 workflow_dispatch。发布步骤：
 
 1. 同步源码版本与 `debian/changelog`，提交构建所需文件。
 2. 创建匹配的 `vX.Y.Z` 标签并发布 GitHub Release；草稿保存不触发构建。
-3. Action 使用原生 arm64 runner，校验标签、源码及 changelog 后，安装固定 uv，执行 `uv lock --check`、`uv sync --locked --extra dev` 和 Ruff；任一失败即停止。随后在 Debian 13 容器中构建并运行软件包安装/卸载/重装与默认终端检查。
-4. 构建器核对 deb 内部的包名 `udeck`、版本与架构 `arm64`。所有检查通过后，保存为版本化 Actions 制品 `udeck-X.Y.Z-arm64`，并将相同文件附加到该 Release。重新运行同一次发布会替换同名制品和附件。
+3. Action 使用原生 arm64 runner，校验标签、源码及 changelog 后，安装固定 uv，执行 `uv lock --check`、`uv sync --locked --extra dev` 和 Ruff；任一失败即停止。随后在 Debian 13 容器中构建并执行完整回归。
+4. 工作流遍历全部发行记录，选择低于当前版本的最大稳定版本，且要求精确 arm64 deb 与校验清单。下载并校验后，独占容器执行旧版安装、升级、回退、重装和用户配置保留检查。首版仅执行干净安装生命周期。
+5. 构建器核对 deb 的包名、版本、架构和包内冻结身份。所有检查通过后，保存为版本化 Actions 制品 `udeck-X.Y.Z-arm64`，并将相同文件附加到该 Release。重新运行同一次发布会替换同名制品和附件。
 
-例如 `v1.0.0` 发布 `udeck_1.0.0_arm64.deb` 与 `udeck_1.0.0_arm64.tar.xz`。`build-manifest.json` 记录发布标签、源码提交、工作区状态、包内元数据与包哈希；`SHA256SUMS` 覆盖全部发布文件。安装器和元数据文件沿用固定名称，其版本由所属 Release、制品名称与构建清单确定。
+例如 `v1.0.0` 发布 `udeck_1.0.0_arm64.deb` 与 `udeck_1.0.0_arm64.tar.xz`。`build-manifest.json` 记录发布标签、源码提交、工作区状态、源码内容摘要、包内身份与包哈希。运行时诊断直接读取包内身份，不查询 Git。`SHA256SUMS` 覆盖全部发布文件。安装器和元数据文件沿用固定名称，其版本由所属 Release、制品名称与构建清单确定。
 
-普通 tag push 只创建标签，不构建；从草稿转为已发布 Release 才构建。稳定版本格式为 `vX.Y.Z`，版本不匹配时停止。Release 构建禁止 `nocheck` 跳过测试。默认分支保留该工作流，发布标签也必须包含该工作流及打包文件。
+普通 tag push 不构建 deb；日常检查仍可运行。从草稿转为已发布 Release 才构建 deb。稳定版本格式为 `vX.Y.Z`，版本不匹配时停止。Release 构建禁止 `nocheck` 跳过测试。默认分支保留该工作流，发布标签也必须包含该工作流及打包文件。
 
 ## 验收层次
 

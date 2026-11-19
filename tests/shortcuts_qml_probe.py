@@ -1,4 +1,9 @@
-"""Real Qt events and rendered settings/recorder; all configuration is private."""
+"""
+[INPUT]: 依赖真实快捷键弹窗、录制窗口与隔离配置。
+[OUTPUT]: 等待弹窗几何完成，验证按键录制、冲突与边界。
+[POS]: 快捷键设置的独立离屏探针，不写系统快捷键。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import argparse
 import json
@@ -6,7 +11,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QEventLoop, Qt, QTimer, QUrl
+from PySide6.QtCore import QEventLoop, QObject, Qt, QTimer, QUrl
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine, QQmlEngine, QQmlExpression
 from PySide6.QtTest import QTest
@@ -59,9 +64,33 @@ def run():
         def choose(identifier):
             controller.chooseModal(next(i for i, value in enumerate(controller.modal['options']) if value['id'] == identifier))
 
+        def wait_for_dialog():
+            panel = window.findChild(QObject, 'dialogPanel')
+            shade = window.findChild(QObject, 'modalShade')
+            deadline, settled_since = time.monotonic() + 2, None
+            while time.monotonic() < deadline:
+                loop = QEventLoop()
+                QTimer.singleShot(10, loop.quit)
+                loop.exec()
+                settled = (panel.property('geometryReady') and not panel.property('resizing')
+                           and abs(panel.property('width') - panel.property('targetWidth')) < 0.1
+                           and abs(panel.property('height') - panel.property('targetHeight')) < 0.1
+                           and shade.property('opacity') >= 0.999)
+                if not settled:
+                    settled_since = None
+                elif settled_since is None:
+                    settled_since = time.monotonic()
+                elif time.monotonic() - settled_since >= 0.04:
+                    return
+            raise AssertionError(('快捷键弹窗未达到稳定终态', panel.property('width'), panel.property('height'),
+                                  panel.property('targetWidth'), panel.property('targetHeight')))
+
         def capture(name, target=None):
-            QTest.qWait(80)
             target = target or window
+            if target is window:
+                wait_for_dialog()
+            else:
+                QTest.qWait(80)
             expression = QQmlExpression(QQmlEngine.contextForObject(target), target, '''
                 JSON.stringify((function() {
                     const result = []

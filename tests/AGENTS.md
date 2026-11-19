@@ -12,7 +12,7 @@ test_navigation_continuity_qml.py: 双主题导航中途状态的离屏回归入
 test_runtime_console_processes.py: proc 快照、资源聚合和 pidfd 终止身份回归。
 test_runtime_console_apps.py: 轻量应用状态与原生存档退出回归。
 test_runtime_console.py: 空所有者去重、身份变更、过期状态、详情和退出回归。
-runtime_console_qml_probe.py: 指标控件复用、单行尺寸和详情输入的 QML 探针。
+runtime_console_qml_probe.py: 等待点击裁剪区与面板几何，验证指标复用和详情输入。
 test_runtime_console_qml.py: Console 详情交互、中英文与双主题尺寸回归。
 motion_qml_probe.py: 零全量快照的选中项移动、焦点改向与弹窗隔离探针。
 test_motion_qml.py: 双主题与减少动画的桌面短过渡回归。
@@ -30,7 +30,7 @@ apps_games_probe.py: 独立进程探针，验证 apps_games 流程。
 apps_ipc_probe.py: 独立进程探针，验证 apps_ipc 流程。
 apps_native_probe.py: 独立进程探针，验证 apps_native 流程。
 audio_qml_probe.py: 等待弹窗过渡结束，校验音频菜单布局、焦点和设备选择。
-battery_qml_probe.py: 独立进程探针，验证 battery_qml 流程。
+battery_qml_probe.py: 等待弹窗几何终态，验证电池测量刷新、文字与边界。
 browser_interaction_probe.py: 独立进程探针，验证 browser_interaction 流程。
 conftest.py: 共享离屏 QApplication 与 Qt 对象回收夹具。
 console_qml_probe.py: 独立进程探针，验证 console_qml 流程。
@@ -46,7 +46,7 @@ games_qml_probe.py: 游戏菜单、标题、封面身份保留与坏图回退的
 home_qml_probe.py: 独立进程探针，验证 home_qml 流程。
 hotspot_device_probe.py: 独立进程探针，验证 hotspot_device 流程。
 hotspot_nm_profile_probe.py: 独立进程探针，验证 hotspot_nm_profile 流程。
-hotspot_qml_probe.py: 等待弹窗尺寸稳定，验证热点边界、图标和按键。
+hotspot_qml_probe.py: 等待弹窗尺寸稳定，验证热点边界、密码输入与显示、图标和按键。
 i18n_qml_probe.py: 独立进程探针，验证 i18n_qml 流程。
 input_prompts_qml_probe.py: 独立进程探针，验证 input_prompts_qml 流程。
 interface_sounds_qml_probe.py: 音效开关、快捷设置与离屏零播放线程的 QML 探针。
@@ -63,7 +63,7 @@ settings_icons_probe.py: 独立进程探针，验证 settings_icons 流程。
 settings_qml_probe.py: 等待过渡完成，校验设置、系统信息和按键测试布局。
 sharing_qml_probe.py: 独立进程探针，验证 sharing_qml 流程。
 test_sharing_daemon_polling.py: 关闭时零网络发现、启用后撤销检查和按需状态回归。
-shortcuts_qml_probe.py: 独立进程探针，验证 shortcuts_qml 流程。
+shortcuts_qml_probe.py: 等待弹窗几何终态，验证快捷键录制、冲突与边界。
 system_device_probe.py: 独立进程探针，验证 system_device 流程。
 terminal_appearance_probe.py: 独立进程探针，验证 terminal_appearance 流程。
 terminal_application_probe.py: 独立进程探针，验证 terminal_application 流程。
@@ -76,6 +76,9 @@ terminal_ipc_probe.py: 独立进程探针，验证 terminal_ipc 流程。
 test_app_default_sources.py: pytest 回归入口，验证 app_default_sources 边界。
 test_app_menu_icons.py: pytest 回归入口，验证 app_menu_icons 边界。
 test_app_performance.py: pytest 回归入口，验证 app_performance 边界。
+test_build_info.py: 构建来源冻结、内容哈希与运行时读取回归。
+test_session_supervisor.py: 独立桌面进程的崩溃预算、终止与重启回归。
+test_suite_runner.py: 逐文件测试调度、超时清理与证据保留回归。
 test_app_settings.py: pytest 回归入口，验证 app_settings 边界。
 test_apps_core.py: pytest 回归入口，验证 apps_core 边界。
 test_apps_native.py: 首次窗口交接、应用引擎、菜单和翻译的集成回归。
@@ -151,7 +154,7 @@ test_preflight.py: pytest 回归入口，验证 preflight 边界。
 test_qml.py: pytest 回归入口，验证 qml 边界。
 test_reader_layout.py: pytest 回归入口，验证 reader_layout 边界。
 test_reader_mobi.py: pytest 回归入口，验证 reader_mobi 边界。
-test_release.py: 稳定版本、包元数据、Python 载荷与安装入口回归。
+test_release.py: 稳定版本、包元数据、构建环境边界和安装入口回归。
 test_qml_cache.py: 相同时间戳的源码更新、缓存复用和环境覆盖回归。
 test_safety.py: pytest 回归入口，验证 safety 边界。
 test_samba_install_guard.py: pytest 回归入口，验证 samba_install_guard 边界。
@@ -203,7 +206,7 @@ ui_interaction_probe.py: 独立进程探针，验证 ui_interaction 流程。
 video_subtitle_probe.py: 独立进程探针，验证 video_subtitle 流程。
 wifi_device_probe.py: 独立进程探针，验证 wifi_device 流程。
 wifi_management_device_probe.py: 独立进程探针，验证 wifi_management_device 流程。
-wifi_management_qml_probe.py: 等待弹窗几何稳定，验证十二种网络菜单边界和焦点恢复。
+wifi_management_qml_probe.py: 等待弹窗几何稳定，验证网络菜单边界、密码输入与显示和焦点恢复。
 wifi_qml_probe.py: 独立进程探针，验证 wifi_qml 流程。
 wireless_status_qml_probe.py: 独立进程探针，验证 wireless_status_qml 流程。
 
