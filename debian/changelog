@@ -1,3 +1,13 @@
+udeck (1.0.3) unstable; urgency=medium
+
+  * Query input authorization asynchronously and keep Home returns lightweight.
+  * Publish page models in one signal turn and wait for valid viewport geometry.
+  * Trace bounded return stages and recover crashes with a rolling retry budget.
+  * Add daily isolated checks while keeping Debian builds Release-only.
+  * Freeze package source identity and verify upgrades, rollback and user data.
+
+ -- uDeck Project <zhubby@users.noreply.github.com>  Thu, 19 Nov 2026 16:20:00 +0800
+
 udeck (1.0.2) unstable; urgency=medium
 
   * Retry transient gamepad ownership conflicts during window handoff.
