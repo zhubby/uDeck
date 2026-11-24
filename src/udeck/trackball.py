@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖指针按钮时间、窗口归属、会话状态与虚拟输入。
-[OUTPUT]: 提供短按点击、长按右键与前台指针移动。
+[INPUT]: 依赖指针共用倍率、按钮时间、窗口归属与虚拟输入。
+[OUTPUT]: 提供短按点击、长按右键与放大后的机身位移。
 [POS]: 轨迹球手势边界；归属变化取消手势，防止跨窗口误触。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -10,6 +10,7 @@ import time
 
 from PySide6.QtCore import QObject, Qt, QTimer
 
+from .pointer import TRACKBALL_PIXELS_PER_COUNT
 from .windows import APP_ID
 
 
@@ -141,7 +142,8 @@ class TrackballInput(QObject):
         if not value or not target or target[0] != 'application':
             return
         if axis in (0, 1):
-            self.output.move(value if axis == 0 else 0, value if axis == 1 else 0)
+            distance = value * TRACKBALL_PIXELS_PER_COUNT
+            self.output.move(distance if axis == 0 else 0, distance if axis == 1 else 0)
         elif axis == 8:
             self.output.scroll(-value)
 

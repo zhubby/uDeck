@@ -189,7 +189,7 @@ test_terminal_system_defaults.py: pytest 回归入口，验证 terminal_system_d
 test_theme.py: pytest 回归入口，验证 theme 边界。
 test_theme_qml.py: pytest 回归入口，验证 theme_qml 边界。
 test_timezone.py: pytest 回归入口，验证 timezone 边界。
-test_trackball.py: pytest 回归入口，验证 trackball 边界。
+test_trackball.py: 机身移动倍率、非轨迹球位移隔离、点击分类与归属撤销回归。
 test_ui.py: 桌面导航、模态操作与失败反馈回归。
 test_ui_interactions.py: pytest 回归入口，验证 ui_interactions 边界。
 test_video_playback.py: pytest 回归入口，验证 video_playback 边界。

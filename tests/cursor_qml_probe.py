@@ -114,7 +114,7 @@ def run():
         assert not cursor.visible
         raw(2, 0, 24)
         raw(2, 1, -12)
-        expected = QPointF(options.width / 2 + 24, options.height / 2 - 12)
+        expected = QPointF(options.width / 2 + 96, options.height / 2 - 48)
         assert cursor.position == expected and cursor.visible
         assert orb.width() == orb.height()
         assert orb.width() <= 10

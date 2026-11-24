@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖 sysfs 能力位图、evdev 输入与 Qt 事件循环。
-[OUTPUT]: 提供指针独占、肩键边沿和轨迹球移动。
+[OUTPUT]: 提供指针独占、肩键边沿、原始位移与共用倍率。
 [POS]: 会话指针归属层；先筛除无关接口，再打开 evdev。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -16,6 +16,7 @@ from .i18n import Msg, error_text, tr
 from .input import STOCK_FINGERPRINT
 
 EVIOCSCLOCKID = 0x400445A0
+TRACKBALL_PIXELS_PER_COUNT = 4
 
 
 class PointerGuard(QObject):

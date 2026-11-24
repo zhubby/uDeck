@@ -15,7 +15,7 @@ compatibility.py: 输入预释放、原生窗口恢复与异步身份复验。
 console.py: 全局 Console 面板、受控引擎授权与原生焦点恢复。
 controller.py: 桌面交互编排；局部选择与轻量视图独立于完整诊断。
 core.py: 导航、偏好存储和主题语言基础。
-cursor.py: 圆点位置、按下和释放反馈；观察窗口事件而不截获输入。
+cursor.py: 圆点位置、按下与释放反馈；机身位移沿用共用倍率。
 desktop.py: 桌面元数据索引、Exec 解析与固定内置模块启动。
 directions.py: 方向接口连接预筛选、修饰键隔离与松键读取。
 emulator_saves/: 原生存档、历史快照和云同步。
@@ -50,7 +50,7 @@ mock.py: 桌面预览的隔离系统状态。
 network_files/: 网络文件访问服务与网页。
 performance.py: 内存中的启动、激活和交互阶段计时。
 session_supervisor.py: 滚动崩溃预算、正常退出和桌面子进程清理。
-pointer.py: sysfs 预筛选、指针输入归属与保护；轮询不打开非指针接口。
+pointer.py: sysfs 预筛选、指针输入归属和原始事件；定义机身位移共用倍率。
 preflight.py: 只读 CM4 系统和依赖兼容检测。
 qml/: 桌面视图、控件和动效。
 qml_cache.py: 按源码内容隔离 QML 编译缓存。
@@ -72,7 +72,7 @@ terminal/: 原生终端、默认项与私有插件入口。
 terminal_routing.py: 依据前台窗口身份转发套件输入。
 text_input.py: 文本输入与物理按钮的归属判定。
 timezone.py: 时区分组、标签和本地时间。
-trackball.py: 固件轨迹球手势与输入路由。
+trackball.py: 机身轨迹球手势与输入路由；应用位移沿用共用倍率。
 virtual_input.py: 合成系统输入。
 wifi.py: Wi-Fi 身份、状态和错误文案。
 wifi_backend.py: NetworkManager 读取与设备绑定配置。

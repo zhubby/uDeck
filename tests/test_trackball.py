@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖轨迹球原始信号、隔离窗口归属与虚拟输入。
+[OUTPUT]: 验证移动倍率、滚轮隔离、点击分类和归属撤销。
+[POS]: 机身轨迹球到桌面及应用的输入契约回归。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 from types import SimpleNamespace
 
 import pytest
@@ -147,7 +154,7 @@ def test_trackball_motion_reaches_focused_app_and_does_not_release_gamepad_drag(
     trackball.pointer.motion.emit(0, 7)
     trackball.pointer.motion.emit(1, -3)
     trackball.pointer.motion.emit(8, 1)
-    assert trackball.output.position == (647, 357)
+    assert trackball.output.position == (668, 348)
     assert any(event[1] == 7 and event[-1].value == -1 for event in trackball.events)
     trackball.output.button(272, True)
     trackball.events.clear()
@@ -155,6 +162,19 @@ def test_trackball_motion_reaches_focused_app_and_does_not_release_gamepad_drag(
     trackball.pointer.middleButton.emit(False)
     assert not clicks(trackball)
     assert trackball.output.buttons == {272}
+
+
+def test_small_trackball_steps_move_apps_without_amplifying_other_pointer_sources(trackball):
+    for _ in range(8):
+        trackball.pointer.motion.emit(0, 1)
+        trackball.pointer.motion.emit(1, -1)
+    assert trackball.output.position == (672, 328)
+    trackball.output.move(1, -1)
+    assert trackball.output.position == (673, 327)
+    for _ in range(8):
+        trackball.pointer.motion.emit(0, -1)
+        trackball.pointer.motion.emit(1, 1)
+    assert trackball.output.position == (641, 359)
 
 
 def test_locked_session_and_unavailable_output_do_not_queue_clicks(trackball):

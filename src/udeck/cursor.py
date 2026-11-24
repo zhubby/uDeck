@@ -1,5 +1,5 @@
 """
-[INPUT]: 依赖窗口焦点、Qt 鼠标事件与可选机身输入。
+[INPUT]: 依赖窗口焦点、Qt 鼠标事件与机身指针共用倍率。
 [OUTPUT]: 提供圆点位置、显示、按下和释放反馈信号。
 [POS]: 桌面与内置窗口的指针状态；观察事件但不截获输入。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
@@ -9,6 +9,8 @@ import os
 
 from PySide6.QtCore import Property, QEvent, QObject, QPointF, Qt, QTimer, Signal
 from PySide6.QtGui import QCursor
+
+from .pointer import TRACKBALL_PIXELS_PER_COUNT
 
 
 class PointerCursor(QObject):
@@ -101,7 +103,8 @@ class PointerCursor(QObject):
     def move_relative(self, axis, value):
         if axis not in (0, 1) or not value:
             return
-        delta = QPointF(value, 0) if axis == 0 else QPointF(0, value)
+        distance = value * TRACKBALL_PIXELS_PER_COUNT
+        delta = QPointF(distance, 0) if axis == 0 else QPointF(0, distance)
         self._show_at(self._position + delta)
 
     def navigation_button(self, action, pressed):
