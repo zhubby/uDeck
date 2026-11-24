@@ -1,4 +1,9 @@
-"""QtMultimedia playback. UI state comes from observed player properties."""
+"""
+[INPUT]: 依赖共享应用控制器、媒体引擎和会话 D-Bus。
+[OUTPUT]: 提供播放权限、队列交互与实际进度的持久化。
+[POS]: Music 与 Video 的共同控制层；由引擎报告播放状态。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 
 from PySide6.QtCore import Property, QObject, Slot

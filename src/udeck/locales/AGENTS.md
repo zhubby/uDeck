@@ -11,5 +11,6 @@ zh_CN.json: 简体中文界面消息与格式参数。
 文件打开提示区分内置能力缺失与索引失败。
 全局启动、网页选择器和云同步配置限制使用内置提示。
 桌面不可用时，终端保留当前窗口并显示说明。
+TS 播放准备区分不可用、临时空间不足与超时。
 
 [PROTOCOL]: Update this header on change, then check AGENTS.md

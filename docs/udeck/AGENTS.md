@@ -74,6 +74,7 @@ terminal.md: uDeck Terminal v1 使用与维护。
 text-review-2026-11-13.md: 系统文案审查与修复（2026-11-13）。
 themes-2026-11-07.md: uDeck 0.1.9 全局主题。
 trackball-console-2026-11-10.md: 轨迹球点击与全局控制台。
+ts-seek-fix-2026-11-24.md: 长 GOP TS 索引适配、资源边界与回归证据。
 ui-interaction-fixes-2026-11-11.md: 界面交互与按键修复（2026-11-11）。
 ui-interaction-round2-2026-11-11.md: 界面交互复测与第二轮修复（2026-11-11）。
 uncommitted-review-delivery-2026-11-12.md: 未提交改动审查与交付记录（2026-11-12）。

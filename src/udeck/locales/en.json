@@ -1398,5 +1398,8 @@
   "emu_select_platform": "Choose game platform",
   "emu_snapshot": "In-game snapshot",
   "emu_thumbnail_directory": "Thumbnail folder",
-  "emu_title_screen": "Title screen"
+  "emu_title_screen": "Title screen",
+  "media_preparation_unavailable": "Video preparation is unavailable.",
+  "media_preparation_space": "Not enough temporary space to prepare this video.",
+  "media_preparation_timed_out": "Preparing the video timed out. Open the file again to retry."
 }

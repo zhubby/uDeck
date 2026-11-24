@@ -9,7 +9,7 @@ runtime.py: 会话 D-Bus、文件索引等待与失败反馈；交接后显示�
 common/: 应用共享状态、输入、菜单与 QML 窗口。
 browser/: 浏览器控制器与网页导航。见该目录 AGENTS.md。
 emulator/: 游戏库、RetroArch 进程协议与存档。见该目录 AGENTS.md。
-media/: 音乐与视频共用播放引擎。
+media/: 音乐与视频共用播放引擎。见该目录 AGENTS.md。
 music/: 音乐库与队列。
 reader/: 文档解析、分页与阅读窗口。见该目录 AGENTS.md。
 video/: 视频库、字幕与播放指针观测。见该目录 AGENTS.md。

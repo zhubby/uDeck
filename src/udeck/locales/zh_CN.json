@@ -1398,5 +1398,8 @@
   "emu_select_platform": "选择游戏平台",
   "emu_snapshot": "游戏截图",
   "emu_thumbnail_directory": "缩略图目录",
-  "emu_title_screen": "标题画面"
+  "emu_title_screen": "标题画面",
+  "media_preparation_unavailable": "视频准备功能不可用。",
+  "media_preparation_space": "临时空间不足，无法准备此视频。",
+  "media_preparation_timed_out": "视频准备超时，请重新打开文件重试。"
 }

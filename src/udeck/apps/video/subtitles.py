@@ -1,4 +1,9 @@
-"""Read a selected embedded text track without blocking video playback."""
+"""
+[INPUT]: 依赖 Qt 子进程、FFmpeg 和指定字幕轨道。
+[OUTPUT]: 提供 SRT 提示解析与异步内嵌字幕提取。
+[POS]: Video 的字幕数据层；只解码指定字幕，不写旁路文件。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import html
 import re

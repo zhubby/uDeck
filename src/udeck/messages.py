@@ -18,6 +18,9 @@ class Msg(StrEnum):
     FILES_INTERNAL_OPEN_ONLY = "files_internal_open_only"
     NO_BUILT_IN_APPLICATION_FOR_FILE = "no_built_in_application_for_file"
     FILE_NOT_FOUND_IN_LIBRARY_NAME = "file_not_found_in_library_name"
+    MEDIA_PREPARATION_UNAVAILABLE = "media_preparation_unavailable"
+    MEDIA_PREPARATION_SPACE = "media_preparation_space"
+    MEDIA_PREPARATION_TIMED_OUT = "media_preparation_timed_out"
 
     CONSOLE = "console"
     CONSOLE_APPLICATION = "console_application"

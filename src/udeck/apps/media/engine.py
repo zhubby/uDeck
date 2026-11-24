@@ -1,4 +1,9 @@
-"""QtMultimedia playback. UI state comes from observed player properties."""
+"""
+[INPUT]: 依赖 Qt Multimedia 和 SeekableSource 的临时定位源。
+[OUTPUT]: 提供异步媒体加载、定位、播放状态与软件帧图像。
+[POS]: Music 与 Video 共用的播放引擎；不读取应用配置。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import math
 import os
@@ -10,6 +15,8 @@ from PySide6.QtMultimedia import QAudioOutput, QMediaDevices, QMediaPlayer
 from PySide6.QtQuick import QQuickImageProvider
 
 from udeck.i18n import Msg, tr
+
+from .seekable import SeekableSource
 
 
 class FrameImages(QQuickImageProvider):
@@ -46,6 +53,9 @@ class MediaEngine(QObject):
         self.software = os.environ.get("QT_QUICK_BACKEND") == "software"
         self.frame_image, self.frame_revision = QImage(), 0
         self.last_frame_time = 0
+        self.seekable = SeekableSource(self)
+        self.seekable.ready.connect(self._source_ready)
+        self.seekable.failed.connect(self._source_failed)
         self.player.mediaStatusChanged.connect(self.status_changed)
         self.player.errorOccurred.connect(lambda code, text: self.failed.emit(text))
         for signal in (self.player.positionChanged, self.player.durationChanged,
@@ -57,18 +67,31 @@ class MediaEngine(QObject):
     def load(self, item, position=0):
         self.frame_image, self.frame_revision, self.last_frame_time = QImage(), 0, 0
         self.player.stop()
+        self.player.setSource(QUrl())
         self.identifier, self.loading = item["id"], True
         self.pending_position = max(0, int(position))
-        self.player.setSource(QUrl.fromLocalFile(item["path"]))
+        self.seekable.prepare(item["path"])
+        self.changed.emit()
+
+    def _source_ready(self, path):
+        self.player.setSource(QUrl.fromLocalFile(path))
         self.player.play()
+        self.changed.emit()
+
+    def _source_failed(self, error):
+        self.identifier = ""
+        self.pending_position = None
+        self.loading = False
+        self.failed.emit(error)
         self.changed.emit()
 
     def status_changed(self, status):
         if status in (QMediaPlayer.MediaStatus.LoadedMedia, QMediaPlayer.MediaStatus.BufferedMedia):
             self.loading = False
             if self.pending_position is not None:
-                self.player.setPosition(self.pending_position)
+                position = self.pending_position
                 self.pending_position = None
+                self.player.setPosition(position)
         elif status == QMediaPlayer.MediaStatus.InvalidMedia:
             self.loading = False
         elif status == QMediaPlayer.MediaStatus.EndOfMedia:
@@ -118,3 +141,4 @@ class MediaEngine(QObject):
         self.identifier = ""
         self.player.stop()
         self.player.setSource(QUrl())
+        self.seekable.close()
