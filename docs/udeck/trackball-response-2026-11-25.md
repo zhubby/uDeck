@@ -33,6 +33,33 @@
 实体滚动手感需用户复验。
 
 原始证据位于 artifacts/trackball-response-20261125/。
-安装身份和实机验证另行记录。
+
+## uConsole 安装验证
+
+源码提交为 47df317f2e47650a61eb45e04456a4da7d4f0cec。
+该提交已推送 main，并部署到现有 1.0.4。
+仅替换 pointer.py、cursor.py、trackball.py 和构建身份。
+529 个运行文件哈希全部匹配。
+只重启桌面输入层，五个应用进程保留原身份。
+应用位移由桌面注入，无需重启现有应用。
+五份全局配置保留原字节、属主与权限。
+指针设备、虚拟输入和会话安全均正常。
+服务错误为空，dpkg 审计通过。
+
+安装版独立进程共通过 31 项检查。
+其中 19 项验证轨迹球原始信号转换与点击边界。
+另 12 项验证桌面圆点和原生窗口的显示与输入。
+这些检查使用隔离信号和 Qt 事件，不代表实体手感。
+用户实体滚动复验尚未收到反馈。
+
+构建身份为
+1aaa8aa20044fc18bbbcc0e0a7d69c93d08f5bf222e42c5f750e00b92bce74b2。
+备份位于 /var/backups/udeck-trackball-response-1795563373324133970。
+本轮未创建版本、标签或 Release。
+源码的全量 CI 在记录时仍运行：
+[CI 45511171706](https://github.com/zhubby/uDeck/actions/runs/45511171706)。
+本记录不将未完成的全量 CI 记为通过。
+
+结构化结果见 [验收摘要](trackball-response-2026-11-25.json)。
 
 [PROTOCOL]: Update this header on change, then check AGENTS.md

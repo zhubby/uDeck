@@ -79,6 +79,7 @@ text-review-2026-11-13.md: 系统文案审查与修复（2026-11-13）。
 themes-2026-11-07.md: uDeck 0.1.9 全局主题。
 trackball-console-2026-11-10.md: 轨迹球点击与全局控制台。
 trackball-response-2026-11-25.md: 机身轨迹球共用移动倍率、输入隔离与实机验证。
+trackball-response-2026-11-25.json: 修复身份、安装版信号回归、运行文件及配置保留摘要。
 ts-seek-fix-2026-11-24.md: 长 GOP TS 索引适配、暂停意图、资源边界与实机复验。
 ts-seek-fix-2026-11-24.json: 最终修订与核心修复的分层验收、配置恢复和 CI 摘要。
 ui-interaction-fixes-2026-11-11.md: 界面交互与按键修复（2026-11-11）。
