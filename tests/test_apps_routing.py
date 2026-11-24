@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖应用输入路由、模拟器控制器与隔离的 Qt 环境。
-[OUTPUT]: 验证交接显示、到期队列、断线回退与原生窗口激活。
+[OUTPUT]: 验证交接显示、到期队列、断线回退与受控窗口确认。
 [POS]: 桌面和独立应用之间的路由回归测试。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -60,6 +60,43 @@ class Windows(QObject):
 
 class Pointer(QObject):
     shoulder = Signal(str)
+
+
+@pytest.fixture
+def managed_game_surface(monkeypatch):
+    def configure(controller, events, *, confirmed=True):
+        monkeypatch.setattr(controller.engine, 'running', lambda: True)
+        monkeypatch.setattr(controller.engine.process, 'processId', lambda: 222)
+        monkeypatch.setattr('PySide6.QtGui.QGuiApplication.platformName', lambda: 'wayland')
+        controller.window = SimpleNamespace(showMinimized=lambda: events.append('uncovered'))
+        controller.present.connect(lambda: events.append('present'))
+
+        class GameWindows:
+            def start(self):
+                events.append('connect')
+
+            def entries(self):
+                return [{'id': 'reader', 'appId': APP_IDS['reader']},
+                        {'id': 'game', 'appId': 'com.libretro.RetroArch'}]
+
+            def allow_managed_window(self, identifier, owner, pid):
+                assert owner == APP_IDS['emulator'] and pid == 222
+                if identifier != 'game':
+                    return False
+                events.append('authorized')
+                return True
+
+            def activate_confirmed(self, identifier):
+                assert identifier == 'game'
+                events.append('confirmed')
+                return confirmed
+
+            def close(self):
+                events.append('disconnect')
+
+        monkeypatch.setattr('udeck.windows.WindowService', GameWindows)
+
+    return configure
 
 
 def test_disconnected_desktop_connection_still_presents_the_application():
@@ -573,31 +610,33 @@ def test_library_refresh_retains_stable_focus_and_removed_item_selects_neighbor(
     assert application
 
 
-def test_loaded_game_resumes_and_source_loss_disables_save_and_load(tmp_path):
+def test_loaded_game_resumes_and_source_loss_disables_save_and_load(tmp_path, managed_game_surface):
     application = QCoreApplication.instance() or QCoreApplication([])
     controller = EmulatorController(tmp_path, tmp_path / "settings.json")
-    commands, minimized = [], []
+    events = []
+    managed_game_surface(controller, events)
     controller.engine.status = "paused"
-    controller.engine.send = commands.append
-    controller.window = SimpleNamespace(showMinimized=lambda: minimized.append(True))
-    controller.menu("Confirm load", [("Confirm", lambda: None)])
-    controller.load_done()
-    assert commands == ["PAUSE_TOGGLE"] and minimized == [True] and not controller.menus
-    controller.engine.running = lambda: True
-    controller.source_missing = True
-    controller.pause_menu()
-    assert [row["disabled"] for row in controller.menus[-1]["options"]][:3] == [True, True, True]
-    controller.engine.running = lambda: False
-    controller.close()
+    controller.engine.send = events.append
+    try:
+        controller.menu("Confirm load", [("Confirm", lambda: None)])
+        controller.load_done()
+        assert events == ['PAUSE_TOGGLE', 'connect', 'authorized', 'confirmed', 'uncovered', 'disconnect']
+        assert not controller.menus
+        controller.source_missing = True
+        controller.pause_menu()
+        assert [row["disabled"] for row in controller.menus[-1]["options"]][:3] == [True, True, True]
+    finally:
+        controller.engine.running = lambda: False
+        controller.close()
     assert application
 
 
 @pytest.mark.parametrize("operation", ["save", "load", "save-exit", "pause"])
-def test_game_commands_uncover_wayland_frontend_until_confirmation(tmp_path, operation):
+def test_game_commands_uncover_wayland_frontend_until_confirmation(tmp_path, operation, managed_game_surface):
     application = QCoreApplication.instance() or QCoreApplication([])
     controller = EmulatorController(tmp_path, tmp_path / "settings.json")
     events = []
-    controller.window = SimpleNamespace(showMinimized=lambda: events.append("uncovered"))
+    managed_game_surface(controller, events)
     controller.require_current = lambda: {}
     controller.engine.save = lambda slot: events.append(("save", slot))
     controller.engine.load = lambda slot: events.append(("load", slot))
@@ -606,46 +645,39 @@ def test_game_commands_uncover_wayland_frontend_until_confirmation(tmp_path, ope
         if operation == "pause":
             controller.engine.status = "playing"
             controller.command("pause-game")
-            assert events == ["uncovered", "PAUSE_TOGGLE"]
+            assert events == ['connect', 'authorized', 'confirmed', 'uncovered', 'disconnect', 'PAUSE_TOGGLE']
         elif operation == "save-exit":
             controller.save_exit()
-            assert events == [("save", "auto"), "uncovered"] and controller.exit_after_save
+            assert events == [('save', 'auto'), 'connect', 'authorized', 'confirmed', 'uncovered', 'disconnect']
+            assert controller.exit_after_save
         else:
             controller.slot_action("3", operation == "load")
-            assert events == [(operation, "3"), "uncovered"]
+            assert events == [(operation, '3'), 'connect', 'authorized', 'confirmed', 'uncovered', 'disconnect']
     finally:
+        controller.engine.running = lambda: False
         controller.close()
     assert application
 
 
-def test_game_pause_activates_retroarch_after_leaving_home(tmp_path, monkeypatch):
+@pytest.mark.parametrize('confirmed', [True, False])
+def test_game_pause_activates_retroarch_after_leaving_home(tmp_path, managed_game_surface, confirmed):
     application = QCoreApplication.instance() or QCoreApplication([])
     controller = EmulatorController(tmp_path, tmp_path / "settings.json")
     events = []
 
-    class GameWindows:
-        def start(self):
-            events.append("connect")
-
-        def entries(self):
-            return [{"id": "reader", "appId": APP_IDS["reader"]},
-                    {"id": "game", "appId": "com.libretro.RetroArch"}]
-
-        def request(self, identifier, action):
-            events.append((identifier, action))
-
-        def close(self):
-            events.append("disconnect")
-
-    monkeypatch.setattr("PySide6.QtGui.QGuiApplication.platformName", lambda: "wayland")
-    monkeypatch.setattr("udeck.windows.WindowService", GameWindows)
-    controller.window = SimpleNamespace(showMinimized=lambda: events.append("uncovered"))
+    managed_game_surface(controller, events, confirmed=confirmed)
     controller.engine.status = "playing"
     controller.engine.send = events.append
     try:
         controller.command("pause-game")
-        assert events == ["uncovered", "connect", ("game", "activate"), "disconnect", "PAUSE_TOGGLE"]
+        if confirmed:
+            assert events == ['connect', 'authorized', 'confirmed', 'uncovered', 'disconnect', 'PAUSE_TOGGLE']
+            assert not controller.error
+        else:
+            assert events == ['connect', 'authorized', 'confirmed', 'present', 'disconnect']
+            assert controller.error
     finally:
+        controller.engine.running = lambda: False
         controller.close()
     assert application
 

@@ -1,4 +1,9 @@
-"""Regressions for Games catalogue changes and the RetroArch boundary."""
+"""
+[INPUT]: 依赖游戏目录、模拟器控制器与隔离进程夹具。
+[OUTPUT]: 验证核心目录、受控窗口确认与游戏退出契约。
+[POS]: Emulator 目录和原生进程边界的组合回归。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import copy
 import sys
@@ -10,6 +15,7 @@ from PySide6.QtCore import QCoreApplication, QThreadPool
 from PySide6.QtTest import QTest
 from test_games_catalog import installed
 
+from udeck.app_routing import APP_IDS
 from udeck.apps.common.library import Source
 from udeck.apps.common.state import AppState
 from udeck.apps.emulator.catalog import CoreCatalog
@@ -108,25 +114,48 @@ def test_quit_actions_uncover_frontend_and_return_to_details(application, tmp_pa
         def showMinimized(self):
             events.append("uncover")
 
+    class GameWindows:
+        def start(self):
+            events.append('connect')
+
+        def entries(self):
+            return [{'id': 'game', 'appId': 'com.libretro.RetroArch'}]
+
+        def allow_managed_window(self, identifier, owner, pid):
+            assert (identifier, owner, pid) == ('game', APP_IDS['emulator'], 222)
+            events.append('authorized')
+            return True
+
+        def activate_confirmed(self, identifier):
+            assert identifier == 'game'
+            events.append('confirmed')
+            return True
+
+        def close(self):
+            events.append('disconnect')
+
     controller.window = Window()
+    monkeypatch.setattr('PySide6.QtGui.QGuiApplication.platformName', lambda: 'wayland')
+    monkeypatch.setattr('udeck.windows.WindowService', GameWindows)
+    monkeypatch.setattr(controller.engine.process, 'processId', lambda: 222)
     monkeypatch.setattr(controller.engine, "quit", lambda: events.append("quit"))
     monkeypatch.setattr(controller.engine, "running", lambda: True)
     controller.present.connect(lambda: events.append("present"))
     try:
         controller.confirm_quit()
         controller.dispatch("accept")
-        assert events == ["quit", "uncover"]
+        assert events == ['quit', 'connect', 'authorized', 'confirmed', 'uncover', 'disconnect']
         controller.game_exited(0)
         assert events[-1] == "present" and controller.page == "game-details" and not controller.menus
         events.clear()
         controller.exit_after_save = True
         controller.save_done("auto")
-        assert events == ["quit", "uncover"]
+        assert events == ['quit', 'connect', 'authorized', 'confirmed', 'uncover', 'disconnect']
         events.clear()
         controller.engine.metadata["savestate"] = False
         controller.pause_menu()
         controller.choose(1)
-        assert events[-2:] == ["quit", "uncover"]
+        assert events == ['present', 'quit', 'connect', 'authorized', 'confirmed', 'uncover', 'disconnect']
     finally:
         monkeypatch.undo()
         controller.window = None

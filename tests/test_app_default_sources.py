@@ -1,11 +1,15 @@
-"""Default user folders are scanned and saved without replacing custom sources."""
+"""
+[INPUT]: 依赖真实媒体库、模拟器列表库和默认用户目录夹具。
+[OUTPUT]: 验证默认源发现、条目身份恢复和自定义源保留。
+[POS]: 默认源回归；通过 Qt 事件泵和 GIL 让步等待扫描。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import time
 from pathlib import Path
 
 import pytest
 from PySide6.QtCore import QCoreApplication, QThreadPool
-from PySide6.QtTest import QTest
 from test_games_catalog import installed
 
 from udeck.apps.common.library import Library, Source
@@ -46,8 +50,12 @@ def refresh(library):
     library.refresh()
     deadline = time.monotonic() + 3
     while library.pending and time.monotonic() < deadline:
-        QTest.qWait(20)
-    assert not library.pending
+        QCoreApplication.processEvents()
+        # 显式让出 GIL，使 Python 扫描线程继续执行。
+        if library.pending:
+            time.sleep(0.01)
+    QCoreApplication.processEvents()
+    assert not library.pending, {"pending": library.pending, "errors": library.errors}
     assert not any(library.errors.values())
 
 

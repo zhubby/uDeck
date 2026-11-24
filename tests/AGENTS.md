@@ -73,7 +73,7 @@ terminal_device_probe.py: 独立进程探针，验证 terminal_device 流程。
 terminal_font_probe.py: 独立进程探针，验证 terminal_font 流程。
 terminal_input_device_probe.py: 独立进程探针，验证 terminal_input_device 流程。
 terminal_ipc_probe.py: 独立进程探针，验证 terminal_ipc 流程。
-test_app_default_sources.py: pytest 回归入口，验证 app_default_sources 边界。
+test_app_default_sources.py: 默认内容源发现、后台扫描终态与自定义源保留回归。
 test_app_menu_icons.py: pytest 回归入口，验证 app_menu_icons 边界。
 test_app_performance.py: pytest 回归入口，验证 app_performance 边界。
 test_build_info.py: 构建来源冻结、内容哈希与运行时读取回归。
@@ -83,7 +83,7 @@ test_app_settings.py: pytest 回归入口，验证 app_settings 边界。
 test_apps_core.py: pytest 回归入口，验证 apps_core 边界。
 test_apps_native.py: 首次窗口交接、应用引擎、菜单和翻译的集成回归。
 test_apps_review.py: 应用文件索引等待、启动、游戏暂停与异步取消回归。
-test_apps_routing.py: 真实手柄队列的到期轮转、代次隔离与断线回退回归。
+test_apps_routing.py: 手柄队列轮转、代次隔离、断线回退与受控窗口激活确认回归。
 test_apps_saves.py: pytest 回归入口，验证 apps_saves 边界。
 test_audio.py: 音频状态去重、设备切换与服务错误恢复回归。
 test_audio_qml.py: 双尺寸、双语言和双主题的音频菜单回归。
@@ -121,7 +121,7 @@ test_fonts.py: pytest 回归入口，验证 fonts 边界。
 test_games_catalog.py: pytest 回归入口，验证 games_catalog 边界。
 test_games_management.py: pytest 回归入口，验证 games_management 边界。
 test_games_qml.py: pytest 回归入口，验证 games_qml 边界。
-test_games_regressions.py: pytest 回归入口，验证 games_regressions 边界。
+test_games_regressions.py: 目录、引擎退出与受控窗口确认回归。
 test_home.py: 首页固定入口、Console 名称与焦点恢复回归。
 test_home_qml.py: pytest 回归入口，验证 home_qml 边界。
 test_hotspot.py: pytest 回归入口，验证 hotspot 边界。
