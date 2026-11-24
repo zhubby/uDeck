@@ -1,0 +1,446 @@
+{
+  "status": "passed-automated-real-device-and-visual",
+  "sourceRevision": "f5b59149701aa7eac4634c46b9b5effe0ffefebe",
+  "build": {
+    "schema": 1,
+    "recorded": true,
+    "version": "1.0.4",
+    "sourceRevision": "f5b59149701aa7eac4634c46b9b5effe0ffefebe",
+    "sourceDirty": false,
+    "sourceContentSha256": "811996523a0bd92e039735ed25bed84bb83055b1e899db8465f9b73d41a28d94",
+    "sourceFileCount": 1488,
+    "buildId": "7d824298331c3fc0540b809e35f4ad8c97e1afdbf74043d647805c33413561ee"
+  },
+  "sourceValidation": {
+    "localEffectivePassed": 164,
+    "localSkipped": 2,
+    "tsRegressionCases": 11,
+    "initialMusicSmokeExitTimeouts": 2,
+    "originalTwoCasesRecheckPassed": 2,
+    "initialTimeoutUniqueCauseProven": false,
+    "ruff": "passed",
+    "diffCheck": "passed",
+    "ci": {
+      "url": "https://github.com/zhubby/uDeck/actions/runs/45386181556",
+      "status": "success",
+      "files": 139,
+      "tests": 2610,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 7,
+      "passed": 2603,
+      "timedOut": 0
+    }
+  },
+  "rootCauseEvidence": {
+    "sameOriginalLongGop": true,
+    "rawQtAfterSeekFrames": 0,
+    "rawSoftwareQtAfterSeekFrames": 0,
+    "rawFfmpegAfterSeekFrames": 0,
+    "indexedStreamCopyAfterSeekFrames": 84,
+    "requestedPositionSeconds": 8,
+    "firstDecodedPictureSeconds": 7.921,
+    "hardwareDecoder": "h264_v4l2m2m",
+    "transcoding": false,
+    "decodedPicturesUnchangedInRegression": true
+  },
+  "device": {
+    "model": "uConsole CM4",
+    "os": "Debian 13.5 arm64",
+    "pyside6": "6.8.2.1",
+    "packageVersion": "1.0.4",
+    "deployment": "targeted source overlay",
+    "releaseCreated": false,
+    "filesUpdated": 8,
+    "runtimeFilesVerified": 529,
+    "backupDirectory": "/var/backups/udeck-ts-seek-fix-1795520632686033855",
+    "completedSamples": 9,
+    "coldWarmOpens": 18,
+    "cases": [
+      {
+        "format": "WAV",
+        "variant": null,
+        "filename": "music-wav.WAV",
+        "application": "music",
+        "coldEnter": "passed",
+        "warmOpen": "passed",
+        "originalPathPreserved": true,
+        "samePidAndStartTicks": true,
+        "warmResumeConfirmed": false,
+        "picturesVisuallyReviewed": false,
+        "audioStreamObserved": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795520852598128521/wav-cold-enter.png",
+            "sha256": "5eb9b8f426ab1b923b50b2409092339ff52f79951ed4a1b31c84cd988bf51fc6"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795520852598128521/wav-warm-menu-open.png",
+            "sha256": "c8b87d453672889de91a6004a3f5364df08bf6b4c66624bea1156166bfcfe84b"
+          }
+        }
+      },
+      {
+        "format": "MP4",
+        "variant": null,
+        "filename": "video-mp4.MP4",
+        "application": "video",
+        "coldEnter": "passed",
+        "warmOpen": "passed",
+        "originalPathPreserved": true,
+        "samePidAndStartTicks": true,
+        "warmResumeConfirmed": true,
+        "picturesVisuallyReviewed": true,
+        "audioStreamObserved": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795520852598128521/mp4-cold-enter.png",
+            "sha256": "631dd60e78a6b89743d85174df977c7f5d10bbbbeea629dd9085a53612a7b97a"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795520852598128521/mp4-warm-menu-open.png",
+            "sha256": "254f4071c433b9a66da4174246436c73218de04cbf279779e2e31d816044017c"
+          }
+        }
+      },
+      {
+        "format": "MKV",
+        "variant": null,
+        "filename": "video-mkv.MKV",
+        "application": "video",
+        "coldEnter": "passed",
+        "warmOpen": "passed",
+        "originalPathPreserved": true,
+        "samePidAndStartTicks": true,
+        "warmResumeConfirmed": true,
+        "picturesVisuallyReviewed": true,
+        "audioStreamObserved": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795520852598128521/mkv-cold-enter.png",
+            "sha256": "795f4af0e8e5441ce0a18bc8dd62102eac72a4f6c39b0925b5f1fe804e778b01"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795520852598128521/mkv-warm-menu-open.png",
+            "sha256": "7749724be23d5d10c7bfc425241657d163e8a92fcb5deb26dc74ff0b6b50e127"
+          }
+        }
+      },
+      {
+        "format": "WEBM",
+        "variant": null,
+        "filename": "video-webm.WEBM",
+        "application": "video",
+        "coldEnter": "passed",
+        "warmOpen": "passed",
+        "originalPathPreserved": true,
+        "samePidAndStartTicks": true,
+        "warmResumeConfirmed": true,
+        "picturesVisuallyReviewed": true,
+        "audioStreamObserved": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795520852598128521/webm-cold-enter.png",
+            "sha256": "9ea232529516f722dc1b3c7e33fc411485ea1aa9f5351da36077ad1e45fd9e05"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795520852598128521/webm-warm-menu-open.png",
+            "sha256": "afddedad77e03b0d7eef652e93c3f1206ec5b1f67f1034608a0cf134744d72bd"
+          }
+        }
+      },
+      {
+        "format": "MOV",
+        "variant": null,
+        "filename": "video-mov.MOV",
+        "application": "video",
+        "coldEnter": "passed",
+        "warmOpen": "passed",
+        "originalPathPreserved": true,
+        "samePidAndStartTicks": true,
+        "warmResumeConfirmed": true,
+        "picturesVisuallyReviewed": true,
+        "audioStreamObserved": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795520852598128521/mov-cold-enter.png",
+            "sha256": "47c76c4245f5a55e7853e501f6d957676a2862580399b8afc4ff0e38b6239caf"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795520852598128521/mov-warm-menu-open.png",
+            "sha256": "b89ccd7960504f6dc289ed840123c998aa9527ecd2df4222cc61343d0c330832"
+          }
+        }
+      },
+      {
+        "format": "AVI",
+        "variant": null,
+        "filename": "video-avi.AVI",
+        "application": "video",
+        "coldEnter": "passed",
+        "warmOpen": "passed",
+        "originalPathPreserved": true,
+        "samePidAndStartTicks": true,
+        "warmResumeConfirmed": true,
+        "picturesVisuallyReviewed": true,
+        "audioStreamObserved": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795520852598128521/avi-cold-enter.png",
+            "sha256": "db092c7be84b2373e7b31ae91e961834583cab1b33b08fd133f9b038290d22a5"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795520852598128521/avi-warm-menu-open.png",
+            "sha256": "956a198e1a6e76cc3c7f7328919c2285877d84301a5b437910d7e9f71c50e7d0"
+          }
+        }
+      },
+      {
+        "format": "M4V",
+        "variant": null,
+        "filename": "video-m4v.M4V",
+        "application": "video",
+        "coldEnter": "passed",
+        "warmOpen": "passed",
+        "originalPathPreserved": true,
+        "samePidAndStartTicks": true,
+        "warmResumeConfirmed": true,
+        "picturesVisuallyReviewed": true,
+        "audioStreamObserved": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795520852598128521/m4v-cold-enter.png",
+            "sha256": "ee6363b34e92afc62baf9bd25cc32f13b30d2b12fa1626f6f61c2b2904019443"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795520852598128521/m4v-warm-menu-open.png",
+            "sha256": "cc3837e6d614f581e6b3b15351611fa85e260887371f4ac367fa8367495a4edb"
+          }
+        }
+      },
+      {
+        "format": "TS",
+        "variant": "long",
+        "filename": "video-ts.TS",
+        "application": "video",
+        "coldEnter": "passed",
+        "warmOpen": "passed",
+        "originalPathPreserved": true,
+        "samePidAndStartTicks": true,
+        "warmResumeConfirmed": true,
+        "picturesVisuallyReviewed": true,
+        "audioStreamObserved": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795521194756736389/ts-cold-enter.png",
+            "sha256": "c4e99e61617b96a73d18c19d3f25d76785213feb0620e299d8c51e1000b2d636"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795521194756736389/ts-warm-menu-open.png",
+            "sha256": "3489f0325c008099798908b6453c449b34e4726eca36ef70091df6f91c97d330"
+          }
+        }
+      },
+      {
+        "format": "TS",
+        "variant": "short",
+        "filename": "video-ts-short-gop.TS",
+        "application": "video",
+        "coldEnter": "passed",
+        "warmOpen": "passed",
+        "originalPathPreserved": true,
+        "samePidAndStartTicks": true,
+        "warmResumeConfirmed": true,
+        "picturesVisuallyReviewed": true,
+        "audioStreamObserved": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795521283849698290/ts-cold-enter.png",
+            "sha256": "80609df7d1de562480b29bb810b07d5d41c5cdc9035357f7d65eb76805cbe8d5"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795521283849698290/ts-warm-menu-open.png",
+            "sha256": "6efba119cfb819baa789863f945938586495ce68d969d0827b5e69408b4388f6"
+          }
+        }
+      }
+    ],
+    "keyboardSeeks": {
+      "long": [
+        {
+          "targetSeconds": 3,
+          "playing": true,
+          "media": {
+            "position": 4.221,
+            "duration": 20.032,
+            "playing": true,
+            "loading": false,
+            "rate": 1.0,
+            "output": "Built-in Audio Stereo",
+            "error": "",
+            "status": "LoadedMedia"
+          },
+          "visibleSaturatedSamples": 11,
+          "pictureChanged": true,
+          "bodySha256": "571b6d58929280d524e2d996df5198e1b6fbfffaa092d47abf0fae4a0120bff2"
+        },
+        {
+          "targetSeconds": 1,
+          "playing": false,
+          "media": {
+            "position": 1.0,
+            "duration": 20.032,
+            "playing": false,
+            "loading": false,
+            "rate": 1.0,
+            "output": "Built-in Audio Stereo",
+            "error": "",
+            "status": "LoadedMedia"
+          },
+          "visibleSaturatedSamples": 12,
+          "pictureChanged": true,
+          "bodySha256": "4ba5bac97f96d26aef179bf8526a41cfb804ba70dfb600dd3f1357f00501fc52"
+        },
+        {
+          "targetSeconds": 12,
+          "playing": true,
+          "media": {
+            "position": 13.221,
+            "duration": 20.032,
+            "playing": true,
+            "loading": false,
+            "rate": 1.0,
+            "output": "Built-in Audio Stereo",
+            "error": "",
+            "status": "LoadedMedia"
+          },
+          "visibleSaturatedSamples": 12,
+          "pictureChanged": true,
+          "bodySha256": "fb27cb87a8ff25c3ef5a65a140d0ada1274a61674700a88d711e94e88280e3a6"
+        }
+      ],
+      "short": [
+        {
+          "targetSeconds": 3,
+          "playing": true,
+          "media": {
+            "position": 4.221,
+            "duration": 20.032,
+            "playing": true,
+            "loading": false,
+            "rate": 1.0,
+            "output": "Built-in Audio Stereo",
+            "error": "",
+            "status": "LoadedMedia"
+          },
+          "visibleSaturatedSamples": 11,
+          "pictureChanged": true,
+          "bodySha256": "89ee13d60c4a8fd516391fc7d02376fb8c3dbbc2db62f3a867c48d556ffabee8"
+        },
+        {
+          "targetSeconds": 1,
+          "playing": false,
+          "media": {
+            "position": 1.0,
+            "duration": 20.032,
+            "playing": false,
+            "loading": false,
+            "rate": 1.0,
+            "output": "Built-in Audio Stereo",
+            "error": "",
+            "status": "LoadedMedia"
+          },
+          "visibleSaturatedSamples": 12,
+          "pictureChanged": true,
+          "bodySha256": "430094be650dd4b8924134256c4784ad791431dd6006731222041b3bf18ca3b1"
+        },
+        {
+          "targetSeconds": 12,
+          "playing": true,
+          "media": {
+            "position": 13.021,
+            "duration": 20.032,
+            "playing": true,
+            "loading": false,
+            "rate": 1.0,
+            "output": "Built-in Audio Stereo",
+            "error": "",
+            "status": "LoadedMedia"
+          },
+          "visibleSaturatedSamples": 12,
+          "pictureChanged": true,
+          "bodySha256": "291efb853d912c44744dc32b4803e1a972e30e421cd71d8625223eac4d180d99"
+        }
+      ]
+    },
+    "positionInput": "existing public Control.Action seek plus Wayland virtual keyboard prompt",
+    "temporaryPlaybackCopies": {
+      "long": {
+        "oneCopyWhilePlaying": true,
+        "warmOpenReusedCopy": true,
+        "releasedOnExit": true
+      },
+      "short": {
+        "oneCopyWhilePlaying": true,
+        "warmOpenReusedCopy": true,
+        "releasedOnExit": true
+      }
+    },
+    "fixtureIntegrity": {
+      "originalFilesVerified": 15,
+      "originalLongGopSha256": "d67684840f0615c2b620f1d2d178a460cb3928917a4b25300565a989e0cb9315",
+      "shortGopSha256": "e884b19de1aa435c15993554f7bdc5e0f0100d03f0e1b5d19353acad1874e0e7",
+      "temporaryDirectoriesRemaining": []
+    }
+  },
+  "restorationAndHealth": {
+    "status": "passed",
+    "runtimeFilesVerified": 529,
+    "sourceRevision": "f5b59149701aa7eac4634c46b9b5effe0ffefebe",
+    "buildId": "7d824298331c3fc0540b809e35f4ad8c97e1afdbf74043d647805c33413561ee",
+    "configurationFilesExactlyRestored": 5,
+    "appFilesExactlyRestored": [
+      "/home/zhubby/.local/share/udeck/apps/music.json",
+      "/home/zhubby/.local/share/udeck/apps/music.index.json",
+      "/home/zhubby/.local/share/udeck/apps/video.json",
+      "/home/zhubby/.local/share/udeck/apps/video.index.json"
+    ],
+    "supervisorPreserved": true,
+    "compositorPreserved": true,
+    "retainedApplications": [
+      "browser",
+      "emulator"
+    ],
+    "musicReturnedToOriginalIdleState": true,
+    "videoExited": true,
+    "finalPage": "home",
+    "ready": true,
+    "inputMappedAndGrabbed": true,
+    "shortcutsApplied": true,
+    "serviceErrors": {},
+    "packageAudit": "passed",
+    "journalLines": 277,
+    "pythonOrQmlErrorLines": [],
+    "mute": "Mute: yes"
+  },
+  "resourceLimits": {
+    "prepareTimeoutSeconds": 180,
+    "freeSpaceReserveBytes": 67108864,
+    "requiredTemporarySpace": "input size plus reserve",
+    "maximumOutput": "input size plus max(10 percent, 1 MiB)",
+    "stderrBytes": 8192,
+    "retention": "current source only; removed on source switch or normal close",
+    "forcedExitCleanup": "OS temporary-file policy"
+  },
+  "limits": {
+    "humanPhysicalAcceptance": false,
+    "audibleAudioAcceptance": false,
+    "mutePreserved": true,
+    "allCodecCombinationsValidated": false,
+    "externalObservation": "Wayland window events and 25ms known-process sampling; not kernel exec tracing"
+  },
+  "evidence": {
+    "local": "artifacts/ts-seek-fix-20261124/",
+    "device": "/var/tmp/udeck-ts-seek-fix-20261124/"
+  }
+}

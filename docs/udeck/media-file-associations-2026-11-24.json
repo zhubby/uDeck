@@ -449,5 +449,11 @@
   "evidence": {
     "local": "artifacts/media-associations-device-20261124/",
     "device": "/var/tmp/udeck-media-associations-20261124/"
+  },
+  "resolution": {
+    "sourceRevision": "f5b59149701aa7eac4634c46b9b5effe0ffefebe",
+    "status": "fixed-and-device-verified",
+    "record": "ts-seek-fix-2026-11-24.json",
+    "originalFailingSampleUnchanged": true
   }
 }
