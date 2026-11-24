@@ -52,6 +52,8 @@ media-review-2026-11-13.md: 音乐与视频抢占审查及实机复测（0.2.10�
 media-takeover-2026-11-13.md: 音乐与视频播放抢占（0.2.9）。
 multi-wifi-2026-11-06.md: uDeck 0.1.5 多无线网卡。
 power-audio-2026-11-07.md: 电池功率与蓝牙音频管理交付记录。
+reader-file-associations-2026-11-24.md: Reader 四格式关联、专项回归与实机恢复记录。
+reader-file-associations-2026-11-24.json: Reader 部署身份、八次冷暖打开和最终恢复摘要。
 running-icons-2026-11-12.md: Running 与首页的内置应用图标统一。
 release-1.0.0.md: 1.0.0 发布、arm64 验证、实机卸载重装与 VS Code 清理记录。
 release-1.0.4.md: 1.0.4 正式发布、工作流权限修复和实机升级验收。

@@ -95,6 +95,9 @@ Linux 最小对照证明旧等待会推迟工作线程。
 
 ## main 与实机部署
 
+本节记录 Reader 全格式追补前的部署。
+后续源码身份和四格式验收见 [Reader 文件关联](reader-file-associations-2026-11-24.md)。
+
 `5e73db3` 和 `2049d47` 已合并并推送到 main。
 最终运行源码为 `2049d470d06d1434f6d6c88fd14ba709a5b4249b`。
 设备为 uConsole CM4，Debian 13 arm64。

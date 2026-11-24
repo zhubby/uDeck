@@ -1,0 +1,225 @@
+{
+  "status": "passed-automated-device-and-visual",
+  "sourceRevision": "e72cd15d896de7f03e0a2a9fb2c5b5a7a5e8b978",
+  "build": {
+    "schema": 1,
+    "recorded": true,
+    "version": "1.0.4",
+    "sourceRevision": "e72cd15d896de7f03e0a2a9fb2c5b5a7a5e8b978",
+    "sourceDirty": false,
+    "sourceContentSha256": "05b871b28db6850f60e083146f007978a856f1ede0bfc22c18b274b12526dba3",
+    "sourceFileCount": 1479,
+    "buildId": "fb8dd9b4ddd70f5b51d603ba0dba1c3529d6058b7369043cd66a01665e0addde"
+  },
+  "association": {
+    "source": "udeck.apps.common.library.EXTENSIONS.reader",
+    "formats": [
+      "TXT",
+      "PDF",
+      "EPUB",
+      "MOBI"
+    ],
+    "caseInsensitive": true,
+    "entrypoints": [
+      "Files Enter",
+      "Files menu Open",
+      "preview confirmation"
+    ],
+    "systemMimeDefaultsChanged": false
+  },
+  "sourceValidation": {
+    "local": {
+      "tests": 126,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "ci": {
+      "run": 45353821268,
+      "sourceRevision": "e72cd15d896de7f03e0a2a9fb2c5b5a7a5e8b978",
+      "url": "https://github.com/zhubby/uDeck/actions/runs/45353821268",
+      "status": "success",
+      "files": 138,
+      "tests": 2161,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 7,
+      "passed": 2154,
+      "timedOut": 0
+    },
+    "priorDocsCi": {
+      "run": 45351031143,
+      "passed": 2126,
+      "failures": 2,
+      "skipped": 7,
+      "failedCases": [
+        "thumbnail transient HTTP request count",
+        "supervisor ready PID file race"
+      ],
+      "sameCasesPassedInCurrentCodeCi": true,
+      "affectedProductAndTestFilesChanged": false,
+      "thumbnailExtraRequestCauseProven": false
+    }
+  },
+  "device": {
+    "model": "uConsole CM4",
+    "os": "Debian 13 arm64",
+    "deployment": "targeted source overlay on package 1.0.4",
+    "releaseCreated": false,
+    "filesUpdated": 2,
+    "runtimeFilesVerified": 528,
+    "backupDirectory": "/var/backups/udeck-reader-associations-1795508457352913625",
+    "cases": [
+      {
+        "format": "txt",
+        "coldEnter": "passed",
+        "warmMenuOpen": "passed",
+        "samePidAndStartTicks": true,
+        "readyAndCorrectPath": true,
+        "bodyVisuallyConfirmed": true,
+        "readerExited": true
+      },
+      {
+        "format": "pdf",
+        "coldEnter": "passed",
+        "warmMenuOpen": "passed",
+        "samePidAndStartTicks": true,
+        "readyAndCorrectPath": true,
+        "bodyVisuallyConfirmed": true,
+        "readerExited": true
+      },
+      {
+        "format": "epub",
+        "coldEnter": "passed",
+        "warmMenuOpen": "passed",
+        "samePidAndStartTicks": true,
+        "readyAndCorrectPath": true,
+        "bodyVisuallyConfirmed": true,
+        "readerExited": true
+      },
+      {
+        "format": "mobi",
+        "coldEnter": "passed",
+        "warmMenuOpen": "passed",
+        "samePidAndStartTicks": true,
+        "readyAndCorrectPath": true,
+        "bodyVisuallyConfirmed": true,
+        "readerExited": true
+      }
+    ],
+    "caseCount": 8,
+    "bodyScreenshots": [
+      {
+        "file": "reader-run-1795508611500647911/txt-cold-enter.png",
+        "sha256": "aa3b73d6479fd563f959674ed501add650f78801b1452da9bc808cdf36449cd4"
+      },
+      {
+        "file": "reader-run-1795508611500647911/txt-warm-menu-open.png",
+        "sha256": "aa3b73d6479fd563f959674ed501add650f78801b1452da9bc808cdf36449cd4"
+      },
+      {
+        "file": "reader-run-1795508611500647911/pdf-cold-enter.png",
+        "sha256": "ab945552eae82848420d56cfebf4d07a4f8d631a240a2f539d847e450784de65"
+      },
+      {
+        "file": "reader-run-1795508611500647911/pdf-warm-menu-open.png",
+        "sha256": "ab945552eae82848420d56cfebf4d07a4f8d631a240a2f539d847e450784de65"
+      },
+      {
+        "file": "reader-run-1795508611500647911/epub-cold-enter.png",
+        "sha256": "2d7281358f1001d476671d3f7d1d8ed88b402706f30bd20df876e368447de986"
+      },
+      {
+        "file": "reader-run-1795508611500647911/epub-warm-menu-open.png",
+        "sha256": "2d7281358f1001d476671d3f7d1d8ed88b402706f30bd20df876e368447de986"
+      },
+      {
+        "file": "reader-run-1795508611500647911/mobi-cold-enter.png",
+        "sha256": "6cb2cc245f4ba5dffecc0387344bb00f27a00f33120046218be53f8c78d85586"
+      },
+      {
+        "file": "reader-run-1795508611500647911/mobi-warm-menu-open.png",
+        "sha256": "6cb2cc245f4ba5dffecc0387344bb00f27a00f33120046218be53f8c78d85586"
+      }
+    ],
+    "contactSheet": "artifacts/reader-associations-20261124/reader-formats-contact-sheet.png",
+    "externalObservation": {
+      "newExternalWindows": false,
+      "knownProcessSampleNewExternal": false,
+      "sampleIntervalMs": 25,
+      "kernelExecTracing": false
+    },
+    "restoration": {
+      "readerFiles": [
+        {
+          "path": "/home/zhubby/.local/share/udeck/apps/reader.json",
+          "exactBytesAndMetadataRestored": true,
+          "beforeSha256": "f1f76fa17cabb3a31a966e69e5ab0ad08e9c67084d95af0b689cb3fd65aafe14",
+          "afterQuitSha256": "c2835480fbba6e9b47510d9bf94ee657fe36b4f64abe7a88d1c519d132373ea1",
+          "restoredSha256": "f1f76fa17cabb3a31a966e69e5ab0ad08e9c67084d95af0b689cb3fd65aafe14"
+        },
+        {
+          "path": "/home/zhubby/.local/share/udeck/apps/reader.index.json",
+          "exactBytesAndMetadataRestored": true,
+          "beforeSha256": "e9ce9db4e21802f395f30a54e3e089f541f087129de20c2f9bdd3e49e0b4ebcc",
+          "afterQuitSha256": "bd850f57cbbd0dc8e1c17d1a249a15c5e21195f3cf51b556a7248375cf2710a6",
+          "restoredSha256": "e9ce9db4e21802f395f30a54e3e089f541f087129de20c2f9bdd3e49e0b4ebcc"
+        }
+      ],
+      "global": {
+        "status": "passed",
+        "configurationFilesRestored": 5,
+        "exactOriginalBytesAndMetadataRestored": true,
+        "settingsDifferenceWasRecentOnly": true,
+        "applicationProcessesPreserved": true,
+        "supervisorPreserved": true,
+        "compositorPreserved": true,
+        "runtimeFilesVerified": 528,
+        "oldDesktop": {
+          "pid": 4184277,
+          "start": 120180749,
+          "parent": 1872077
+        },
+        "newDesktop": {
+          "pid": 4187264,
+          "start": 120218225,
+          "parent": 1872077
+        },
+        "packageAudit": "passed"
+      }
+    },
+    "finalDesktop": {
+      "pid": 4187264,
+      "start": 120218225,
+      "parent": 1872077
+    },
+    "finalPage": "home",
+    "originalApplicationsPreserved": [
+      "music",
+      "browser",
+      "emulator"
+    ],
+    "inputVerifiedMappedAndGrabbed": true,
+    "shortcutsApplied": true,
+    "serviceErrors": {},
+    "journal": {
+      "pythonTracebackOrQmlErrorsObserved": false,
+      "otherMessages": [
+        "labwc window geometry",
+        "Xwayland/xsettingsd authorization and keymap"
+      ],
+      "raw": "artifacts/reader-associations-20261124/session-journal.log"
+    }
+  },
+  "limits": {
+    "input": "remote Wayland virtual keyboard",
+    "humanPhysicalAcceptance": false,
+    "mobiFixture": "original DRM-free PalmDOC MOBI6",
+    "allKindleFormatsValidated": false
+  },
+  "evidence": {
+    "local": "artifacts/reader-associations-20261124/",
+    "localTests": "artifacts/reader-routing-20261124/",
+    "device": "/var/tmp/udeck-reader-associations-20261124/reader-run-1795508611500647911"
+  }
+}
