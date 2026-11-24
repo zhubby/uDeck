@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖桌面控制器、隔离文件目录与可控异步任务。
-[OUTPUT]: 验证内置文件打开、文件操作与两类快照边界。
+[INPUT]: 依赖桌面控制器、Reader 格式表、隔离目录与异步任务。
+[OUTPUT]: 验证 Reader 全格式关联、安全预览、文件操作与快照边界。
 [POS]: 桌面文件交互回归；真实 QML 布局由独立探针验证。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -16,6 +16,7 @@ from PySide6.QtCore import QCoreApplication, QEvent
 from PySide6.QtGui import QImage
 from test_files_locations_trash import make_trash
 
+from udeck.apps.common.library import EXTENSIONS
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
 from udeck.file_trash import TrashStore
@@ -293,7 +294,7 @@ def test_removed_file_open_commands_never_launch_system_handlers(controller, mon
     assert not instance.modal
 
 
-@pytest.mark.parametrize("name", ["backup.zip", "unknown.xyz", "unsupported.wma", "launcher.desktop", "script.sh", "note.txt", "code.py"])
+@pytest.mark.parametrize("name", ["backup.zip", "unknown.xyz", "unsupported.wma", "launcher.desktop", "script.sh", "note.md", "code.py"])
 @pytest.mark.parametrize("entrypoint", ["accept", "menu"])
 def test_files_open_in_preview_and_confirmation_cannot_escape(controller, monkeypatch, name, entrypoint):
     instance, application, directory = controller
@@ -341,6 +342,56 @@ def test_supported_files_use_the_named_native_application(controller, monkeypatc
     assert not instance.modal
 
 
+@pytest.mark.parametrize("suffix", sorted(EXTENSIONS["reader"]))
+@pytest.mark.parametrize("uppercase", [False, True], ids=["lowercase", "uppercase"])
+@pytest.mark.parametrize("entrypoint", ["accept", "menu"])
+def test_reader_formats_open_only_in_reader(controller, monkeypatch, suffix, uppercase, entrypoint):
+    instance, application, directory = controller
+    path = directory / ("document" + (suffix.upper() if uppercase else suffix))
+    path.write_text("reader fixture")
+    instance.data["files"] = instance.operations.list_directory(directory)
+    instance.select(next(i for i, item in enumerate(instance._items()) if item["path"] == str(path)))
+    launched = []
+    monkeypatch.setattr(instance.operations, "_gio", lambda *_args: pytest.fail("System file handler launched"))
+    monkeypatch.setattr(instance.catalog, "launch", lambda *_args: pytest.fail("Desktop application launched"))
+    monkeypatch.setattr(instance, "_start_application", lambda item, files=(): launched.append((item["id"], tuple(files))))
+    if entrypoint == "menu":
+        instance.dispatch("context")
+        assert not any(option.get("command") == "open-with" for option in instance.modal["options"])
+        instance.chooseModal(next(i for i, option in enumerate(instance.modal["options"]) if option.get("action") == "open-file"))
+    else:
+        instance.dispatch("accept")
+    wait_until(application, lambda: not instance.busy)
+    assert launched == [("io.github.zhubby.uDeck.Reader.desktop", (str(path),))]
+    assert not instance.modal
+
+
+@pytest.mark.parametrize("suffix", sorted(EXTENSIONS["reader"]))
+@pytest.mark.parametrize("uppercase", [False, True], ids=["lowercase", "uppercase"])
+def test_reader_format_preview_preserves_content_and_confirms_internal_open(controller, monkeypatch, suffix, uppercase):
+    instance, application, directory = controller
+    path = directory / ("document" + (suffix.upper() if uppercase else suffix))
+    path.write_text("reader fixture")
+    instance.data["files"] = instance.operations.list_directory(directory)
+    instance.select(next(i for i, item in enumerate(instance._items()) if item["path"] == str(path)))
+    launched = []
+    monkeypatch.setattr(instance.operations, "_gio", lambda *_args: pytest.fail("System file handler launched"))
+    monkeypatch.setattr(instance.catalog, "launch", lambda *_args: pytest.fail("Desktop application launched"))
+    monkeypatch.setattr(instance, "_start_application", lambda item, files=(): launched.append((item["id"], tuple(files))))
+    instance.fileAction("preview", "")
+    wait_until(application, lambda: not instance.busy)
+    assert launched == []
+    assert instance.modal["kind"] == "file-preview"
+    assert instance.modal["item"]["path"] == str(path)
+    assert instance.modal["canOpen"]
+    if suffix == ".txt":
+        assert instance.modal["previewType"] == "text"
+        assert instance.modal["previewText"] == "reader fixture"
+    instance.dispatch("accept")
+    assert launched == [("io.github.zhubby.uDeck.Reader.desktop", (str(path),))]
+    assert not instance.modal
+
+
 def test_native_file_preview_offers_only_the_internal_target(controller, monkeypatch):
     instance, application, directory = controller
     item = next(item for item in instance._items() if item["name"] == "track2.flac")
@@ -355,10 +406,11 @@ def test_native_file_preview_offers_only_the_internal_target(controller, monkeyp
     assert launched == [("io.github.zhubby.uDeck.Music.desktop", (item["path"],))]
 
 
-def test_missing_native_application_falls_back_to_details(controller, monkeypatch):
+@pytest.mark.parametrize("name", ["track2.flac", "a.txt"])
+def test_missing_native_application_falls_back_to_details(controller, monkeypatch, name):
     instance, application, directory = controller
     instance.applications = []
-    item = next(item for item in instance._items() if item["name"] == "track2.flac")
+    item = next(item for item in instance._items() if item["name"] == name)
     opened = []
     monkeypatch.setattr(instance.operations, "_gio", lambda *args: opened.append(args))
     monkeypatch.setattr(instance.catalog, "launch", lambda *args: opened.append(args))
@@ -370,10 +422,11 @@ def test_missing_native_application_falls_back_to_details(controller, monkeypatc
     assert "not installed" in str(instance.modal["openNotice"])
 
 
-def test_file_symlink_never_launches_a_native_target(controller, monkeypatch):
+@pytest.mark.parametrize("name", ["track2.flac", "a.txt"])
+def test_file_symlink_never_launches_a_native_target(controller, monkeypatch, name):
     instance, application, directory = controller
-    path = directory / "link.flac"
-    path.symlink_to(directory / "track2.flac")
+    path = directory / ("link" + Path(name).suffix)
+    path.symlink_to(directory / name)
     item = next(item for item in instance.operations.list_directory(directory) if item["path"] == str(path))
     monkeypatch.setattr(instance, "_start_application", lambda *_args, **_kw: pytest.fail("Link target launched"))
     monkeypatch.setattr(instance.operations, "_gio", lambda *_args: None)
