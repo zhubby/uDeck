@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖文件操作、内置格式表、应用身份与桌面启动链。
-[OUTPUT]: 提供文件浏览、Reader 全格式关联、预览与后台任务编排。
+[OUTPUT]: 提供文件浏览、音乐视频文档关联、预览与后台任务编排。
 [POS]: 桌面文件交互边界；文件确认不调用系统文件关联。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -21,7 +21,7 @@ from .file_locations import mounted_locations, unmount, user_locations
 from .file_model import FileListModel
 from .file_preview import preview
 from .file_trash import TrashStore
-from .files import FileOperations, file_kind, query_entries
+from .files import FileOperations, query_entries
 from .home import home_shortcuts
 from .i18n import Msg, tr
 
@@ -615,9 +615,8 @@ class FileControls:
         if item.get("directory") or item.get("trash") or item.get("symlink") or Path(item["path"]).is_symlink():
             return None
         suffix = Path(item["name"]).suffix.lower()
-        kind, _mime, _icon = file_kind(item["name"])
-        app = "reader" if suffix in EXTENSIONS["reader"] else {"audio": "music", "video": "video"}.get(kind)
-        if not app or suffix not in EXTENSIONS[app]:
+        app = next((app for app in ("music", "video", "reader") if suffix in EXTENSIONS[app]), None)
+        if not app:
             return None
         return next(shortcut for shortcut in home_shortcuts(self.applications)
                     if shortcut["id"] == APP_IDS[app] + ".desktop")

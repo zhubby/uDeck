@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖桌面控制器、Reader 格式表、隔离目录与异步任务。
-[OUTPUT]: 验证 Reader 全格式关联、安全预览、文件操作与快照边界。
+[INPUT]: 依赖桌面控制器、内置格式表、隔离目录与异步任务。
+[OUTPUT]: 验证音乐、视频和文档关联、安全预览与文件操作。
 [POS]: 桌面文件交互回归；真实 QML 布局由独立探针验证。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -21,6 +21,12 @@ from udeck.controller import ShellController
 from udeck.core import ConfigStore
 from udeck.file_trash import TrashStore
 from udeck.mock import MockBackend
+
+SUPPORTED_FILES = [
+    (suffix, target)
+    for app, target in (("music", "Music"), ("video", "Video"), ("reader", "Reader"))
+    for suffix in sorted(EXTENSIONS[app])
+]
 
 
 def wait_until(application, predicate, timeout=5):
@@ -294,7 +300,7 @@ def test_removed_file_open_commands_never_launch_system_handlers(controller, mon
     assert not instance.modal
 
 
-@pytest.mark.parametrize("name", ["backup.zip", "unknown.xyz", "unsupported.wma", "launcher.desktop", "script.sh", "note.md", "code.py"])
+@pytest.mark.parametrize("name", ["backup.zip", "unknown.xyz", "unsupported.wma", "unsupported.wmv", "game.gba", "launcher.desktop", "script.sh", "note.md", "code.py"])
 @pytest.mark.parametrize("entrypoint", ["accept", "menu"])
 def test_files_open_in_preview_and_confirmation_cannot_escape(controller, monkeypatch, name, entrypoint):
     instance, application, directory = controller
@@ -342,13 +348,18 @@ def test_supported_files_use_the_named_native_application(controller, monkeypatc
     assert not instance.modal
 
 
-@pytest.mark.parametrize("suffix", sorted(EXTENSIONS["reader"]))
+@pytest.mark.parametrize("suffix, target", SUPPORTED_FILES)
 @pytest.mark.parametrize("uppercase", [False, True], ids=["lowercase", "uppercase"])
 @pytest.mark.parametrize("entrypoint", ["accept", "menu"])
-def test_reader_formats_open_only_in_reader(controller, monkeypatch, suffix, uppercase, entrypoint):
+@pytest.mark.parametrize("mime", ["system", None, "application/octet-stream", "incorrect-family"])
+def test_supported_formats_open_in_their_internal_app_without_mime_dependency(controller, monkeypatch, suffix, target, uppercase, entrypoint, mime):
     instance, application, directory = controller
     path = directory / ("document" + (suffix.upper() if uppercase else suffix))
-    path.write_text("reader fixture")
+    path.write_text("file fixture")
+    if mime != "system":
+        if mime == "incorrect-family":
+            mime = "video/mp4" if target == "Music" else "audio/mpeg"
+        monkeypatch.setattr("udeck.files.mimetypes.guess_type", lambda *_args: (mime, None))
     instance.data["files"] = instance.operations.list_directory(directory)
     instance.select(next(i for i, item in enumerate(instance._items()) if item["path"] == str(path)))
     launched = []
@@ -362,16 +373,21 @@ def test_reader_formats_open_only_in_reader(controller, monkeypatch, suffix, upp
     else:
         instance.dispatch("accept")
     wait_until(application, lambda: not instance.busy)
-    assert launched == [("io.github.zhubby.uDeck.Reader.desktop", (str(path),))]
+    assert launched == [(f"io.github.zhubby.uDeck.{target}.desktop", (str(path),))]
     assert not instance.modal
 
 
-@pytest.mark.parametrize("suffix", sorted(EXTENSIONS["reader"]))
+@pytest.mark.parametrize("suffix, target", SUPPORTED_FILES)
 @pytest.mark.parametrize("uppercase", [False, True], ids=["lowercase", "uppercase"])
-def test_reader_format_preview_preserves_content_and_confirms_internal_open(controller, monkeypatch, suffix, uppercase):
+@pytest.mark.parametrize("mime", ["system", None, "application/octet-stream", "incorrect-family"])
+def test_supported_format_preview_confirms_internal_open_without_mime_dependency(controller, monkeypatch, suffix, target, uppercase, mime):
     instance, application, directory = controller
     path = directory / ("document" + (suffix.upper() if uppercase else suffix))
     path.write_text("reader fixture")
+    if mime != "system":
+        if mime == "incorrect-family":
+            mime = "video/mp4" if target == "Music" else "audio/mpeg"
+        monkeypatch.setattr("udeck.files.mimetypes.guess_type", lambda *_args: (mime, None))
     instance.data["files"] = instance.operations.list_directory(directory)
     instance.select(next(i for i, item in enumerate(instance._items()) if item["path"] == str(path)))
     launched = []
@@ -384,11 +400,11 @@ def test_reader_format_preview_preserves_content_and_confirms_internal_open(cont
     assert instance.modal["kind"] == "file-preview"
     assert instance.modal["item"]["path"] == str(path)
     assert instance.modal["canOpen"]
-    if suffix == ".txt":
+    if suffix == ".txt" and mime == "system":
         assert instance.modal["previewType"] == "text"
         assert instance.modal["previewText"] == "reader fixture"
     instance.dispatch("accept")
-    assert launched == [("io.github.zhubby.uDeck.Reader.desktop", (str(path),))]
+    assert launched == [(f"io.github.zhubby.uDeck.{target}.desktop", (str(path),))]
     assert not instance.modal
 
 
@@ -406,11 +422,12 @@ def test_native_file_preview_offers_only_the_internal_target(controller, monkeyp
     assert launched == [("io.github.zhubby.uDeck.Music.desktop", (item["path"],))]
 
 
-@pytest.mark.parametrize("name", ["track2.flac", "a.txt"])
+@pytest.mark.parametrize("name", ["track2.flac", "clip.mp4", "a.txt"])
 def test_missing_native_application_falls_back_to_details(controller, monkeypatch, name):
     instance, application, directory = controller
+    (directory / name).write_bytes(b"fixture")
     instance.applications = []
-    item = next(item for item in instance._items() if item["name"] == name)
+    item = next(item for item in instance.operations.list_directory(directory) if item["name"] == name)
     opened = []
     monkeypatch.setattr(instance.operations, "_gio", lambda *args: opened.append(args))
     monkeypatch.setattr(instance.catalog, "launch", lambda *args: opened.append(args))
@@ -422,9 +439,10 @@ def test_missing_native_application_falls_back_to_details(controller, monkeypatc
     assert "not installed" in str(instance.modal["openNotice"])
 
 
-@pytest.mark.parametrize("name", ["track2.flac", "a.txt"])
+@pytest.mark.parametrize("name", ["track2.flac", "clip.mp4", "a.txt"])
 def test_file_symlink_never_launches_a_native_target(controller, monkeypatch, name):
     instance, application, directory = controller
+    (directory / name).write_bytes(b"fixture")
     path = directory / ("link" + Path(name).suffix)
     path.symlink_to(directory / name)
     item = next(item for item in instance.operations.list_directory(directory) if item["path"] == str(path))

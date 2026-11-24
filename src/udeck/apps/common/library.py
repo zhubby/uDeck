@@ -1,4 +1,9 @@
-"""Bounded background indexing and mount ownership; no files are moved."""
+"""
+[INPUT]: 依赖 Qt 线程池、文件系统与 ffprobe 元数据。
+[OUTPUT]: 提供共享格式表、内容源身份与有界后台索引。
+[POS]: 内置应用的库扫描层；Files 共用格式表选择应用。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import hashlib
 import json

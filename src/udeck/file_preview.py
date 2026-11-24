@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖文件分类、常规文件安全读取与 Qt 图像解码。
+[OUTPUT]: 提供有界文本、缩放图片和元数据预览。
+[POS]: Files 的只读预览层；不启动文件关联应用。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import base64
 import os
 import stat

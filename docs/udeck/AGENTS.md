@@ -31,7 +31,7 @@ files-network-access-completion-2026-11-12.md: 网络文件遗漏问题修复与
 files-network-access-final-fixes-2026-11-12.md: 网络文件回归剩余失败修复。
 files-network-access-validation.md: Files 网络访问验收记录。
 files-network-access.md: 网页文件访问。
-files-workspace-2026-11-08.md: Files 工作区、内置打开白名单与验证边界。
+files-workspace-2026-11-08.md: Files 工作区、共享格式表关联与源码验证边界。
 fixed-icons-2026-11-13.md: 全界面固定图标检查（0.2.8）。
 fonts-2026-11-07.md: uDeck 0.1.10 中英文字体。
 full-device-validation-2026-11-13.md: 全功能实机回归（2026-11-13）。

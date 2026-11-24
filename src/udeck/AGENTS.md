@@ -19,7 +19,7 @@ cursor.py: 指针光标图像与位置。
 desktop.py: 桌面元数据索引、Exec 解析与固定内置模块启动。
 directions.py: 方向接口连接预筛选、修饰键隔离与松键读取。
 emulator_saves/: 原生存档、历史快照和云同步。
-file_controller.py: 文件浏览、Reader 全格式关联、内置白名单与预览任务。
+file_controller.py: 文件浏览、音乐视频文档全格式关联、内置白名单与预览任务。
 file_icons.py: 文件类型到图标的映射。
 file_jobs.py: 后台文件任务与源路径去重。
 file_locations.py: 用户目录、挂载点与卸载。

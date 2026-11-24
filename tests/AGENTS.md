@@ -111,7 +111,7 @@ test_emulator_save_sync.py: pytest 回归入口，验证 emulator_save_sync 边�
 test_emulator_save_ui.py: 存档菜单、同步状态与配置入口不启动外部流程回归。
 test_emulator_thumbnails.py: 批量探测次数、封面更新、符号链接和下载重试边界回归。
 test_file_icons.py: pytest 回归入口，验证 file_icons 边界。
-test_files_controller.py: Reader 全格式关联、预览确认、外部入口阻断与文件交互回归。
+test_files_controller.py: 音乐、视频和文档全格式关联、MIME 隔离与文件交互回归。
 test_files_features.py: pytest 回归入口，验证 files_features 边界。
 test_files_jobs.py: pytest 回归入口，验证 files_jobs 边界。
 test_files_locations_trash.py: pytest 回归入口，验证 files_locations_trash 边界。
