@@ -10,7 +10,7 @@ navigation_continuity_probe.py: 独立桌面窗口的切页重入、滚动改向
 test_navigation_continuity_qml.py: 双主题导航中途状态的离屏回归入口。
 
 test_runtime_console_processes.py: 按应用采样的三种内存口径、失败隔离和 pidfd 终止身份回归。
-test_runtime_console_apps.py: 轻量状态、受控引擎授权与原生存档退出回归。
+test_runtime_console_apps.py: 轻量状态、受控引擎激活确认与原生存档退出回归。
 test_runtime_console.py: 运行身份、过期状态、详情、退出与外部激活拒绝回归。
 runtime_console_qml_probe.py: 等待稳定几何，验证三种内存口径、指标复用和详情输入。
 test_runtime_console_qml.py: Console 详情交互、中英文与双主题尺寸回归。
@@ -197,7 +197,7 @@ test_wifi_management_qml.py: pytest 回归入口，验证 wifi_management_qml �
 test_wifi_management_ui.py: pytest 回归入口，验证 wifi_management_ui 边界。
 test_wifi_qml.py: pytest 回归入口，验证 wifi_qml 边界。
 test_wifi_ui.py: pytest 回归入口，验证 wifi_ui 边界。
-test_windows.py: 窗口身份、外部激活拒绝与受控引擎进程复验回归。
+test_windows.py: 窗口身份、激活确认、外部拒绝与受控引擎进程复验回归。
 test_wireless_status.py: pytest 回归入口，验证 wireless_status 边界。
 test_wireless_status_qml.py: pytest 回归入口，验证 wireless_status_qml 边界。
 theme_qml_probe.py: 稳定布局后的跨窗口主题、字体与滚动保留探针。

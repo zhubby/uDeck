@@ -1,7 +1,7 @@
 """
 [INPUT]: 依赖共享控制器、游戏库、RetroEngine 与受限窗口接口。
-[OUTPUT]: 提供模拟器导航、运行摘要、有序退出与启动预检。
-[POS]: 模拟器编排；仅运行中的引擎获得窗口授权。
+[OUTPUT]: 提供模拟器导航、运行摘要、有序退出与游戏激活确认。
+[POS]: 模拟器编排；引擎激活确认后才最小化前台。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
@@ -406,9 +406,14 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
             windows.start()
             for entry in windows.entries():
                 if windows.allow_managed_window(entry['id'], EMULATOR_APP_ID, pid):
-                    windows.request(entry["id"], "activate")
-                    self.window.showMinimized()
+                    if windows.activate_confirmed(entry['id']):
+                        self.window.showMinimized()
+                        return
                     break
+            raise RuntimeError(tr(Msg.NO_APP_WINDOW_IS_AVAILABLE_TO_CONTROL))
+        except RuntimeError:
+            self.present.emit()
+            raise
         finally:
             windows.close()
 

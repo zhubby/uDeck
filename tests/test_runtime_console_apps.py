@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实应用控制器及其 D-Bus 适配层。
-[OUTPUT]: 验证轻量状态、受控引擎激活与有序退出。
+[OUTPUT]: 验证轻量状态、受控引擎激活确认与有序退出。
 [POS]: Console 与原生应用之间的生命周期契约回归。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -139,17 +139,60 @@ def test_emulator_uncover_requires_its_running_engine_identity(monkeypatch, runn
             return authorized
         def request(self, *args):
             events.append(('activate', *args))
+        def activate_confirmed(self, identifier):
+            self.request(identifier, 'activate')
+            return True
         def close(self):
             pass
 
     monkeypatch.setattr(windows_module, 'WindowService', Windows)
     monkeypatch.setattr(emulator_module, 'QGuiApplication', SimpleNamespace(platformName=lambda: 'wayland'))
     target = SimpleNamespace(window=SimpleNamespace(showMinimized=lambda: minimized.append(True)), isolated=False,
+                             present=SimpleNamespace(emit=lambda: events.append(('present',))),
                              engine=SimpleNamespace(running=lambda: running,
                                                     process=SimpleNamespace(processId=lambda: pid)))
-    EmulatorController.uncover_game(target)
+    if running and pid > 0 and not authorized:
+        with pytest.raises(RuntimeError):
+            EmulatorController.uncover_game(target)
+        assert events[-1] == ('present',)
+    else:
+        EmulatorController.uncover_game(target)
     assert any(event[0] == 'activate' for event in events) is expected
     assert bool(minimized) is expected
     if expected:
         assert events == [('authorize', 'game', 'io.github.zhubby.uDeck.Emulator', 222),
                           ('activate', 'game', 'activate')]
+
+
+@pytest.mark.parametrize('protocol_error', [False, True])
+def test_emulator_keeps_frontend_available_when_activation_is_not_confirmed(monkeypatch, protocol_error):
+    from udeck import windows as windows_module
+    from udeck.apps.emulator import controller as emulator_module
+
+    events = []
+
+    class Windows:
+        def start(self):
+            pass
+        def entries(self):
+            return [{'id': 'game', 'appId': 'com.libretro.RetroArch'}]
+        def allow_managed_window(self, *args):
+            return True
+        def activate_confirmed(self, identifier):
+            events.append('confirm')
+            if protocol_error:
+                raise RuntimeError('compositor disconnected')
+            return False
+        def close(self):
+            events.append('closed')
+
+    monkeypatch.setattr(windows_module, 'WindowService', Windows)
+    monkeypatch.setattr(emulator_module, 'QGuiApplication', SimpleNamespace(platformName=lambda: 'wayland'))
+    target = SimpleNamespace(window=SimpleNamespace(showMinimized=lambda: events.append('minimized')),
+                             present=SimpleNamespace(emit=lambda: events.append('present')),
+                             isolated=False, engine=SimpleNamespace(running=lambda: True,
+                             process=SimpleNamespace(processId=lambda: 222)))
+    with pytest.raises(RuntimeError):
+        EmulatorController.uncover_game(target)
+    assert 'minimized' not in events
+    assert events == ['confirm', 'present', 'closed']

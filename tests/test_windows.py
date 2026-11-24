@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实窗口服务和 Wayland 协议替身。
-[OUTPUT]: 验证窗口监听生命周期及原生窗口激活边界。
+[OUTPUT]: 验证窗口监听生命周期、激活确认与原生激活边界。
 [POS]: 合成器控制边界回归；不连接真实会话。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -96,3 +96,51 @@ def test_managed_engine_authorization_rejects_a_missing_process(controlled_windo
         raise ProcessLookupError(pid)
     monkeypatch.setattr(windows_module, 'read_process', missing, raising=False)
     assert not windows.allow_managed_window('game', 'io.github.zhubby.uDeck.Emulator', 222)
+
+
+def test_confirmed_activation_waits_for_compositor_before_releasing_connection(controlled_windows):
+    windows, sent = controlled_windows
+    acknowledged = []
+    windows.display = 100
+
+    def roundtrip(display):
+        assert display == 100 and sent[0][1] == 4
+        acknowledged.append('activation-consumed')
+        windows.handles['game']['active'] = True
+        return 0
+
+    windows.library.wl_display_roundtrip = roundtrip
+    assert windows.allow_managed_window('game', 'io.github.zhubby.uDeck.Emulator', 222)
+    assert windows.activate_confirmed('game')
+    assert acknowledged == ['activation-consumed']
+
+
+def test_confirmed_activation_does_not_accept_an_inactive_window(controlled_windows):
+    windows, _sent = controlled_windows
+    windows.display = 100
+    windows.library.wl_display_roundtrip = lambda display: 0
+    assert not windows.activate_confirmed('native')
+
+
+def test_confirmed_activation_revalidates_the_managed_window_after_acknowledgment(controlled_windows):
+    windows, _sent = controlled_windows
+    windows.display = 100
+
+    def replace_window(display):
+        windows.handles['game'] = {**windows.handles['game'], 'proxy': 10, 'active': True}
+        return 0
+
+    windows.library.wl_display_roundtrip = replace_window
+    assert windows.allow_managed_window('game', 'io.github.zhubby.uDeck.Emulator', 222)
+    assert not windows.activate_confirmed('game')
+
+
+def test_confirmed_activation_reports_a_failed_protocol_roundtrip(controlled_windows):
+    windows, _sent = controlled_windows
+    disconnected = []
+    windows.display = 100
+    windows.library.wl_display_roundtrip = lambda display: -1
+    windows.library.wl_display_disconnect = disconnected.append
+    with pytest.raises(RuntimeError):
+        windows.activate_confirmed('native')
+    assert disconnected == [100] and not windows.available

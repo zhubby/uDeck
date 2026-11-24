@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖 Wayland、原生身份与 proc 启动时刻校验。
-[OUTPUT]: 提供窗口身份、前台变化和受限窗口激活。
+[OUTPUT]: 提供窗口身份、前台变化和受限窗口激活确认。
 [POS]: 合成器激活边界；受监督引擎按进程身份授权。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -274,6 +274,15 @@ class WindowService(QObject):
         arguments = [ctypes.c_void_p(self.seat)] if operation == "activate" else []
         self.library.wl_proxy_marshal_flags(proxy, opcode, None, self.library.wl_proxy_get_version(proxy), 0, *arguments)
         self.library.wl_display_flush(self.display)
+
+    def activate_confirmed(self, identifier):
+        self.request(identifier, 'activate')
+        # 关闭临时连接或最小化其他窗口前，确认合成器已激活目标。
+        if self.library.wl_display_roundtrip(self.display) < 0:
+            self.close()
+            raise RuntimeError(tr(Msg.DISCONNECTED_FROM_THE_WINDOW_MANAGER))
+        return bool(self.available and self.can_activate(identifier)
+                    and self.handles[str(identifier)].get('active'))
 
     def can_activate(self, identifier):
         window = self.handles.get(str(identifier))

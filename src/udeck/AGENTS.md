@@ -77,6 +77,6 @@ virtual_input.py: 合成系统输入。
 wifi.py: Wi-Fi 身份、状态和错误文案。
 wifi_backend.py: NetworkManager 读取与设备绑定配置。
 wifi_controller.py: Wi-Fi 菜单及稳定网络选择。
-windows.py: 合成器窗口发现、内置激活边界与按进程身份的引擎授权。
+windows.py: 合成器窗口发现、激活确认、内置边界与按进程身份的引擎授权。
 
 [PROTOCOL]: Update this header on change, then check AGENTS.md
