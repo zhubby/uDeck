@@ -83,7 +83,8 @@ QML 包含双语言、双主题、双尺寸与延迟图片。
 关联链路日志和 JUnit 位于 `artifacts/media-associations-20261124/`。
 
 初次验证使用 macOS 离屏 Qt 环境。
-该阶段未安装到 uConsole，实机验收另行记录。
+该阶段未安装到 uConsole。
+后续部署与 TS 续播限制见 [实机验收](media-file-associations-2026-11-24.md)。
 格式关联通过不代表容器内全部编码均能解码。
 逐格式播放、设备音频与物理按键仍需实机验收。
 

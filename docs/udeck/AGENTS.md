@@ -49,6 +49,8 @@ internal-application-routing-2026-11-24.md: 全局内置应用边界、游戏激
 internal-application-routing-device-2026-11-24.json: main 部署身份、隔离回归、实机证据摘要与配置恢复。
 key-test-event-fix-2026-11-08.md: 按键测试迟到事件去重修复。
 media-review-2026-11-13.md: 音乐与视频抢占审查及实机复测（0.2.10）。
+media-file-associations-2026-11-24.md: 音乐视频格式关联实机验收与 TS 续播限制。
+media-file-associations-2026-11-24.json: 部署身份、格式用例、恢复状态与 CI 摘要。
 media-takeover-2026-11-13.md: 音乐与视频播放抢占（0.2.9）。
 multi-wifi-2026-11-06.md: uDeck 0.1.5 多无线网卡。
 power-audio-2026-11-07.md: 电池功率与蓝牙音频管理交付记录。

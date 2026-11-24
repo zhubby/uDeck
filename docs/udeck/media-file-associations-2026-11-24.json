@@ -1,0 +1,453 @@
+{
+  "status": "associations-passed-with-ts-playback-limitation",
+  "sourceRevision": "0f4546c26deafbb63e8a48e7e41e3a2a95a8d84d",
+  "build": {
+    "schema": 1,
+    "recorded": true,
+    "version": "1.0.4",
+    "sourceRevision": "0f4546c26deafbb63e8a48e7e41e3a2a95a8d84d",
+    "sourceDirty": false,
+    "sourceContentSha256": "d59f890fb821c2bb2e6ce343d8d2b2272c9bdbda40f770f5f87a4aa6c6be9570",
+    "sourceFileCount": 1481,
+    "buildId": "f3a1581ba37519df63befae3d1d540a9a7a0c6cf99d2c21282751cc39ca263ca"
+  },
+  "sourceValidation": {
+    "localPassed": 636,
+    "ruff": "passed",
+    "diffCheck": "passed",
+    "ci": {
+      "url": "https://github.com/zhubby/uDeck/actions/runs/45375954232",
+      "status": "success",
+      "files": 138,
+      "tests": 2599,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 7,
+      "passed": 2592,
+      "timedOut": 0
+    }
+  },
+  "device": {
+    "model": "uConsole CM4",
+    "os": "Debian 13.5 arm64",
+    "pyside6": "6.8.2.1",
+    "packageVersion": "1.0.4",
+    "deployment": "targeted source overlay",
+    "releaseCreated": false,
+    "filesUpdated": 4,
+    "runtimeFilesVerified": 528,
+    "backupDirectory": "/var/backups/udeck-reader-associations-1795516515753895751",
+    "input": "remote Wayland virtual keyboard",
+    "associationFormats": 15,
+    "associationOpens": 30,
+    "cases": [
+      {
+        "format": "MP3",
+        "application": "music",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": false,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795516827330505916/mp3-cold-enter.png",
+            "sha256": "f8e63a258d2e3ce26dc70603dcd5e97fa2c9d61aded503d624a73a6eb6ceec0c"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795516827330505916/mp3-warm-menu-open.png",
+            "sha256": "b4ce97a70ac201e23c794af02490f1849be6e072a0dadefed7a48a105fc5acb8"
+          }
+        }
+      },
+      {
+        "format": "FLAC",
+        "application": "music",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": false,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795516827330505916/flac-cold-enter.png",
+            "sha256": "b1e9f18f76146616abdd38cc772a6e6333562c11f7c34549abe74051a8a40a38"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795516827330505916/flac-warm-menu-open.png",
+            "sha256": "68130f77525216b5876ab0e40784fcfb37a550a1bbb55985a187f8129331c24a"
+          }
+        }
+      },
+      {
+        "format": "OGG",
+        "application": "music",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": false,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795516827330505916/ogg-cold-enter.png",
+            "sha256": "8bc00c60ad77dd7bf88d54da1baab647da88efc27c1bc8054339f54905bdb8f9"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795516827330505916/ogg-warm-menu-open.png",
+            "sha256": "c2d97299d251065d1758f1cc1909942c832bd205413a5ed56c24209a58b8209e"
+          }
+        }
+      },
+      {
+        "format": "OPUS",
+        "application": "music",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": false,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795516827330505916/opus-cold-enter.png",
+            "sha256": "4497e221fa1d172d45cd98a3bf980574519230bf16bbb61065b8f600396547ee"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795516827330505916/opus-warm-menu-open.png",
+            "sha256": "e954ac2e66641e4085713cb52efdadd8d318d4d76ae4fda1791c8f516f3e113d"
+          }
+        }
+      },
+      {
+        "format": "M4A",
+        "application": "music",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": false,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795516827330505916/m4a-cold-enter.png",
+            "sha256": "81c82a1f4a0ae2fc5c926a4994c13b949a99defc80b62b019bc3b4c679722392"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795516827330505916/m4a-warm-menu-open.png",
+            "sha256": "e4a9ab753591394042b552b62439a484e303d91672d36d80259d6d3f4bc2be97"
+          }
+        }
+      },
+      {
+        "format": "AAC",
+        "application": "music",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": false,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795516827330505916/aac-cold-enter.png",
+            "sha256": "24776e94d4cfd77a8ddcc54dbfd5a90f8a4f21cc86675eb1dc37b53b5e69f9de"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795516827330505916/aac-warm-menu-open.png",
+            "sha256": "8a1c401bb0f74d1c96220d4c5998981ec50421529057b6bda71ee6874f70010d"
+          }
+        }
+      },
+      {
+        "format": "WAV",
+        "application": "music",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": false,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795516827330505916/wav-cold-enter.png",
+            "sha256": "c24084bdcfce3625c16ee1cebb2236addc1736ee65f5373961b127e5555c9dde"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795516827330505916/wav-warm-menu-open.png",
+            "sha256": "0f29cad500311c0ec11f83bfb010e2824efc5b8bce9073d2daafa52d1d001f30"
+          }
+        }
+      },
+      {
+        "format": "AIFF",
+        "application": "music",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": false,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795516827330505916/aiff-cold-enter.png",
+            "sha256": "dd96b3aefba59495dd53c181890d0c3737c8875e6b7e6ff0543ab5cca0dbc770"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795516827330505916/aiff-warm-menu-open.png",
+            "sha256": "3a73380b7f597418104433029b437c8bafb42ea06accca59866e5cb1046d6d82"
+          }
+        }
+      },
+      {
+        "format": "MP4",
+        "application": "video",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795517389196739752/mp4-cold-enter.png",
+            "sha256": "572abe18636c2efd0eda482a398b166f9671685f7f2cbb2502301a633ac596b3"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795517389196739752/mp4-warm-menu-open.png",
+            "sha256": "a4582a518a0738deb80975932e882fc52abb9591cd563b59ce1fa769518c38db"
+          }
+        }
+      },
+      {
+        "format": "MKV",
+        "application": "video",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795517389196739752/mkv-cold-enter.png",
+            "sha256": "d1a3ee317d404cf5559d87c622ad1d9363100b3f00a4aeb666f36113a2d8a5ae"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795517389196739752/mkv-warm-menu-open.png",
+            "sha256": "0e3f28750d12f7b799c67fe1330705bc185c61d718f37d9f643da5890d1afa05"
+          }
+        }
+      },
+      {
+        "format": "WEBM",
+        "application": "video",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795517389196739752/webm-cold-enter.png",
+            "sha256": "4cd47e57af681c58df90fc3da62da965bcab1524d50e859a1534995dfef37c97"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795517389196739752/webm-warm-menu-open.png",
+            "sha256": "d32f27a1e6b86a3e0b7e814961496591610f601377e93bba603a35d6bfe94679"
+          }
+        }
+      },
+      {
+        "format": "MOV",
+        "application": "video",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795517389196739752/mov-cold-enter.png",
+            "sha256": "e991ef6de7e7f220552290b50e23374f6883fb7535acaa3041944ff4fb4b2ea4"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795517389196739752/mov-warm-menu-open.png",
+            "sha256": "5854a924c719971bfed31683e414364a9b6c25661b6bc21d081bd28e69fabe16"
+          }
+        }
+      },
+      {
+        "format": "AVI",
+        "application": "video",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795517389196739752/avi-cold-enter.png",
+            "sha256": "e06b534c4d640b2d3288e8b68d5bdbdb18a8a919641612f12e8158671a7ea88b"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795517389196739752/avi-warm-menu-open.png",
+            "sha256": "3ea6e220f1dff3248c28ceb33b90801252c0fdf9810b7326dcb02e73f89ffd73"
+          }
+        }
+      },
+      {
+        "format": "M4V",
+        "application": "video",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "passed",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795517389196739752/m4v-cold-enter.png",
+            "sha256": "c83434727a23e0e2d61d0573d5c074266b419d76b30304ce737855259cbacc22"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795517389196739752/m4v-warm-menu-open.png",
+            "sha256": "d4cddf223b0ed6d011942c298fe9600c3fbe195e9d37766b51fc10f61f6cefd0"
+          }
+        }
+      },
+      {
+        "format": "TS",
+        "application": "video",
+        "associationColdEnter": "passed",
+        "associationWarmMenuOpen": "passed",
+        "correctFilePath": true,
+        "samePidAndStartTicks": true,
+        "coldPlayback": "passed",
+        "warmPlayback": "failed-long-gop-ts-video",
+        "audioStreamObserved": true,
+        "resumeConfirmationCompleted": true,
+        "screenshots": {
+          "cold-enter": {
+            "file": "media-run-1795517389196739752/ts-cold-enter.png",
+            "sha256": "208ecde09be5a6c473b66e510a887209e6b04641bfde897ce056b2733c4ec966"
+          },
+          "warm-menu-open": {
+            "file": "media-run-1795517389196739752/ts-warm-menu-open.png",
+            "sha256": "c6d6dd5ddda2b2df48399d5a839d4c4512f69a618925aef32f314573e487cef3"
+          }
+        }
+      }
+    ]
+  },
+  "tsPlaybackLimitation": {
+    "status": "reproduced-unfixed",
+    "originalFilename": "video-ts.TS",
+    "originalKeyframes": 1,
+    "startTimeSeconds": 1.4,
+    "coldPicture": "passed",
+    "warmPicture": "failed",
+    "warmProgress": "advanced",
+    "pixelChecks": 17,
+    "lastPixelCheckSeconds": 8.156,
+    "rootCauseUniquelyProven": false,
+    "failureEvidence": "media-run-1795517708787264582/acceptance.json",
+    "shortGopControl": {
+      "filename": "video-ts-short-gop.TS",
+      "sha256": "e884b19de1aa435c15993554f7bdc5e0f0100d03f0e1b5d19353acad1874e0e7",
+      "keyframes": 10,
+      "coldPicture": "passed",
+      "warmPicture": "passed",
+      "warmResumeConfirmed": true,
+      "visibleFrameChecks": {
+        "coldEnter": [
+          {
+            "seconds": 0.425,
+            "saturatedSamples": 12
+          }
+        ],
+        "warmMenuOpen": [
+          {
+            "seconds": 0.349,
+            "saturatedSamples": 11
+          }
+        ]
+      },
+      "evidence": "media-run-1795517850080294247"
+    }
+  },
+  "restorationAndHealth": {
+    "status": "passed",
+    "runtimeFilesVerified": 528,
+    "sourceRevision": "0f4546c26deafbb63e8a48e7e41e3a2a95a8d84d",
+    "buildId": "f3a1581ba37519df63befae3d1d540a9a7a0c6cf99d2c21282751cc39ca263ca",
+    "configurationFilesExactlyRestored": 5,
+    "appFilesExactlyRestored": [
+      "/home/zhubby/.local/share/udeck/apps/music.json",
+      "/home/zhubby/.local/share/udeck/apps/music.index.json",
+      "/home/zhubby/.local/share/udeck/apps/video.json",
+      "/home/zhubby/.local/share/udeck/apps/video.index.json"
+    ],
+    "supervisorPreserved": true,
+    "compositorPreserved": true,
+    "retainedApplications": [
+      "browser",
+      "emulator"
+    ],
+    "musicReturnedToOriginalIdleState": true,
+    "videoExited": true,
+    "finalPage": "home",
+    "ready": true,
+    "inputMappedAndGrabbed": true,
+    "shortcutsApplied": true,
+    "serviceErrors": {},
+    "packageAudit": "passed",
+    "journalLines": 522,
+    "pythonOrQmlErrorLines": [],
+    "mute": "Mute: yes"
+  },
+  "limits": {
+    "humanPhysicalAcceptance": false,
+    "audibleAudioAcceptance": false,
+    "systemMutePreserved": true,
+    "allCodecCombinationsValidated": false,
+    "externalProcessObservation": "Wayland events and 25ms known-process sampling; no kernel exec tracing"
+  },
+  "evidence": {
+    "local": "artifacts/media-associations-device-20261124/",
+    "device": "/var/tmp/udeck-media-associations-20261124/"
+  }
+}
