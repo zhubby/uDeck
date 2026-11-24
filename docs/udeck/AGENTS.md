@@ -16,6 +16,7 @@ debian-distribution.md: Debian 安装、冻结源码身份与 Release 升级回�
 debian-release-2026-11-09.md: Debian 0.2.2 构建验证记录。
 debian-single-package-0.2.3.md: uDeck 0.2.3 单包发行验证。
 device-stability-2026-11-12.md: CM4 实机稳定性验证（2026-11-12）。
+dot-cursor-2026-11-24.md: 统一圆点指针、有限动画、输入边界与实机验收。
 emulator-game-titles-2026-11-15.md: Emulator single-line game titles — 2026-11-15。
 emulator-libretro-2026-11-15.md: Emulator Libretro compatibility verification — 2026-11-15。
 emulator-platform-placeholders-2026-11-15.md: Emulator platform artwork placeholders — 2026-11-15。

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
-[INPUT]: 依赖应用控制器、增量库模型和共享短过渡组件。
-[OUTPUT]: 提供交接后的窗口、连续切页和身份隔离封面。
+[INPUT]: 依赖应用控制器、增量库模型、共享短过渡与圆点组件。
+[OUTPUT]: 提供交接后的窗口、连续切页、封面和非交互指针层。
 [POS]: 五类应用的窗口外壳，内容视图由各应用加载。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -56,6 +56,7 @@ Window {
         reducedMotion: controller.reducedMotion
     }
     property bool allowClose: false
+    property QtObject pointerCursor: null
     property bool videoFull: state.app === "video" && state.page === "player"
     property color ink: window.colors.text
     property color muted: window.colors.muted
@@ -488,6 +489,11 @@ Window {
             }
             }
         }
+    }
+    Shared.PointerIndicator {
+        objectName: "pointerLayer"; anchors.fill: parent; z: 10000
+        cursor: window.pointerCursor; colors: window.colors
+        reducedMotion: controller.reducedMotion
     }
     Component.onCompleted: { syncModels(); Qt.callLater(focusInput) }
 }

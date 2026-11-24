@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖真实桌面窗口、轨迹球事件和共享圆点指针。
+[OUTPUT]: 验证圆点渲染、有限点击动画与输入穿透。
+[POS]: 桌面指针的双主题、双尺寸及减少动画探针。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import argparse
 import json
 import os
@@ -110,6 +117,7 @@ def run():
         expected = QPointF(options.width / 2 + 24, options.height / 2 - 12)
         assert cursor.position == expected and cursor.visible
         assert orb.width() == orb.height()
+        assert orb.width() <= 10
         assert orb.property("radius") == orb.width() / 2
         assert orb.x() + orb.width() / 2 == expected.x()
         assert orb.y() + orb.height() / 2 == expected.y()
@@ -169,9 +177,25 @@ def run():
         cursor.timer.setInterval(3000)
         capture("preview")
         controller.setPage("apps")
-        QTest.mouseClick(window, Qt.MouseButton.LeftButton,
+        QTest.mousePress(window, Qt.MouseButton.LeftButton,
                          Qt.KeyboardModifier.NoModifier, QPoint(220, 190))
+        assert cursor.property("pressed") is True
+        assert not cursor.timer.isActive()
+        QTest.qWait(100)
+        assert orb.property("scale") < 1
+        capture("pressed")
+        QTest.mouseRelease(window, Qt.MouseButton.LeftButton,
+                           Qt.KeyboardModifier.NoModifier, QPoint(220, 190))
+        assert cursor.property("pressed") is False
         assert controller.navigation.page == "home"
+        QTest.qWait(30)
+        pulse = window.findChild(QObject, "pointerClickPulse")
+        animation = window.findChild(QObject, "pointerPulseAnimation")
+        assert pulse is not None and animation is not None
+        assert bool(pulse.property("opacity") > 0) != options.reduced_motion
+        capture("click")
+        QTest.qWait(250)
+        assert pulse.property("opacity") == 0 and not animation.property("running")
         application.sendEvent(window, QEvent(QEvent.Type.Leave))
         assert not cursor.visible
         application.sendEvent(window, QEnterEvent(QPointF(220, 190), QPointF(220, 190),

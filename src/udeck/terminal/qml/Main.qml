@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+/*
+[INPUT]: 依赖终端控制器、原生会话组件与共享圆点指针。
+[OUTPUT]: 显示终端标签、会话、菜单和非交互指针层。
+[POS]: 单个 Terminal 窗口；由 Coordinator 创建和关闭。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+*/
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -25,6 +31,7 @@ Window {
     property alias fontFamily: interfaceFonts.family
     Shared.InterfaceFonts { id: interfaceFonts; language: window.state.language }
     property bool allowClose: false
+    property QtObject pointerCursor: null
     property color ink: window.colors.text
     property color muted: window.colors.muted
     property color accent: window.colors.accent
@@ -305,5 +312,9 @@ Window {
             event.accepted = true
         }
         onVisibleChanged: if (visible) forceActiveFocus()
+    }
+    Shared.PointerIndicator {
+        objectName: "pointerLayer"; anchors.fill: parent; z: 10000
+        cursor: window.pointerCursor; colors: window.colors
     }
 }

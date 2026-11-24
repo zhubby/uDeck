@@ -34,7 +34,8 @@ battery_qml_probe.py: 等待弹窗几何终态，验证电池测量刷新、文�
 browser_interaction_probe.py: 网页缩放输入、协议零系统分发与原生选择器拒绝探针。
 conftest.py: 共享离屏 QApplication 与 Qt 对象回收夹具。
 console_qml_probe.py: 独立进程探针，验证 console_qml 流程。
-cursor_qml_probe.py: 独立进程探针，验证 cursor_qml 流程。
+cursor_qml_probe.py: 桌面圆点、有限点击动画、输入穿透与减少动画探针。
+native_cursor_probe.py: Reader 与双窗口终端入口的指针和原输入策略探针。
 debian_package_probe.py: 独立进程探针，验证 debian_package 流程。
 emulator_save_daemon_probe.py: 独立进程探针，验证 emulator_save_daemon 流程。
 file_icons_probe.py: 独立进程探针，验证 file_icons 流程。
@@ -99,7 +100,7 @@ test_compatibility.py: 输入交接、激活恢复、异步身份隔离与外部
 test_console.py: 全局面板、内置焦点恢复与受控引擎归属撤销回归。
 test_console_qml.py: pytest 回归入口，验证 console_qml 边界。
 test_core.py: pytest 回归入口，验证 core 边界。
-test_cursor.py: pytest 回归入口，验证 cursor 边界。
+test_cursor.py: 桌面与内置窗口的圆点动画、焦点和输入策略回归。
 test_directions.py: 方向连接筛选、启动按住隔离与修饰键释放回归。
 test_emulator_engine.py: 受控游戏配置和真实 QProcess 协议、背压与读档屏障回归。
 test_emulator_game_info.py: pytest 回归入口，验证 emulator_game_info 边界。

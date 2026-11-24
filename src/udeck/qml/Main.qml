@@ -581,5 +581,6 @@ Window {
         z: 10000
         cursor: window.pointerCursor
         colors: window.colors
+        reducedMotion: window.viewState.reducedMotion
     }
 }

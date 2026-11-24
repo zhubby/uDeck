@@ -29,7 +29,7 @@ KeyTestCap.qml: 键盘测试按键绘制。
 KeyTestPanel.qml: 键盘与控制器状态测试。
 LoadingIndicator.qml: 加载指示。
 LoadingOverlay.qml: 按请求保留退出内容、前台交接立即隐藏。
-PointerIndicator.qml: 轨迹球指针提示。
+PointerIndicator.qml: 桌面和内置窗口的圆点、细外环及有限点击动画。
 SettingsRow.qml: 设置菜单行。
 ShortcutRecorder.qml: 快捷键录制窗口。
 ThemePalette.qml: 共享主题令牌和 Qt 控件色板。

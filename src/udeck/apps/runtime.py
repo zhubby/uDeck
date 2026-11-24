@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖应用控制器、库扫描与取消信号、Qt Quick 和会话 D-Bus。
-[OUTPUT]: 提供控制器工厂、单实例入口、文件接收终态与交接显示和退出请求。
+[INPUT]: 依赖应用控制器、库扫描、共享圆点、Qt Quick 和会话 D-Bus。
+[OUTPUT]: 提供控制器工厂、单实例入口、交接显示、指针与退出请求。
 [POS]: 应用共用运行层；输入释放和游戏暂停先于前台显示。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -12,7 +12,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QTimer, QUrl, Slot
+from PySide6.QtCore import QObject, Qt, QTimer, QUrl, Slot
 from PySide6.QtDBus import QDBusConnection, QDBusInterface, QDBusMessage, QDBusPendingCallWatcher
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow  # noqa: F401
@@ -24,6 +24,7 @@ from udeck.apps import __version__
 from udeck.apps.common.library import EXTENSIONS
 from udeck.build_info import snapshot as build_snapshot
 from udeck.core import ConfigStore
+from udeck.cursor import PointerCursor
 from udeck.i18n import Msg, tr
 from udeck.icons import IconProvider
 from udeck.performance import StartupTrace
@@ -367,6 +368,9 @@ def main(argv=None, *, options=None, trace=None):
         controller.inputs = AppInput(controller, app_id, ConfigStore().data["input"])
         window.activeChanged.connect(lambda: controller.inputs.set_foreground(window.isActive()))
         controller.inputs.set_foreground(window.isActive())
+    application.setOverrideCursor(Qt.CursorShape.BlankCursor)
+    pointer_cursor = PointerCursor(window, gamepad=controller.inputs.gamepad if controller.inputs else None)
+    window.setProperty("pointerCursor", pointer_cursor)
     control = AppControl(controller, show, errors, time.monotonic(), trace)
     if registered:
         bus.registerObject(path, interface, control, QDBusConnection.RegisterOption.ExportAllSlots)
@@ -400,6 +404,7 @@ def main(argv=None, *, options=None, trace=None):
     if options.quit_after or options.smoke_test:
         QTimer.singleShot(int((options.quit_after or 2.5) * 1000), application.quit)
     result = application.exec()
+    pointer_cursor.close()
     sounds.close()
     # Destroy engine views before their Python controllers and media/PDF objects.
     controller.close()
@@ -408,6 +413,7 @@ def main(argv=None, *, options=None, trace=None):
     # Delete the QObject tree even while Python closures retain window wrappers.
     # WebEngine's profile must finish shutdown before isolated state is removed.
     delete(engine)
+    application.restoreOverrideCursor()
     if registered:
         bus.unregisterObject(path)
         bus.unregisterService(service)

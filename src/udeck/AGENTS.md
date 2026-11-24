@@ -15,7 +15,7 @@ compatibility.py: 输入预释放、原生窗口恢复与异步身份复验。
 console.py: 全局 Console 面板、受控引擎授权与原生焦点恢复。
 controller.py: 桌面交互编排；局部选择与轻量视图独立于完整诊断。
 core.py: 导航、偏好存储和主题语言基础。
-cursor.py: 指针光标图像与位置。
+cursor.py: 圆点位置、按下和释放反馈；观察窗口事件而不截获输入。
 desktop.py: 桌面元数据索引、Exec 解析与固定内置模块启动。
 directions.py: 方向接口连接预筛选、修饰键隔离与松键读取。
 emulator_saves/: 原生存档、历史快照和云同步。

@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖终端控制器、Qt Quick、源码缓存标识与会话 D-Bus。
-[OUTPUT]: 提供多窗口协调、最近窗口激活和受限桌面返回。
+[INPUT]: 依赖终端控制器、共享圆点、Qt Quick 与会话 D-Bus。
+[OUTPUT]: 提供多窗口和指针生命周期、最近窗口激活与受限桌面返回。
 [POS]: Terminal 独立进程入口；逐窗口保留会话关闭确认。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 
@@ -14,13 +14,14 @@ import tempfile
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QEvent, QObject, QTimer, QUrl
+from PySide6.QtCore import QEvent, QObject, Qt, QTimer, QUrl
 from PySide6.QtDBus import QDBusConnection, QDBusMessage
 from PySide6.QtQml import QQmlComponent, QQmlContext, QQmlEngine
 from PySide6.QtQuick import QQuickWindow  # noqa: F401 - register the native QML window wrapper
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from ..core import ConfigStore
+from ..cursor import PointerCursor
 from ..i18n import Msg, render, tr
 from ..icons import IconProvider
 from ..performance import StartupTrace
@@ -98,7 +99,9 @@ class Coordinator(QObject):
             raise RuntimeError("\n".join(error.toString() for error in self.component.errors()))
         sounds = InterfaceSounds(self.language_path, window, silent=os.environ.get("QT_QPA_PLATFORM") == "offscreen")
         controller.soundRequested.connect(sounds.request)
-        entry = {"window": window, "controller": controller, "context": context, "sounds": sounds}
+        cursor = PointerCursor(window, gamepad=self.inputs.gamepad if self.inputs else None)
+        window.setProperty("pointerCursor", cursor)
+        entry = {"window": window, "controller": controller, "context": context, "sounds": sounds, "cursor": cursor}
         self.windows.append(entry)
         self.recent = entry
         controller.closed.connect(lambda: QTimer.singleShot(0, lambda: self.retire(entry)))
@@ -161,6 +164,10 @@ class Coordinator(QObject):
         # built-in L/R mouse interface is separately owned by TerminalInput.
         if event.type() in (QEvent.Type.MouseButtonPress, QEvent.Type.MouseButtonRelease,
                             QEvent.Type.MouseButtonDblClick, QEvent.Type.Wheel):
+            entry = next((entry for entry in self.windows if entry["window"] is watched), None)
+            if entry and event.type() != QEvent.Type.Wheel:
+                # 指针先观察按钮，终端仍屏蔽原来的鼠标输入。
+                entry["cursor"].eventFilter(watched, event)
             return True
         return False
 
@@ -184,6 +191,7 @@ class Coordinator(QObject):
         if entry not in self.windows:
             return
         self.windows.remove(entry)
+        entry["cursor"].close()
         entry["sounds"].close()
         entry["window"].deleteLater()
         entry["context"].deleteLater()
@@ -220,6 +228,7 @@ class Coordinator(QObject):
             self.window_service.close()
         # Destroy native delegates before their controllers/context disappear.
         for entry in list(self.windows):
+            entry["cursor"].close()
             entry["sounds"].close()
             entry["window"].setProperty("allowClose", True)
             entry["window"].close()
@@ -245,6 +254,7 @@ def main(argv=None, *, request=None, options=None, trace=None):
     temporary = None
     coordinator = None
     registered = False
+    cursor_override = False
     bus = QDBusConnection.sessionBus()
     try:
         if request is None or options is None:
@@ -276,6 +286,8 @@ def main(argv=None, *, request=None, options=None, trace=None):
             temporary = tempfile.TemporaryDirectory(prefix="udeck-terminal-preview-")
         preferences = TerminalPreferences(Path(temporary.name) / "preferences.json" if temporary else None)
         coordinator = Coordinator(application, options, preferences, started, trace)
+        application.setOverrideCursor(Qt.CursorShape.BlankCursor)
+        cursor_override = True
         control = TerminalControl(coordinator)
         if registered and not bus.registerObject(OBJECT_PATH, INTERFACE, control, QDBusConnection.RegisterOption.ExportAllSlots):
             raise RuntimeError(tr(Msg.COULD_NOT_REGISTER_THE_TERMINAL_D_BUS_INTERFACE))
@@ -309,11 +321,16 @@ def main(argv=None, *, request=None, options=None, trace=None):
         message = render(error, language)
         print(f"uDeck Terminal: {message}", file=sys.stderr)
         if os.environ.get("QT_QPA_PLATFORM") != "offscreen":
+            if cursor_override:
+                application.restoreOverrideCursor()
+                cursor_override = False
             QMessageBox.critical(None, "uDeck Terminal", message)
         return 2
     finally:
         if coordinator:
             coordinator.close()
+        if cursor_override:
+            application.restoreOverrideCursor()
         if registered:
             bus.unregisterObject(OBJECT_PATH)
             bus.unregisterService(service_name())
