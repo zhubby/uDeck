@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+/**
+ * [INPUT]: 依赖阅读器控制器、隔离文档服务与 Qt WebEngine。
+ * [OUTPUT]: 显示 PDF 图像、电子书页面与阅读进度。
+ * [POS]: 阅读器渲染边界；拒绝系统协议和原生选择器。
+ * [PROTOCOL]: Update this header on change, then check AGENTS.md
+ */
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -88,6 +94,9 @@ Item {
                 settings.localContentCanAccessFileUrls:false
                 settings.localContentCanAccessRemoteUrls:false
                 settings.javascriptCanOpenWindows:false
+                settings.unknownUrlSchemePolicy:WebEngineSettings.DisallowUnknownUrlSchemes
+                onFileDialogRequested:function(request){request.accepted=true;request.dialogReject()}
+                onColorDialogRequested:function(request){request.accepted=true;request.dialogReject()}
                 onJavaScriptConsoleMessage:function(level,message,line,source){controller.readerConsole(message);if(message.startsWith("UDECK_READER:"))controller.readerEvent(message.slice(13))}
                 onNavigationRequested:function(request){if(request.isMainFrame&&request.url.toString()!=="about:blank"&&!request.url.toString().startsWith(appState.readerUrl.replace("index.html","")))request.reject()}
                 onCertificateError:function(error){error.rejectCertificate()}

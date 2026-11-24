@@ -1,4 +1,9 @@
-"""Global shell panel and focus restoration for compositor shortcuts."""
+"""
+[INPUT]: 依赖桌面面板、窗口激活边界与输入路由。
+[OUTPUT]: 提供全局面板和受限窗口焦点恢复。
+[POS]: 合成器快捷键入口；返回原生或已监管窗口。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 from PySide6.QtCore import QObject
 
@@ -40,6 +45,8 @@ class ConsolePanel(QObject):
         already_open = any(modal.get('source') == 'console' for modal in self.controller._modals)
         active = next((entry for entry in self.windows.entries()
                        if entry.get('active') and entry.get('appId') != APP_ID), None) if self.windows else None
+        if active and not self.controller._console_authorize_window(active, self.windows):
+            active = None
         if not already_open or active:
             self.return_target = (active['id'], active.get('appId', '')) if active else None
             if self.router:
@@ -52,7 +59,7 @@ class ConsolePanel(QObject):
             if target and self.session_safe and not self.suspended and self.windows:
                 entry = next((entry for entry in self.windows.entries()
                               if (entry['id'], entry.get('appId', '')) == target), None)
-                if entry:
+                if entry and self.controller._console_authorize_window(entry, self.windows):
                     if self.router and self.router.enabled:
                         self.router.resume_window(entry['id'])
                     else:

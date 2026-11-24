@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实应用控制器、AppControl 与隔离的 Qt 测试环境。
-[OUTPUT]: 验证重复启动、游戏暂停确认和异步操作取消边界。
+[OUTPUT]: 验证文件接收、重复启动、游戏暂停确认和异步取消边界。
 [POS]: 应用共用运行层与各控制器之间的回归测试。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -9,18 +9,130 @@ import json
 import time
 
 import pytest
-from PySide6.QtCore import QCoreApplication, QTimer
+from PySide6.QtCore import QCoreApplication, QThreadPool, QTimer
 
 from udeck.apps.browser.controller import BrowserController
 from udeck.apps.common.controller import AppController
 from udeck.apps.emulator.controller import EmulatorController
 from udeck.apps.main import AppControl
+from udeck.apps.reader.controller import ReaderController
 from udeck.apps.reader.server import BookServer
 
 
 @pytest.fixture
 def application():
     return QCoreApplication.instance() or QCoreApplication([])
+
+
+def wait_for_file_receiver(application, predicate):
+    deadline = time.monotonic() + 2
+    while not predicate() and time.monotonic() < deadline:
+        application.processEvents()
+        time.sleep(.005)
+    assert predicate()
+
+
+@pytest.fixture
+def file_receiver(application, tmp_path):
+    source = tmp_path / "books"
+    source.mkdir()
+    (source / "indexed.txt").write_text("An indexed book")
+    controller = ReaderController(tmp_path / "state", tmp_path / "settings.json")
+    controller.library.add(source)
+    wait_for_file_receiver(application, lambda: not controller.library.pending)
+    control = AppControl(controller, lambda: None, [], time.monotonic())
+    try:
+        yield controller, control, source
+    finally:
+        controller.close()
+
+
+def test_open_file_in_existing_source_refreshes_missing_index(application, file_receiver):
+    controller, control, source = file_receiver
+    path = source / "new 中文 book.txt"
+    path.write_text("A newly copied book")
+    control.open_files([path.as_uri()])
+    wait_for_file_receiver(application, lambda: controller.current is not None)
+    assert controller.current["path"] == str(path)
+    assert controller.page == "document" and not controller.error
+    assert len(controller.library.sources) == 1
+
+
+def test_reconnected_source_finishes_refresh_before_missing_file_is_reported(application, file_receiver):
+    controller, control, source = file_receiver
+    path = source / "reconnected.txt"
+    path.write_text("A book copied while the source was disconnected")
+    controller.library.unavailable.add(controller.library.sources[0].id)
+    control.open_files([str(path)])
+    wait_for_file_receiver(application, lambda: controller.current is not None or bool(controller.error))
+    assert controller.current is not None
+    assert controller.current["path"] == str(path) and not controller.error
+
+
+@pytest.mark.parametrize("scan_error", ["scan denied", ""])
+def test_open_file_reports_scan_failure_or_missing_result(file_receiver, monkeypatch, scan_error):
+    controller, control, source = file_receiver
+    path = source / "missing-index.txt"
+    path.write_text("Not present in the scan result")
+    tasks = []
+    monkeypatch.setattr(QThreadPool.globalInstance(), "start", tasks.append)
+    baseline = controller.library.receivers("2changed()")
+    control.open_files([str(path)])
+    controller.library._done(controller.library.generation, controller.library.sources[0].id, [], scan_error)
+    assert controller.error
+    if scan_error:
+        assert scan_error in controller.error
+    else:
+        assert path.name in controller.error
+    assert controller.library.receivers("2changed()") == baseline
+    assert controller.current is None
+
+
+def test_latest_file_request_immediately_releases_previous_wait(file_receiver, monkeypatch):
+    controller, control, source = file_receiver
+    path = source / "waiting.txt"
+    path.write_text("A pending book")
+    tasks = []
+    monkeypatch.setattr(QThreadPool.globalInstance(), "start", tasks.append)
+    baseline = controller.library.receivers("2changed()")
+    control.open_files([str(path)])
+    control.open_files([str(source / "indexed.txt")])
+    assert controller.current["path"] == str(source / "indexed.txt")
+    assert controller.library.receivers("2changed()") == baseline
+    controller.library.changed.emit()
+    assert controller.current["path"] == str(source / "indexed.txt")
+
+
+def test_pending_file_request_reports_disconnected_source(file_receiver, monkeypatch):
+    controller, control, source = file_receiver
+    path = source / "waiting.txt"
+    path.write_text("A pending book")
+    tasks = []
+    monkeypatch.setattr(QThreadPool.globalInstance(), "start", tasks.append)
+    baseline = controller.library.receivers("2changed()")
+    control.open_files([str(path)])
+    source.rename(source.with_name("removed-books"))
+    controller.library.check_sources()
+    assert controller.error
+    assert controller.library.receivers("2changed()") == baseline
+    assert controller.current is None
+
+
+def test_cancel_scan_releases_pending_file_and_later_refresh_does_not_open_it(file_receiver, monkeypatch):
+    controller, control, source = file_receiver
+    path = source / "cancelled.txt"
+    path.write_text("A book whose opening was cancelled")
+    tasks = []
+    monkeypatch.setattr(QThreadPool.globalInstance(), "start", tasks.append)
+    baseline = controller.library.receivers("2changed()")
+    control.open_files([str(path)])
+    controller.cancel_scan()
+    receivers_after_cancel = controller.library.receivers("2changed()")
+    controller.library.refresh()
+    tasks[-1].run()
+    assert controller.current is None
+    assert receivers_after_cancel == baseline
+    assert not controller.error
 
 
 def test_normal_second_launcher_request_presents_existing_app(application, tmp_path):

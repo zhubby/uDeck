@@ -1,7 +1,7 @@
 """
-[INPUT]: 依赖 RuntimeConsole、网格导航与现有应用启动路由。
-[OUTPUT]: 提供 Console 模型、稳定选择、实时详情与退出确认。
-[POS]: ShellController 的运行面板桥接；进程采样不进入桌面主控制器。
+[INPUT]: 依赖 RuntimeConsole、原生启动路由与窗口激活边界。
+[OUTPUT]: 提供实时详情、原生激活与身份固定的退出。
+[POS]: 运行面板桥接；受监督引擎沿用进程归属证明。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
@@ -10,6 +10,7 @@ from PySide6.QtCore import Property, QObject
 from ..app_routing import NATIVE_APPS
 from ..core import move_index
 from ..i18n import Msg, error_text, tr
+from ..windows import EMULATOR_APP_ID, EMULATOR_WINDOW_ID, can_activate_window
 from .service import RuntimeConsole
 
 
@@ -98,17 +99,15 @@ class ConsoleControls:
         if not row:
             self.notify(tr(Msg.CONSOLE_IDENTITY_CHANGED))
             return
+        if item['id'] not in NATIVE_APPS:
+            self.notify(tr(Msg.NO_APP_WINDOW_IS_AVAILABLE_TO_CONTROL))
+            return
         if self.mock:
             self.notify(tr(Msg.PREVIEW_SWITCH_TO_PREFIX) + item["name"])
         elif item["id"] in NATIVE_APPS:
             entry = next((app for app in self.applications if app["id"].removesuffix(".desktop") == item["id"]),
                          {"id": item["id"] + ".desktop", "name": item["name"], "icon": item["icon"]})
             self._start_application(entry)
-        else:
-            windows = row["windows"]
-            window = next((w for w in windows if w.get("active")), next((w for w in windows if not w.get("parent")), None))
-            if window:
-                self._console_window(window)
 
     def _console_action(self, key, action):
         if (self.modal or self.navigation.page != "windows" or self.startup["active"]
@@ -161,7 +160,26 @@ class ConsoleControls:
         existing = self.window_service.entries() if self.window_service else []
         if not any((w["id"], w.get("appId")) == (item["id"], item.get("appId")) for w in existing):
             raise RuntimeError(tr(Msg.CONSOLE_IDENTITY_CHANGED))
+        if not self._console_authorize_window(item):
+            raise RuntimeError(tr(Msg.NO_APP_WINDOW_IS_AVAILABLE_TO_CONTROL))
         self.window_service.request(item["id"], "activate")
+
+    def _console_authorize_window(self, item, window_service=None):
+        windows = window_service or self.window_service
+        if item.get('appId') == EMULATOR_WINDOW_ID:
+            related = self.runtime_console.infos.get(EMULATOR_APP_ID, {}).get('relatedWindows', [])
+            members = self.runtime_console.metrics.get(EMULATOR_APP_ID, {}).get('members', [])
+            identity = next((member for member in members if any(
+                entry.get('appId') == EMULATOR_WINDOW_ID and entry.get('pid') == member.pid
+                for entry in related)), None)
+            if not windows:
+                return False
+            if not identity or self.runtime_console.aliases.get(EMULATOR_WINDOW_ID) != EMULATOR_APP_ID:
+                windows.revoke_managed_window(item['id'])
+                return False
+            if not windows.allow_managed_window(item['id'], EMULATOR_APP_ID, identity.pid, identity=identity):
+                return False
+        return can_activate_window(windows, item)
 
     def _console_quit(self, key, target=None):
         try:
@@ -179,7 +197,8 @@ class ConsoleControls:
         if not row:
             return
         target = self.runtime_console.target(item["id"])
-        options = [{"label": tr(Msg.OPEN_APP), "action": "console-activate", "target": target},
+        options = [{"label": tr(Msg.OPEN_APP), "action": "console-activate", "target": target,
+                    "disabled": item['id'] not in NATIVE_APPS},
                    {"label": tr(Msg.CONSOLE_EXIT), "action": "console-quit", "target": target,
                     "disabled": not row["canQuit"]}]
         if len(row["windows"]) > 1:
@@ -203,7 +222,8 @@ class ConsoleControls:
                 elif action == "console-quit":
                     self._console_quit(target["key"], target)
                 elif action == "console-windows":
-                    self._menu(tr(Msg.CONSOLE_WINDOWS), [{"label": w["name"], "action": "console-window", "item": w}
+                    self._menu(tr(Msg.CONSOLE_WINDOWS), [{"label": w["name"], "action": "console-window", "item": w,
+                                                        "disabled": row['applicationKey'] not in NATIVE_APPS}
                                                        for w in row["windows"] if not w.get("parent")])
                 elif action == "console-force":
                     self._confirm(tr(Msg.CONSOLE_FORCE_PROMPT), tr(Msg.CONSOLE_FORCE_BODY, name=row["applicationName"]),

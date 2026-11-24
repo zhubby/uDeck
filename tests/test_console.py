@@ -6,6 +6,8 @@
 """
 
 import json
+import os
+from types import SimpleNamespace
 
 import pytest
 from PySide6.QtCore import QCoreApplication, QObject, Signal
@@ -15,6 +17,8 @@ from udeck.controller import ShellController
 from udeck.core import ConfigStore
 from udeck.main import Control
 from udeck.mock import MockBackend
+from udeck.runtime_console.processes import Identity
+from udeck.windows import WindowService
 
 
 class Windows(QObject):
@@ -22,7 +26,7 @@ class Windows(QObject):
 
     def __init__(self):
         super().__init__()
-        self.rows = [{'id': 'app', 'appId': 'firefox', 'active': True}]
+        self.rows = [{'id': 'app', 'appId': 'io.github.zhubby.uDeck.Music', 'active': True}]
         self.requests = []
 
     def entries(self):
@@ -99,11 +103,58 @@ def test_window_closure_and_id_reuse_cannot_restore_another_app(console):
 def test_reopening_console_from_another_app_restores_the_new_foreground(console):
     controller, panel, windows, _application = console
     panel.open()
-    windows.rows = [{'id': 'other', 'appId': 'mousepad', 'active': True}]
+    windows.rows = [{'id': 'other', 'appId': 'io.github.zhubby.uDeck.Video', 'active': True}]
     windows.changed.emit(windows.rows)
     panel.open()
     controller.dispatch('back')
     assert windows.requests == [('other', 'activate')]
+
+
+def test_console_dismiss_does_not_restore_an_external_application(console):
+    controller, panel, windows, _application = console
+    windows.rows = [{'id': 'archive', 'appId': 'xarchiver', 'active': True}]
+    panel.open()
+    controller.dispatch('back')
+    assert windows.requests == []
+    assert panel.return_target is None
+
+
+@pytest.mark.parametrize('verified,expired,withdrawn,restored', [
+    (False, False, False, False), (True, False, False, True),
+    (True, True, False, False), (True, False, True, False),
+])
+def test_console_game_return_requires_verified_live_engine(tmp_path, monkeypatch, verified, expired, withdrawn, restored):
+    from udeck import windows as windows_module
+
+    process = [Identity(222, 1000)]
+    monkeypatch.setattr(windows_module, 'read_process', lambda pid: SimpleNamespace(
+        identity=process[0], uid=os.getuid(), state='S'))
+    windows = WindowService()
+    windows.available = True
+    windows.handles = {'game': {'id': 'game', 'appId': 'com.libretro.RetroArch', 'proxy': 3, 'active': True}}
+    requests = []
+    windows.library = SimpleNamespace(wl_proxy_get_version=lambda proxy: 3,
+                                     wl_proxy_marshal_flags=lambda *args: requests.append(args),
+                                     wl_display_flush=lambda display: None)
+    controller = ShellController(MockBackend(), windows, ConfigStore(tmp_path / 'game.json'), mock=True)
+    panel = ConsolePanel(controller, windows)
+    emulator = 'io.github.zhubby.uDeck.Emulator'
+    controller.runtime_console.infos[emulator] = {'relatedWindows': [{'appId': 'com.libretro.RetroArch', 'pid': 222}]}
+    controller.runtime_console.metrics[emulator] = {'members': [process[0]] if verified else []}
+    controller.runtime_console.set_windows(windows.entries())
+    try:
+        panel.open()
+        if expired:
+            process[0] = Identity(222, 2000)
+        if withdrawn:
+            controller.runtime_console.infos.clear()
+            controller.runtime_console._rebuild()
+        controller.dispatch('back')
+        assert bool(requests) is restored
+    finally:
+        panel.close()
+        controller.close()
+        windows.close()
 
 
 def test_session_lock_blocks_open_and_focus_restoration(console):

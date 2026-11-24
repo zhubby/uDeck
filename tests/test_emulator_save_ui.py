@@ -1,4 +1,12 @@
+"""
+[INPUT]: 依赖真实模拟器控制器、临时存档目录与隔离进程启动边界。
+[OUTPUT]: 验证存档菜单、云同步编排与配置入口的内置提示。
+[POS]: 模拟器存档界面回归；禁止配置入口启动终端或浏览器。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
+import subprocess
 import threading
 import time
 
@@ -58,6 +66,35 @@ def test_save_management_and_cloud_settings_use_existing_menu_navigation(tmp_pat
         assert "Back up all games" in [str(row["title"]) for row in rows]
         assert not next(row for row in rows if row["title"] == "Cloud sync")["checked"]
         assert json.loads(controller.snapshotJson)["saveSync"]["enabled"] is False
+    finally:
+        controller.close()
+
+
+@pytest.mark.parametrize("entry", ["menu", "direct"])
+def test_rclone_configuration_stays_inside_udeck(tmp_path, monkeypatch, entry):
+    controller = prepared(tmp_path)
+
+    def reject_external_process(*args, **kwargs):
+        pytest.fail("rclone configuration must not launch a terminal or browser")
+
+    monkeypatch.setattr(subprocess, "Popen", reject_external_process)
+    monkeypatch.setattr(controller.save_cloud, "request",
+                        lambda member, callback=None: callback({"remotes": ["existing:"]}))
+    try:
+        if entry == "menu":
+            controller.save_remote_picker()
+            controller.choose(1)
+        else:
+            controller.save_configure_rclone()
+        snapshot = json.loads(controller.snapshotJson)
+        assert snapshot["error"] == ""
+        assert "browser authorization" in snapshot["menu"]["body"]
+        assert "Existing remotes and cloud sync remain available" in snapshot["menu"]["body"]
+        controller.choose(0)
+        if entry == "menu":
+            assert controller.menus[-1]["options"][0]["title"] == "existing:"
+        else:
+            assert controller.menus == []
     finally:
         controller.close()
 

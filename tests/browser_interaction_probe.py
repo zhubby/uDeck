@@ -1,4 +1,9 @@
-"""Exercise Browser input against a real WebEngine page at the selected zoom."""
+"""
+[INPUT]: 依赖真实 WebEngine、Qt 输入和本地 HTTP 页面。
+[OUTPUT]: 验证页面缩放输入与外部协议零系统分发。
+[POS]: 独立进程隔离浏览器渲染；URL 接收器截获系统调用。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import argparse
 import json
@@ -7,7 +12,8 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Qt, QUrl, Slot
+from PySide6.QtCore import QObject, QPointF, Qt, QUrl, Slot
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow  # noqa: F401
 from PySide6.QtTest import QTest
@@ -28,7 +34,27 @@ class Results(QObject):
         self.value = json.loads(value)
 
 
-def run(output, zoom):
+class ExternalUrls(QObject):
+    def __init__(self):
+        super().__init__()
+        self.calls = []
+
+    @Slot(QUrl)
+    def opened(self, url):
+        self.calls.append(url.toString())
+
+
+class DialogRequests(QObject):
+    def __init__(self):
+        super().__init__()
+        self.calls = []
+
+    @Slot(str, bool)
+    def record(self, kind, accepted):
+        self.calls.append((kind, accepted))
+
+
+def run(output, zoom, protocols=False, dialogs=False):
     output.mkdir(parents=True, exist_ok=True)
     requests = []
 
@@ -45,6 +71,25 @@ def run(output, zoom):
                 <input id="draft" name="draft" aria-label="Text input"></form></main>"""
             if self.path == "/reached":
                 text = "<title>Destination reached</title><main>Navigation succeeded.</main>"
+            elif self.path == "/protocols":
+                text = """<title>Protocol fixture</title><style>a{display:block;margin:20px}</style>
+                    <a id="custom" href="udeck-test://external/click">Custom protocol</a>
+                    <a id="mail" href="mailto:someone@example.org">Email</a>
+                    <a id="phone" href="tel:123456">Phone</a>
+                    <a id="torrent" href="magnet:?xt=urn:btih:1234">Torrent</a>
+                    <a id="popup" target="_blank" href="udeck-test://external/popup">New window</a>
+                    <a id="script" href="javascript:void(document.body.dataset.internalAction='clicked')">Page action</a>
+                    <a id="redirect" href="/protocol-redirect">Redirect</a>"""
+            elif self.path == "/protocol-redirect":
+                self.send_response(302)
+                self.send_header("Location", "udeck-test://external/redirect")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            elif self.path == "/dialogs":
+                text = """<title>Dialog fixture</title>
+                    <label>File upload<input type="file" id="upload"></label>
+                    <label>Color<input type="color" id="colour"></label>"""
             data = text.encode()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -57,6 +102,10 @@ def run(output, zoom):
     worker.start()
     QtWebEngineQuick.initialize()
     application = QApplication([])
+    external_urls = ExternalUrls()
+    external_schemes = ("udeck-test", "mailto", "tel", "magnet")
+    for scheme in external_schemes:
+        QDesktopServices.setUrlHandler(scheme, external_urls, "opened")
     controller = BrowserController(output / "state", output / "settings.json")
     controller.isolated = True
     engine = QQmlApplicationEngine()
@@ -73,6 +122,8 @@ def run(output, zoom):
     window.requestActivate()
     results = Results()
     engine.globalObject().setProperty("probeResults", engine.newQObject(results))
+    dialog_requests = DialogRequests()
+    engine.globalObject().setProperty("probeDialogs", engine.newQObject(dialog_requests))
 
     def wait(condition, seconds=8):
         deadline = time.monotonic() + seconds
@@ -99,6 +150,13 @@ def run(output, zoom):
         assert not result.isError(), result.toString()
         wait(lambda: results.value is not None)
         return results.value
+
+    def click_link(identifier):
+        position = evaluate("(() => {const r=document.getElementById(" + json.dumps(identifier)
+                            + ").getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()")
+        view = visual_item(lambda item: item.property("identifier") == controller.current_tab)
+        point = view.mapToScene(QPointF(position[0] * zoom, position[1] * zoom)).toPoint()
+        QTest.mouseClick(window, Qt.MouseButton.LeftButton, pos=point)
 
     base = f"http://127.0.0.1:{server.server_port}"
     try:
@@ -149,9 +207,54 @@ def run(output, zoom):
         controller.closeTab(controller.current_tab)
         wait(lambda: controller.current_tab == original)
         assert controller.web_mode == "navigation" and controller.reading_text == ""
+        if protocols:
+            controller.navigate(base + "/protocols")
+            wait(lambda: controller.active_tab().title == "Protocol fixture" and not controller.active_tab().loading)
+            for identifier in ("custom", "mail", "phone", "torrent", "popup"):
+                controller.error = ""
+                controller.publish()
+                click_link(identifier)
+                wait(lambda: bool(controller.error) or bool(external_urls.calls))
+                assert not external_urls.calls, external_urls.calls
+                assert controller.error, identifier
+            controller.error = ""
+            controller.publish()
+            click_link("script")
+            wait(lambda: evaluate("document.body.dataset.internalAction || ''") == "clicked")
+            assert not controller.error
+            evaluate("(() => {const f=document.createElement('iframe');f.src='udeck-test://external/frame';"
+                     "document.body.append(f);return true})()")
+            QTest.qWait(200)
+            assert not external_urls.calls, external_urls.calls
+            click_link("redirect")
+            wait(lambda: "/protocol-redirect" in requests and not controller.active_tab().loading)
+            QTest.qWait(200)
+            assert not external_urls.calls, external_urls.calls
+            assert controller.active_tab().url.startswith(base)
+        if dialogs:
+            controller.navigate(base + "/dialogs")
+            wait(lambda: controller.active_tab().title == "Dialog fixture" and not controller.active_tab().loading)
+            view = visual_item(lambda item: item.property("identifier") == controller.current_tab)
+            engine.globalObject().setProperty("probeWeb", engine.newQObject(view))
+            for signal, kind in (("fileDialogRequested", "file"), ("colorDialogRequested", "color")):
+                result = engine.evaluate("probeWeb." + signal + ".connect(function(request){"
+                                         "probeDialogs.record(" + json.dumps(kind) + ",request.accepted);"
+                                         "if(!request.accepted){request.accepted=true;request.dialogReject()}})")
+                assert not result.isError(), result.toString()
+            for identifier, kind in (("upload", "file"), ("colour", "color")):
+                controller.error = ""
+                controller.publish()
+                before = len(dialog_requests.calls)
+                click_link(identifier)
+                wait(lambda before=before: len(dialog_requests.calls) > before)
+                assert dialog_requests.calls[-1] == (kind, True), dialog_requests.calls
+                assert controller.error
+            assert [item for item in application.topLevelWindows() if item.isVisible()] == [window]
         assert not errors, errors
         report = {"zoom": zoom, "startButtons": True, "linkActivated": True, "formSubmitted": True,
-                  "readingTabSwitch": True, "qmlErrors": errors, "platform": application.platformName()}
+                  "readingTabSwitch": True, "protocolsBlocked": protocols, "externalCalls": external_urls.calls,
+                  "systemDialogsBlocked": dialogs, "dialogRequests": dialog_requests.calls,
+                  "qmlErrors": errors, "platform": application.platformName()}
         (output / "report.json").write_text(json.dumps(report, indent=2) + "\n")
         print(json.dumps(report), flush=True)
     finally:
@@ -160,6 +263,8 @@ def run(output, zoom):
         window.close()
         delete(engine)
         application.processEvents()
+        for scheme in external_schemes:
+            QDesktopServices.unsetUrlHandler(scheme)
         server.shutdown()
         worker.join(timeout=2)
         server.server_close()
@@ -169,5 +274,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("output", type=Path)
     parser.add_argument("--zoom", type=float, required=True)
+    parser.add_argument("--protocols", action="store_true")
+    parser.add_argument("--dialogs", action="store_true")
     arguments = parser.parse_args()
-    run(arguments.output, arguments.zoom)
+    run(arguments.output, arguments.zoom, arguments.protocols, arguments.dialogs)

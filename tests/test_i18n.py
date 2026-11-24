@@ -221,8 +221,11 @@ def test_marked_messages_survive_concatenation_copy_and_nested_errors():
 def test_desktop_language_switch_preserves_selected_app_under_modal(controller, tmp_path):
     directory = tmp_path / "applications"
     directory.mkdir()
-    (directory / "a.desktop").write_text("[Desktop Entry]\nType=Application\nName=Alpha\nName[zh_CN]=最后\nComment=English note\nComment[zh_CN]=中文说明\nExec=true\n")
-    (directory / "z.desktop").write_text("[Desktop Entry]\nType=Application\nName=Zulu\nName[zh_CN]=首先\nExec=true\n")
+    reader_id = "io.github.zhubby.uDeck.Reader.desktop"
+    video_id = "io.github.zhubby.uDeck.Video.desktop"
+    (directory / reader_id).write_text("[Desktop Entry]\nType=Application\nName=Alpha\nName[zh_CN]=最后\nComment=English note\nComment[zh_CN]=中文说明\nExec=true\n")
+    (directory / video_id).write_text("[Desktop Entry]\nType=Application\nName=Zulu\nName[zh_CN]=首先\nExec=true\n")
+    (directory / "external.desktop").write_text("[Desktop Entry]\nType=Application\nName=External\nExec=xarchiver\n")
     controller.mock = False
     controller.catalog = DesktopCatalog([directory], locale="en")
     controller.applications = controller.catalog.entries()
@@ -232,8 +235,9 @@ def test_desktop_language_switch_preserves_selected_app_under_modal(controller, 
     controller.chooseModal(next(i for i, option in enumerate(controller.modal["options"]) if option.get("id") == "language"))
     controller.setLanguage("zh_CN")
     controller.dispatch("back")
-    assert controller._items()[controller.navigation.index]["id"] == "z.desktop"
-    assert controller.catalog.by_id["a.desktop"]["subtitle"] == "中文说明"
+    assert controller._items()[controller.navigation.index]["id"] == video_id
+    assert controller.catalog.by_id[reader_id]["subtitle"] == "中文说明"
+    assert {item["id"] for item in controller.applications} == {reader_id, video_id}
 
 
 def test_terminal_switches_chrome_without_restarting_sessions_or_translating_titles(controller, tmp_path):

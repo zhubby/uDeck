@@ -5,7 +5,7 @@
 
 __init__.py: 应用包版本。
 main.py: 轻量启动入口；先转发已有实例请求。
-runtime.py: 源码缓存隔离、会话 D-Bus、构建诊断与退出请求；交接后显示。
+runtime.py: 会话 D-Bus、文件索引等待与失败反馈；交接后显示。
 common/: 应用共享状态、输入、菜单与 QML 窗口。
 browser/: 浏览器控制器与网页导航。见该目录 AGENTS.md。
 emulator/: 游戏库、RetroArch 进程协议与存档。见该目录 AGENTS.md。

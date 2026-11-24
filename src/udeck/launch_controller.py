@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖内置应用白名单、启动状态机与会话 D-Bus。
+[OUTPUT]: 提供内置应用的文件启动、单实例转发与失败反馈。
+[POS]: 桌面启动编排；复用原生应用输入交接协议。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -5,13 +12,21 @@ from pathlib import Path
 from PySide6.QtCore import QTimer
 from PySide6.QtDBus import QDBusConnection, QDBusMessage, QDBusPendingCallWatcher
 
-from .app_routing import NATIVE_APPS, object_path, service_name
+from .app_routing import native_app_id, object_path, service_name
 from .i18n import Msg, error_text, tr
 from .launch import LaunchTracker
 from .mock import mock_apps
 
 
 class LaunchControls:
+    @staticmethod
+    def _native_applications(entries):
+        return [entry for entry in entries if native_app_id(entry.get("id"))]
+
+    def _restore_app_category(self):
+        if self.category != "All" and not any(entry["category"] == self.category for entry in self.applications):
+            self.category = "All"
+
     def _init_loading(self, defer_startup):
         self.startup = {"active": defer_startup, "phase": "preparing" if defer_startup else "complete"}
         self.launches = LaunchTracker()
@@ -52,7 +67,9 @@ class LaunchControls:
     def _complete_startup(self, result):
         if self._launch_closing:
             return
-        self.applications, error = result
+        entries, error = result
+        self.applications = self._native_applications(entries)
+        self._restore_app_category()
         self.startup["phase"] = "ready"
         if error:
             self.notify(tr(Msg.COULD_NOT_READ_THE_APPLICATION_LIST_ERROR, error=error_text(error)))
@@ -71,10 +88,15 @@ class LaunchControls:
         else:
             self.launch_timer.stop()
 
-    def _start_application(self, item):
+    def _start_application(self, item, files=()):
         if self._launch_closing:
             return
-        token, created = self.launches.begin(item, observable=self._window_observable())
+        app_id = native_app_id(item.get("id"))
+        if app_id is None or (app_id.endswith(".Terminal") and files):
+            self.notify(tr(Msg.EXTERNAL_APPLICATIONS_DISABLED))
+            return
+        files = tuple(str(Path(path).absolute()) for path in files)
+        token, created = self.launches.begin(item, observable=self._window_observable(), files=files)
         self._refresh_launch()
         self._publish()
         if not created:
@@ -92,18 +114,18 @@ class LaunchControls:
             QTimer.singleShot(650, self, preview_finished)
             return
 
-        if self._forward_application(item, token):
+        if self._forward_application(item, token, files):
             return
-        self._submit_application(item, token)
+        self._submit_application(item, token, files)
 
-    def _forward_application(self, item, token):
-        app_id = item['id'].removesuffix('.desktop')
-        if app_id not in NATIVE_APPS:
+    def _forward_application(self, item, token, files=()):
+        app_id = native_app_id(item.get('id'))
+        if app_id is None:
             return False
         bus = QDBusConnection.sessionBus()
         if not bus.isConnected():
             return False
-        payload = json.dumps({'files': [], 'command': ''})
+        payload = json.dumps({'files': files, 'command': ''})
         if app_id.endswith('.Terminal'):
             from .terminal.core import parse_launch
 
@@ -125,7 +147,7 @@ class LaunchControls:
             if reply.type() == QDBusMessage.MessageType.ErrorMessage:
                 if reply.errorName() in ('org.freedesktop.DBus.Error.ServiceUnknown',
                                          'org.freedesktop.DBus.Error.NameHasNoOwner'):
-                    self._submit_application(item, token)
+                    self._submit_application(item, token, files)
                     return
                 error = RuntimeError(reply.errorMessage())
             elif len(reply.arguments()) != 1 or not isinstance(reply.arguments()[0], str):
@@ -139,7 +161,7 @@ class LaunchControls:
             QTimer.singleShot(0, finished)
         return True
 
-    def _submit_application(self, item, token):
+    def _submit_application(self, item, token, files=()):
 
         def complete(future):
             try:
@@ -150,7 +172,12 @@ class LaunchControls:
             if not self._launch_closing:
                 self.launchFinished.emit((token, item["id"], error))
 
-        self.launch_executor.submit(lambda: self.catalog.launch(item["id"])).add_done_callback(complete)
+        def launch():
+            if files:
+                return self.catalog.launch(item["id"], files)
+            return self.catalog.launch(item["id"])
+
+        self.launch_executor.submit(launch).add_done_callback(complete)
 
     def _complete_launch(self, result):
         if self._launch_closing:

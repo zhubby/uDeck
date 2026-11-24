@@ -7,6 +7,7 @@
 
 import json
 import time
+from types import SimpleNamespace
 
 import pytest
 from PySide6.QtCore import QCoreApplication
@@ -27,7 +28,9 @@ HOME_IDS = [
 
 
 @pytest.fixture
-def controller(tmp_path):
+def controller(tmp_path, monkeypatch):
+    monkeypatch.setattr("udeck.launch_controller.QDBusConnection", SimpleNamespace(
+        sessionBus=lambda: SimpleNamespace(isConnected=lambda: False)))
     application = QCoreApplication.instance() or QCoreApplication([])
     shell = ShellController(MockBackend(), config=ConfigStore(tmp_path / "settings.json"), mock=True)
     shell._test_application = application

@@ -1,34 +1,30 @@
+"""
+[INPUT]: 依赖桌面元数据、内置应用身份与 Python 模块入口。
+[OUTPUT]: 提供应用索引、Exec 解析和固定内置应用启动。
+[POS]: 桌面启动底层；元数据不能替换内置启动命令。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import configparser
 import locale as system_locale
 import os
-import pwd
 import re
 import shlex
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
+from .app_routing import APP_IDS, native_app_id
 from .i18n import Msg, tr
-
-
-def terminal_command(arguments=None):
-    resolver = shutil.which("xdg-terminal-exec")
-    if resolver:
-        return [resolver, "--", *arguments] if arguments else [resolver]
-    terminal = shutil.which("x-terminal-emulator")
-    if not terminal:
-        raise RuntimeError(tr(Msg.NO_DEFAULT_TERMINAL_AVAILABLE_INSTALL_XDG_TERMINAL_EXEC_OR_A_TERMINAL_EMULATOR))
-    return [terminal, "-e", *arguments] if arguments else [terminal]
 
 
 def open_terminal(directory):
     directory = Path(directory).absolute()
     if not directory.is_dir():
         raise ValueError(tr(Msg.THE_TERMINAL_WORKING_DIRECTORY_DOES_NOT_EXIST))
-    # An explicit directory/command must create a window even when the terminal
-    # primary already exists; a plain launch only activates its recent window.
-    resolver = shutil.which("xdg-terminal-exec")
-    arguments = [resolver, "--dir=" + str(directory)] if resolver else terminal_command([pwd.getpwuid(os.getuid()).pw_shell or "/bin/sh"])
+    # 显式目录强制新建原生终端窗口，绕过系统默认终端。
+    arguments = [sys.executable, "-m", "udeck.terminal.main", "--working-directory", str(directory)]
     return subprocess.Popen(arguments, cwd=str(directory), start_new_session=True)
 
 
@@ -119,18 +115,15 @@ class DesktopCatalog:
                       key=lambda entry: entry["name"].casefold())
 
     def launch(self, identifier, files=()):
-        entry = self.by_id[identifier]
-        try:
-            import gi
-
-            gi.require_version("Gio", "2.0")
-            from gi.repository import Gio
-
-            application = Gio.DesktopAppInfo.new_from_filename(entry["desktop"])
-            if application is None or not application.launch([Gio.File.new_for_path(str(path)) for path in files], None):
-                raise RuntimeError(tr(Msg.THE_SYSTEM_REFUSED_TO_START_THE_APP))
-        except ImportError:
-            arguments = parse_exec(entry["exec"], entry["name"], entry["icon"], entry["desktop"], files)
-            if entry["terminal"]:
-                arguments = terminal_command(arguments)
-            subprocess.Popen(arguments, cwd=entry["workingDirectory"] or None, start_new_session=True)
+        app_id = native_app_id(identifier)
+        if app_id is None:
+            raise ValueError(tr(Msg.EXTERNAL_APPLICATIONS_DISABLED))
+        if app_id.endswith(".Terminal"):
+            if files:
+                raise ValueError(tr(Msg.EXTERNAL_APPLICATIONS_DISABLED))
+            arguments = [sys.executable, "-m", "udeck.terminal.main"]
+        else:
+            name = next(name for name, value in APP_IDS.items() if value == app_id)
+            arguments = [sys.executable, "-m", "udeck.apps.main", name,
+                         *(str(Path(path).absolute()) for path in files)]
+        subprocess.Popen(arguments, start_new_session=True)

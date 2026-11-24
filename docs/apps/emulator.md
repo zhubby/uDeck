@@ -128,7 +128,7 @@ Emulator 配置使用独立的 `emulator.json`，共享状态格式版本为 1�
 
 ## rclone 云同步
 
-云同步默认关闭，需要 Debian／Linux 用户会话、用户 D-Bus、systemd 用户服务和支持 `bisync --recover --resilient` 的 rclone。Debian 包推荐安装 rclone；应用在启用时检查命令能力。使用“配置 rclone”会运行 `udeck-terminal -- rclone config`，完成账户配置后在云存储列表中选择已有 remote、填写云端目录并测试连接。账户凭据和令牌始终由 rclone 管理，uDeck 只保存 remote 名称与目录。加密配置必须能在后台无交互访问。
+云同步默认关闭，需要 Debian／Linux 用户会话、用户 D-Bus、systemd 用户服务和支持 `bisync --recover --resilient` 的 rclone。Debian 包推荐安装 rclone；应用在启用时检查命令能力。“配置 rclone”仅显示内置说明，因为交互授权会唤起系统浏览器。已有 remote 仍可选择、填写云端目录并测试连接。账户凭据和令牌始终由 rclone 管理，uDeck 只保存 remote 名称与目录。加密配置必须能在后台无交互访问。
 
 启用后，`udeck-emulator-saves.service` 随用户会话运行，关闭模拟器窗口后继续同步；关闭云同步会取消当前任务并取消下次会话自动启动。服务通过用户 D-Bus `io.github.zhubby.uDeck.EmulatorSaves` 提供 `Status`、`Configure`、`SyncNow`、`Remotes`、`TestConnection` 与 `Changed` 状态通知，不依赖图形窗口。
 

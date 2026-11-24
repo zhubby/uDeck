@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖文件操作、内置格式表、应用身份与桌面启动链。
+[OUTPUT]: 提供文件浏览、内置打开、预览与后台任务编排。
+[POS]: 桌面文件交互边界；文件确认不调用系统文件关联。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -6,13 +13,16 @@ from pathlib import Path
 
 from PySide6.QtCore import QFileSystemWatcher, Qt, QTimer
 
+from .app_routing import APP_IDS
+from .apps.common.library import EXTENSIONS
 from .core import move_index
 from .file_jobs import FileJob, distinct_sources
 from .file_locations import mounted_locations, unmount, user_locations
 from .file_model import FileListModel
 from .file_preview import preview
 from .file_trash import TrashStore
-from .files import FileOperations, query_entries
+from .files import FileOperations, file_kind, query_entries
+from .home import home_shortcuts
 from .i18n import Msg, tr
 
 SORT_LABELS = {"name": tr(Msg.NAME), "modified": tr(Msg.MODIFIED), "size": tr(Msg.SIZE)}
@@ -300,7 +310,6 @@ class FileControls:
                 options.extend([option(tr(Msg.RESTORE_SELECTED_ITEMS), "restore"), option(tr(Msg.RESTORE_TO_FOLDER), "restore-to")])
             else:
                 options.extend([{"label": tr(Msg.OPEN), "action": "open-file", "item": item},
-                                option(tr(Msg.OPEN_WITH), "open-with"),
                                 option(tr(Msg.RENAME), "rename", disabled=len(self._file_selected()) != 1),
                                 option(tr(Msg.COPY), "copy"), option(tr(Msg.CUT), "cut"),
                                 option(tr(Msg.MOVE_TO_TRASH), "trash")])
@@ -410,20 +419,8 @@ class FileControls:
             self._file_start_job("restore", option.get("items", []), "")
         elif action == "preview" and selected:
             self._file_preview(selected[0])
-        elif action == "open-with" and selected:
-            self._file_open_with(selected[0])
-        elif action == "open-default":
-            item = option["item"]
-            if self.mock:
-                self.notify(tr(Msg.PREVIEW_OPEN_PREFIX) + item["name"])
-            else:
-                self._run(tr(Msg.OPEN_FILE), lambda: self.operations.open(item["path"]))
-        elif action == "open-using":
-            item = option["item"]
-            if not self.mock:
-                self._run(tr(Msg.OPEN_FILE), lambda: self.catalog.launch(value, [item["path"]]))
-            else:
-                self.notify(tr(Msg.PREVIEW_OPEN_PREFIX) + item["name"])
+        elif action in ("open-with", "open-default", "open-using"):
+            self.notify(tr(Msg.FILES_INTERNAL_OPEN_ONLY))
         elif action == "task" and self.file_task:
             self._file_show_task()
         elif action == "cancel-task":
@@ -596,7 +593,7 @@ class FileControls:
                 self._pop()
             elif action in ("up", "down", "left", "right"):
                 self.filePreviewScroll.emit({"up": -80, "down": 80, "left": -200, "right": 200}[action])
-            elif action == "accept" and not modal["item"].get("directory") and not modal["item"].get("trash"):
+            elif action == "accept" and modal.get("canOpen"):
                 item = modal["item"]
                 self._pop()
                 self._activate_file(item)
@@ -607,12 +604,22 @@ class FileControls:
     def _activate_file(self, item):
         if item.get("directory") and not item.get("trash"):
             self._browse(item["path"])
-        elif self.mock:
-            self.notify(tr(Msg.PREVIEW_OPEN_PREFIX) + item["name"])
-        elif item.get("trash"):
-            self._file_preview(item)
         else:
-            self._run(tr(Msg.OPEN_FILE), lambda: self.operations.open(item["path"]))
+            application = self._file_application(item)
+            if application and not application["disabled"]:
+                self._start_application(application, files=(item["path"],))
+            else:
+                self._file_preview(item)
+
+    def _file_application(self, item):
+        if item.get("directory") or item.get("trash") or item.get("symlink") or Path(item["path"]).is_symlink():
+            return None
+        kind, _mime, _icon = file_kind(item["name"])
+        app = {"audio": "music", "video": "video", "book": "reader"}.get(kind)
+        if not app or Path(item["name"]).suffix.lower() not in EXTENSIONS[app]:
+            return None
+        return next(shortcut for shortcut in home_shortcuts(self.applications)
+                    if shortcut["id"] == APP_IDS[app] + ".desktop")
 
     def _file_preview(self, item):
         owner = self.navigation.page, self.data["directory"]
@@ -623,19 +630,20 @@ class FileControls:
             if item.get("trash"):
                 details = result["body"].split("\n")
                 result["body"] = item["originalPath"] + "\n" + details[1] + "\n" + tr(Msg.DELETED_DATE, date=item.get("deletedAt", ""))
-            result.update(previewText=self._file_preview_text, item=item)
+            application = self._file_application(item)
+            can_open = bool(application and not application["disabled"])
+            notice = ""
+            if application and application["disabled"]:
+                notice = application["reason"]
+            elif result["previewType"] == "metadata" and not can_open and not (
+                    item.get("directory") or item.get("trash") or result.get("linkTarget")):
+                notice = tr(Msg.NO_BUILT_IN_APPLICATION_FOR_FILE)
+            result.update(previewText=self._file_preview_text, item=item, canOpen=can_open, openNotice=notice)
             self._push(result)
         if self.mock:
             loaded({"kind": "file-preview", "title": item["name"], "body": item["path"], "previewType": "metadata"})
         else:
             self._run(tr(Msg.PREVIEW_AND_DETAILS), lambda: preview(item["path"], name=item["name"]), loaded, report_success=False)
-
-    def _file_open_with(self, item):
-        handlers = self.catalog.handlers(item.get("mime", "application/octet-stream")) if not self.mock else []
-        options = [{"label": tr(Msg.SYSTEM_DEFAULT_APPLICATION), "action": "files", "command": "open-default", "item": item}]
-        options.extend({"label": entry["name"], "action": "files", "command": "open-using", "value": entry["id"], "item": item}
-                       for entry in handlers)
-        self._menu(tr(Msg.OPEN_WITH), options, body=tr(Msg.THIS_DOES_NOT_CHANGE_DEFAULT_FILE_ASSOCIATIONS))
 
     def _file_unmount(self, place):
         if self.mock:

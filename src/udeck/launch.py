@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖单调时钟、应用身份与窗口发现结果。
-[OUTPUT]: 提供启动请求去重、即时反馈身份与延迟遮罩状态。
+[INPUT]: 依赖单调时钟、应用身份、文件路径与窗口发现结果。
+[OUTPUT]: 提供按应用和文件去重的请求、即时反馈与延迟遮罩。
 [POS]: 启动控制器的纯状态机，不延迟真实启动操作。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -23,6 +23,7 @@ class LaunchRequest:
     started: float
     observable: bool
     submitted: float | None = None
+    files: tuple[str, ...] = ()
 
 
 class LaunchTracker:
@@ -31,16 +32,17 @@ class LaunchTracker:
         self.requests = {}
         self.current = ""
 
-    def begin(self, application, *, observable):
+    def begin(self, application, *, observable, files=()):
+        files = tuple(files)
         for token, request in self.requests.items():
-            if request.application["id"] == application["id"]:
+            if request.application["id"] == application["id"] and request.files == files:
                 self.current = token
                 return token, False
         token = uuid.uuid4().hex
         identities = {application_identity(application["id"])}
         if application.get("startupWMClass"):
             identities.add(application_identity(application["startupWMClass"]))
-        self.requests[token] = LaunchRequest(dict(application), identities, self.clock(), observable)
+        self.requests[token] = LaunchRequest(dict(application), identities, self.clock(), observable, files=files)
         self.current = token
         return token, True
 

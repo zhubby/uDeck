@@ -1,14 +1,14 @@
 # docs/udeck/
 > L2 | Parent: ../AGENTS.md
 
-+README.zh-CN.md: uDeck 使用与维护。
+README.zh-CN.md: uDeck 使用、内置应用边界与维护。
 acceptance-2026-11-06.md: uDeck 0.1.0 实机验证与现场验收。
 app-menu-icons-2026-11-13.md: 子应用菜单图标统一（0.2.7）。
 app-settings-review-2026-11-12.md: 子应用设置代码审查与 uConsole 验证。
 app-settings-rows-2026-11-12.md: 子应用设置单行布局。
 application-control-2026-11-06.md: uDeck 0.1.4 应用手柄兼容层。
 application-performance-2026-11-10.md: 应用启动与状态更新优化。
-architecture.md: uDeck v1 架构与边界。
+architecture.md: uDeck 架构、输入所有权与内置应用路由边界。
 boot-2026-11-06.md: 0.1.1 全屏与开机默认会话配置记录。
 controller-mode-2026-11-06.md: 0.1.3 手柄交互与会话级鼠标屏蔽。
 debian-device-0.2.3.md: uDeck 0.2.3 CM4 实机部署记录。
@@ -31,7 +31,7 @@ files-network-access-completion-2026-11-12.md: 网络文件遗漏问题修复与
 files-network-access-final-fixes-2026-11-12.md: 网络文件回归剩余失败修复。
 files-network-access-validation.md: Files 网络访问验收记录。
 files-network-access.md: 网页文件访问。
-files-workspace-2026-11-08.md: Files 工作区。
+files-workspace-2026-11-08.md: Files 工作区、内置打开白名单与验证边界。
 fixed-icons-2026-11-13.md: 全界面固定图标检查（0.2.8）。
 fonts-2026-11-07.md: uDeck 0.1.10 中英文字体。
 full-device-validation-2026-11-13.md: 全功能实机回归（2026-11-13）。
@@ -45,6 +45,7 @@ input-2026-11-06.md: 0.1.2 ABXY 与 L/R 输入修复。
 input-prompts-2026-11-07.md: uDeck 0.1.11 按键图标。
 input-prompts-round-2026-11-07.md: uDeck 0.1.12 圆形按键与平滑缩放。
 input-prompts-sizing-2026-11-07.md: uDeck 0.1.13 键盘按键尺寸统一。
+internal-application-routing-2026-11-24.md: 全局内置应用边界、受控引擎例外与验证范围。
 key-test-event-fix-2026-11-08.md: 按键测试迟到事件去重修复。
 media-review-2026-11-13.md: 音乐与视频抢占审查及实机复测（0.2.10）。
 media-takeover-2026-11-13.md: 音乐与视频播放抢占（0.2.9）。
@@ -60,7 +61,7 @@ settings-icons-2026-11-11.md: 系统与应用设置图标。
 sharing-validation-2026-11-12.md: 系统共享审查与验证（2026-11-12）。
 sharing.md: 系统设置 → 共享。
 startup-loading-2026-11-09.md: uDeck 启动加载动效。
-system-shortcuts-2026-11-11.md: 系统快捷键。
+system-shortcuts-2026-11-11.md: 系统快捷键、固定终端与 Console 窗口切换。
 terminal-acceptance-2026-11-06.md: uDeck Terminal v1 — CM4 安装验收记录。
 terminal-device-audit-2026-11-14.md: uTerminal 实机功能测试与修复（2026-11-14）。
 terminal-research-2026-11-06.md: uDeck 自有终端方案调研。

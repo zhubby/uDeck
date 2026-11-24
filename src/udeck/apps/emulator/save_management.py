@@ -1,8 +1,12 @@
-"""Button-first native saves and a non-blocking bridge to cloud history."""
+"""
+[INPUT]: 依赖原生存档、后台同步客户端与共享应用菜单。
+[OUTPUT]: 提供存档确认、历史恢复、同步编排与内置配置限制提示。
+[POS]: 模拟器存档界面边界；配置入口留在 uDeck，不启动外部授权流程。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import copy
 import re
-import subprocess
 import time
 import uuid
 from datetime import datetime
@@ -295,9 +299,8 @@ class EmulatorSaveManagement:
                 self.publish()
         self.save_cloud.request("TestConnection", {key: self.save_cloud.state.get(key, "") for key in ("remote", "directory")}, tested)
 
-    @staticmethod
-    def save_configure_rclone():
-        subprocess.Popen(["udeck-terminal", "--", "rclone", "config"], start_new_session=True)
+    def save_configure_rclone(self):
+        self.menu(tr(Msg.EMU_SAVE_RCLONE_CONFIG), body=tr(Msg.EMU_SAVE_RCLONE_CONFIG_UNAVAILABLE))
 
     def save_conflicts(self):
         def loaded(results):

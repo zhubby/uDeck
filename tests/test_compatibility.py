@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖隔离窗口、输入输出与真实桌面控制器。
-[OUTPUT]: 验证连续导航、应用交接和激活超时的精确恢复。
+[OUTPUT]: 验证连续导航、受限交接和激活超时恢复。
 [POS]: 应用路由回归；覆盖会话锁定、指针隔离和焦点切换。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -298,8 +298,8 @@ def test_keyboard_mode_routes_abxy_and_shoulders_without_typing_letters(routing)
 
 
 def test_y_menu_defaults_to_return_and_back_restores_exact_window(routing):
-    focus(routing)
-    routing.router.button('quick-settings', True)
+    focus(routing, app_id='io.github.zhubby.uDeck.Music')
+    routing.router.open_menu()
     assert routing.controller.modal['source'] == 'application'
     assert routing.controller.modal['index'] == 0
     assert 'Owned application' in routing.controller.modal['title']
@@ -310,16 +310,11 @@ def test_y_menu_defaults_to_return_and_back_restores_exact_window(routing):
     assert not routing.controller.modal
 
 
-def test_pointer_waits_for_ack_before_return_and_drags_until_release(routing):
+def test_pointer_input_keeps_existing_foreground_without_activating_a_window(routing):
     focus(routing)
-    routing.router.open_menu()
-    routing.router.window_active(True)
-    routing.router.set_mode('pointer')
-    assert ('10', 'activate') not in routing.windows.requests
-    routing.isolation.complete()
-    assert routing.windows.requests[-1] == ('10', 'activate')
-    routing.router.window_active(False)
-    routing.windows.changed.emit(routing.windows.rows)
+    routing.controller.config.data['applicationInput']['firefox'] = 'pointer'
+    routing.isolation.applied = True
+    routing.router.refresh()
     routing.router.button('accept', True)
     routing.router.direction('right', True)
     assert ('button', 272, True) in routing.events
@@ -328,11 +323,12 @@ def test_pointer_waits_for_ack_before_return_and_drags_until_release(routing):
     assert routing.events[-1] == ('button', 272, False)
     routing.router.direction('right', False)
     assert not routing.router.motion.isActive()
+    assert routing.windows.requests == []
 
 
-def test_console_resume_waits_for_pointer_isolation_before_restoring_window(routing):
-    focus(routing)
-    routing.controller.config.data['applicationInput']['firefox'] = 'pointer'
+def test_console_resume_waits_for_isolation_ack_before_restoring_native_window(routing):
+    focus(routing, app_id='io.github.zhubby.uDeck.Music')
+    routing.isolation.applied = True
     routing.router.window_active(True)
     assert routing.router.resume_window('10')
     assert ('10', 'activate') not in routing.windows.requests
@@ -341,22 +337,40 @@ def test_console_resume_waits_for_pointer_isolation_before_restoring_window(rout
     assert not routing.router.resume_window('gone')
 
 
+def test_console_resume_rejects_an_external_window_before_input_handoff(routing):
+    focus(routing, app_id='xarchiver')
+    routing.router.window_active(True)
+    assert not routing.router.resume_window('10')
+    assert routing.isolation.pending is None
+    assert routing.windows.requests == []
+
+
+def test_delayed_application_return_cannot_activate_a_reused_external_window(routing):
+    focus(routing, app_id='io.github.zhubby.uDeck.Music')
+    routing.router.open_menu()
+    routing.router.window_active(True)
+    routing.router.resume()
+    routing.windows.rows[0]['appId'] = 'xarchiver'
+    routing.isolation.complete()
+    assert routing.windows.requests == []
+    assert routing.controller.navigation.page == 'windows'
+
+
 def test_console_resume_preserves_parent_application_profile(routing):
     routing.windows.rows = [
-        {'id': '10', 'appId': 'firefox', 'name': 'Parent', 'active': False, 'parentId': ''},
+        {'id': '10', 'appId': 'io.github.zhubby.uDeck.Music', 'name': 'Parent', 'active': False, 'parentId': ''},
         {'id': '11', 'appId': '', 'name': 'Dialog', 'active': True, 'parentId': '10'},
     ]
-    routing.controller.config.data['applicationInput']['firefox'] = 'pointer'
     assert routing.router.resume_window('11')
-    assert routing.router.return_target['application'] == 'firefox'
-    assert routing.isolation.pending is True
+    assert routing.router.return_target['application'] == 'io.github.zhubby.uDeck.Music'
+    assert routing.isolation.pending is False
 
 
 def test_reload_failure_keeps_menu_and_does_not_inject(routing):
-    focus(routing)
+    focus(routing, app_id='io.github.zhubby.uDeck.Music')
     routing.router.open_menu()
     routing.router.window_active(True)
-    routing.router.set_mode('pointer')
+    routing.router.resume()
     routing.isolation.complete(False)
     routing.router.button('accept', True)
     assert not routing.windows.requests
@@ -461,7 +475,7 @@ def test_pointer_unavailable_without_direction_reader_and_disconnect_restores_ke
     assert routing.controller.modal
 
 
-def test_shortcut_waits_for_exact_target_and_works_in_pointer_mode(routing):
+def test_external_shortcut_cannot_activate_or_inject_into_a_return_target(routing):
     focus(routing)
     routing.controller.config.data['applicationInput']['firefox'] = 'pointer'
     routing.isolation.applied = True
@@ -476,7 +490,9 @@ def test_shortcut_waits_for_exact_target_and_works_in_pointer_mode(routing):
     routing.windows.changed.emit(routing.windows.rows)
     assert ('chord', (29, 38)) not in routing.events
     focus(routing)
-    assert routing.events.count(('chord', (29, 38))) == 1
+    assert ('chord', (29, 38)) not in routing.events
+    assert routing.windows.requests == []
+    assert routing.router.command_pending is None
 
 
 def test_late_ack_after_session_lock_cannot_activate_or_inject(routing):

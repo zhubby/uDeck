@@ -1,4 +1,11 @@
 {
+  "external_applications_disabled": "uDeck 仅打开内置应用。",
+  "web_page_system_dialogs_are_disabled": "uDeck 已禁用网页系统对话框。",
+  "udeck_desktop_unavailable": "uDeck 桌面不可用。请继续使用当前终端或启动 uDeck。",
+  "emu_save_rclone_config_unavailable": "uDeck 暂未提供 rclone 配置，浏览器授权会调用其他应用。已有远程和云同步仍可使用。",
+  "files_internal_open_only": "文件管理器仅使用内置应用和预览打开文件。",
+  "no_built_in_application_for_file": "暂无可打开此文件的内置应用，当前显示文件详情。",
+  "file_not_found_in_library_name": "媒体库中未找到文件：{name}",
   "console": "控制台",
   "console_application": "应用",
   "console_state": "状态",

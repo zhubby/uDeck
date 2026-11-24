@@ -1,5 +1,5 @@
 """
-[INPUT]: 依赖系统后端、窗口服务与各桌面交互模块。
+[INPUT]: 依赖内置应用启动边界、系统后端与窗口服务。
 [OUTPUT]: 提供轻量视图、完整诊断、局部导航与 Console 模态操作。
 [POS]: 桌面交互入口；运行采样和进程终止由 runtime_console 承担。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
@@ -74,13 +74,15 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         self.mock = mock
         self.navigation = Navigation(self.config.data["focus"])
         self.catalog = catalog or DesktopCatalog(locale=self.language)
-        self.applications = [] if defer_startup else mock_apps() if mock else self.catalog.entries()
+        self.applications = [] if defer_startup else self._native_applications(mock_apps() if mock else self.catalog.entries())
         self.data = dict(backend.state)
         self.data.update({"windows": [], "files": [], "directory": str(Path.home()),
                           "input": {"available": False, "verified": False}})
         self.query = ""
         saved_category = self.config.data["preferences"]["category"]
         self.category = saved_category if saved_category in CATEGORY_NAMES else "All"
+        if not defer_startup:
+            self._restore_app_category()
         self._modals = []
         self._text = ""
         self._init_key_test()
@@ -138,7 +140,7 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         if page == "home":
             return home_shortcuts(self.applications)
         if page == "apps":
-            return [application for application in self.applications if (self.category == "All" or application["category"] == self.category) and (not self.query or self.query.casefold() in render(application["name"] + " " + application.get("subtitle", ""), self.language).casefold())]
+            return [application for application in self._native_applications(self.applications) if (self.category == "All" or application["category"] == self.category) and (not self.query or self.query.casefold() in render(application["name"] + " " + application.get("subtitle", ""), self.language).casefold())]
         if page == "windows":
             return self._console_items()
         if page == "files":
@@ -304,7 +306,8 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         self.language = language
         if not self.mock:
             self.catalog.locale = language
-            self.applications = self.catalog.entries()
+            self.applications = self._native_applications(self.catalog.entries())
+            self._restore_app_category()
         for page, identifier in selected_apps.items():
             self.navigation.page = page
             items = self._items()
@@ -1112,7 +1115,7 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         elif action == "search":
             self.dispatch("search")
         elif action == "categories":
-            categories = {application["category"] for application in self.applications}
+            categories = {application["category"] for application in self._native_applications(self.applications)}
             self._menu(tr(Msg.APP_CATEGORIES), [{"label": label, "action": "category", "id": identifier} for identifier, label in CATEGORY_NAMES.items() if identifier == "All" or identifier in categories])
         elif action == "category":
             self.category = option["id"]

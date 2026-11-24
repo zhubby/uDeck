@@ -1,7 +1,7 @@
 """
-[INPUT]: 依赖共享应用控制器、游戏库、RetroEngine、原生存档与 Wayland 窗口接口。
+[INPUT]: 依赖共享控制器、游戏库、RetroEngine 与受限窗口接口。
 [OUTPUT]: 提供模拟器导航、运行摘要、有序退出与启动预检。
-[POS]: 模拟器应用编排；进程协议由 engine.py 单独承担。
+[POS]: 模拟器编排；仅运行中的引擎获得窗口授权。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
@@ -392,18 +392,22 @@ class EmulatorController(EmulatorLibraryManagement, EmulatorSaveManagement, Emul
             self.preview_file_entries(additions)
 
     def uncover_game(self):
-        if self.window:
-            self.window.showMinimized()
-        if self.isolated or not self.window or QGuiApplication.platformName() != "wayland":
+        pid = int(self.engine.process.processId()) if self.engine.running() else 0
+        if pid <= 0:
             return
-        from udeck.windows import WindowService
+        if self.isolated or not self.window or QGuiApplication.platformName() != "wayland":
+            if self.window:
+                self.window.showMinimized()
+            return
+        from udeck.windows import EMULATOR_APP_ID, WindowService
 
         windows = WindowService()
         try:
             windows.start()
             for entry in windows.entries():
-                if entry.get("appId") == "com.libretro.RetroArch":
+                if windows.allow_managed_window(entry['id'], EMULATOR_APP_ID, pid):
                     windows.request(entry["id"], "activate")
+                    self.window.showMinimized()
                     break
         finally:
             windows.close()

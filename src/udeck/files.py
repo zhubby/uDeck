@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖文件系统、文件类型图标与 GIO 回收站服务。
+[OUTPUT]: 提供文件查询、名称校验、复制、移动与回收操作。
+[POS]: 文件系统操作边界；内置打开策略由文件控制器决策。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import ctypes
 import errno
 import mimetypes
@@ -266,9 +273,6 @@ class FileOperations:
 
     def trash(self, path):
         self._gio("trash", path)
-
-    def open(self, path):
-        self._gio("open", path)
 
     def _gio(self, action, path):
         try:

@@ -1,18 +1,46 @@
 """
-[INPUT]: 依赖 Wayland 窗口协议和 Qt 套接字通知。
-[OUTPUT]: 提供窗口身份、前台变化和窗口控制请求。
-[POS]: 合成器窗口适配层；桌面输入路由以此为依据。
+[INPUT]: 依赖 Wayland、原生身份与 proc 启动时刻校验。
+[OUTPUT]: 提供窗口身份、前台变化和受限窗口激活。
+[POS]: 合成器激活边界；受监督引擎按进程身份授权。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
 import ctypes
+import os
 import sys
 
 from PySide6.QtCore import QObject, QSocketNotifier, QTimer, Signal
 
+from .app_routing import native_app_id
 from .i18n import Msg, error_text, tr
+from .runtime_console.processes import read_process
 
 APP_ID = "io.github.zhubby.uDeck"
+EMULATOR_APP_ID = "io.github.zhubby.uDeck.Emulator"
+EMULATOR_WINDOW_ID = "com.libretro.RetroArch"
+
+
+def _native_window(window, rows):
+    seen = set()
+    while window and window['id'] not in seen:
+        seen.add(window['id'])
+        app_id = window.get('appId', '')
+        if app_id:
+            return app_id == APP_ID or native_app_id(app_id) is not None
+        window = next((entry for entry in rows if entry['id'] == window.get('parentId')), None)
+    return False
+
+
+def can_activate_window(windows, window):
+    if not windows or not window:
+        return False
+    rows = windows.entries()
+    current = next((entry for entry in rows
+                    if (entry['id'], entry.get('appId', '')) == (window['id'], window.get('appId', ''))), None)
+    if not current:
+        return False
+    checker = getattr(windows, 'can_activate', None)
+    return checker(current['id']) if checker else _native_window(current, rows)
 
 
 class Interface(ctypes.Structure):
@@ -53,6 +81,7 @@ class WindowService(QObject):
         self.listeners = {}
         self.globals = {}
         self.available = False
+        self.managed_windows = {}
 
     def start(self):
         if sys.platform != "linux":
@@ -201,6 +230,7 @@ class WindowService(QObject):
 
         def closed(proxy):
             self.handles.pop(identifier, None)
+            self.managed_windows.pop(identifier, None)
             self.library.wl_proxy_marshal_flags(proxy, 7, None, self.library.wl_proxy_get_version(proxy), 1)
             self._retire_listener(proxy)
             self._emit()
@@ -237,11 +267,53 @@ class WindowService(QObject):
         window = self.handles.get(str(identifier))
         if not window or not self.available:
             raise RuntimeError(tr(Msg.THE_WINDOW_WAS_CLOSED_OR_WINDOW_CONTROL_IS_UNAVAILABLE))
+        if operation == 'activate' and not self.can_activate(identifier):
+            raise RuntimeError(tr(Msg.NO_APP_WINDOW_IS_AVAILABLE_TO_CONTROL))
         proxy = window["proxy"]
         opcode = {"activate": 4, "close": 5, "maximize": 0}[operation]
         arguments = [ctypes.c_void_p(self.seat)] if operation == "activate" else []
         self.library.wl_proxy_marshal_flags(proxy, opcode, None, self.library.wl_proxy_get_version(proxy), 0, *arguments)
         self.library.wl_display_flush(self.display)
+
+    def can_activate(self, identifier):
+        window = self.handles.get(str(identifier))
+        if not window:
+            return False
+        if _native_window(window, self.handles.values()):
+            return True
+        authorized = self.managed_windows.get(str(identifier))
+        if not authorized or authorized[:2] != (window.get('appId'), window['proxy']):
+            return False
+        if sum(entry.get('appId') == EMULATOR_WINDOW_ID for entry in self.handles.values()) != 1:
+            return False
+        try:
+            process = read_process(authorized[2].pid)
+            if process.identity == authorized[2] and process.uid == os.getuid() and process.state not in ('Z', 'X'):
+                return True
+        except (OSError, ValueError, IndexError):
+            pass
+        self.managed_windows.pop(str(identifier), None)
+        return False
+
+    def allow_managed_window(self, identifier, owner_app_id, process_id, *, identity=None):
+        self.revoke_managed_window(identifier)
+        window = self.handles.get(str(identifier))
+        if (owner_app_id != EMULATOR_APP_ID or not isinstance(process_id, int) or process_id <= 0
+                or not window or window.get('appId') != EMULATOR_WINDOW_ID
+                or sum(entry.get('appId') == EMULATOR_WINDOW_ID for entry in self.handles.values()) != 1):
+            return False
+        try:
+            process = read_process(process_id)
+        except (OSError, ValueError, IndexError):
+            return False
+        if (process.uid != os.getuid() or process.state in ('Z', 'X')
+                or identity is not None and identity != process.identity):
+            return False
+        self.managed_windows[str(identifier)] = (EMULATOR_WINDOW_ID, window['proxy'], process.identity)
+        return True
+
+    def revoke_managed_window(self, identifier):
+        self.managed_windows.pop(str(identifier), None)
 
     def activate_shell(self):
         for identifier, window in self.handles.items():
@@ -258,5 +330,6 @@ class WindowService(QObject):
             self.library.wl_display_disconnect(self.display)
             self.display = None
         self.handles.clear()
+        self.managed_windows.clear()
         self.listeners.clear()
         self.available = False

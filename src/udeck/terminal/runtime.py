@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖终端控制器、Qt Quick、源码缓存标识与会话 D-Bus。
-[OUTPUT]: 提供多窗口协调、最近窗口激活和整应用退出请求。
+[OUTPUT]: 提供多窗口协调、最近窗口激活和受限桌面返回。
 [POS]: Terminal 独立进程入口；逐窗口保留会话关闭确认。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 
@@ -171,7 +171,9 @@ class Coordinator(QObject):
             bus.asyncCall(request)
             return True
         if action == "Home":
-            window.showMinimized()
+            entry = next((entry for entry in self.windows if entry["window"] is window), None)
+            if entry:
+                entry["controller"].showError(tr(Msg.UDECK_DESKTOP_UNAVAILABLE))
         return False
 
     def quick_settings(self, entry):

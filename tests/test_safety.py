@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖文件操作、隔离目录与文件服务替身。
+[OUTPUT]: 验证复制、移动、回收失败时保留源内容。
+[POS]: 文件变更安全回归；外部应用打开入口已移除。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import errno
 import os
 from pathlib import Path
@@ -91,8 +98,7 @@ def test_copy_staging_is_private_before_metadata_is_applied(tmp_path, monkeypatc
     assert result.stat().st_mode & 0o777 == 0o600
 
 
-@pytest.mark.parametrize("action", ["trash", "open"])
-def test_file_service_failure_reports_reason_without_deleting_source(tmp_path, monkeypatch, action):
+def test_file_service_failure_reports_reason_without_deleting_source(tmp_path, monkeypatch):
     command = tmp_path / "gio"
     command.write_text("#!/bin/sh\nprintf '%s\\n' 'Trashing on system internal mounts is not supported' >&2\nexit 1\n")
     command.chmod(0o700)
@@ -100,7 +106,7 @@ def test_file_service_failure_reports_reason_without_deleting_source(tmp_path, m
     source = tmp_path / "source"
     source.write_text("keep this content")
     with pytest.raises(RuntimeError, match="Trashing on system internal mounts is not supported"):
-        getattr(FileOperations(), action)(source)
+        FileOperations().trash(source)
     assert source.read_text() == "keep this content"
 
 

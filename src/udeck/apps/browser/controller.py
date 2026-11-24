@@ -1,7 +1,7 @@
 """
-[INPUT]: 依赖共享应用生命周期、Qt 标签模型和本地书签状态。
-[OUTPUT]: 提供地址解析、标签导航、浏览状态与桌面返回。
-[POS]: 浏览器控制边界；网页内容不参与界面翻译。
+[INPUT]: 依赖共享应用生命周期、Qt 标签模型和 URL 解析。
+[OUTPUT]: 提供地址解析、页面导航策略、标签状态与桌面返回。
+[POS]: 浏览器控制边界；拒绝系统协议和原生选择器。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
@@ -194,6 +194,28 @@ class BrowserController(AppController):
         self.invalidate_web_actions()
         self.send("navigate", url=url)
         self.web_mode = "navigation"
+
+    @Slot(str, str, result=bool)
+    def allowNavigation(self, identifier, url):
+        if not any(tab.identifier == identifier for tab in self.web_tabs):
+            return False
+        try:
+            parsed = urlsplit(url)
+            if (parsed.scheme in ("http", "https") and parsed.hostname
+                    or parsed.scheme in ("data", "blob")
+                    or parsed.scheme == "about" and parsed.path in ("blank", "srcdoc")):
+                return True
+        except ValueError:
+            pass
+        self.error = tr(Msg.ONLY_HTTP_AND_HTTPS_ADDRESSES_ARE_ALLOWED)
+        self.publish()
+        return False
+
+    @Slot(str)
+    def systemDialogBlocked(self, identifier):
+        if any(tab.identifier == identifier for tab in self.web_tabs):
+            self.error = tr(Msg.WEB_PAGE_SYSTEM_DIALOGS_ARE_DISABLED)
+            self.publish()
 
     @Slot(str, str, str, bool, bool, str)
     def webUpdated(self, identifier, url, title, loading, can_back, error):

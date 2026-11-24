@@ -15,9 +15,9 @@
 | 打开文件管理 | Ctrl+Alt+F |
 | 打开系统设置 | Ctrl+Alt+, |
 | 打开快捷设置 | Ctrl+Alt+S、电源键 |
-| 打开终端 | Ctrl+Alt+T |
+| 打开 uDeck Terminal | Ctrl+Alt+T |
 | 全屏截屏 | Ctrl+Alt+P、PrintScreen |
-| 下一个 / 上一个窗口 | Alt+Tab / Alt+Shift+Tab |
+| 打开 uDeck Console 窗口选择 | Alt+Tab / Alt+Shift+Tab |
 | 关闭当前窗口 | Alt+F4 |
 | 暂停模拟器 | Ctrl+Alt+M |
 | 锁屏 / 熄屏 | Ctrl+Alt+L / Ctrl+Alt+B |
@@ -26,6 +26,8 @@
 | 注销 / 重启 / 关机 | 未绑定，可自行设置 |
 
 注销、重启、关机只打开现有确认框，默认选中取消。注销沿用现有系统后端的独立 uDeck 会话限制。音量与亮度通过现有系统后端调整，每次 5%，不会调用额外的 wpctl 或 rpi-backlight 命令。
+
+终端入口固定执行 `udeck-terminal`。两个窗口切换动作均执行 `udeckctl switcher`，不再调用合成器的任意窗口循环。应用激活遵守 [全局内置应用边界](internal-application-routing-2026-11-24.md)。
 
 ## 录制
 

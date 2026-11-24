@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实文件页、隔离目录与键盘导航。
-[OUTPUT]: 验证文件网格、滚动终态与模态尺寸边界。
+[OUTPUT]: 验证文件网格、预览打开提示与模态尺寸边界。
 [POS]: 文件页独立几何探针；连续改向由导航连续性探针覆盖。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -32,6 +32,16 @@ def wait_events(milliseconds):
     loop = QEventLoop()
     QTimer.singleShot(milliseconds, loop.quit)
     loop.exec()
+
+
+def wait_dialog_geometry(panel):
+    # 尺寸断言等待实际过渡结束，不以固定延时推断布局完成。
+    wait_events(20)
+    deadline = time.monotonic() + 2
+    while (panel.property("resizing") or not panel.property("geometryReady")
+           or abs(panel.property("height") - panel.property("targetHeight")) > 0.5):
+        assert time.monotonic() < deadline, "Dialog geometry did not settle"
+        wait_events(20)
 
 
 output = Path(sys.argv[1])
@@ -171,6 +181,11 @@ def show_preview(path, item):
     assert all(label.property("paintedWidth") <= label.property("width") + 1 for label in metadata)
 
 show_preview(text_path, text_item)
+hints = window.findChild(QObject, "modalFooter").property("hints").toVariant()
+assert controller.translate(controller.messageKeys["OPEN"], language) not in [hint["label"] for hint in hints]
+preview_key = controller.modal["key"]
+QTest.keyClick(window, Qt.Key.Key_Return)
+assert controller.modal["key"] == preview_key
 controller.dispatch("down")
 wait_events(30)
 preview_content = window.findChild(QObject, "filePreviewContent")
@@ -195,6 +210,33 @@ hints = window.findChild(QObject, "modalFooter").property("hints").toVariant()
 assert controller.translate(controller.messageKeys["SCROLL"], language) not in [hint["label"] for hint in hints]
 assert window.grabWindow().save(str(output / "preview-image.png"))
 controller.dispatch("back")
+archive_path = output / "backup.zip"
+archive_path.write_bytes(b"archive metadata fixture")
+controller._activate_file({"path": str(archive_path), "name": archive_path.name, "directory": False})
+wait_events(160)
+hints = window.findChild(QObject, "modalFooter").property("hints").toVariant()
+assert controller.translate(controller.messageKeys["OPEN"], language) not in [hint["label"] for hint in hints]
+open_notice = window.findChild(QObject, "fileOpenNotice")
+assert open_notice is not None and open_notice.property("visible")
+assert open_notice.property("text") == controller.translate(controller.messageKeys["NO_BUILT_IN_APPLICATION_FOR_FILE"], language)
+wait_dialog_geometry(panel)
+assert window.findChild(QObject, "dialogContent").property("height") + 40 <= panel.property("height") + 1
+preview_key = controller.modal["key"]
+QTest.keyClick(window, Qt.Key.Key_Enter)
+assert controller.modal["key"] == preview_key
+assert window.grabWindow().save(str(output / "preview-archive.png"))
+controller.dispatch("back")
+clip_path = output / "native-clip.mp4"
+clip_path.write_bytes(b"native metadata fixture")
+controller._file_preview({"path": str(clip_path), "name": clip_path.name, "directory": False})
+wait_events(160)
+hints = window.findChild(QObject, "modalFooter").property("hints").toVariant()
+assert controller.translate(controller.messageKeys["OPEN"], language) in [hint["label"] for hint in hints]
+QTest.keyClick(window, Qt.Key.Key_Return)
+assert not controller.modal
+assert controller.app_launch["applicationId"] == "io.github.zhubby.uDeck.Video.desktop"
+wait_events(700)
+assert not controller.app_launch["pending"]
 controller.file_task = {"id": "preview-task", "action": "copy", "state": "running", "phase": "working",
                         "sources": [str(text_path)], "directory": "/media/USB Drive/Backup", "current": str(text_path),
                         "doneBytes": 4194304, "totalBytes": 16777216, "doneFiles": 2, "totalFiles": 8,
@@ -205,6 +247,7 @@ assert window.findChild(QObject, "fileTaskDetails").property("visible")
 progress_fill = window.findChild(QObject, "fileProgressFill")
 assert progress_fill is not None
 assert abs(progress_fill.property("width") / progress_fill.parent().property("width") - 0.25) < 0.01
+wait_dialog_geometry(panel)
 assert window.findChild(QObject, "dialogContent").property("height") + 40 <= panel.property("height") + 1
 assert window.grabWindow().save(str(output / "transfer.png"))
 controller.dispatch("back")

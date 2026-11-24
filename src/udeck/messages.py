@@ -11,6 +11,14 @@ from enum import StrEnum
 class Msg(StrEnum):
     """Use these constants in tr(); locale files map their values to text."""
 
+    EXTERNAL_APPLICATIONS_DISABLED = "external_applications_disabled"
+    WEB_PAGE_SYSTEM_DIALOGS_ARE_DISABLED = "web_page_system_dialogs_are_disabled"
+    UDECK_DESKTOP_UNAVAILABLE = "udeck_desktop_unavailable"
+    EMU_SAVE_RCLONE_CONFIG_UNAVAILABLE = "emu_save_rclone_config_unavailable"
+    FILES_INTERNAL_OPEN_ONLY = "files_internal_open_only"
+    NO_BUILT_IN_APPLICATION_FOR_FILE = "no_built_in_application_for_file"
+    FILE_NOT_FOUND_IN_LIBRARY_NAME = "file_not_found_in_library_name"
+
     CONSOLE = "console"
     CONSOLE_APPLICATION = "console_application"
     CONSOLE_STATE = "console_state"

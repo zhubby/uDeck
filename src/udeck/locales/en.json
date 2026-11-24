@@ -1,4 +1,11 @@
 {
+  "external_applications_disabled": "uDeck only opens its built-in apps.",
+  "web_page_system_dialogs_are_disabled": "Web page system dialogs are disabled in uDeck.",
+  "udeck_desktop_unavailable": "The uDeck desktop is unavailable. Keep using this terminal or start uDeck.",
+  "emu_save_rclone_config_unavailable": "rclone configuration is not available in uDeck because browser authorization can open another application. Existing remotes and cloud sync remain available.",
+  "files_internal_open_only": "Files opens content only with built-in apps and previews.",
+  "no_built_in_application_for_file": "No built-in app can open this file. File details are shown.",
+  "file_not_found_in_library_name": "The file could not be found in the library: {name}",
   "console": "Console",
   "console_application": "Application",
   "console_state": "Status",

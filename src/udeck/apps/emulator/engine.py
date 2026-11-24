@@ -1,7 +1,7 @@
 """
 [INPUT]: 依赖 QProcess、内容依赖扫描与原生存档文件操作。
-[OUTPUT]: 提供 RetroEngine、内容哈希与 RetroArch 配置辅助函数。
-[POS]: 模拟器进程协议边界；控制器订阅状态和存读档结果。
+[OUTPUT]: 提供 RetroEngine、内容哈希与禁用原生菜单的游戏配置。
+[POS]: 受控游戏进程协议边界；uDeck 提供菜单并订阅存读档结果。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
@@ -147,6 +147,11 @@ class RetroEngine(QObject):
                         "core_options_directory": config_quote(root / "core-options"),
                         "game_specific_options": "false", "auto_overrides_enable": "false",
                         "auto_remaps_enable": "false", "auto_shaders_enable": "false"})
+        # 菜单由 uDeck 提供，禁止继承原生菜单入口。
+        options.update({"menu_driver": '"null"', "ui_companion_enable": "false",
+                        "ui_companion_start_on_boot": "false", "ui_companion_toggle": "false",
+                        "input_menu_toggle": '"nul"', "input_menu_toggle_btn": '"nul"',
+                        "input_menu_toggle_axis": '"nul"', "input_menu_toggle_gamepad_combo": "0"})
         options.update(stock_controls())
         config = root / "udeck.cfg"
         config.write_text("\n".join(f"{key} = {value}" for key, value in options.items()) + "\n")

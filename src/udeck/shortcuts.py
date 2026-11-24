@@ -1,7 +1,7 @@
 """
 [INPUT]: 依赖系统动作、配置文件和 labwc 快捷键格式。
 [OUTPUT]: 提供快捷键身份、分组、录制与配置持久化。
-[POS]: Console 页面沿用 switcher 命令，全局控制面板沿用 console 命令。
+[POS]: 终端固定原生入口；窗口切换统一进入 Console。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
@@ -36,9 +36,9 @@ ACTIONS = (
     SystemAction('files', tr(Msg.FILES_APP), 'navigation', ('C-A-f',), 'udeckctl files'),
     SystemAction('settings', tr(Msg.SYSTEM_SETTINGS), 'navigation', ('C-A-comma',), 'udeckctl settings'),
     SystemAction('quick-settings', tr(Msg.QUICK_SETTINGS), 'navigation', ('C-A-s', 'XF86PowerOff'), 'udeckctl quick-settings'),
-    SystemAction('terminal', tr(Msg.OPEN_TERMINAL), 'navigation', ('C-A-t',), 'xdg-terminal-exec'),
-    SystemAction('next-window', tr(Msg.NEXT_WINDOW), 'windows', ('A-Tab',), native='NextWindow'),
-    SystemAction('previous-window', tr(Msg.PREVIOUS_WINDOW), 'windows', ('A-S-Tab',), native='PreviousWindow'),
+    SystemAction('terminal', tr(Msg.OPEN_TERMINAL), 'navigation', ('C-A-t',), 'udeck-terminal'),
+    SystemAction('next-window', tr(Msg.NEXT_WINDOW), 'windows', ('A-Tab',), 'udeckctl switcher'),
+    SystemAction('previous-window', tr(Msg.PREVIOUS_WINDOW), 'windows', ('A-S-Tab',), 'udeckctl switcher'),
     SystemAction('close-window', tr(Msg.CLOSE_CURRENT_WINDOW), 'windows', ('A-F4',), native='Close'),
     SystemAction('pause-game', tr(Msg.PAUSE_EMULATOR), 'windows', ('C-A-m',), 'udeck-app emulator --command pause-game'),
     SystemAction('screenshot', tr(Msg.FULL_SCREEN_SCREENSHOT), 'capture', ('C-A-p', 'Print'), 'udeckctl screenshot', feature='screenshot'),

@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖离线快捷键生成器与隔离 labwc 配置。
+[OUTPUT]: 验证备份、幂等写入与固定 uDeck 窗口切换。
+[POS]: 会话快捷键回归；保留用户非快捷键配置。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import xml.etree.ElementTree as ET
 
 import pytest
@@ -19,7 +26,9 @@ def test_console_binding_preserves_existing_desktop_and_is_idempotent(tmp_path):
     root = ET.fromstring(config.read_bytes())
     assert root.find('theme/name').text == 'PiXtrix'
     assert root.find('libinput/device/naturalScroll').text == 'yes'
-    assert root.find('keyboard/keybind[@key="A-Tab"]/action').get('name') == 'NextWindow'
+    action = root.find('keyboard/keybind[@key="A-Tab"]/action')
+    assert action.get('name') == 'Execute'
+    assert action.get('command') == 'udeckctl switcher'
     assert root.find('keyboard/keybind[@key="C-S-Escape"]/action').get('command') == 'udeckctl console'
     assert b'<!-- user theme -->' in config.read_bytes()
     assert config.stat().st_mode & 0o777 == 0o640

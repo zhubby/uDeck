@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+/**
+ * [INPUT]: 依赖浏览器控制器、共享控件与 Qt WebEngine。
+ * [OUTPUT]: 显示标签网页、下载确认与页面输入。
+ * [POS]: 浏览器渲染边界；拒绝系统协议和原生选择器。
+ * [PROTOCOL]: Update this header on change, then check AGENTS.md
+ */
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -83,11 +89,33 @@ Item {
                     settings.localContentCanAccessFileUrls:false
                     settings.localContentCanAccessRemoteUrls:false
                     settings.javascriptCanOpenWindows:true
+                    settings.unknownUrlSchemePolicy:WebEngineSettings.DisallowUnknownUrlSchemes
+                    function installProtocolFeedback(){
+                        runJavaScript(`if(!window.__udeckProtocolFeedback){
+                            window.__udeckProtocolFeedback=true
+                            document.addEventListener('click', event => {
+                                const link=event.composedPath().find(node => node.tagName==='A' && node.href)
+                                if(!link)return
+                                const url=new URL(link.href,document.baseURI)
+                                if(['http:','https:','data:','blob:','javascript:'].includes(url.protocol)
+                                    || url.protocol==='about:' && ['blank','srcdoc'].includes(url.pathname))return
+                                event.preventDefault()
+                                console.info('UDECK_BLOCKED_URL:'+url.href)
+                            },true)
+                        }`,WebEngineScript.ApplicationWorld)
+                    }
                     function update(error=""){controller.webUpdated(identifier,url.toString(),title,loading,canGoBack,error)}
                     onUrlChanged:update()
                     onTitleChanged:update()
                     onCanGoBackChanged:update()
-                    onLoadingChanged:function(request){update(request.status===WebEngineView.LoadFailedStatus?request.errorString:"")}
+                    onLoadingChanged:function(request){
+                        update(request.status===WebEngineView.LoadFailedStatus?request.errorString:"")
+                        if(request.status===WebEngineView.LoadSucceededStatus)installProtocolFeedback()
+                    }
+                    onNavigationRequested:function(request){if(!controller.allowNavigation(identifier,request.url.toString()))request.reject()}
+                    onJavaScriptConsoleMessage:function(level,message,line,source){if(message.startsWith("UDECK_BLOCKED_URL:"))controller.allowNavigation(identifier,message.slice(18))}
+                    onFileDialogRequested:function(request){request.accepted=true;request.dialogReject();controller.systemDialogBlocked(identifier)}
+                    onColorDialogRequested:function(request){request.accepted=true;request.dialogReject();controller.systemDialogBlocked(identifier)}
                     onNewWindowRequested:function(request){controller.openLink(request.requestedUrl.toString())}
                     onFeaturePermissionRequested:function(origin,feature){controller.permission(identifier,origin.toString(),feature)}
                     onCertificateError:function(error){error.rejectCertificate();update("Certificate rejected: "+error.description)}

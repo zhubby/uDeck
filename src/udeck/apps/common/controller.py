@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖共享应用状态、库扫描与 Qt 导航信号。
-[OUTPUT]: 提供导航、低成本桌面返回、有限阶段计时与有序退出。
+[OUTPUT]: 提供导航、扫描取消通知、低成本桌面返回、有限计时与有序退出。
 [POS]: 独立应用控制器基类；Home 交接跳过无用的库状态重建。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -29,6 +29,7 @@ class AppController(SoundFeedback):
     present = Signal()
     webAction = Signal(str, str)
     selectionChanged = Signal()
+    scanCancelled = Signal()
     saveFailed = Signal(object)
 
     def __init__(self, app, directory=None, language_path=None):
@@ -450,6 +451,7 @@ class AppController(SoundFeedback):
         self.library.cancel.set()
         self.library.generation += 1
         self.library.pending.clear()
+        self.scanCancelled.emit()
         self.pop_menu()
 
     def settings_options(self):

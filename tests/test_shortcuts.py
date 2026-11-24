@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖快捷键配置与 labwc XML 生成器。
+[OUTPUT]: 验证快捷键持久化及原生应用动作边界。
+[POS]: 会话快捷键回归；生成结果不调用系统默认应用。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 import xml.etree.ElementTree as ET
 
@@ -92,3 +99,13 @@ def test_takeover_removes_bindings_from_repeated_keyboard_sections(tmp_path):
     assert not any(node.find('default') is not None for node in root.findall('keyboard'))
     assert 'old-runner' not in result
     assert root.find('keyboard/repeatRate').text == '30'
+
+
+def test_global_window_and_terminal_shortcuts_stay_inside_udeck(tmp_path):
+    rendered = shortcuts.render_bindings('<labwc_config/>', shortcuts.ShortcutStore(tmp_path / 'keys.json').bindings())
+    root = ET.fromstring(rendered)
+    actions = {binding.get('key'): binding.find('action').attrib
+               for binding in root.findall('keyboard/keybind')}
+    assert actions['A-Tab'] == {'name': 'Execute', 'command': 'udeckctl switcher'}
+    assert actions['A-S-Tab'] == {'name': 'Execute', 'command': 'udeckctl switcher'}
+    assert actions['C-A-t'] == {'name': 'Execute', 'command': 'udeck-terminal'}

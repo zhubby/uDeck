@@ -6,7 +6,7 @@
 SelectionViewport.qml: 安全区滚动、选择变更即时停止旧目标与隐藏停止。
 
 Main.qml: 稳定设置行身份、局部选择绑定、模态界面和页面装配。
-ShellDialog.qml: 弹窗尺寸连续变化、关闭即时冻结与输入隔离。
+ShellDialog.qml: 弹窗过渡、输入隔离与按内置能力显示的打开提示。
 FocusFrame.qml: 单一焦点边框，连续导航立即改向。
 MotionTimings.qml: 减少动画开关与统一短过渡时长。
 MotionItem.qml: 可立即结束的淡入淡出与轻微位移容器。

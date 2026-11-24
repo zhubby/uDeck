@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖桌面控制器、模拟后端与隔离偏好。
+[OUTPUT]: 验证桌面导航、菜单和操作失败的反馈。
+[POS]: 桌面交互回归；应用页遵循内置应用边界。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 import os
 
@@ -152,12 +159,12 @@ def test_shoulders_switch_pages_without_wrapping_and_restore_selection(tmp_path)
     controller.select(3)
     controller.dispatch("next-page")
     assert controller.navigation.page == "apps"
-    controller.select(7)
+    controller.select(4)
     controller.dispatch("previous-page")
     assert controller.navigation.page == "home"
     assert controller.navigation.index == 3
     controller.dispatch("next-page")
-    assert controller.navigation.index == 7
+    assert controller.navigation.index == 4
     controller.setPage("settings")
     controller.dispatch("next-page")
     assert controller.navigation.page == "settings"

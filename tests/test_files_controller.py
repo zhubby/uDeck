@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖桌面控制器、隔离文件目录与可控异步任务。
-[OUTPUT]: 验证文件操作、局部视图与完整诊断快照的边界。
+[OUTPUT]: 验证内置文件打开、文件操作与两类快照边界。
 [POS]: 桌面文件交互回归；真实 QML 布局由独立探针验证。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -13,6 +13,7 @@ from pathlib import Path
 
 import pytest
 from PySide6.QtCore import QCoreApplication, QEvent
+from PySide6.QtGui import QImage
 from test_files_locations_trash import make_trash
 
 from udeck.controller import ShellController
@@ -280,14 +281,130 @@ def test_conflict_replacement_requires_an_extra_confirmation_and_preserves_folde
     assert source.read_text() == "a.txt" and folder.is_dir()
 
 
-def test_open_with_default_uses_the_system_handler_even_for_a_folder(controller, monkeypatch):
+@pytest.mark.parametrize("command", ["open-with", "open-default", "open-using"])
+def test_removed_file_open_commands_never_launch_system_handlers(controller, monkeypatch, command):
     instance, application, directory = controller
     opened = []
-    monkeypatch.setattr(instance.operations, "open", lambda path: opened.append(path))
-    instance._file_open_with({"path": str(directory), "name": directory.name, "directory": True, "mime": "inode/directory"})
-    instance.chooseModal(0)
+    monkeypatch.setattr(instance.operations, "_gio", lambda *args: opened.append(args))
+    monkeypatch.setattr(instance.catalog, "launch", lambda *args: opened.append(args))
+    instance._file_command(command, "xarchiver.desktop", {"item": instance._file_current()})
     wait_until(application, lambda: not instance.busy)
-    assert opened == [str(directory)]
+    assert opened == []
+    assert not instance.modal
+
+
+@pytest.mark.parametrize("name", ["backup.zip", "unknown.xyz", "unsupported.wma", "launcher.desktop", "script.sh", "note.txt", "code.py"])
+@pytest.mark.parametrize("entrypoint", ["accept", "menu"])
+def test_files_open_in_preview_and_confirmation_cannot_escape(controller, monkeypatch, name, entrypoint):
+    instance, application, directory = controller
+    path = directory / name
+    path.write_text("plain file contents")
+    instance.data["files"] = instance.operations.list_directory(directory)
+    instance.select(next(i for i, item in enumerate(instance._items()) if item["name"] == name))
+    position = instance.navigation.index
+    opened = []
+    monkeypatch.setattr(instance.operations, "_gio", lambda *args: opened.append(args))
+    monkeypatch.setattr(instance.catalog, "launch", lambda *args: opened.append(args))
+    if entrypoint == "menu":
+        instance.dispatch("context")
+        assert not any(option.get("command") == "open-with" for option in instance.modal["options"])
+        instance.chooseModal(next(i for i, option in enumerate(instance.modal["options"]) if option.get("action") == "open-file"))
+    else:
+        instance.dispatch("accept")
+    wait_until(application, lambda: not instance.busy)
+    assert opened == []
+    modal = instance.modal
+    assert modal["kind"] == "file-preview"
+    assert modal["item"]["path"] == str(path)
+    assert not modal.get("canOpen")
+    instance.dispatch("accept")
+    assert instance.modal is modal
+    instance.dispatch("back")
+    assert not instance.modal
+    assert instance.navigation.index == position
+
+
+@pytest.mark.parametrize("name, target", [
+    ("track.FLAC", "Music"), ("clip.mp4", "Video"), ("book.epub", "Reader"),
+    ("book.pdf", "Reader"), ("book.mobi", "Reader"),
+])
+def test_supported_files_use_the_named_native_application(controller, monkeypatch, name, target):
+    instance, application, directory = controller
+    path = directory / name
+    path.write_bytes(b"fixture")
+    launched = []
+    monkeypatch.setattr(instance.operations, "_gio", lambda *_args: None)
+    monkeypatch.setattr(instance, "_start_application", lambda item, files=(): launched.append((item["id"], tuple(files))))
+    item = next(item for item in instance.operations.list_directory(directory) if item["path"] == str(path))
+    instance._activate_file(item)
+    assert launched == [(f"io.github.zhubby.uDeck.{target}.desktop", (str(path),))]
+    assert not instance.modal
+
+
+def test_native_file_preview_offers_only_the_internal_target(controller, monkeypatch):
+    instance, application, directory = controller
+    item = next(item for item in instance._items() if item["name"] == "track2.flac")
+    launched = []
+    monkeypatch.setattr(instance.operations, "_gio", lambda *_args: None)
+    monkeypatch.setattr(instance, "_start_application", lambda item, files=(): launched.append((item["id"], tuple(files))))
+    instance._file_preview(item)
+    wait_until(application, lambda: not instance.busy)
+    assert instance.modal["canOpen"]
+    instance.dispatch("accept")
+    assert not instance.modal
+    assert launched == [("io.github.zhubby.uDeck.Music.desktop", (item["path"],))]
+
+
+def test_missing_native_application_falls_back_to_details(controller, monkeypatch):
+    instance, application, directory = controller
+    instance.applications = []
+    item = next(item for item in instance._items() if item["name"] == "track2.flac")
+    opened = []
+    monkeypatch.setattr(instance.operations, "_gio", lambda *args: opened.append(args))
+    monkeypatch.setattr(instance.catalog, "launch", lambda *args: opened.append(args))
+    instance._activate_file(item)
+    wait_until(application, lambda: not instance.busy)
+    assert not opened
+    assert instance.modal["kind"] == "file-preview"
+    assert not instance.modal.get("canOpen")
+    assert "not installed" in str(instance.modal["openNotice"])
+
+
+def test_file_symlink_never_launches_a_native_target(controller, monkeypatch):
+    instance, application, directory = controller
+    path = directory / "link.flac"
+    path.symlink_to(directory / "track2.flac")
+    item = next(item for item in instance.operations.list_directory(directory) if item["path"] == str(path))
+    monkeypatch.setattr(instance, "_start_application", lambda *_args, **_kw: pytest.fail("Link target launched"))
+    monkeypatch.setattr(instance.operations, "_gio", lambda *_args: None)
+    instance._activate_file(item)
+    wait_until(application, lambda: not instance.busy)
+    assert instance.modal["previewType"] == "metadata"
+    assert not instance.modal.get("canOpen")
+
+
+def test_image_activation_uses_the_safe_preview(controller):
+    instance, application, directory = controller
+    path = directory / "picture.png"
+    image = QImage(32, 16, QImage.Format.Format_RGB32)
+    image.fill(0xEDB866)
+    assert image.save(str(path))
+    item = next(item for item in instance.operations.list_directory(directory) if item["path"] == str(path))
+    instance._activate_file(item)
+    wait_until(application, lambda: not instance.busy)
+    assert instance.modal["previewType"] == "image"
+    assert not instance.modal["canOpen"]
+    assert instance.modal["previewImage"].startswith("data:image/png;base64,")
+
+
+def test_directory_activation_stays_in_the_file_manager(controller):
+    instance, application, directory = controller
+    path = directory / "folder"
+    path.mkdir()
+    instance._activate_file({"name": path.name, "path": str(path), "directory": True})
+    wait_until(application, lambda: not instance.busy)
+    assert instance.data["directory"] == str(path)
+    assert not instance.modal
 
 
 def test_busy_scan_discards_stale_results_and_opens_the_latest_requested_folder(controller, monkeypatch):

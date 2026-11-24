@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖应用控制器、Qt Quick、源码缓存标识与会话 D-Bus。
-[OUTPUT]: 提供单实例入口、交接显示和断线回退、退出请求与控制器工厂。
+[INPUT]: 依赖应用控制器、库扫描与取消信号、Qt Quick 和会话 D-Bus。
+[OUTPUT]: 提供控制器工厂、单实例入口、文件接收终态与交接显示和退出请求。
 [POS]: 应用共用运行层；输入释放和游戏暂停先于前台显示。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -85,8 +85,17 @@ class AppControl(QObject):
         super().__init__()
         self.controller, self.show = controller, show
         self.errors, self.started = errors, started
-        self.open_generation = 0
+        self._pending_file_open = None
+        controller.closed.connect(self._clear_pending_file_open)
+        controller.scanCancelled.connect(self._clear_pending_file_open)
         self.trace = trace or StartupTrace(started=started)
+
+    def _clear_pending_file_open(self):
+        if self._pending_file_open is not None:
+            library, ready = self._pending_file_open
+            self._pending_file_open = None
+            library.changed.disconnect(ready)
+            library.lost.disconnect(ready)
 
     @Slot(str, result=str)
     def Open(self, payload):
@@ -122,6 +131,7 @@ class AppControl(QObject):
             return
         if not files:
             return
+        self._clear_pending_file_open()
         paths = []
         for value in files:
             url = QUrl(value)
@@ -135,23 +145,49 @@ class AppControl(QObject):
                 raise ValueError(tr(Msg.UNSUPPORTED_FILE_FORMAT_NAME, name=path.name))
         if controller.app == "emulator":
             controller.accept_file_paths(paths)
-        self.open_generation += 1
-        generation = self.open_generation
+        added = False
         for path in paths:
             if not any(Path(s.path) in path.parents for s in controller.library.sources):
                 controller.library.add(path.parent)
+                added = True
         wanted = str(paths[0])
-        def ready():
-            if generation != self.open_generation:
-                controller.library.changed.disconnect(ready)
+        library = controller.library
+
+        def fail(error):
+            self._clear_pending_file_open()
+
+            def report():
+                raise OSError(error)
+
+            controller.attempt(report)
+
+        def ready(*_arguments):
+            if controller._closed:
+                self._clear_pending_file_open()
                 return
-            item = next((item for item in controller.library.items if item["path"] == wanted), None)
+            sources = [source for source in library.sources if Path(source.path) in paths[0].parents]
+            if not sources or not any(source.available() for source in sources):
+                fail(tr(Msg.SOURCE_DISCONNECTED_RECONNECT_THE_FOLDER_IN_SOURCES))
+                return
+            item = next((item for item in library.items if item["path"] == wanted), None)
             if item:
-                controller.library.changed.disconnect(ready)
+                self._clear_pending_file_open()
                 controller.attempt(lambda: controller.open_item(item["id"]))
                 controller.publish()
-        controller.library.changed.connect(ready)
-        ready()
+            elif controller.app != "emulator" and not any(source.id in library.pending for source in sources):
+                error = next((library.errors.get(source.id) for source in sources if library.errors.get(source.id)), "")
+                fail(error or tr(Msg.FILE_NOT_FOUND_IN_LIBRARY_NAME, name=paths[0].name))
+
+        try:
+            if not added and controller.app != "emulator" and not any(item["path"] == wanted for item in library.items):
+                library.refresh()
+            self._pending_file_open = library, ready
+            library.changed.connect(ready)
+            library.lost.connect(ready)
+            ready()
+        except (OSError, ValueError, RuntimeError):
+            self._clear_pending_file_open()
+            raise
 
     @Slot(result=str)
     def Diagnose(self):

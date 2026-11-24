@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实应用控制器及其 D-Bus 适配层。
-[OUTPUT]: 验证轻量状态读取和不新增即时存档的有序退出。
+[OUTPUT]: 验证轻量状态、受控引擎激活与有序退出。
 [POS]: Console 与原生应用之间的生命周期契约回归。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -8,6 +8,8 @@
 import json
 import time
 from types import SimpleNamespace
+
+import pytest
 
 from udeck.apps.common.controller import AppController
 from udeck.apps.emulator.controller import EmulatorController
@@ -115,3 +117,39 @@ def test_terminal_app_quit_preserves_each_windows_existing_confirmation(tmp_path
     for controller in controllers:
         controller.dispatch("accept")
     assert not operations and all(controller.tabs.rowCount() == 1 for controller in controllers)
+
+
+@pytest.mark.parametrize('running,pid,authorized,expected', [
+    (False, 0, False, False), (True, 0, False, False),
+    (True, 222, True, True), (True, 222, False, False),
+])
+def test_emulator_uncover_requires_its_running_engine_identity(monkeypatch, running, pid, authorized, expected):
+    from udeck import windows as windows_module
+    from udeck.apps.emulator import controller as emulator_module
+
+    events = []
+    minimized = []
+    class Windows:
+        def start(self):
+            pass
+        def entries(self):
+            return [{'id': 'game', 'appId': 'com.libretro.RetroArch'}]
+        def allow_managed_window(self, identifier, owner, process_id):
+            events.append(('authorize', identifier, owner, process_id))
+            return authorized
+        def request(self, *args):
+            events.append(('activate', *args))
+        def close(self):
+            pass
+
+    monkeypatch.setattr(windows_module, 'WindowService', Windows)
+    monkeypatch.setattr(emulator_module, 'QGuiApplication', SimpleNamespace(platformName=lambda: 'wayland'))
+    target = SimpleNamespace(window=SimpleNamespace(showMinimized=lambda: minimized.append(True)), isolated=False,
+                             engine=SimpleNamespace(running=lambda: running,
+                                                    process=SimpleNamespace(processId=lambda: pid)))
+    EmulatorController.uncover_game(target)
+    assert any(event[0] == 'activate' for event in events) is expected
+    assert bool(minimized) is expected
+    if expected:
+        assert events == [('authorize', 'game', 'io.github.zhubby.uDeck.Emulator', 222),
+                          ('activate', 'game', 'activate')]

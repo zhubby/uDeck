@@ -1,12 +1,13 @@
 """
 [INPUT]: 依赖真实 QProcess、隔离 stdin 前端与 RetroEngine。
-[OUTPUT]: 验证轮询背压、状态通知、读档屏障与进程重启。
+[OUTPUT]: 验证游戏表面配置、轮询背压、状态通知与读档屏障。
 [POS]: 模拟器进程协议回归；不连接设备图形会话。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
 import sys
 import time
+from pathlib import Path
 
 import pytest
 from PySide6.QtCore import QProcess
@@ -75,6 +76,27 @@ def checkpoint(engine, commands):
     engine.send(marker)
     wait_for(lambda: commands.exists() and marker in commands.read_text().splitlines(), seconds=10)
     return commands.read_text().splitlines()
+
+
+def test_frontend_receives_game_only_configuration(frontend):
+    engine, _, _, _, _ = frontend
+    arguments = engine.process.arguments()
+    config = Path(arguments[arguments.index("--appendconfig") + 1])
+    options = dict(line.split(" = ", 1) for line in config.read_text().splitlines())
+    assert {key: options.get(key) for key in (
+        "menu_driver", "ui_companion_enable", "ui_companion_start_on_boot", "ui_companion_toggle",
+        "input_menu_toggle", "input_menu_toggle_btn", "input_menu_toggle_axis", "input_menu_toggle_gamepad_combo",
+    )} == {
+        "menu_driver": '"null"',
+        "ui_companion_enable": "false",
+        "ui_companion_start_on_boot": "false",
+        "ui_companion_toggle": "false",
+        "input_menu_toggle": '"nul"',
+        "input_menu_toggle_btn": '"nul"',
+        "input_menu_toggle_axis": '"nul"',
+        "input_menu_toggle_gamepad_combo": "0",
+    }
+    assert options["stdin_cmd_enable"] == "true"
 
 
 @pytest.mark.parametrize("paused", [False, True])

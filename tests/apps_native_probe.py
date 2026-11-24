@@ -1,4 +1,9 @@
-"""Real Qt engines and QML workflows, run in a separate graphical process."""
+"""
+[INPUT]: 依赖真实 Qt 引擎、原始媒体和本地网页。
+[OUTPUT]: 验证原生应用工作流、输入焦点与内容隔离。
+[POS]: 独立应用集成探针；以页面状态确认异步输入。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import json
 import math
@@ -16,12 +21,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 from mobi_fixture import mobi_bytes
-from PySide6.QtCore import QEventLoop, QObject, Qt, QTimer, QUrl
+from PySide6.QtCore import QEventLoop, QObject, Qt, QTimer, QUrl, Slot
 from PySide6.QtGui import QPageSize, QPainter, QPdfWriter
 from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtQuick import QQuickWindow  # noqa: F401
 from PySide6.QtTest import QTest
 from PySide6.QtWebEngineQuick import QtWebEngineQuick
 from PySide6.QtWidgets import QApplication
+from shiboken6 import delete
 
 from udeck.apps.main import make_controller
 from udeck.apps.media.engine import FrameImages
@@ -29,6 +36,14 @@ from udeck.apps.reader.controller import PdfImages
 from udeck.core import ConfigStore
 from udeck.i18n import Msg, render, tr
 from udeck.icons import IconProvider
+
+
+class WebResult(QObject):
+    value = None
+
+    @Slot(str)
+    def record(self, value):
+        self.value = json.loads(value)
 
 
 def wait_events(milliseconds):
@@ -353,12 +368,39 @@ def run(app, root, language="en", width=1280, height=720):
         assert controller.page=="library" and not controller.menus and old_book.closed
         completed.append("source-removal-closes-document-and-owned-menu")
     elif app == "browser":
+        web_result = WebResult()
+        engine.globalObject().setProperty("probeResult", engine.newQObject(web_result))
+
+        def web_view():
+            pending = [window.contentItem()]
+            view = None
+            while pending:
+                item = pending.pop()
+                if item.property("identifier") == controller.current_tab:
+                    view = item
+                    break
+                pending.extend(item.childItems())
+            assert view is not None, "Current browser view is missing"
+            return view
+
+        def web_evaluate(script, qml=engine):
+            view = web_view()
+            web_result.value = None
+            qml.globalObject().setProperty("probeWeb", qml.newQObject(view))
+            result = qml.evaluate("probeWeb.runJavaScript(" + json.dumps(script)
+                                 + ",function(value){probeResult.record(JSON.stringify(value))})")
+            assert not result.isError(), result.toString()
+            wait(lambda: web_result.value is not None)
+            return web_result.value
+
         requests = []
         class Page(BaseHTTPRequestHandler):
             def log_message(self,*args):
                 pass
             def do_GET(self):
                 requests.append(self.path)
+                if self.path == "/" and requests.count("/") > 1:
+                    time.sleep(0.8)
                 if self.path == "/download":
                     data = b"Original uDeck download fixture\n"
                     self.send_response(200)
@@ -375,6 +417,7 @@ def run(app, root, language="en", width=1280, height=720):
                       if self.path!="/second" else b'<title>Second original page</title><main><p>Second page reached</p></main>')
                 self.send_response(200)
                 self.send_header("Content-Type","text/html; charset=utf-8")
+                self.send_header("Cache-Control", "no-store")
                 self.end_headers()
                 self.wfile.write(data)
         server=ThreadingHTTPServer(("127.0.0.1",0),Page)
@@ -402,11 +445,15 @@ def run(app, root, language="en", width=1280, height=720):
         controller.dispatch("right")
         capture("pointer")
         controller.set_mode("navigation")
-        wait_events(100)
+        # --- 网页恢复 ---
+        # 阅读模式隐藏网页；Qt 丢弃后会在恢复时重载。
+        wait(lambda: web_view().isVisible() and not controller.active_tab().loading)
+        wait(lambda: web_evaluate("document.readyState==='complete' && !!document.getElementById('draft')"))
         controller.dispatch("down")
-        wait_events(60)
-        controller.dispatch("down")
-        wait_events(60)
+        wait(lambda: web_evaluate("document.querySelector('[data-udeck-focus]')?.tagName || ''") in ("A", "INPUT"))
+        if web_evaluate("document.querySelector('[data-udeck-focus]')?.id || ''") != "draft":
+            controller.dispatch("down")
+        wait(lambda: web_evaluate("document.querySelector('[data-udeck-focus]')?.id || ''") == "draft")
         controller.dispatch("accept")
         wait(lambda: controller.web_mode == "text")
         wait_events(100)
@@ -460,7 +507,7 @@ def run(app, root, language="en", width=1280, height=720):
     controller.close()
     window.setProperty("allowClose",True)
     window.close()
-    del engine
+    delete(engine)
 
 
 if __name__=="__main__":

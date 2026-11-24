@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖启动状态机、可控时钟与固定应用身份。
+[OUTPUT]: 验证窗口等待、文件请求去重和并发反馈边界。
+[POS]: 启动状态机回归；不启动真实应用。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 from udeck.i18n import render
 from udeck.launch import LaunchTracker
 
@@ -64,6 +71,29 @@ def test_dismiss_preserves_pending_request_and_duplicate_does_not_restart():
     assert not created
     assert repeated == token
     assert launches.snapshot()["visible"]
+
+
+def test_same_application_deduplicates_only_the_same_files():
+    launches, _clock = tracker()
+    files = ["/music/first.mp3"]
+    first, created = launches.begin(APP, observable=True, files=files)
+    assert created
+    files[0] = "/music/second.mp3"
+    duplicate, created = launches.begin(APP, observable=True, files=("/music/first.mp3",))
+    assert (duplicate, created) == (first, False)
+    second, created = launches.begin(APP, observable=True, files=files)
+    assert created and second != first
+    assert launches.snapshot()["requestId"] == second
+    assert len(launches.requests) == 2
+
+
+def test_plain_application_launch_does_not_swallow_a_file_request():
+    launches, _clock = tracker()
+    first, _created = launches.begin(APP, observable=True)
+    second, created = launches.begin(APP, observable=True, files=("/books/novel.epub",))
+    assert created and second != first
+    launches.fail(first, RuntimeError("older request failed"))
+    assert launches.snapshot()["requestId"] == second
 
 
 def test_old_background_window_and_timeout_cannot_clear_new_overlay():

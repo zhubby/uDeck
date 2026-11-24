@@ -1,6 +1,6 @@
 /*
-[INPUT]: 依赖模态快照、主题、控制器和统一动效时长。
-[OUTPUT]: 提供尺寸连续变化、关闭即时冻结几何与点击隔离。
+[INPUT]: 依赖模态快照、内置打开能力、主题与统一动效时长。
+[OUTPUT]: 提供模态过渡、输入隔离与按能力显示的打开提示。
 [POS]: Main 的模态视图；输入与操作仍由控制器决策。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -133,6 +133,7 @@ Rectangle {
             (height, option) => height + (option.singleLine ? 65 : 69), 0) - 5))
         property real previewChromeHeight: 96 + dialogTitle.implicitHeight + modalFooter.implicitHeight
             + (dialog.body ? (dialog.kind === "file-preview" ? previewDetails.height : dialogBody.height) + 20 : 0)
+            + (dialog.openNotice ? fileOpenNotice.height + 20 : 0)
             + (dialog.truncated ? previewNotice.height + 20 : 0)
             + (viewState.toast ? modalToast.height + 20 : 0)
         property real previewHeight: Math.max(80, Math.min(240, parent.height - 64 - previewChromeHeight))
@@ -195,6 +196,14 @@ Rectangle {
                         maximumLineCount: 1; elide: Text.ElideMiddle; clip: true
                     }
                 }
+            }
+
+            Text {
+                id: fileOpenNotice; objectName: "fileOpenNotice"
+                visible: dialog.kind === "file-preview" && !!dialog.openNotice
+                width: parent.width; textFormat: Text.PlainText; text: dialog.openNotice || ""
+                font.family: root.fontFamily; font.pixelSize: 21; color: root.muted
+                wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight
             }
 
             Column {
@@ -413,7 +422,7 @@ Rectangle {
                     {keys: ["keyboard_arrows"], label: root.tr(msg.SCROLL)}
                 ] : []).concat([
                     {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: root.tr(msg.BACK)}
-                ]).concat(dialog.item && !dialog.item.directory && !dialog.item.trash ? [{keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: root.tr(msg.OPEN)}] : []) : dialog.kind === "key-test" ? [{keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: root.tr(msg.HOLD_1_2_S_TO_RETURN)}] : dialog.kind === "calibration" ? [{keys: ["keyboard_escape"], label: root.tr(msg.CANCEL)}] : [
+                ]).concat(dialog.canOpen ? [{keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: root.tr(msg.OPEN)}] : []) : dialog.kind === "key-test" ? [{keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: root.tr(msg.HOLD_1_2_S_TO_RETURN)}] : dialog.kind === "calibration" ? [{keys: ["keyboard_escape"], label: root.tr(msg.CANCEL)}] : [
                     {keys: ["gamecube_button_color_a", "/", "keyboard_enter"], label: root.tr(msg.CONFIRM)},
                     {keys: ["gamecube_button_color_b", "/", "keyboard_escape"], label: root.tr(dialog.kind === "text" ? msg.CANCEL : msg.BACK)}].concat(dialog.kind === "text" && dialog.secret ? [
                     {keys: ["gamecube_button_x"], label: root.tr(dialog.reveal ? msg.HIDE_PASSWORD : msg.SHOW_PASSWORD)} ] : [])

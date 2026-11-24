@@ -386,12 +386,13 @@ def test_collected_memory_metrics_reach_the_details_without_an_rss_fallback():
 
 
 def test_details_open_application_is_an_explicit_action(shell):
+    shell._windows_changed([window('native', 'io.github.zhubby.uDeck.Terminal')])
     shell.dispatch("accept")
     assert shell.modal["kind"] == "console-details"
     shell.chooseModal(0)
     assert not shell.modal
     assert "terminal" in str(shell.toast).casefold()
-    assert len(shell._items()) == 3
+    assert len(shell._items()) == 1
 
 
 def test_details_exit_cannot_target_the_next_application_after_exit(shell):
@@ -480,3 +481,25 @@ def test_external_game_window_is_grouped_only_with_verified_child_identity():
         assert console.model.rows[0]["runtimeState"] == "playing"
     finally:
         console.close()
+
+
+def test_console_rejects_external_activation_from_old_window_action(shell):
+    requests = []
+    external = window('archive', 'xarchiver')
+    shell._windows_changed([external])
+    shell.mock = False
+    shell.window_service = SimpleNamespace(entries=lambda: [external], request=lambda *args: requests.append(args))
+    assert shell._console_option({'action': 'console-window', 'item': external})
+    assert requests == []
+    assert shell.toast
+
+
+def test_console_rejects_external_activation_from_application_details(shell):
+    requests = []
+    external = window('archive', 'xarchiver')
+    shell._windows_changed([external])
+    shell.mock = False
+    shell.window_service = SimpleNamespace(entries=lambda: [external], request=lambda *args: requests.append(args))
+    assert shell._console_option({'action': 'console-activate', 'target': shell.runtime_console.target('xarchiver')})
+    assert requests == []
+    assert shell.toast

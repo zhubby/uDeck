@@ -1,7 +1,7 @@
 """
-[INPUT]: 依赖窗口焦点、会话应用注册、物理手柄与虚拟输入。
-[OUTPUT]: 提供桌面导航、输入预释放和按窗口身份恢复激活超时。
-[POS]: 输入归属编排层；桌面内切页保留设备归属。
+[INPUT]: 依赖窗口激活边界、会话应用注册与物理输入。
+[OUTPUT]: 提供桌面导航、输入预释放和受限窗口恢复。
+[POS]: 输入归属编排层；异步恢复再次校验窗口身份。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
@@ -12,6 +12,7 @@ from PySide6.QtCore import QObject, QTimer
 
 from .app_routing import NATIVE_APPS, service_name
 from .i18n import Msg, error_text, tr
+from .windows import can_activate_window
 
 TERMINAL_APP = 'io.github.zhubby.uDeck.Terminal'
 MODE_NAMES = {'keyboard': tr(Msg.BUTTON_MODE), 'pointer': tr(Msg.POINTER_MODE), 'native': tr(Msg.NATIVE_INPUT)}
@@ -353,7 +354,8 @@ class ApplicationRouter(QObject):
         mode = self._desired(target)
         self.controller._cancel_modals()
         self.controller._menu(target.get('name', tr(Msg.APPS)) + ' · ' + MODE_NAMES[mode], [
-            {'label': tr(Msg.RETURN_TO_APP), 'action': 'application-control', 'command': 'return'},
+            {'label': tr(Msg.RETURN_TO_APP), 'action': 'application-control', 'command': 'return',
+             'disabled': not can_activate_window(self.windows, target)},
             {'label': tr(Msg.CHANGE_INPUT_MODE), 'action': 'application-control', 'command': 'modes'},
             {'label': tr(Msg.COMMON_ACTIONS), 'action': 'application-control', 'command': 'commands'},
             {'label': tr(Msg.RETURN_TO_DESKTOP), 'action': 'application-control', 'command': 'home'},
@@ -441,7 +443,8 @@ class ApplicationRouter(QObject):
     def resume_window(self, identifier):
         rows = self.windows.entries()
         target = next((entry for entry in rows if entry['id'] == identifier), None)
-        if not target or not self.enabled or self.suspended or not self.session_safe or self.protocol_failed:
+        if (not target or not can_activate_window(self.windows, target) or not self.enabled
+                or self.suspended or not self.session_safe or self.protocol_failed):
             return False
         self.return_target = self._window_target(rows, target)
         self.menu_open = True
@@ -477,6 +480,9 @@ class ApplicationRouter(QObject):
         if not any(entry['id'] == self.return_target['id'] for entry in self.windows.entries()):
             self._gone()
             return
+        if not can_activate_window(self.windows, self.return_target):
+            self._gone()
+            return
         self.release()
         self.mode = 'transition'
         self.gamepad.set_foreground(False)
@@ -501,7 +507,7 @@ class ApplicationRouter(QObject):
         if self.resume_pending and not self.suspended and self.session_safe and not self.protocol_failed:
             self.resume_pending = False
             target = self.return_target
-            if not target:
+            if not target or not can_activate_window(self.windows, target):
                 self._gone()
                 return
             self.menu_open = False
