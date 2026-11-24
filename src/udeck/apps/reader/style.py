@@ -1,9 +1,15 @@
-"""Validated reader typography and palette preferences."""
+"""
+[INPUT]: 依赖保存的阅读偏好，不读取设备字体配置。
+[OUTPUT]: 提供文楷默认值与字体、行高、宽度和配色校验。
+[POS]: 阅读控制器的排版约束；网页使用相同字体键。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 
 READER_FONT_SIZES = (18, 20, 24, 28, 32, 36)
 READER_LINE_HEIGHTS = (1.4, 1.6, 1.7, 1.8, 2.0)
 READER_FONT_FAMILIES = {
+    "wenkai": "'LXGW WenKai Screen', serif",
     "sans": "system-ui, sans-serif",
     "serif": "Georgia, 'Noto Serif CJK SC', serif",
     "mono": "ui-monospace, monospace",
@@ -18,7 +24,7 @@ READER_CONTENT_WIDTHS = (720, 1000, 1200)
 READER_DEFAULTS = {
     "fontSize": 24,
     "lineHeight": 1.7,
-    "fontFamily": "sans",
+    "fontFamily": "wenkai",
     "background": "paper",
     "contentWidth": 1000,
     "dark": False,

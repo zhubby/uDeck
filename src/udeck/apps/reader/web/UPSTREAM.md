@@ -12,7 +12,10 @@ fonts use Chromium's native `DecompressionStream('deflate')`. No conversion tool
 zip.js, fflate, PDF.js or other upstream format loaders are distributed.
 
 `reader.js` and `index.html` are uDeck integration code under GPL-2.0-or-later.
-The tokenized loopback server exposes only the selected book and these modules.
+The tokenized loopback server exposes the selected book, these modules, and the
+bundled `LXGWWenKaiScreen.ttf` font. Reader defaults to LXGW WenKai Screen and
+loads the bundled font when the system does not provide it. The original font
+and its OFL notice remain in `src/udeck/fonts/`.
 Its CSP trusts a per-session nonce on the renderer module graph and blocks book
 scripts, network access, objects and forms. The reading profile is separate from
 the browser's persistent profile.

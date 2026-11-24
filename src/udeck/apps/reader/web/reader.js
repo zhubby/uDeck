@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+/**
+ * [INPUT]: 依赖会话文档服务、随包文楷与 Foliate 分页器。
+ * [OUTPUT]: 渲染正文、应用排版并报告进度与检索结果。
+ * [POS]: EPUB、MOBI、TXT 的正文入口；默认使用文楷。
+ * [PROTOCOL]: Update this header on change, then check AGENTS.md
+ */
 import './foliate/view.js'
 import { EPUB } from './foliate/epub.js'
 const cfg = await (await fetch('config.json')).json()
@@ -7,7 +13,8 @@ const emit = (type, data={}) => console.log('UDECK_READER:' + JSON.stringify({se
 const readerError = (message, errorCode, errorDetail='') => Object.assign(Error(message), {errorCode,errorDetail})
 const reportError = error => emit('error',{error:String(error),errorCode:error?.errorCode,errorDetail:error?.errorDetail})
 let searchGeneration = 0
-const fonts = {sans:'system-ui, sans-serif', serif:"Georgia, 'Noto Serif CJK SC', serif", mono:'ui-monospace, monospace'}
+const fonts = {wenkai:"'LXGW WenKai Screen', serif", sans:'system-ui, sans-serif', serif:"Georgia, 'Noto Serif CJK SC', serif", mono:'ui-monospace, monospace'}
+const wenkai = `@font-face {font-family:'LXGW WenKai Screen';src:local('LXGW WenKai Screen'),url('${new URL('fonts/LXGWWenKaiScreen.ttf', import.meta.url).href}') format('truetype');font-display:swap;}`
 const backgrounds = {
     paper:{background:'#ece7da', text:'#282722'},
     warm:{background:'#f2e5c7', text:'#332a1d'},
@@ -16,11 +23,11 @@ const backgrounds = {
 }
 const style = preferences => {
     const palette = backgrounds[preferences.background] || backgrounds.paper
-    const font = fonts[preferences.fontFamily] || fonts.sans
+    const font = fonts[preferences.fontFamily] || fonts.wenkai
     const size = Number.isFinite(preferences.fontSize) ? preferences.fontSize : 24
     const lineHeight = Number.isFinite(preferences.lineHeight) ? preferences.lineHeight : 1.7
     const contentWidth = Number.isFinite(preferences.contentWidth) ? preferences.contentWidth : 1000
-    return {css:`html,body {font-size:${size}px!important;color:${palette.text}!important;background:${palette.background}!important} body,body * {line-height:${lineHeight}!important;font-family:${font}!important} p {margin-block:0 1em} img {max-width:100%} a{color:#a77731}`,
+    return {css:`${wenkai} html,body {font-size:${size}px!important;color:${palette.text}!important;background:${palette.background}!important} body,body * {line-height:${lineHeight}!important;font-family:${font}!important} p {margin-block:0 1em} img {max-width:100%} a{color:#a77731}`,
         contentWidth}
 }
 const applyStyle = preferences => {

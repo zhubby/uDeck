@@ -1,4 +1,9 @@
-"""Confined EPUB/MOBI/TXT resource server; books are never extracted or converted."""
+"""
+[INPUT]: 依赖选定的文档、随包文楷字体和阅读网页。
+[OUTPUT]: 在随机会话路径内提供文档切片与固定阅读资源。
+[POS]: EPUB、MOBI、TXT 的本地资源边界；不解包或转换文档。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import html
 import json
@@ -108,6 +113,8 @@ class BookServer:
             if self.mobi:
                 config["mobiSize"] = self.mobi.size
             return json.dumps(config).encode(), "application/json", csp
+        if route == "fonts/LXGWWenKaiScreen.ttf":
+            return (Path(__file__).parents[2] / "fonts/LXGWWenKaiScreen.ttf").read_bytes(), "font/ttf", csp
         if self.mobi and (match := re.fullmatch(r"mobi/([0-9]+)/([0-9]+)", route)):
             start, end = map(int, match.groups())
             with self.lock:

@@ -1,4 +1,14 @@
+"""
+[INPUT]: 依赖阅读偏好、真实控制器与独立 WebEngine 探针。
+[OUTPUT]: 验证默认文楷、偏好保留和阅读布局交互。
+[POS]: 阅读器排版的校验、菜单与实际字体回归。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
+import os
+import subprocess
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -7,11 +17,21 @@ from udeck.apps.reader.style import normalize_reader_preferences
 from udeck.i18n import Message, render
 
 
+def test_default_reader_font_loads_in_real_documents_and_saved_choices_survive(tmp_path):
+    result = subprocess.run([sys.executable, "tests/reader_font_probe.py", str(tmp_path)],
+                            env={**os.environ, "PYTHONPATH": "src", "QT_QPA_PLATFORM": "offscreen",
+                                 "QT_QUICK_BACKEND": "software"}, capture_output=True, text=True, timeout=90)
+    assert result.returncode == 0, result.stdout + result.stderr
+    report = json.loads(result.stdout.strip().splitlines()[-1])
+    assert report["passed"] and report["savedChoicePreserved"]
+    assert [item["format"] for item in report["checks"]] == ["TXT", "EPUB", "MOBI"]
+
+
 def test_reader_preferences_have_safe_defaults_and_reject_invalid_values():
     assert normalize_reader_preferences({}) == {
         "fontSize": 24,
         "lineHeight": 1.7,
-        "fontFamily": "sans",
+        "fontFamily": "wenkai",
         "background": "paper",
         "contentWidth": 1000,
         "dark": False,
@@ -26,7 +46,7 @@ def test_reader_preferences_have_safe_defaults_and_reject_invalid_values():
     }) == {
         "fontSize": 24,
         "lineHeight": 1.7,
-        "fontFamily": "sans",
+        "fontFamily": "wenkai",
         "background": "night",
         "contentWidth": 1000,
         "dark": True,

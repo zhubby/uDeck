@@ -1,3 +1,11 @@
+"""
+[INPUT]: 依赖原始 MOBI 夹具与隔离文档服务。
+[OUTPUT]: 验证记录读取、固定字体资源与会话隔离。
+[POS]: 阅读器文档服务的资源边界回归。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
+import hashlib
 import json
 import struct
 from pathlib import Path
@@ -78,6 +86,25 @@ def test_mobi_over_txt_limit_is_read_in_bounded_slices(tmp_path):
         assert server.resource("mobi/60/68")[0] == b"BOOKMOBI"
         with pytest.raises((KeyError, ValueError)):
             server.resource(f"mobi/0/{path.stat().st_size}")
+    finally:
+        server.close()
+
+
+def test_reader_serves_only_the_bundled_wenkai_font_inside_its_session(tmp_path):
+    path = tmp_path / "original.mobi"
+    path.write_bytes(mobi_bytes())
+    server = BookServer(book_item(path), {}, {})
+    route = "fonts/LXGWWenKaiScreen.ttf"
+    try:
+        with urlopen(server.url.replace("index.html", route)) as response:
+            assert response.headers["Content-Type"] == "font/ttf"
+            assert hashlib.sha256(response.read()).hexdigest() == "abd13364163e3cd84372b333f2fdcee9efb848634668f1c0ce5788dcd059ee61"
+        with pytest.raises(HTTPError) as error:
+            urlopen(server.url.replace(server.token, "wrong").replace("index.html", route))
+        assert error.value.code == 404
+        for forbidden in ("fonts/../server.py", "fonts/Saira-OFL.txt", "fonts/LXGWWenKaiScreen.ttf/extra"):
+            with pytest.raises(KeyError):
+                server.resource(forbidden)
     finally:
         server.close()
 

@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖共享应用生命周期、Qt PDF 和隔离文档服务。
-[OUTPUT]: 提供 PDF 图像、文档导航、阅读进度与桌面返回。
+[OUTPUT]: 提供 PDF 图像、文档导航、字体选择与阅读进度。
 [POS]: 阅读器控制边界；返回桌面前保存阅读进度。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -421,7 +421,8 @@ class ReaderController(AppController):
         options = []
         pdf_document = self.page == "document" and self.current and self.current.get("format") == "PDF"
         if not pdf_document:
-            families = {"sans": Msg.SANS_SERIF, "serif": Msg.SERIF, "mono": Msg.MONOSPACE}
+            families = {"wenkai": Msg.READER_FONT_WENKAI, "sans": Msg.SANS_SERIF,
+                        "serif": Msg.SERIF, "mono": Msg.MONOSPACE}
             options.extend([self.setting_option(tr(Msg.LINE_SPACING), self.line_height_menu, "format-line-spacing", f"{self.line_height:.1f}×"),
                             self.setting_option(tr(Msg.FONT), self.font_family_menu, "preferences-desktop-font", tr(families[self.font_family])),
                             self.setting_option(tr(Msg.CONTENT_WIDTH), self.content_width_menu, "zoom-fit-width", str(self.content_width))])
@@ -444,7 +445,8 @@ class ReaderController(AppController):
     def font_family_menu(self):
         self.menu(tr(Msg.FONT), [self.setting_option(tr(label), lambda family=family: self.set_font_family(family),
                                                   "preferences-desktop-font", navigate=False, current=family == self.font_family)
-                                for family, label in (("sans", Msg.SANS_SERIF), ("serif", Msg.SERIF), ("mono", Msg.MONOSPACE))])
+                                for family, label in (("wenkai", Msg.READER_FONT_WENKAI), ("sans", Msg.SANS_SERIF),
+                                                      ("serif", Msg.SERIF), ("mono", Msg.MONOSPACE))])
 
     def set_font_family(self, family):
         if family not in READER_FONT_FAMILIES:

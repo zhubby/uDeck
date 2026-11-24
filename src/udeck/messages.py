@@ -21,6 +21,7 @@ class Msg(StrEnum):
     MEDIA_PREPARATION_UNAVAILABLE = "media_preparation_unavailable"
     MEDIA_PREPARATION_SPACE = "media_preparation_space"
     MEDIA_PREPARATION_TIMED_OUT = "media_preparation_timed_out"
+    READER_FONT_WENKAI = "reader_font_wenkai"
 
     CONSOLE = "console"
     CONSOLE_APPLICATION = "console_application"

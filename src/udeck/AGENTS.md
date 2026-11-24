@@ -27,7 +27,7 @@ file_model.py: 文件列表的 Qt 模型。
 file_preview.py: 常规文件安全读取与预览。
 file_trash.py: 回收站目录、身份和文件恢复。
 files.py: 文件查询、名称校验与基础操作；不提供系统默认打开。
-fonts/: 界面字体、许可证和来源。
+fonts/: 界面与阅读字体、许可证和来源。
 home.py: 首页快捷入口。
 hotspot.py: 热点名称校验与公开状态。
 hotspot_backend.py: 设备绑定的 NetworkManager 热点配置。

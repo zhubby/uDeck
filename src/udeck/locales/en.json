@@ -1,4 +1,5 @@
 {
+  "reader_font_wenkai": "LXGW WenKai Screen",
   "external_applications_disabled": "uDeck only opens its built-in apps.",
   "web_page_system_dialogs_are_disabled": "Web page system dialogs are disabled in uDeck.",
   "udeck_desktop_unavailable": "The uDeck desktop is unavailable. Keep using this terminal or start uDeck.",

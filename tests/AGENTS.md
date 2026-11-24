@@ -61,6 +61,7 @@ native_terminal_appearance_probe.py: 独立进程探针，验证 native_terminal
 native_terminal_probe.py: 独立进程探针，验证 native_terminal 流程。
 network_files_web_probe.py: 独立进程探针，验证 network_files_web 流程。
 reader_mobi_probe.py: 独立进程探针，验证 reader_mobi 流程。
+reader_font_probe.py: 真实 TXT、EPUB、MOBI 的文楷加载、翻页及保存选择回归。
 settings_icons_probe.py: 独立进程探针，验证 settings_icons 流程。
 settings_qml_probe.py: 等待过渡完成，校验设置、系统信息和按键测试布局。
 sharing_qml_probe.py: 独立进程探针，验证 sharing_qml 流程。
@@ -154,8 +155,8 @@ test_performance_tools.py: pytest 回归入口，验证 performance_tools 边界
 test_pointer.py: 指针归属、sysfs 预筛选、错误回退与设备路径复用回归。
 test_preflight.py: pytest 回归入口，验证 preflight 边界。
 test_qml.py: pytest 回归入口，验证 qml 边界。
-test_reader_layout.py: pytest 回归入口，验证 reader_layout 边界。
-test_reader_mobi.py: pytest 回归入口，验证 reader_mobi 边界。
+test_reader_layout.py: 默认文楷、偏好校验与阅读布局菜单回归。
+test_reader_mobi.py: MOBI 记录、固定文楷资源与会话隔离回归。
 test_release.py: 稳定版本、包元数据、构建环境边界和安装入口回归。
 test_qml_cache.py: 相同时间戳的源码更新、缓存复用和环境覆盖回归。
 test_safety.py: 复制、移动与回收失败的内容保留回归。
