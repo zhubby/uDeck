@@ -57,6 +57,7 @@ power-audio-2026-11-07.md: 电池功率与蓝牙音频管理交付记录。
 reader-file-associations-2026-11-24.md: Reader 四格式关联、专项回归与实机恢复记录。
 reader-file-associations-2026-11-24.json: Reader 部署身份、八次冷暖打开和最终恢复摘要。
 reader-wenkai-2026-11-24.md: 默认文楷、随包字体回落与 uConsole 安装验收。
+reader-wenkai-2026-11-24.json: 字体安装摘要、原文档恢复、三格式渲染与构建身份。
 running-icons-2026-11-12.md: Running 与首页的内置应用图标统一。
 release-1.0.0.md: 1.0.0 发布、arm64 验证、实机卸载重装与 VS Code 清理记录。
 release-1.0.4.md: 1.0.4 正式发布、工作流权限修复和实机升级验收。
