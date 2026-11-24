@@ -451,9 +451,11 @@
     "device": "/var/tmp/udeck-media-associations-20261124/"
   },
   "resolution": {
-    "sourceRevision": "f5b59149701aa7eac4634c46b9b5effe0ffefebe",
+    "sourceRevision": "a8f248b42761fbd1a301d08b2306ddfc4e5bb091",
     "status": "fixed-and-device-verified",
     "record": "ts-seek-fix-2026-11-24.json",
-    "originalFailingSampleUnchanged": true
+    "originalFailingSampleUnchanged": true,
+    "coreFixRevision": "f5b59149701aa7eac4634c46b9b5effe0ffefebe",
+    "pauseIntentGuardVerified": true
   }
 }

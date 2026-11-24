@@ -77,7 +77,7 @@ TS 专项共 11 项。
 无失败、错误或超时。
 见 [CI 45386181556](https://github.com/zhubby/uDeck/actions/runs/45386181556)。
 
-## uConsole 部署与实机验收
+## 核心修复的 uConsole 验收（f5b5914）
 
 设备为 uConsole CM4，Debian 13.5 arm64。
 实机 PySide6 为 6.8.2.1。
@@ -156,6 +156,51 @@ TS 专项增加至 13 项，全部通过。
 九个专项文件共 166 项通过、2 项环境跳过。
 本轮 Music smoke 无退出超时。
 全源码 Ruff 和空白检查通过。
-以上实机验收仍对应 f5b5914；暂停保护待部署。
+
+最终源码的全量 CI 验证 139 个文件、2612 项。
+2605 项通过，7 项环境跳过。
+无失败、错误或超时。
+见 [CI 45392157638](https://github.com/zhubby/uDeck/actions/runs/45392157638)。
+
+## 最终修订的 uConsole 复验（a8f248b）
+
+最终源码提交为 a8f248b42761fbd1a301d08b2306ddfc4e5bb091。
+该提交已推送 main，并安装到同一 uConsole。
+载荷来自干净提交，冻结清单共 1489 个文件。
+先替换引擎，再替换两个控制器和构建身份。
+4 个文件替换后，529 个运行文件哈希全部匹配。
+未创建版本、标签或 Release。
+构建身份为
+61964b319a451a5fee0365120bdf36a6cbc2a36a1da6bc22b820bfb409ecb57d。
+备份位于 /var/backups/udeck-ts-pause-guard-1795522782073274904。
+
+安装版引擎用真实 FFmpeg 和原始 TS 复验暂停。
+探针仅暂停自身的 FFmpeg 子进程以延迟完成。
+返回和权限交接后均保持暂停，位置为 8 秒。
+显式继续后，第一帧均为 7.921 秒。
+权限交接通过安装版回调触发，未替换会话服务。
+探针使用独立状态目录，不改写应用状态。
+独立 D-Bus 会话的安装版音乐视频抢占测试也通过。
+13 项检查覆盖双向抢占、EOF、退出及权限失败恢复。
+
+正式 Wayland 界面复验原始长 GOP 与短 GOP TS。
+4 次冷暖打开和 6 次额外定位均通过。
+续播、播放定位、暂停后退和继续前跳均有画面。
+14 张截图逐张复核，包含两次返回 Home。
+暖打开复用临时副本，退出后临时副本全部释放。
+15 份原测试文件和短 GOP 对照的哈希保持一致。
+
+五份全局配置和四份媒体状态恢复原字节和权限。
+Browser、Emulator、监督器和合成器保留进程身份。
+Music 回到原来的空闲状态，Video 已退出。
+最终 Home 前台，输入映射、抓取和快捷键正常。
+服务错误为空，dpkg 审计通过。
+101 行会话日志中未见 Python Traceback 或 QML 错误。
+静音保持原值，不包含人工听音和实体按键验收。
+
+最终结构化结果位于同名 JSON 的顶层。
+f5b5914 的完整验收保留在 coreFixAcceptance。
+最终原始证据位于 artifacts/ts-pause-guard-20261124/。
+设备证据位于 /var/tmp/udeck-ts-pause-guard-20261124/。
 
 [PROTOCOL]: Update this header on change, then check AGENTS.md

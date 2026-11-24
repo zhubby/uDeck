@@ -49,8 +49,8 @@ internal-application-routing-2026-11-24.md: 全局内置应用边界、游戏激
 internal-application-routing-device-2026-11-24.json: main 部署身份、隔离回归、实机证据摘要与配置恢复。
 key-test-event-fix-2026-11-08.md: 按键测试迟到事件去重修复。
 media-review-2026-11-13.md: 音乐与视频抢占审查及实机复测（0.2.10）。
-media-file-associations-2026-11-24.md: 音乐视频格式关联实机验收与 TS 续播限制。
-media-file-associations-2026-11-24.json: 部署身份、格式用例、恢复状态与 CI 摘要。
+media-file-associations-2026-11-24.md: 格式关联实机验收、历史 TS 失败与修复入口。
+media-file-associations-2026-11-24.json: 原始部署、格式用例、恢复状态及最终修复入口。
 media-takeover-2026-11-13.md: 音乐与视频播放抢占（0.2.9）。
 multi-wifi-2026-11-06.md: uDeck 0.1.5 多无线网卡。
 power-audio-2026-11-07.md: 电池功率与蓝牙音频管理交付记录。
@@ -74,8 +74,8 @@ terminal.md: uDeck Terminal v1 使用与维护。
 text-review-2026-11-13.md: 系统文案审查与修复（2026-11-13）。
 themes-2026-11-07.md: uDeck 0.1.9 全局主题。
 trackball-console-2026-11-10.md: 轨迹球点击与全局控制台。
-ts-seek-fix-2026-11-24.md: 长 GOP TS 索引适配、资源边界与回归证据。
-ts-seek-fix-2026-11-24.json: 修复身份、长短 GOP 定位画面、恢复状态与 CI 摘要。
+ts-seek-fix-2026-11-24.md: 长 GOP TS 索引适配、暂停意图、资源边界与实机复验。
+ts-seek-fix-2026-11-24.json: 最终修订与核心修复的分层验收、配置恢复和 CI 摘要。
 ui-interaction-fixes-2026-11-11.md: 界面交互与按键修复（2026-11-11）。
 ui-interaction-round2-2026-11-11.md: 界面交互复测与第二轮修复（2026-11-11）。
 uncommitted-review-delivery-2026-11-12.md: 未提交改动审查与交付记录（2026-11-12）。
