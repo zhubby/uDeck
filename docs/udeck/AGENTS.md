@@ -45,7 +45,8 @@ input-2026-11-06.md: 0.1.2 ABXY 与 L/R 输入修复。
 input-prompts-2026-11-07.md: uDeck 0.1.11 按键图标。
 input-prompts-round-2026-11-07.md: uDeck 0.1.12 圆形按键与平滑缩放。
 input-prompts-sizing-2026-11-07.md: uDeck 0.1.13 键盘按键尺寸统一。
-internal-application-routing-2026-11-24.md: 全局内置应用边界、受控引擎例外与验证范围。
+internal-application-routing-2026-11-24.md: 全局内置应用边界、游戏激活确认与实机验收。
+internal-application-routing-device-2026-11-24.json: main 部署身份、隔离回归、实机证据摘要与配置恢复。
 key-test-event-fix-2026-11-08.md: 按键测试迟到事件去重修复。
 media-review-2026-11-13.md: 音乐与视频抢占审查及实机复测（0.2.10）。
 media-takeover-2026-11-13.md: 音乐与视频播放抢占（0.2.9）。
