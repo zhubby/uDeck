@@ -1,7 +1,7 @@
 """
 [INPUT]: 依赖独立 Qt 探针与 FFmpeg 的真实媒体输出。
-[OUTPUT]: 验证长 GOP TS 的续播和前后定位始终有画面。
-[POS]: 媒体引擎的进程隔离回归入口。
+[OUTPUT]: 验证长 GOP TS 定位画面、准备期暂停与资源释放。
+[POS]: 媒体引擎的真实播放和子进程生命周期回归。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
@@ -10,14 +10,17 @@ import os
 import shutil
 import subprocess
 import sys
+import wave
 from pathlib import Path
 
 import pytest
 from PySide6.QtCore import QProcess
 from test_video_playback import wait_for
 
+from udeck.apps.common.library import Source, scan
 from udeck.apps.media.engine import MediaEngine
 from udeck.apps.media.seekable import SeekableSource
+from udeck.apps.video.controller import VideoController
 from udeck.i18n import Msg, tr
 
 
@@ -175,6 +178,50 @@ def test_unavailable_preparation_keeps_resume_state_out_of_player(source, monkey
         assert source.read_bytes() == b"original source"
     finally:
         engine.close()
+
+
+@pytest.mark.parametrize("reason", ["back", "takeover"])
+def test_preparation_cannot_restart_playback_after_pause_intent(source, tmp_path, monkeypatch, reason):
+    audio = tmp_path / "prepared.wav"
+    with wave.open(str(audio), "wb") as stream:
+        stream.setparams((1, 2, 8000, 0, "NONE", "not compressed"))
+        stream.writeframes(b"\0\0" * 80000)
+    fake_ffmpeg(tmp_path, monkeypatch,
+                "import sys,time,shutil\n"
+                f"time.sleep(.3)\nshutil.copyfile({str(audio)!r},sys.argv[-1])\n")
+    controller = VideoController(tmp_path / "state", tmp_path / "settings.json")
+    controller.isolated = True
+    controller.media.output.setMuted(True)
+    folder = Source.create(tmp_path)
+    controller.library.sources = [folder]
+    controller.library.items = scan(folder, "video")
+    item = controller.library.items[0]
+    controller.store.data["positions"][item["id"]] = 8
+    try:
+        controller.play(item, 8)
+        assert controller.media.loading
+        if reason == "back":
+            controller.back()
+            assert controller.page == "library"
+        else:
+            from types import SimpleNamespace
+
+            owner = SimpleNamespace(isValid=lambda: False)
+            bus = SimpleNamespace(interface=lambda: SimpleNamespace(serviceOwner=lambda _name: owner))
+            monkeypatch.setattr("udeck.apps.media.controller.QDBusConnection",
+                                SimpleNamespace(sessionBus=lambda: bus))
+            controller.playback_owner_changed("io.github.zhubby.uDeck.MediaPlayback", "", ":other")
+        wait_for(lambda: not controller.media.loading)
+
+        assert not controller.media.player.errorString()
+        assert not controller.media.snapshot()["playing"]
+        assert controller.store.data["positions"][item["id"]] == 8
+        assert controller.media.player.position() >= 7900
+        controller.command("play-pause")
+        wait_for(lambda: controller.media.snapshot()["playing"])
+        assert controller.media.player.position() >= 7900
+    finally:
+        controller.close()
 
 
 def test_long_gop_ts_resume_and_seeks_produce_decoded_pictures(tmp_path):

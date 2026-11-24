@@ -100,7 +100,7 @@ class VideoController(MediaController):
 
     def back(self):
         if self.page == "player":
-            self.media.player.pause()
+            self.media.pause()
             self.save_position()
             self.persist()
         return super().back()

@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖共享应用控制器、媒体引擎和会话 D-Bus。
-[OUTPUT]: 提供播放权限、队列交互与实际进度的持久化。
+[OUTPUT]: 提供播放权限、暂停交接、队列与进度持久化。
 [POS]: Music 与 Video 的共同控制层；由引擎报告播放状态。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -93,7 +93,7 @@ class MediaController(AppController):
         owner = bus.interface().serviceOwner(PLAYBACK_SERVICE)
         if owner.isValid() and owner.value() == bus.baseService():
             return
-        self.media.player.pause()
+        self.media.pause()
         self.controls_visible = True
         self.save_position()
         self.attempt(self.persist)

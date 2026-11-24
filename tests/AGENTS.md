@@ -54,7 +54,7 @@ launch_qml_probe.py: 独立进程探针，验证 launch_qml 流程。
 libretro_fixtures.py: 测试夹具，为 libretro_fixtures 提供隔离数据。
 media_takeover_probe.py: 独立进程探针，验证 media_takeover 流程。
 media_seek_probe.py: 长 GOP TS 续播、前后定位和解码画面保真探针。
-test_media_seek.py: TS 定位画面、取消代次、准备失败、空间与原文件保留回归。
+test_media_seek.py: TS 定位画面、暂停意图、取消代次、空间与原文件保留回归。
 mobi_fixture.py: 测试夹具，为 mobi_fixture 提供隔离数据。
 native_shell_forward_probe.py: 独立进程探针，验证 native_shell_forward 流程。
 native_terminal_appearance_probe.py: 独立进程探针，验证 native_terminal_appearance 流程。

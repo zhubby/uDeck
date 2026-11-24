@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖 Qt Multimedia 和 SeekableSource 的临时定位源。
-[OUTPUT]: 提供异步媒体加载、定位、播放状态与软件帧图像。
+[OUTPUT]: 提供异步加载、暂停与定位、播放状态和软件帧。
 [POS]: Music 与 Video 共用的播放引擎；不读取应用配置。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -48,6 +48,7 @@ class MediaEngine(QObject):
         self.player.setAudioOutput(self.output)
         self.output.setVolume(0.8)
         self.pending_position = None
+        self._play_when_ready = False
         self.identifier = ""
         self.loading = False
         self.software = os.environ.get("QT_QUICK_BACKEND") == "software"
@@ -69,17 +70,20 @@ class MediaEngine(QObject):
         self.player.stop()
         self.player.setSource(QUrl())
         self.identifier, self.loading = item["id"], True
+        self._play_when_ready = True
         self.pending_position = max(0, int(position))
         self.seekable.prepare(item["path"])
         self.changed.emit()
 
     def _source_ready(self, path):
         self.player.setSource(QUrl.fromLocalFile(path))
-        self.player.play()
+        if self._play_when_ready:
+            self.player.play()
         self.changed.emit()
 
     def _source_failed(self, error):
         self.identifier = ""
+        self._play_when_ready = False
         self.pending_position = None
         self.loading = False
         self.failed.emit(error)
@@ -121,6 +125,10 @@ class MediaEngine(QObject):
         else:
             self.player.play()
 
+    def pause(self):
+        self._play_when_ready = False
+        self.player.pause()
+
     def seek(self, seconds):
         if not math.isfinite(seconds):
             raise ValueError(tr(Msg.ENTER_A_FINITE_NUMBER))
@@ -139,6 +147,7 @@ class MediaEngine(QObject):
 
     def close(self):
         self.identifier = ""
+        self._play_when_ready = False
         self.player.stop()
         self.player.setSource(QUrl())
         self.seekable.close()
