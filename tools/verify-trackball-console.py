@@ -1,7 +1,10 @@
-"""Synthetic input through a real, disposable labwc and independent Qt clients.
+"""
+[INPUT]: 依赖私有 labwc、随机会话总线与独立 Qt 客户端。
+[OUTPUT]: 验证合帧位移、桌面圆点连续性和 Console 输入。
+[POS]: 安装版轨迹球的合成器回归；不代表实体手感验收。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
 
-Run inside a private D-Bus/Wayland session with the packaged labwc config and
-udeckctl on PATH. This does not claim physical trackball acceptance.
+在私有 D-Bus/Wayland 会话中运行，PATH 需包含 udeckctl。
 """
 
 import json
@@ -14,7 +17,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, Qt, Signal
 from PySide6.QtDBus import QDBusConnection
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
@@ -22,6 +25,7 @@ from PySide6.QtQml import QQmlApplicationEngine
 from udeck.console import ConsolePanel
 from udeck.controller import ShellController
 from udeck.core import ConfigStore
+from udeck.cursor import PointerCursor
 from udeck.main import CONTROL_INTERFACE, CONTROL_PATH, Control, IconProvider
 from udeck.mock import MockBackend
 from udeck.trackball import TrackballInput
@@ -34,6 +38,10 @@ class Pointer(QObject):
     middleButtonTimed = Signal(bool, float)
     reset = Signal()
     motion = Signal(int, int)
+    motionFrame = Signal(int, int, float)
+
+    def discard_motion(self):
+        pass
 
     def __init__(self):
         super().__init__()
@@ -43,6 +51,7 @@ class Pointer(QObject):
 def main():
     application = QGuiApplication([])
     application.setDesktopFileName(APP_ID)
+    application.setOverrideCursor(Qt.CursorShape.BlankCursor)
     windows, output, pointer = WindowService(), VirtualInput(), Pointer()
     windows.start()
     output.start()
@@ -76,6 +85,37 @@ def main():
         process.stdin.flush()
         return receive(process)
 
+    def reset(process):
+        process.stdin.write('reset\n')
+        process.stdin.flush()
+        assert receive(process)['reset']
+
+    def assert_point(actual, expected, label):
+        assert all(abs(actual[index] - expected[index]) <= 1 for index in (0, 1)), {
+            'check': label, 'actual': actual, 'expected': expected,
+        }
+
+    def global_point(position):
+        assert position is not None, 'Qt client did not receive pointer motion'
+        return position['globalX'], position['globalY']
+
+    def move_client(process, dx, dy, before, label):
+        reset(process)
+        pointer.motionFrame.emit(dx, dy, time.monotonic())
+        pump()
+        result = report(process)
+        expected = (before[0] + dx * 4, before[1] + dy * 4)
+        actual = global_point(result['lastPosition'])
+        assert_point(actual, expected, label)
+        moved = [global_point(position) for position in result['motionPositions']
+                 if global_point(position) != before]
+        assert moved, {'check': label, 'report': result}
+        # Qt 可合并重复事件，但不应出现只更新一个轴的中间位置。
+        for position in moved:
+            assert_point(position, expected, label + ': paired axes')
+        return actual, {'check': label, 'rawDelta': [dx, dy], 'expectedDelta': [dx * 4, dy * 4],
+                        'actualPosition': list(actual), 'qtMotionPositions': result['motionPositions']}
+
     with tempfile.TemporaryDirectory(prefix='udeck-console-probe-') as directory:
         controller = ShellController(MockBackend(), windows, ConfigStore(Path(directory) / 'settings.json'), mock=True)
         panel = ConsolePanel(controller, windows)
@@ -94,13 +134,16 @@ def main():
         engine.load(str(Path(udeck.main.__file__).parent / 'qml/Main.qml'))
         assert engine.rootObjects()
         shell = engine.rootObjects()[0]
+        shell.showFullScreen()
+        cursor = PointerCursor(shell, pointer=pointer)
+        shell.setProperty('pointerCursor', cursor)
         shell.activeChanged.connect(lambda: controller.windowActive(shell.isActive()))
         controller.present.connect(windows.activate_shell)
         try:
             until(shell.isActive)
             for platform in ('wayland', 'xcb'):
                 title = 'uDeck trackball check ' + platform
-                process = subprocess.Popen([sys.executable, '-c', probe, title],
+                process = subprocess.Popen([sys.executable, '-c', probe, title, 'io.github.zhubby.uDeck.Reader'],
                                            env={**os.environ, 'QT_QPA_PLATFORM': platform},
                                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 processes.append(process)
@@ -108,9 +151,18 @@ def main():
                 until(lambda title=title: any(entry['name'] == title and entry['active'] for entry in windows.entries()))
                 target = next(entry['id'] for entry in windows.entries() if entry['name'] == title)
                 until(lambda target=target: not trackball.foreground and trackball.target and trackball.target[0] == target)
+                # 绝对定位只用于建立初始条件，后续生产位移全部走相对入口。
+                output.position, output.extent = (640, 360), (1280, 720)
                 output.move(0, 0)
-                pointer.motion.emit(0, 12)
-                pointer.motion.emit(1, 3)
+                pump()
+                position = global_point(report(process)['lastPosition'])
+                # 故意污染旧坐标簿，验证相对移动不依赖旧绝对位置或范围。
+                output.position, output.extent = (21, 35), (193, 137)
+                movement_checks = []
+                for dx, dy, label in ((12, 3, 'positive diagonal'), (-5, -7, 'negative diagonal'),
+                                      (5, 0, 'horizontal only'), (0, -4, 'vertical only')):
+                    position, check = move_client(process, dx, dy, position, label)
+                    movement_checks.append(check)
                 pointer.middleButton.emit(True)
                 pump(0.05)
                 pointer.middleButton.emit(False)
@@ -125,22 +177,40 @@ def main():
                 output.chord((29, 42, 1))
                 until(lambda: controller.modal.get('source') == 'console' and shell.isActive())
                 assert len(controller.modal['options']) == 5
+                until(lambda: trackball.foreground)
+                pointer.motionFrame.emit(6, -2, time.monotonic())
+                until(lambda: cursor.visible)
+                pump()
+                shell_point = shell.mapToGlobal(cursor.position.toPoint())
+                actual_shell = (shell_point.x(), shell_point.y())
+                assert_point(actual_shell, (position[0] + 24, position[1] - 8), 'application to desktop continuity')
+                desktop_check = {'previousApplicationPosition': list(position), 'rawDelta': [6, -2],
+                                 'actualDotGlobalPosition': list(actual_shell)}
                 output.chord((1,))
                 until(lambda target=target: not controller.modal and any(entry['id'] == target and entry['active'] for entry in windows.entries()))
+                until(lambda: not trackball.foreground)
+                pump()
+                position, return_check = move_client(process, -4, 5, actual_shell,
+                                                     'desktop to application continuity')
+                movement_checks.append(return_check)
                 assert not controller.backend.actions
                 # An interrupted gesture must not click in the new foreground window.
+                recovery_buttons = report(process)['buttons']
                 pointer.middleButton.emit(True)
                 pointer.reset.emit()
                 pointer.middleButton.emit(False)
                 pump()
-                assert report(process)['buttons'] == inputs['buttons']
+                assert report(process)['buttons'] == recovery_buttons
                 checks.append({'platform': platform, 'clicks': inputs['buttons'], 'globalShortcut': True,
-                               'restoredWindow': True, 'recoveryDidNotClick': True})
+                               'restoredWindow': True, 'recoveryDidNotClick': True,
+                               'movement': movement_checks, 'desktopContinuity': desktop_check,
+                               'staleAbsoluteBookkeepingIgnored': True})
                 windows.request(target, 'close')
                 until(lambda process=process: process.poll() is not None)
                 assert process.returncode == 0, process.stderr.read()
             print(json.dumps({'passed': True, 'syntheticOwnedCompositor': True, 'checks': checks}, indent=2))
         finally:
+            cursor.close()
             trackball.close()
             panel.close()
             controller.close()
@@ -152,6 +222,7 @@ def main():
             windows.close()
             bus.unregisterObject(CONTROL_PATH)
             bus.unregisterService(APP_ID)
+            application.restoreOverrideCursor()
 
 
 if __name__ == '__main__':

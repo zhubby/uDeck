@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖隔离窗口、输入输出与真实桌面控制器。
-[OUTPUT]: 验证连续导航、受限交接和激活超时恢复。
+[OUTPUT]: 验证相对指针、拖动保持、受限交接和超时恢复。
 [POS]: 应用路由回归；覆盖会话锁定、指针隔离和焦点切换。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -65,6 +65,7 @@ def routing(tmp_path):
     output = SimpleNamespace(available=True, error='', chord=lambda keys: events.append(('chord', tuple(keys))),
                              button=lambda code, pressed: events.append(('button', code, pressed)),
                              move=lambda horizontal, vertical: events.append(('move', horizontal, vertical)),
+                             move_relative=lambda horizontal, vertical: events.append(('relative', horizontal, vertical)),
                              scroll=lambda amount: events.append(('scroll', amount)),
                              release_all=lambda: events.append(('release',)))
     ownership = []
@@ -318,12 +319,54 @@ def test_pointer_input_keeps_existing_foreground_without_activating_a_window(rou
     routing.router.button('accept', True)
     routing.router.direction('right', True)
     assert ('button', 272, True) in routing.events
-    assert any(event[0] == 'move' and event[1] > 0 for event in routing.events)
+    assert any(event[0] == 'relative' and event[1] > 0 for event in routing.events)
+    assert not any(event[0] == 'move' for event in routing.events)
     routing.router.button('accept', False)
     assert routing.events[-1] == ('button', 272, False)
     routing.router.direction('right', False)
     assert not routing.router.motion.isActive()
     assert routing.windows.requests == []
+
+
+def test_entering_pointer_mode_preserves_the_existing_compositor_position(routing):
+    focus(routing)
+    routing.controller.config.data['applicationInput']['firefox'] = 'pointer'
+    routing.isolation.applied = True
+    routing.events.clear()
+    routing.router.refresh()
+    assert routing.router.mode == 'pointer'
+    assert not any(event[0] in ('move', 'relative') for event in routing.events)
+    routing.router.refresh()
+    assert not any(event[0] in ('move', 'relative') for event in routing.events)
+
+
+def test_direction_changes_use_relative_motion_and_preserve_drag_scroll_and_keys(routing, monkeypatch):
+    monkeypatch.setattr('udeck.compatibility.time.monotonic', lambda: 10)
+    focus(routing)
+    routing.controller.config.data['applicationInput']['firefox'] = 'pointer'
+    routing.isolation.applied = True
+    routing.router.refresh()
+    routing.events.clear()
+    routing.router.button('accept', True)
+    routing.router.direction('right', True)
+    routing.router.direction('up', True)
+    routing.router._move()
+    routing.router.direction('right', False)
+    routing.router._move()
+    routing.router.direction('up', False)
+    assert not routing.router.motion.isActive()
+    routing.router.shoulder('previous-page')
+    routing.router.button('back', True)
+    routing.router.button('accept', False)
+    assert routing.events[0] == ('button', 272, True)
+    movement = [event[1:] for event in routing.events if event[0] == 'relative']
+    assert len(movement) == 3
+    assert movement[0] == (3, 0)
+    assert movement[1] == pytest.approx((3 / 2 ** 0.5, -3 / 2 ** 0.5))
+    assert movement[2] == (0, -3)
+    assert routing.events[-3:] == [('scroll', -1), ('chord', (1,)), ('button', 272, False)]
+    assert not any(event[0] == 'move' for event in routing.events)
+    assert not any(event == ('button', 272, False) for event in routing.events[:-1])
 
 
 def test_console_resume_waits_for_isolation_ack_before_restoring_native_window(routing):
@@ -504,7 +547,7 @@ def test_late_ack_after_session_lock_cannot_activate_or_inject(routing):
     routing.isolation.complete()
     assert not routing.windows.requests
     assert routing.router.state()['mode'] == 'suspended'
-    assert not any(event[0] in ('chord', 'button', 'move') for event in routing.events)
+    assert not any(event[0] in ('chord', 'button', 'move', 'relative') for event in routing.events)
 
 
 def test_nested_mode_menu_back_and_regrab_require_fresh_press(routing):

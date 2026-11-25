@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖窗口激活边界、会话应用注册与物理输入。
-[OUTPUT]: 提供桌面导航、输入预释放和受限窗口恢复。
+[OUTPUT]: 提供桌面导航、相对指针与受限窗口恢复。
 [POS]: 输入归属编排层；异步恢复再次校验窗口身份。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -219,9 +219,6 @@ class ApplicationRouter(QObject):
         else:
             self.mode = desired
             self.gamepad.set_foreground(desired in ('desktop', 'keyboard', 'pointer'))
-            if desired == 'pointer' and identity != getattr(self, 'pointer_identity', None):
-                self.output.move(0, 0)
-                self.pointer_identity = identity
         self._publish()
         if self.command_pending and self.mode in ('keyboard', 'pointer', 'native') and target_active:
             self.output.chord(self.command_pending)
@@ -330,7 +327,7 @@ class ApplicationRouter(QObject):
         vertical = int('down' in self.directions) - int('up' in self.directions)
         speed = min(16, 3 + max(0, time.monotonic() - self.movement_started - 0.3) * 12)
         divisor = math.sqrt(2) if horizontal and vertical else 1
-        self.output.move(horizontal * speed / divisor, vertical * speed / divisor)
+        self.output.move_relative(horizontal * speed / divisor, vertical * speed / divisor)
 
     def open_menu(self):
         target = self.return_target if self.menu_open or self.activation_pending else self.target

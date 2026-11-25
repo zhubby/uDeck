@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖隔离会话、虚拟输入和独立 Qt 客户端。
+[OUTPUT]: 记录按键、按钮及实际鼠标坐标历史。
+[POS]: 应用输入路由探针；PROBE 由轨迹球验收复用。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 import os
 import select
@@ -15,15 +22,29 @@ from udeck.windows import APP_ID, WindowService
 PROBE = '''
 import json
 import sys
-from PySide6.QtCore import QSocketNotifier
+from PySide6.QtCore import QEvent, QObject, QSocketNotifier
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 application = QGuiApplication([])
-application.setDesktopFileName('io.github.zhubby.uDeck.CompatibilityProbe')
+application.setDesktopFileName(sys.argv[2] if len(sys.argv) > 2 else 'io.github.zhubby.uDeck.CompatibilityProbe')
 engine = QQmlApplicationEngine()
 engine.loadData(b'import QtQuick\\nimport QtQuick.Window\\nWindow { id: screen; width:1280; height:720; visible:true; visibility:Window.FullScreen; color:"#24282b"; property var keys:[]; property var buttons:[]; property int moves:0; property int wheels:0; Text { anchors.centerIn:parent; text:"uDeck application input check"; font.pixelSize:36; color:"#edb866" } FocusScope { anchors.fill:parent; focus:true; Keys.onPressed: function(event) { screen.keys = screen.keys.concat([{key:event.key, modifiers:event.modifiers}]); event.accepted=true } } MouseArea { anchors.fill:parent; hoverEnabled:true; acceptedButtons:Qt.LeftButton|Qt.RightButton; onPressed: function(mouse) { screen.buttons=screen.buttons.concat(["down:"+mouse.button]) }; onReleased: function(mouse) { screen.buttons=screen.buttons.concat(["up:"+mouse.button]) }; onPositionChanged: screen.moves++; onWheel: screen.wheels++ } }')
 window = engine.rootObjects()[0]
 window.setTitle(sys.argv[1])
+class MotionLog(QObject):
+    def __init__(self):
+        super().__init__(window)
+        self.last = None
+        self.positions = []
+        window.installEventFilter(self)
+    def eventFilter(self, watched, event):
+        if watched is window and event.type() == QEvent.Type.MouseMove:
+            local, global_point = event.position(), event.globalPosition()
+            self.last = {'x': local.x(), 'y': local.y(),
+                         'globalX': global_point.x(), 'globalY': global_point.y()}
+            self.positions.append(self.last)
+        return False
+motion_log = MotionLog()
 ready = False
 def first_frame():
     global ready
@@ -38,9 +59,12 @@ def command(*arguments):
         window.setProperty('buttons', [])
         window.setProperty('moves', 0)
         window.setProperty('wheels', 0)
+        motion_log.positions.clear()
         print(json.dumps({'reset':True}), flush=True)
     elif message == 'report':
-        print(json.dumps({field: window.property(field).toVariant() if hasattr(window.property(field), 'toVariant') else window.property(field) for field in ('keys','buttons','moves','wheels')}), flush=True)
+        result = {field: window.property(field).toVariant() if hasattr(window.property(field), 'toVariant') else window.property(field) for field in ('keys','buttons','moves','wheels')}
+        result.update(lastPosition=motion_log.last, motionPositions=motion_log.positions)
+        print(json.dumps(result), flush=True)
 notifier = QSocketNotifier(sys.stdin.fileno(), QSocketNotifier.Type.Read)
 notifier.activated.connect(command)
 raise SystemExit(application.exec())

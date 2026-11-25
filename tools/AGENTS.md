@@ -16,10 +16,10 @@ performance-wayland-bridge.py: 为私有测试总线提供桌面激活。
 terminal-acceptance: 记录已安装终端的性能；保留人工验收状态。
 terminal-build.Dockerfile: 原生终端插件与交互探针依赖。
 update-terminal-build-info: Debian strip 后更新插件哈希。
-verify-application-input.py: 独立应用的输入路由探针。
+verify-application-input.py: 独立应用的输入路由与实际鼠标坐标历史探针。
 verify-input-isolation.py: 桌面与独立应用的输入隔离探针。
 verify-system-shortcuts.py: 私有 labwc 显示发现、快捷键、IPC 与截屏探针。
-verify-trackball-console.py: 私有会话的合成轨迹球与 Console 输入探针。
+verify-trackball-console.py: 私有合成器的轨迹球合帧、双轴、桌面往返连续性与 Console 输入探针。
 verify-windows.py: 窗口发现、激活与关闭探针。
 
 发布构建必须执行完整测试。

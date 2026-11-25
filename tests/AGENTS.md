@@ -34,7 +34,7 @@ battery_qml_probe.py: 等待弹窗几何终态，验证电池测量刷新、文�
 browser_interaction_probe.py: 网页缩放输入、协议零系统分发与原生选择器拒绝探针。
 conftest.py: 共享离屏 QApplication 与 Qt 对象回收夹具。
 console_qml_probe.py: 独立进程探针，验证 console_qml 流程。
-cursor_qml_probe.py: 桌面圆点、有限点击动画、输入穿透与减少动画探针。
+cursor_qml_probe.py: Qt 坐标跟随、原始位移隔离、圆点动画与输入穿透探针。
 native_cursor_probe.py: Reader 与双窗口终端入口的指针和原输入策略探针。
 debian_package_probe.py: 独立进程探针，验证 debian_package 流程。
 emulator_save_daemon_probe.py: 独立进程探针，验证 emulator_save_daemon 流程。
@@ -96,7 +96,7 @@ test_battery.py: pytest 回归入口，验证 battery 边界。
 test_battery_qml.py: pytest 回归入口，验证 battery_qml 边界。
 test_browser_interactions.py: 网页输入、协议和文件/颜色选择器零系统分发回归。
 test_cli.py: pytest 回归入口，验证 cli 边界。
-test_compatibility.py: 输入交接、激活恢复、异步身份隔离与外部返回拒绝回归。
+test_compatibility.py: 输入交接、激活恢复、相对指针与外部返回拒绝回归。
 test_console.py: 全局面板、内置焦点恢复与受控引擎归属撤销回归。
 test_console_qml.py: pytest 回归入口，验证 console_qml 边界。
 test_core.py: pytest 回归入口，验证 core 边界。
@@ -153,7 +153,7 @@ test_network_files_lifecycle.py: pytest 回归入口，验证 network_files_life
 test_network_files_ui.py: 共享菜单、后台查询边界与重复状态去重回归。
 test_network_files_web.py: pytest 回归入口，验证 network_files_web 边界。
 test_performance_tools.py: pytest 回归入口，验证 performance_tools 边界。
-test_pointer.py: 指针归属、sysfs 预筛选、错误回退与设备路径复用回归。
+test_pointer.py: 指针归属、位移合帧、按钮顺序、丢帧与设备路径复用回归。
 test_preflight.py: pytest 回归入口，验证 preflight 边界。
 test_qml.py: pytest 回归入口，验证 qml 边界。
 test_reader_layout.py: 默认文楷、偏好校验与阅读布局菜单回归。
@@ -189,12 +189,12 @@ test_terminal_system_defaults.py: pytest 回归入口，验证 terminal_system_d
 test_theme.py: pytest 回归入口，验证 theme 边界。
 test_theme_qml.py: pytest 回归入口，验证 theme_qml 边界。
 test_timezone.py: pytest 回归入口，验证 timezone 边界。
-test_trackball.py: 机身移动倍率、非轨迹球位移隔离、点击分类与归属撤销回归。
+test_trackball.py: 桌面和应用共用的相对移动、倍率、点击与归属撤销回归。
 test_ui.py: 桌面导航、模态操作与失败反馈回归。
 test_ui_interactions.py: pytest 回归入口，验证 ui_interactions 边界。
 test_video_playback.py: pytest 回归入口，验证 video_playback 边界。
 test_video_subtitles.py: pytest 回归入口，验证 video_subtitles 边界。
-test_virtual_input.py: pytest 回归入口，验证 virtual_input 边界。
+test_virtual_input.py: 相对协议、事件时间、绝对边界与按键释放回归。
 test_wifi.py: pytest 回归入口，验证 wifi 边界。
 test_wifi_management.py: pytest 回归入口，验证 wifi_management 边界。
 test_wifi_management_qml.py: pytest 回归入口，验证 wifi_management_qml 边界。

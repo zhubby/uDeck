@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖轨迹球原始信号、隔离窗口归属与虚拟输入。
-[OUTPUT]: 验证移动倍率、滚轮隔离、点击分类和归属撤销。
+[INPUT]: 依赖轨迹球报告帧、原始诊断、窗口归属与虚拟输入。
+[OUTPUT]: 验证成对相对位移、帧时间、点击分类和安全撤销。
 [POS]: 机身轨迹球到桌面及应用的输入契约回归。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -21,7 +21,11 @@ class Pointer(QObject):
     middleButton = Signal(bool)
     middleButtonTimed = Signal(bool, float)
     motion = Signal(int, int)
+    motionFrame = Signal(int, int, float)
     reset = Signal()
+
+    def discard_motion(self):
+        pass
 
 
 class Windows(QObject):
@@ -60,6 +64,11 @@ def trackball(tmp_path):
 
 def clicks(trackball):
     return [(event[-2].value, event[-1].value) for event in trackball.events if event[1] == 2]
+
+
+def relative_motion(trackball):
+    return [(event[2].value, event[3].value / 256, event[4].value / 256)
+            for event in trackball.events if event[1] == 0]
 
 
 @pytest.mark.parametrize('duration,code', [(0.05, 272), (1.999, 272), (2.0, 272), (2.001, 273), (5.0, 273)])
@@ -151,10 +160,10 @@ def test_diagnostic_observes_raw_edges_without_semantic_actions(trackball):
 
 
 def test_trackball_motion_reaches_focused_app_and_does_not_release_gamepad_drag(trackball):
-    trackball.pointer.motion.emit(0, 7)
-    trackball.pointer.motion.emit(1, -3)
+    trackball.pointer.motionFrame.emit(7, -3, 10.125)
     trackball.pointer.motion.emit(8, 1)
-    assert trackball.output.position == (668, 348)
+    assert relative_motion(trackball) == [(10125, 28, -12)]
+    assert not any(event[1] == 1 for event in trackball.events)
     assert any(event[1] == 7 and event[-1].value == -1 for event in trackball.events)
     trackball.output.button(272, True)
     trackball.events.clear()
@@ -165,16 +174,55 @@ def test_trackball_motion_reaches_focused_app_and_does_not_release_gamepad_drag(
 
 
 def test_small_trackball_steps_move_apps_without_amplifying_other_pointer_sources(trackball):
-    for _ in range(8):
-        trackball.pointer.motion.emit(0, 1)
-        trackball.pointer.motion.emit(1, -1)
-    assert trackball.output.position == (672, 328)
+    for index in range(8):
+        trackball.pointer.motionFrame.emit(1, -1, 10 + index / 8)
+    assert [(x, y) for _, x, y in relative_motion(trackball)] == [(4, -4)] * 8
+    assert trackball.output.position == (640, 360)
     trackball.output.move(1, -1)
-    assert trackball.output.position == (673, 327)
-    for _ in range(8):
-        trackball.pointer.motion.emit(0, -1)
-        trackball.pointer.motion.emit(1, 1)
     assert trackball.output.position == (641, 359)
+    trackball.events.clear()
+    for index in range(8):
+        trackball.pointer.motionFrame.emit(-1, 1, 11 + index / 8)
+    assert [(x, y) for _, x, y in relative_motion(trackball)] == [(-4, 4)] * 8
+    assert trackball.output.position == (641, 359)
+
+
+@pytest.mark.parametrize('foreground', [False, True], ids=['application', 'shell'])
+def test_shell_and_application_forward_one_paired_relative_report(trackball, foreground):
+    trackball.controller.foregroundChanged.emit(foreground)
+    trackball.output.position = (0, 719)
+    trackball.output.extent = (3, 5)
+    trackball.pointer.motionFrame.emit(-3, 2, 7.25)
+    assert relative_motion(trackball) == [(7250, -12, 8)]
+    assert [event[1] for event in trackball.events] == [0, 4]
+    assert trackball.output.position == (0, 719)
+
+
+def test_raw_axis_diagnostics_do_not_submit_duplicate_motion(trackball):
+    trackball.pointer.motion.emit(0, 7)
+    trackball.pointer.motion.emit(1, -3)
+    assert trackball.events == []
+    trackball.pointer.motionFrame.emit(7, -3, 10.5)
+    assert relative_motion(trackball) == [(10500, 28, -12)]
+
+
+@pytest.mark.parametrize('foreground', [False, True], ids=['application', 'shell'])
+@pytest.mark.parametrize('loss', ['locked', 'inactive', 'suspend', 'diagnostic', 'unavailable'])
+def test_unsafe_motion_frames_are_discarded_without_queued_motion(trackball, foreground, loss):
+    trackball.controller.foregroundChanged.emit(foreground)
+    if loss in ('locked', 'inactive'):
+        trackball.controller.backend.updated.emit({'sessionInput': {
+            'available': True, 'active': loss != 'inactive', 'locked': loss == 'locked',
+        }})
+    elif loss == 'suspend':
+        trackball.controller.inputSuspended.emit(True)
+    elif loss == 'diagnostic':
+        trackball.controller.activateSetting('key-test')
+    else:
+        trackball.output.available = False
+    trackball.pointer.motionFrame.emit(9, -7, 10.5)
+    assert trackball.events == []
+    assert trackball.output.position == (640, 360)
 
 
 def test_locked_session_and_unavailable_output_do_not_queue_clicks(trackball):

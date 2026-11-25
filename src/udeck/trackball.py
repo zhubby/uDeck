@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖指针共用倍率、按钮时间、窗口归属与虚拟输入。
-[OUTPUT]: 提供短按点击、长按右键与放大后的机身位移。
+[INPUT]: 依赖原始移动帧、共用倍率、按钮时间与窗口归属。
+[OUTPUT]: 提供点击手势与桌面、应用共用的相对位移。
 [POS]: 轨迹球手势边界；归属变化取消手势，防止跨窗口误触。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -38,6 +38,7 @@ class TrackballInput(QObject):
         pointer.middleButtonTimed.connect(self.button)
         pointer.reset.connect(self.cancel)
         pointer.motion.connect(self.motion)
+        pointer.motionFrame.connect(self.motion_frame)
         controller.foregroundChanged.connect(self.window_active)
         controller.inputSuspended.connect(self.set_suspended)
         controller.changed.connect(self._modal_changed)
@@ -74,11 +75,16 @@ class TrackballInput(QObject):
     def session_update(self, values):
         if 'sessionInput' in values:
             state = values['sessionInput']
-            self.session_safe = bool(state.get('available') and state.get('active') and not state.get('locked'))
+            safe = bool(state.get('available') and state.get('active') and not state.get('locked'))
+            if safe != self.session_safe:
+                self.pointer.discard_motion()
+            self.session_safe = safe
             if not self.session_safe:
                 self.cancel()
 
     def set_suspended(self, suspended):
+        if suspended != self.suspended:
+            self.pointer.discard_motion()
         self.suspended = suspended
         if suspended:
             self.cancel()
@@ -86,6 +92,7 @@ class TrackballInput(QObject):
     def _modal_changed(self):
         diagnostic = self.controller.modal.get('kind') in ('key-test', 'calibration')
         if diagnostic != self.diagnostic:
+            self.pointer.discard_motion()
             self.cancel()
         self.diagnostic = diagnostic
 
@@ -139,19 +146,21 @@ class TrackballInput(QObject):
 
     def motion(self, axis, value):
         target = self._target()
-        if not value or not target or target[0] != 'application':
-            return
-        if axis in (0, 1):
-            distance = value * TRACKBALL_PIXELS_PER_COUNT
-            self.output.move(distance if axis == 0 else 0, distance if axis == 1 else 0)
-        elif axis == 8:
+        if axis == 8 and value and target and target[0] == 'application':
             self.output.scroll(-value)
+
+    def motion_frame(self, horizontal, vertical, occurred):
+        if not self._target() or not self.output or not self.output.available:
+            return
+        self.output.move_relative(horizontal * TRACKBALL_PIXELS_PER_COUNT,
+                                  vertical * TRACKBALL_PIXELS_PER_COUNT, occurred=occurred)
 
     def close(self):
         self.cancel()
         for signal, slot in (
             (self.pointer.middleButtonTimed, self.button), (self.pointer.reset, self.cancel),
             (self.pointer.motion, self.motion), (self.controller.foregroundChanged, self.window_active),
+            (self.pointer.motionFrame, self.motion_frame),
             (self.controller.inputSuspended, self.set_suspended), (self.controller.changed, self._modal_changed),
             (self.controller.backend.updated, self.session_update),
         ):

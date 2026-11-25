@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖 sysfs 能力位图、evdev 输入与 Qt 事件循环。
-[OUTPUT]: 提供指针独占、肩键边沿、原始位移与共用倍率。
+[OUTPUT]: 提供指针独占、原始事件、合帧位移与共用倍率。
 [POS]: 会话指针归属层；先筛除无关接口，再打开 evdev。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -27,6 +27,7 @@ class PointerGuard(QObject):
     middleButtonTimed = Signal(bool, float)
     reset = Signal()
     motion = Signal(int, int)
+    motionFrame = Signal(int, int, float)
     status = Signal(object)
 
     def __init__(self, parent=None, *, built_in_only=False):
@@ -46,6 +47,10 @@ class PointerGuard(QObject):
 
     def set_foreground(self, foreground):
         self.foreground = foreground
+
+    def discard_motion(self):
+        for entry in self.devices.values():
+            entry["motion"] = [0, 0]
 
     def _scan(self):
         from evdev import InputDevice, list_devices
@@ -93,6 +98,7 @@ class PointerGuard(QObject):
                 self.devices[path] = {"device": device, "notifier": notifier, "pressed": set(),
                                       "shoulders": built_in,
                                       "monotonic": monotonic,
+                                      "motion": [0, 0],
                                       "syncing": False}
                 device = None
             except OSError as error:
@@ -145,11 +151,18 @@ class PointerGuard(QObject):
                         entry["pressed"] = set(entry["device"].active_keys())
                         entry["syncing"] = False
                     continue
+                if event.type == 0 and event.code == 0:
+                    self._motion_frame(entry, event)
+                    continue
                 if entry["shoulders"] and event.type == 2 and event.code in (0, 1, 8):
                     self.motion.emit(event.code, event.value)
+                    if event.code in (0, 1):
+                        entry["motion"][event.code] += event.value
                     continue
                 if event.type != 1:
                     continue
+                # 先提交位移，按钮才使用同一报告的新位置。
+                self._motion_frame(entry, event)
                 if event.value == 0:
                     if event.code == 274 and event.code in entry["pressed"] and entry["shoulders"]:
                         self.middleButton.emit(False)
@@ -174,6 +187,12 @@ class PointerGuard(QObject):
             self._remove(path)
             self._report([error_text(error)])
 
+    def _motion_frame(self, entry, event):
+        horizontal, vertical = entry["motion"]
+        entry["motion"] = [0, 0]
+        if horizontal or vertical:
+            self.motionFrame.emit(horizontal, vertical, self._timestamp(entry, event))
+
     @staticmethod
     def _timestamp(entry, event):
         return event.timestamp() if entry.get('monotonic') else time.monotonic()
@@ -190,6 +209,7 @@ class PointerGuard(QObject):
         entry["device"].close()
 
     def _release_buttons(self, entry):
+        entry["motion"] = [0, 0]
         if entry["shoulders"]:
             # These releases describe lost ownership, not a completed click.
             self.reset.emit()

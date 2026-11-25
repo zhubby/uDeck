@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖真实桌面窗口、轨迹球事件和共享圆点指针。
-[OUTPUT]: 验证圆点渲染、有限点击动画与输入穿透。
+[INPUT]: 依赖真实桌面窗口、Qt 鼠标坐标和轨迹球诊断事件。
+[OUTPUT]: 验证圆点跟随 Qt 坐标、有限点击动画与输入穿透。
 [POS]: 桌面指针的双主题、双尺寸及减少动画探针。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -112,9 +112,13 @@ def run():
         raw(1, 274, 0)
         raw(2, 0, 0)
         assert not cursor.visible
+        initial_position = QPointF(cursor.position)
         raw(2, 0, 24)
         raw(2, 1, -12)
+        assert cursor.position == initial_position and not cursor.visible, (
+            "原始轨迹球事件不得单独移动或显示圆点")
         expected = QPointF(options.width / 2 + 96, options.height / 2 - 48)
+        mouse_move(expected.x(), expected.y())
         assert cursor.position == expected and cursor.visible
         assert orb.width() == orb.height()
         assert orb.width() <= 10
@@ -131,30 +135,32 @@ def run():
         assert cursor.visible
         QTest.keyClick(window, Qt.Key.Key_Right)
         assert not cursor.visible and controller.navigation.index == 1
-        raw(2, 0, 1)
+        mouse_move(230, 200)
         raw(1, 273, 1)
         raw(1, 273, 0)
         assert not cursor.visible and controller.navigation.page == "windows"
         controller.setPage("home")
-        raw(2, 0, 1)
+        mouse_move(240, 210)
         gamepad.button.emit("accept", False)
         assert cursor.visible
         gamepad.direction.emit("right", True)
         assert not cursor.visible
-        raw(2, 0, 1)
+        mouse_move(250, 220)
         gamepad.auxiliaryButton.emit("home", True)
         assert not cursor.visible
 
         controller.activateSetting("key-test")
         raw(2, 0, 2)
+        assert "pointer-right" in controller.modal["tested"]
+        assert not cursor.visible
+        mouse_move(260, 230)
         assert cursor.visible
         QTest.keyClick(window, Qt.Key.Key_Left)
         assert not cursor.visible and controller.modal["kind"] == "key-test"
         assert "left" in controller.modal["tested"]
         controller._pop()
 
-        raw(2, 0, 100000)
-        raw(2, 1, -100000)
+        mouse_move(options.width - 4, 4)
         assert 0 <= cursor.position.x() - orb.width() / 2
         assert cursor.position.x() + orb.width() / 2 <= window.width()
         assert 0 <= cursor.position.y() - orb.height() / 2
@@ -165,7 +171,7 @@ def run():
         QTest.qWait(20)
         cursor.hide()
 
-        raw(2, 0, -100)
+        mouse_move(200, 170)
         cursor.timer.setInterval(80)
         mouse_move(210, 180)
         QTest.qWait(45)
@@ -202,7 +208,7 @@ def run():
                                                   QPointF(window.mapToGlobal(center))))
         assert not cursor.visible
 
-        raw(2, 0, 15)
+        mouse_move(270, 240)
         assert cursor.visible
         other.show()
         other.requestActivate()
@@ -215,7 +221,7 @@ def run():
         window.requestActivate()
         QTest.qWait(50)
         assert window.isActive() and not cursor.visible
-        raw(2, 0, 1)
+        mouse_move(280, 250)
         assert cursor.visible
         window.hide()
         assert not cursor.visible
@@ -246,7 +252,7 @@ def run():
         QTest.keyClick(window, Qt.Key.Key_Right)
         assert controller.navigation.index == 1
 
-        raw(2, 0, 1)
+        mouse_move(290, 260)
         cursor.close()
         assert not cursor.visible and not cursor.timer.isActive()
         raw(2, 0, 100)

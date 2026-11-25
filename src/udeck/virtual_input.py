@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖 Wayland 虚拟输入协议与窗口连接。
+[OUTPUT]: 提供键盘、按钮、滚轮与指针移动请求。
+[POS]: 系统输入传输层；相对位置与边界交给合成器。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import ctypes
 import os
 import time
@@ -115,8 +122,8 @@ class VirtualInput(WindowService):
             if context:
                 library.xkb_context_unref(context)
 
-    def _timestamp(self):
-        return ctypes.c_uint32(int(time.monotonic() * 1000) & 0xffffffff)
+    def _timestamp(self, occurred=None):
+        return ctypes.c_uint32(int((time.monotonic() if occurred is None else occurred) * 1000) & 0xffffffff)
 
     def _key(self, code, pressed):
         if pressed:
@@ -159,6 +166,14 @@ class VirtualInput(WindowService):
                          max(0, min(height - 1, self.position[1] + vertical)))
         self._request(self.pointer, 1, self._timestamp(), ctypes.c_uint32(int(self.position[0])), ctypes.c_uint32(int(self.position[1])),
                       ctypes.c_uint32(width), ctypes.c_uint32(height))
+        self._request(self.pointer, 4)
+        self._flush()
+
+    def move_relative(self, horizontal, vertical, *, occurred=None):
+        if not self.available or not (horizontal or vertical):
+            return
+        self._request(self.pointer, 0, self._timestamp(occurred),
+                      ctypes.c_int32(round(horizontal * 256)), ctypes.c_int32(round(vertical * 256)))
         self._request(self.pointer, 4)
         self._flush()
 

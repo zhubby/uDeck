@@ -1,7 +1,7 @@
 """
 [INPUT]: 依赖指针服务、隔离 evdev 和 sysfs 能力位图。
-[OUTPUT]: 验证输入归属、热插拔与无关设备的无打开筛选。
-[POS]: 指针边界回归；阻止定时扫描再次阻塞桌面主线程。
+[OUTPUT]: 验证输入归属、报告合帧、事件时间与热插拔筛选。
+[POS]: 原始诊断与成对位移的边界回归，隔离输入丢帧。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
@@ -109,6 +109,163 @@ def test_trackball_click_motion_and_scroll_are_diagnostic_only(pointer_device):
     guard._read(device.path)
     guard._remove(device.path)
     assert edges[-2:] == [True, False]
+
+
+def input_event(kind, code, value=0, *, stamp=12.5):
+    return SimpleNamespace(type=kind, code=code, value=value, timestamp=lambda: stamp)
+
+
+def test_motion_frames_pair_axes_and_keep_kernel_report_times(pointer_device, monkeypatch):
+    monkeypatch.setattr('udeck.pointer.fcntl.ioctl', lambda *arguments: 0)
+    guard, device, events, _ = pointer_device
+    frames, raw = [], []
+    guard.motionFrame.connect(lambda x, y, stamp: frames.append((x, y, stamp)))
+    guard.motion.connect(lambda axis, value: raw.append((axis, value)))
+    guard.start()
+    events[:] = [input_event(2, 0, 3), input_event(2, 1, -2), input_event(2, 0, 4),
+                 input_event(2, 8, 1), input_event(0, 0, stamp=12.125),
+                 input_event(2, 0, -1), input_event(0, 0, stamp=12.25)]
+    guard._read(device.path)
+    assert frames == [(7, -2, 12.125), (-1, 0, 12.25)]
+    assert raw == [(0, 3), (1, -2), (0, 4), (8, 1), (0, -1)]
+
+
+def test_partial_motion_frame_waits_for_report_across_device_reads(pointer_device, monkeypatch):
+    monkeypatch.setattr('udeck.pointer.fcntl.ioctl', lambda *arguments: 0)
+    guard, device, events, _ = pointer_device
+    frames = []
+    guard.motionFrame.connect(lambda x, y, stamp: frames.append((x, y, stamp)))
+    guard.start()
+    events[:] = [input_event(2, 0, 5)]
+    guard._read(device.path)
+    assert frames == []
+    events[:] = [input_event(2, 1, -1), input_event(0, 0, stamp=19.75)]
+    guard._read(device.path)
+    assert frames == [(5, -1, 19.75)]
+
+
+def test_motion_frame_precedes_button_release_in_the_same_report(pointer_device, monkeypatch):
+    monkeypatch.setattr('udeck.pointer.fcntl.ioctl', lambda *arguments: 0)
+    guard, device, events, _ = pointer_device
+    delivered = []
+    guard.motionFrame.connect(lambda x, y, stamp: delivered.append(('motion', x, y, stamp)))
+    guard.middleButton.connect(lambda pressed: delivered.append(('button', pressed)))
+    guard.middleButtonTimed.connect(lambda pressed, stamp: delivered.append(('timed', pressed, stamp)))
+    guard.start()
+    events[:] = [input_event(1, 274, 1, stamp=12)]
+    guard._read(device.path)
+    delivered.clear()
+    events[:] = [input_event(2, 0, 5), input_event(2, 1, -2),
+                 input_event(1, 274, 0, stamp=12.125), input_event(0, 0, stamp=12.25)]
+    guard._read(device.path)
+    assert delivered == [('motion', 5, -2, 12.125), ('button', False), ('timed', False, 12.125)]
+
+
+def test_dropped_report_discards_partial_and_recovery_motion(pointer_device, monkeypatch):
+    monkeypatch.setattr('udeck.pointer.fcntl.ioctl', lambda *arguments: 0)
+    guard, device, events, _ = pointer_device
+    frames = []
+    guard.motionFrame.connect(lambda x, y, stamp: frames.append((x, y, stamp)))
+    guard.start()
+    events[:] = [input_event(2, 0, 8), input_event(0, 3), input_event(2, 1, 999),
+                 input_event(0, 0, stamp=20), input_event(2, 0, 2), input_event(2, 1, 3),
+                 input_event(0, 0, stamp=20.25)]
+    guard._read(device.path)
+    assert frames == [(2, 3, 20.25)]
+
+
+def test_unplug_discards_partial_motion_before_reusing_device_path(pointer_device, monkeypatch):
+    monkeypatch.setattr('udeck.pointer.fcntl.ioctl', lambda *arguments: 0)
+    guard, device, events, _ = pointer_device
+    frames = []
+    guard.motionFrame.connect(lambda x, y, stamp: frames.append((x, y, stamp)))
+    guard.start()
+    events[:] = [input_event(2, 0, 9)]
+    guard._read(device.path)
+    guard._remove(device.path)
+    guard._scan()
+    events[:] = [input_event(2, 1, 2), input_event(0, 0, stamp=21.5)]
+    guard._read(device.path)
+    assert frames == [(0, 2, 21.5)]
+
+
+def test_motion_frame_falls_back_to_monotonic_read_time(pointer_device, monkeypatch):
+    def unsupported_clock(*arguments):
+        raise OSError('unsupported clock')
+
+    monkeypatch.setattr('udeck.pointer.fcntl.ioctl', unsupported_clock)
+    monkeypatch.setattr('udeck.pointer.time.monotonic', lambda: 22.25)
+    guard, device, events, _ = pointer_device
+    frames = []
+    guard.motionFrame.connect(lambda x, y, stamp: frames.append((x, y, stamp)))
+    guard.start()
+    events[:] = [input_event(2, 0, 1), input_event(0, 0, stamp=999)]
+    guard._read(device.path)
+    assert frames == [(1, 0, 22.25)]
+
+
+@pytest.mark.parametrize('gate', ['locked', 'suspended', 'diagnostic'])
+def test_unsafe_partial_motion_is_not_replayed_after_recovery(pointer_device, tmp_path, gate):
+    from udeck.controller import ShellController
+    from udeck.core import ConfigStore
+    from udeck.mock import MockBackend
+    from udeck.trackball import TrackballInput
+    from udeck.virtual_input import VirtualInput
+
+    guard, device, events, _ = pointer_device
+    controller = ShellController(MockBackend(), config=ConfigStore(tmp_path / 'config.json'), mock=True)
+    output = VirtualInput()
+    output.available = True
+    output.pointer = 20
+    requests = []
+    output._request = lambda *arguments: requests.append(arguments)
+    output._flush = lambda: None
+    trackball = TrackballInput(guard, controller, output=output)
+    controller.foregroundChanged.emit(True)
+    guard.start()
+    try:
+        if gate == 'locked':
+            controller.backend.updated.emit({'sessionInput': {'available': True, 'active': True, 'locked': True}})
+        elif gate == 'suspended':
+            controller.inputSuspended.emit(True)
+        else:
+            controller.activateSetting('key-test')
+        events[:] = [input_event(2, 0, 9)]
+        guard._read(device.path)
+        if gate == 'locked':
+            controller.backend.updated.emit({'sessionInput': {'available': True, 'active': True, 'locked': False}})
+        elif gate == 'suspended':
+            controller.inputSuspended.emit(False)
+        else:
+            controller.dispatch('back')
+        events[:] = [input_event(0, 0)]
+        guard._read(device.path)
+        assert requests == []
+        events[:] = [input_event(2, 0, 2), input_event(2, 1, -1), input_event(0, 0)]
+        guard._read(device.path)
+        assert [request[1] for request in requests] == [0, 4]
+        assert (requests[0][3].value, requests[0][4].value) == (2048, -1024)
+    finally:
+        trackball.close()
+        output.close()
+        controller.close()
+
+
+def test_wheel_and_external_pointer_do_not_create_trackball_frames(pointer_device):
+    guard, device, events, _ = pointer_device
+    frames = []
+    guard.motionFrame.connect(lambda x, y, stamp: frames.append((x, y, stamp)))
+    guard.start()
+    events[:] = [input_event(2, 8, 1), input_event(0, 0)]
+    guard._read(device.path)
+    assert frames == []
+    guard._remove(device.path)
+    device.info.vendor = 0x1234
+    device.name = 'External Mouse'
+    guard._scan()
+    events[:] = [input_event(2, 0, 3), input_event(2, 1, -2), input_event(0, 0)]
+    guard._read(device.path)
+    assert frames == []
 
 
 def test_trackball_recovery_cancels_gesture_before_releasing_diagnostic_edge(pointer_device):
