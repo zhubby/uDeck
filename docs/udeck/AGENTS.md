@@ -78,6 +78,8 @@ terminal.md: uDeck Terminal v1 使用与维护。
 text-review-2026-11-13.md: 系统文案审查与修复（2026-11-13）。
 themes-2026-11-07.md: uDeck 0.1.9 全局主题。
 trackball-console-2026-11-10.md: 轨迹球点击与全局控制台。
+trackball-direction-2026-11-25.md: 相对移动合帧、坐标连续性与实体采样边界。
+trackball-direction-2026-11-25.json: 源码身份、安装回归和真实合成器验证摘要。
 trackball-response-2026-11-25.md: 机身轨迹球共用移动倍率、输入隔离与实机验证。
 trackball-response-2026-11-25.json: 修复身份、安装版信号回归、运行文件及配置保留摘要。
 ts-seek-fix-2026-11-24.md: 长 GOP TS 索引适配、暂停意图、资源边界与实机复验。

@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖隔离会话、虚拟输入和独立 Qt 客户端。
-[OUTPUT]: 记录按键、按钮及实际鼠标坐标历史。
+[OUTPUT]: 固定原生窗口身份，记录按键、按钮及鼠标坐标。
 [POS]: 应用输入路由探针；PROBE 由轨迹球验收复用。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -22,11 +22,14 @@ from udeck.windows import APP_ID, WindowService
 PROBE = '''
 import json
 import sys
-from PySide6.QtCore import QEvent, QObject, QSocketNotifier
+from PySide6.QtCore import QCoreApplication, QEvent, QObject, QSocketNotifier
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
-application = QGuiApplication([])
-application.setDesktopFileName(sys.argv[2] if len(sys.argv) > 2 else 'io.github.zhubby.uDeck.CompatibilityProbe')
+app_id = sys.argv[2] if len(sys.argv) > 2 else 'io.github.zhubby.uDeck.CompatibilityProbe'
+QCoreApplication.setApplicationName(app_id)
+application = QGuiApplication([app_id])
+application.setApplicationName(app_id)
+application.setDesktopFileName(app_id)
 engine = QQmlApplicationEngine()
 engine.loadData(b'import QtQuick\\nimport QtQuick.Window\\nWindow { id: screen; width:1280; height:720; visible:true; visibility:Window.FullScreen; color:"#24282b"; property var keys:[]; property var buttons:[]; property int moves:0; property int wheels:0; Text { anchors.centerIn:parent; text:"uDeck application input check"; font.pixelSize:36; color:"#edb866" } FocusScope { anchors.fill:parent; focus:true; Keys.onPressed: function(event) { screen.keys = screen.keys.concat([{key:event.key, modifiers:event.modifiers}]); event.accepted=true } } MouseArea { anchors.fill:parent; hoverEnabled:true; acceptedButtons:Qt.LeftButton|Qt.RightButton; onPressed: function(mouse) { screen.buttons=screen.buttons.concat(["down:"+mouse.button]) }; onReleased: function(mouse) { screen.buttons=screen.buttons.concat(["up:"+mouse.button]) }; onPositionChanged: screen.moves++; onWheel: screen.wheels++ } }')
 window = engine.rootObjects()[0]

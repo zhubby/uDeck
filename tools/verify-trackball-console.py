@@ -34,6 +34,7 @@ from udeck.windows import APP_ID, WindowService
 
 
 class Pointer(QObject):
+    button = Signal(str, bool)
     middleButton = Signal(bool)
     middleButtonTimed = Signal(bool, float)
     reset = Signal()
@@ -95,9 +96,10 @@ def main():
             'check': label, 'actual': actual, 'expected': expected,
         }
 
-    def global_point(position):
+    def client_point(position):
         assert position is not None, 'Qt client did not receive pointer motion'
-        return position['globalX'], position['globalY']
+        # Wayland 不提供跨进程的全局原点；全屏窗口使用内容坐标。
+        return position['x'], position['y']
 
     def move_client(process, dx, dy, before, label):
         reset(process)
@@ -105,10 +107,10 @@ def main():
         pump()
         result = report(process)
         expected = (before[0] + dx * 4, before[1] + dy * 4)
-        actual = global_point(result['lastPosition'])
+        actual = client_point(result['lastPosition'])
         assert_point(actual, expected, label)
-        moved = [global_point(position) for position in result['motionPositions']
-                 if global_point(position) != before]
+        moved = [client_point(position) for position in result['motionPositions']
+                 if client_point(position) != before]
         assert moved, {'check': label, 'report': result}
         # Qt 可合并重复事件，但不应出现只更新一个轴的中间位置。
         for position in moved:
@@ -127,14 +129,13 @@ def main():
         assert bus.registerObject(CONTROL_PATH, CONTROL_INTERFACE, control, QDBusConnection.RegisterOption.ExportAllSlots)
         engine = QQmlApplicationEngine()
         engine.addImageProvider('desktop', IconProvider())
-        for name, value in (('controller', controller), ('windowedPreview', True), ('headlessPreview', False)):
+        for name, value in (('controller', controller), ('windowedPreview', False), ('headlessPreview', False)):
             engine.rootContext().setContextProperty(name, value)
         import udeck.main
 
         engine.load(str(Path(udeck.main.__file__).parent / 'qml/Main.qml'))
         assert engine.rootObjects()
         shell = engine.rootObjects()[0]
-        shell.showFullScreen()
         cursor = PointerCursor(shell, pointer=pointer)
         shell.setProperty('pointerCursor', cursor)
         shell.activeChanged.connect(lambda: controller.windowActive(shell.isActive()))
@@ -150,12 +151,15 @@ def main():
                 assert receive(process)['ready']
                 until(lambda title=title: any(entry['name'] == title and entry['active'] for entry in windows.entries()))
                 target = next(entry['id'] for entry in windows.entries() if entry['name'] == title)
+                assert windows.handles[target]['appId'] == 'io.github.zhubby.uDeck.Reader', windows.entries()
                 until(lambda target=target: not trackball.foreground and trackball.target and trackball.target[0] == target)
                 # 绝对定位只用于建立初始条件，后续生产位移全部走相对入口。
-                output.position, output.extent = (640, 360), (1280, 720)
+                # 两轮使用不同起点，避免 Qt 将同坐标的再次进入合并为无位移。
+                origin = (640, 360) if platform == 'wayland' else (608, 384)
+                output.position, output.extent = origin, (1280, 720)
                 output.move(0, 0)
                 pump()
-                position = global_point(report(process)['lastPosition'])
+                position = client_point(report(process)['lastPosition'])
                 # 故意污染旧坐标簿，验证相对移动不依赖旧绝对位置或范围。
                 output.position, output.extent = (21, 35), (193, 137)
                 movement_checks = []
@@ -179,13 +183,25 @@ def main():
                 assert len(controller.modal['options']) == 5
                 until(lambda: trackball.foreground)
                 pointer.motionFrame.emit(6, -2, time.monotonic())
-                until(lambda: cursor.visible)
+                try:
+                    until(lambda: cursor.visible)
+                except RuntimeError as error:
+                    raise AssertionError({'platform': platform, 'foreground': trackball.foreground,
+                                          'target': trackball._target(), 'outputAvailable': output.available,
+                                          'outputError': output.error,
+                                          'shell': [shell.isActive(), shell.isVisible(), shell.isExposed(), shell.visibility().value],
+                                          'geometry': [shell.x(), shell.y(), shell.width(), shell.height()],
+                                          'windows': windows.entries(), 'client': report(process)}) from error
                 pump()
-                shell_point = shell.mapToGlobal(cursor.position.toPoint())
-                actual_shell = (shell_point.x(), shell_point.y())
-                assert_point(actual_shell, (position[0] + 24, position[1] - 8), 'application to desktop continuity')
+                actual_shell = (cursor.position.x(), cursor.position.y())
+                assert_point(actual_shell, (position[0] + 24, position[1] - 8),
+                             'application to desktop continuity ' + json.dumps({
+                                 'platform': platform, 'shellGeometry': [shell.x(), shell.y(), shell.width(), shell.height()],
+                                 'visibility': shell.visibility().value, 'lastClient': inputs['lastPosition'],
+                                 'shellMouse': [cursor._last_mouse_position.x(), cursor._last_mouse_position.y()],
+                             }))
                 desktop_check = {'previousApplicationPosition': list(position), 'rawDelta': [6, -2],
-                                 'actualDotGlobalPosition': list(actual_shell)}
+                                 'actualDotContentPosition': list(actual_shell)}
                 output.chord((1,))
                 until(lambda target=target: not controller.modal and any(entry['id'] == target and entry['active'] for entry in windows.entries()))
                 until(lambda: not trackball.foreground)

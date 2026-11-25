@@ -1,0 +1,587 @@
+{
+  "status": "passed-software-validation-physical-acceptance-deferred",
+  "sourceRevision": "21be999b664dc3efa63f3675bf80dbdd675a40f9",
+  "build": {
+    "schema": 1,
+    "recorded": true,
+    "version": "1.0.4",
+    "sourceRevision": "21be999b664dc3efa63f3675bf80dbdd675a40f9",
+    "sourceDirty": false,
+    "sourceContentSha256": "1beac9bca0694fc2c777960b0a2a59b90341011489c658aebed6fdeb0a521e85",
+    "sourceFileCount": 1499,
+    "buildId": "87bb59c703d832fe2b64a96ef3bb1ddee7c9c82ba28211579da41d61d3bdefe5"
+  },
+  "implementation": {
+    "motionFraming": "SYN_REPORT; flush before EV_KEY; retain partial reads; clear on drop, unplug, unsafe session or diagnostics",
+    "desktopAndApplicationMotion": "compositor relative motion; one signed double-axis frame",
+    "timestamp": "kernel monotonic when supported; read monotonic fallback",
+    "desktopDot": "Qt compositor mouse position",
+    "pixelsPerCount": 4,
+    "axisInversionOrSwapChanged": false,
+    "firmwareChanged": false
+  },
+  "sourceValidation": {
+    "targetedTests": {
+      "tests": 189,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "targetedFiles": [
+      {
+        "file": "tests/test_pointer.py",
+        "tests": 29,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "file": "tests/test_trackball.py",
+        "tests": 32,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "file": "tests/test_virtual_input.py",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "file": "tests/test_compatibility.py",
+        "tests": 42,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "file": "tests/test_cursor.py",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "file": "tests/test_apps_routing.py",
+        "tests": 33,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "file": "tests/test_terminal_routing.py",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "file": "tests/test_input.py",
+        "tests": 26,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "file": "tests/test_qml_cache.py",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "ruff": "passed",
+    "uvLockCheck": "passed",
+    "versionCheck": "passed",
+    "diffCheck": "passed",
+    "ci": {
+      "status": "success",
+      "sourceRevision": "21be999b664dc3efa63f3675bf80dbdd675a40f9",
+      "url": "https://github.com/zhubby/uDeck/actions/runs/45525001362"
+    }
+  },
+  "device": {
+    "model": "uConsole CM4",
+    "packageVersion": "1.0.4",
+    "deployment": "targeted source overlay",
+    "filesUpdated": 6,
+    "runtimeFilesVerified": 529,
+    "backupDirectory": "/var/backups/udeck-trackball-direction-1795569653731330235",
+    "installedTests": {
+      "tests": 122,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "files": [
+        {
+          "file": "compatibility",
+          "tests": 42,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "cursor",
+          "tests": 12,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "pointer",
+          "tests": 29,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "trackball",
+          "tests": 32,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "virtual_input",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    "formalCompositor": {
+      "passed": true,
+      "kind": "synthetic-real-compositor",
+      "screen": {
+        "width": 1280,
+        "height": 720
+      },
+      "session": {
+        "Seat": "seat0",
+        "Leader": "1872029",
+        "Active": "yes"
+      },
+      "checks": [
+        {
+          "requested": [
+            40,
+            0
+          ],
+          "observed": [
+            40,
+            0
+          ],
+          "transportMilliseconds": 2.589
+        },
+        {
+          "requested": [
+            0,
+            40
+          ],
+          "observed": [
+            0,
+            40
+          ],
+          "transportMilliseconds": 2.635
+        },
+        {
+          "requested": [
+            -40,
+            -40
+          ],
+          "observed": [
+            -40,
+            -40
+          ],
+          "transportMilliseconds": 2.527
+        },
+        {
+          "requested": [
+            -24,
+            12
+          ],
+          "observed": [
+            -24,
+            12
+          ],
+          "transportMilliseconds": 2.662
+        },
+        {
+          "requested": [
+            24,
+            -12
+          ],
+          "observed": [
+            24,
+            -12
+          ],
+          "transportMilliseconds": 2.904
+        }
+      ],
+      "physicalAcceptance": false,
+      "output": {
+        "name": "DSI-1",
+        "physicalSize": [
+          720,
+          1280
+        ],
+        "transform": 270,
+        "scale": 1,
+        "logicalSize": [
+          1280,
+          720
+        ]
+      },
+      "measurementBoundary": "VirtualInput submission to Qt event; excludes physical sensor and evdev latency"
+    },
+    "privateCompositor": {
+      "passed": true,
+      "syntheticOwnedCompositor": true,
+      "checks": [
+        {
+          "platform": "wayland",
+          "clicks": [
+            "down:1",
+            "up:1",
+            "down:2",
+            "up:2"
+          ],
+          "globalShortcut": true,
+          "restoredWindow": true,
+          "recoveryDidNotClick": true,
+          "movement": [
+            {
+              "check": "positive diagonal",
+              "rawDelta": [
+                12,
+                3
+              ],
+              "expectedDelta": [
+                48,
+                12
+              ],
+              "actualPosition": [
+                688,
+                372
+              ],
+              "qtMotionPositions": [
+                {
+                  "x": 688,
+                  "y": 372,
+                  "globalX": 688,
+                  "globalY": 372
+                }
+              ]
+            },
+            {
+              "check": "negative diagonal",
+              "rawDelta": [
+                -5,
+                -7
+              ],
+              "expectedDelta": [
+                -20,
+                -28
+              ],
+              "actualPosition": [
+                668,
+                344
+              ],
+              "qtMotionPositions": [
+                {
+                  "x": 668,
+                  "y": 344,
+                  "globalX": 668,
+                  "globalY": 344
+                }
+              ]
+            },
+            {
+              "check": "horizontal only",
+              "rawDelta": [
+                5,
+                0
+              ],
+              "expectedDelta": [
+                20,
+                0
+              ],
+              "actualPosition": [
+                688,
+                344
+              ],
+              "qtMotionPositions": [
+                {
+                  "x": 688,
+                  "y": 344,
+                  "globalX": 688,
+                  "globalY": 344
+                }
+              ]
+            },
+            {
+              "check": "vertical only",
+              "rawDelta": [
+                0,
+                -4
+              ],
+              "expectedDelta": [
+                0,
+                -16
+              ],
+              "actualPosition": [
+                688,
+                328
+              ],
+              "qtMotionPositions": [
+                {
+                  "x": 688,
+                  "y": 328,
+                  "globalX": 688,
+                  "globalY": 328
+                }
+              ]
+            },
+            {
+              "check": "desktop to application continuity",
+              "rawDelta": [
+                -4,
+                5
+              ],
+              "expectedDelta": [
+                -16,
+                20
+              ],
+              "actualPosition": [
+                696,
+                340
+              ],
+              "qtMotionPositions": [
+                {
+                  "x": 696,
+                  "y": 340,
+                  "globalX": 696,
+                  "globalY": 340
+                }
+              ]
+            }
+          ],
+          "desktopContinuity": {
+            "previousApplicationPosition": [
+              688,
+              328
+            ],
+            "rawDelta": [
+              6,
+              -2
+            ],
+            "actualDotContentPosition": [
+              712,
+              320
+            ]
+          },
+          "staleAbsoluteBookkeepingIgnored": true
+        },
+        {
+          "platform": "xcb",
+          "clicks": [
+            "down:1",
+            "up:1",
+            "down:2",
+            "up:2"
+          ],
+          "globalShortcut": true,
+          "restoredWindow": true,
+          "recoveryDidNotClick": true,
+          "movement": [
+            {
+              "check": "positive diagonal",
+              "rawDelta": [
+                12,
+                3
+              ],
+              "expectedDelta": [
+                48,
+                12
+              ],
+              "actualPosition": [
+                656,
+                396
+              ],
+              "qtMotionPositions": [
+                {
+                  "x": 656,
+                  "y": 396,
+                  "globalX": 656,
+                  "globalY": 396
+                }
+              ]
+            },
+            {
+              "check": "negative diagonal",
+              "rawDelta": [
+                -5,
+                -7
+              ],
+              "expectedDelta": [
+                -20,
+                -28
+              ],
+              "actualPosition": [
+                636,
+                368
+              ],
+              "qtMotionPositions": [
+                {
+                  "x": 636,
+                  "y": 368,
+                  "globalX": 636,
+                  "globalY": 368
+                }
+              ]
+            },
+            {
+              "check": "horizontal only",
+              "rawDelta": [
+                5,
+                0
+              ],
+              "expectedDelta": [
+                20,
+                0
+              ],
+              "actualPosition": [
+                656,
+                368
+              ],
+              "qtMotionPositions": [
+                {
+                  "x": 656,
+                  "y": 368,
+                  "globalX": 656,
+                  "globalY": 368
+                }
+              ]
+            },
+            {
+              "check": "vertical only",
+              "rawDelta": [
+                0,
+                -4
+              ],
+              "expectedDelta": [
+                0,
+                -16
+              ],
+              "actualPosition": [
+                656,
+                352
+              ],
+              "qtMotionPositions": [
+                {
+                  "x": 656,
+                  "y": 352,
+                  "globalX": 656,
+                  "globalY": 352
+                }
+              ]
+            },
+            {
+              "check": "desktop to application continuity",
+              "rawDelta": [
+                -4,
+                5
+              ],
+              "expectedDelta": [
+                -16,
+                20
+              ],
+              "actualPosition": [
+                664,
+                364
+              ],
+              "qtMotionPositions": [
+                {
+                  "x": 664,
+                  "y": 364,
+                  "globalX": 664,
+                  "globalY": 364
+                }
+              ]
+            }
+          ],
+          "desktopContinuity": {
+            "previousApplicationPosition": [
+              656,
+              352
+            ],
+            "rawDelta": [
+              6,
+              -2
+            ],
+            "actualDotContentPosition": [
+              680,
+              344
+            ]
+          },
+          "staleAbsoluteBookkeepingIgnored": true
+        }
+      ],
+      "isolation": "private D-Bus, headless labwc pixman, temporary configuration",
+      "measurementBoundary": "installed modules with synthetic motion frames and owned Wayland/Xwayland clients; no physical actuation",
+      "probeCorrections": [
+        "initialize application identity before QGuiApplication for WM_CLASS",
+        "start shell full screen through windowedPreview=False",
+        "use full-screen content positions because Wayland global origins are process-local",
+        "use distinct platform origins to avoid Qt process-local duplicate-position filtering"
+      ]
+    },
+    "finalHealth": {
+      "status": "passed",
+      "sourceRevision": "21be999b664dc3efa63f3675bf80dbdd675a40f9",
+      "buildId": "87bb59c703d832fe2b64a96ef3bb1ddee7c9c82ba28211579da41d61d3bdefe5",
+      "runtimeFilesVerified": 529,
+      "globalConfigurationFilesUnchanged": 5,
+      "applicationPidAndStartTicksPreserved": [
+        "music",
+        "video",
+        "browser",
+        "reader",
+        "emulator",
+        "terminal"
+      ],
+      "supervisorPreserved": true,
+      "compositorPreserved": true,
+      "pointerDeviceAvailable": true,
+      "virtualInputAvailable": true,
+      "sessionSafe": true,
+      "serviceErrors": {},
+      "packageAudit": "passed",
+      "physicalAcceptance": "awaiting-user-feedback"
+    }
+  },
+  "physicalAcceptance": {
+    "status": "deferred-by-user",
+    "physicalDirectionSamplesTaken": false,
+    "physicalFeelAccepted": false,
+    "calibrationPromptLaunched": false
+  },
+  "delivery": {
+    "corePushedToMain": true,
+    "installedRevision": "21be999b664dc3efa63f3675bf80dbdd675a40f9",
+    "followupScope": "validation tools and acceptance documentation; runtime unchanged",
+    "versionBump": false,
+    "tagCreated": false,
+    "releaseCreated": false
+  },
+  "evidence": {
+    "local": "artifacts/trackball-direction-20261125/",
+    "device": "/var/tmp/udeck-trackball-direction-20261125/",
+    "deviceEvidenceArchiveSha256": "8a091f64cbe551a08ec91ff932c03a8f80f79e0d78242868e746570879f244cb",
+    "sourceSummary": "source-tests/merged-summary.json",
+    "deviceSummary": "device-evidence/final-checks.json"
+  }
+}
