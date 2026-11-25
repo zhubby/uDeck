@@ -9,8 +9,8 @@ src/udeck/apps/emulator/ - 游戏库、RetroArch 与存档编排。见该目录 
 src/udeck/emulator_saves/ - 原生存档、历史快照与云同步。
 src/udeck/runtime_console/ - 应用运行统计、进程身份与退出编排。
 tests/ - pytest 回归与独立进程探针。见该目录 AGENTS.md。
-docs/ - 设计、运行说明与验证记录。
-docs/motion/ - 桌面短过渡与输入连续性验证。
+docs/ - 当前产品设计、技术契约与维护指南。
+docs/motion/ - 桌面短过渡、输入连续性与响应约束。
 docs/readme/ - 英文首页的实机截图与来源记录。
 packaging/ - 会话入口、服务与运行包装。
 debian/ - Debian 单包构建与安装脚本。

@@ -1,6 +1,6 @@
-# uDeck Terminal v1 使用与维护
+# uDeck Terminal 使用与维护
 
-uDeck Terminal 是独立的 QApplication / Qt Quick 应用，每个标签拥有自己的原生终端缓冲和 PTY。返回主页、切换应用或最小化不会结束任务；关闭标签或窗口时先确认，默认选择取消。应用退出后不恢复运行任务，首版不使用 tmux 托管。
+uDeck Terminal 是独立的 QApplication / Qt Quick 应用，每个标签拥有自己的原生终端缓冲和 PTY。返回主页、切换应用或最小化不会结束任务；关闭标签或窗口时先确认，默认选择取消。应用退出后不恢复运行任务，不自动使用 tmux 托管。
 
 ## 构建与安装
 
@@ -15,13 +15,13 @@ udeck-terminal
 
 插件安装在 `/usr/lib/udeck-terminal/qml/QMLTermWidget`，不占用系统公共 QML 模块目录。终端及共享代码统一由 `udeck` 包拥有，运行不依赖桌面进程。源码 wheel 包含 Python/QML、字体和词条，仍需单独构建目标 Qt 的原生插件；wheel 不携带平台二进制。完整安装与发布说明见 [Debian 发行文档](debian-distribution.md)。
 
-语言跟随 uDeck 的 `Settings → Language` 设置，首次默认英文。已打开的 0.1.1 终端会在一秒内同步切换菜单和提示，不重建 PTY，也不翻译命令、输出、窗口标题或粘贴内容。旧版本中正在运行的终端保留原进程，关闭后再次启动才加载新版本。
+语言跟随 uDeck 的 `Settings → Language` 设置，首次默认英文。已打开的终端会在一秒内同步切换菜单和提示，不重建 PTY，也不翻译命令、输出、窗口标题或粘贴内容。旧版本中正在运行的终端保留原进程，关闭后再次启动才加载新版本。
 
 安全界面预览不启动 shell，也不写用户配置：
 
 ```sh
-PYTHONPATH=src python3 -m udeck.terminal.main --mock --windowed
-QT_QPA_PLATFORM=offscreen PYTHONPATH=src python3 -m udeck.terminal.main --mock --windowed --smoke-test --screenshot artifacts/terminal.png
+env PYTHONPATH=src python3 -m udeck.terminal.main --mock --windowed
+env QT_QPA_PLATFORM=offscreen PYTHONPATH=src python3 -m udeck.terminal.main --mock --windowed --smoke-test --screenshot artifacts/terminal.png
 ```
 
 ## 启动契约
@@ -29,7 +29,7 @@ QT_QPA_PLATFORM=offscreen PYTHONPATH=src python3 -m udeck.terminal.main --mock -
 ```sh
 udeck-terminal
 udeck-terminal --new-window
-udeck-terminal --working-directory '/home/zhubby/中文 目录'
+udeck-terminal --working-directory '/home/user/中文 目录'
 udeck-terminal -T '维护任务' -e ssh host.example
 udeck-terminal -- python3 script.py '中文 空格' 'literal $HOME'
 ```
@@ -53,7 +53,7 @@ Wayland 下按窗口管理器报告的活动窗口 ID 记录最近使用顺序�
 | Ctrl+Shift+C / V | 复制 / 粘贴 | 危险粘贴先预览 |
 | Ctrl+Shift+F / M | 搜索 / 菜单 | Esc 返回 |
 
-普通字母、实体 Esc、F1、F10、PageUp/PageDown 保留给终端程序；不会将普通字母 A/B/X/Y 转换成掌机动作。鼠标点击与滚轮在终端内部被消费。SSH 使用系统 OpenSSH；SSH 收藏、串口与分屏不在首版范围。
+普通字母、实体 Esc、F1、F10、PageUp/PageDown 保留给终端程序；不会将普通字母 A/B/X/Y 转换成掌机动作。鼠标点击与滚轮在终端内部被消费。SSH 使用系统 OpenSSH；不提供 SSH 收藏、串口和分屏入口。
 
 复制：X → 历史与复制 → 方向键定位 → A 设置起点 → 方向键扩选 → A 复制并回到输入。B 取消。选区直接操作原生缓冲，宽字符的续格不会成为端点。搜索区分大小写、按普通文本匹配；Enter/下方向查找下一处，上方向查找上一处，支持回绕。
 
@@ -79,7 +79,7 @@ uDeck 的 PointerGuard 持续持有会话级鼠标接口。桌面依据 foreign-
 
 原桌面下，终端只在前台独占已确认指纹的 `ClockworkPI uConsole Mouse` 接口，失焦立即释放；外置鼠标不变成 L/R。ABXY 使用既有 Gamepad 和校准配置，失焦、热拔插或事件丢失后清空状态，重新获取前等待所有键松开。
 
-返回主页：uDeck 运行时通过它的 `Home` 接口返回；原桌面下最小化终端。两种方式都保留 PTY。升级基础包后需要重启桌面进程才能启用新的 L/R broker；只启动终端即可在原桌面独立使用。
+返回主页通过运行中的 uDeck `Home` 接口请求。桌面服务不可用时保留终端并显示说明，不回退到最小化。终端本身仍可在原桌面独立运行。返回和窗口切换均保留 PTY；L/R 路由依据当前桌面与终端已加载的代码。
 
 ## 默认终端与恢复
 
@@ -95,7 +95,7 @@ sudo udeck-terminal-default restore --system
 先完成安装版验收。只保留一个窗口、一个本地 shell，空闲后采样：
 
 ```sh
-PYTHONPATH=src python3 tools/terminal-acceptance --output artifacts/cm4-terminal-acceptance.json
+env PYTHONPATH=src python3 tools/terminal-acceptance --output artifacts/cm4-terminal-acceptance.json
 udeck-terminal --doctor
 ```
 
@@ -104,9 +104,9 @@ udeck-terminal --doctor
 采样会比对终端启动时缓存的构建 ID 与当前安装包，拒绝源码版和升级前仍在运行的进程。启动耗时基于 Linux 进程启动时刻与首帧记录，包含 Python/Qt 导入时间；另列 main 入口至首帧的原始诊断值。升级后先关闭旧终端并重新启动，再生成验收记录。
 
 ```sh
-udeck-terminal-default status --user zhubby
-sudo udeck-terminal-default apply --user zhubby
-sudo udeck-terminal-default restore --user zhubby --backup /var/lib/udeck-terminal/defaults/<id>.json
+udeck-terminal-default status --user USER
+sudo udeck-terminal-default apply --user USER
+sudo udeck-terminal-default restore --user USER --backup /var/lib/udeck-terminal/defaults/<id>.json
 ```
 
 工具备份 alternative 的选择、auto/manual 状态、是否已有注册，以及系统和目标用户的 XDG 列表与受支持桌面绑定。它更新已有 `*-xdg-terminals.list`，保留旧候选项顺序；迁移 labwc/Openbox 的命令和 libfm/PCManFM/LXSession 的明确终端命令。符号链接或未知终端参数会在任何修改前阻止 apply，需要手动处理。备份为 root 私有；恢复会拒绝覆盖 apply 后另行修改的文件。
@@ -115,7 +115,7 @@ sudo udeck-terminal-default restore --user zhubby --backup /var/lib/udeck-termin
 
 1. `x-terminal-emulator`、`xdg-terminal-exec`。
 2. uDeck Ctrl+Alt+T、文件页“在此打开终端”、应用列表。
-3. `Terminal=true` 应用：Gio 主路径和缺少 GI 的后备路径。
+3. 内置终端入口拒绝桌面元数据中的自定义命令。
 4. 原桌面的终端快捷键及文件管理器动作，包括含中文和空格的目录。
 5. 恢复原默认并重新验证，再根据验收结果重新 apply。
 
@@ -132,8 +132,8 @@ sudo udeck-terminal-default restore --user zhubby --backup /var/lib/udeck-termin
 安装后的自动验收脚本从系统包导入应用，避免把源码运行误记为安装版通过。在设备图形会话的环境中分别执行：
 
 ```sh
-QT_QPA_PLATFORM=wayland python3 tests/terminal_device_probe.py --output artifacts/installed-wayland-probe.json
-QT_QPA_PLATFORM=xcb python3 tests/terminal_device_probe.py --output artifacts/installed-xwayland-probe.json
+env QT_QPA_PLATFORM=wayland python3 tests/terminal_device_probe.py --output artifacts/installed-wayland-probe.json
+env QT_QPA_PLATFORM=xcb python3 tests/terminal_device_probe.py --output artifacts/installed-xwayland-probe.json
 python3 tests/terminal_ipc_probe.py --output artifacts/installed-ipc-probe.json
 python3 tests/terminal_default_device_probe.py --output artifacts/installed-default-rehearsal.json
 ```
@@ -147,3 +147,5 @@ dbus-run-session -- env PYTHONPATH=src python3 tests/terminal_ipc_probe.py --way
 ```
 
 `tests/terminal_device_audit_probe.py --output artifacts/terminal-audit` 使用临时配置和原生 PTY 检查多窗口字号、菜单焦点、普通文本搜索、冻结粘贴和取消关闭；Wayland 下额外验证同名窗口的最近窗口恢复。可选 `--evdev-keyboard` 需要 `/dev/uinput` 权限，等待虚拟键盘输入实际到达后，再检查“内核输入 → compositor → Qt → PTY”的字母、菜单、搜索和粘贴路径；这仍不等于真人操作 uConsole 的实体按键或中文输入法候选窗验收。
+
+[PROTOCOL]: Update this header on change, then check AGENTS.md

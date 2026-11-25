@@ -45,3 +45,5 @@ Gamepad、Select／Start 和内置肩键使用实际输入边沿。方向轴支�
 ## 验收边界
 
 自动化覆盖真实 QQuickWindow 的键盘按下／松开、自动重复抑制、组合、普通字母、短按及长按返回，以及设备事件模拟、断开、焦点和弹层打断。截图使用 Mock，不证明实体按键正常。实机可只读核对时区服务、有效列表、无变化请求和安装完整性；主动修改系统时区、图形认证与现场实体按键另外记录，不能用管理员命令或模拟事件替代。
+
+[PROTOCOL]: Update this header on change, then check AGENTS.md

@@ -65,10 +65,11 @@ uv sync --locked --extra dev
 uv run --locked --extra dev udeck --mock --windowed
 ```
 
-See [development and testing](docs/udeck/README.zh-CN.md) for the complete workflow.
+See [development and testing](docs/udeck/development.md) for the complete workflow.
 
 ## Documentation
 
+- [Documentation index (Chinese)](docs/README.md)
 - [User guide (Chinese)](docs/udeck/README.zh-CN.md)
 - [Native applications](docs/apps/README.md)
 - [Console](docs/console/README.md)

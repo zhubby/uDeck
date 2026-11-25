@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖正式按键素材、来源清单和独立 QML 探针。
+[OUTPUT]: 校验许可、资源哈希、图片规格和缩放呈现。
+[POS]: 输入提示回归；正式资源不依赖历史设计原型。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import hashlib
 import json
 import os
@@ -22,8 +29,6 @@ def test_kenney_resources_are_bundled_with_provenance_and_license():
     for name, metadata in manifest["files"].items():
         content = (root / name).read_bytes()
         assert hashlib.sha256(content).hexdigest() == metadata["sha256"], name
-        prototype = root.parents[3] / "docs/design/app-suite/prototype/assets/input-prompts" / name
-        assert prototype.read_bytes() == content, name
         if name.endswith(".png"):
             assert content[:8] == b"\x89PNG\r\n\x1a\n", name
             assert struct.unpack(">II", content[16:24]) == (128, 128), name

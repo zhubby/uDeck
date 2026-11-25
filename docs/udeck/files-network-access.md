@@ -34,11 +34,12 @@ Debian 包包含 `udeck-network-files`、网页与字体资源、`python3-aiohtt
 开发时可运行隔离的本地预览：
 
 ```sh
-python -m udeck.network_files.daemon --standalone-root /path/to/test-folder --port 18787
+env PYTHONPATH=src uv run --locked --extra dev python -m udeck.network_files.daemon --standalone-root /path/to/test-folder --port 18787
 ```
 
 默认只监听 `127.0.0.1`。正式模式通过会话 D-Bus `io.github.zhubby.uDeck.NetworkFiles` 控制，网页不能控制服务启停。配置保存在 `$XDG_CONFIG_HOME/udeck/network-files.json`（默认 `~/.config/udeck/network-files.json`，权限 `0600`）。
 
-## 验证记录
+验证覆盖目录隔离、取消、网络撤销、并发和独立客户端传输。
+实际验收按[验证规范](validation.md)记录。
 
-原网页功能见[网络文件功能验收记录](files-network-access-validation.md)；入口迁移及 SMB 见[系统共享审查与验证](sharing-validation-2026-11-12.md)。
+[PROTOCOL]: Update this header on change, then check AGENTS.md

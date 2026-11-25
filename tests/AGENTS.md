@@ -134,7 +134,7 @@ test_hotspot_ui.py: pytest 回归入口，验证 hotspot_ui 边界。
 test_i18n.py: pytest 回归入口，验证 i18n 边界。
 test_i18n_qml.py: pytest 回归入口，验证 i18n_qml 边界。
 test_input.py: 焦点前事件保留、启动按键隔离、交接重试与断线重连回归。
-test_input_prompts.py: pytest 回归入口，验证 input_prompts 边界。
+test_input_prompts.py: 正式按键资源许可、哈希、图片规格与缩放呈现回归。
 test_interface_sounds.py: 语义音效限频、前台取消与播放线程连续性回归。
 test_interface_audio.py: 单流复用、空闲暂停、PCM 短写和设备恢复回归。
 test_interface_sounds_qml.py: pytest 回归入口，验证 interface_sounds_qml 边界。

@@ -1,5 +1,5 @@
 # readme/
-> L2 | Parent: ../../AGENTS.md
+> L2 | Parent: ../AGENTS.md
 
 成员清单：
 

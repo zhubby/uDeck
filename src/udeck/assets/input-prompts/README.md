@@ -8,12 +8,12 @@ The **Kenney Input Prompts** PNGs in this directory come from the
 Source: <https://kenney.nl/assets/input-prompts>
 
 `License.txt` is the unmodified upstream notice. `manifest.json` records the
-archive hash, original archive paths and hashes of all 27 selected PNGs.
-25 images are unmodified `Double` exports (128×128 with transparent padding).
+archive hash, original archive paths and hashes of the selected PNGs.
+Images use `Double` exports (128×128 with transparent padding).
 X and Y use the circular white B silhouette with its letter cutout filled,
 then the original X/Y letter cutout applied at its original position and size.
-These two adaptations keep the 128×128 canvas; their upstream inputs and
-transformations are recorded separately in the manifest.
+All other images remain unmodified. These two adaptations keep the 128×128 canvas;
+their upstream inputs and transformations are recorded separately in the manifest.
 They ship in the base package and wheel, with no network requests or SVG
 runtime dependencies.
 
@@ -23,5 +23,5 @@ ratio, so the software renderer receives smoothly resampled small images.
 Wide keyboard caps and the arrow cluster scale proportionally to match the
 visible height of square keys. Their layout slots grow with the artwork;
 the original PNGs, shapes and letter cutouts remain unchanged.
-The design prototype keeps byte-identical copies; resource tests check parity.
+Resource tests verify the bundled files against their provenance hashes.
 See `docs/design/input-prompts.md` for mapping, sizing and accessibility rules.
