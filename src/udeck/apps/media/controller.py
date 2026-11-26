@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖共享应用控制器、媒体引擎和会话 D-Bus。
-[OUTPUT]: 提供播放权限、暂停交接、队列与进度持久化。
+[OUTPUT]: 提供播放权限、暂停交接、控件导航、相对定位与进度持久化。
 [POS]: Music 与 Video 的共同控制层；由引擎报告播放状态。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -18,9 +18,12 @@ from udeck.sounds import interaction
 from .engine import MediaEngine
 
 PLAYBACK_SERVICE = "io.github.zhubby.uDeck.MediaPlayback"
+SEEK_STEP_SECONDS = 10
 
 
 class MediaController(AppController):
+    player_commands = ("previous", "play-pause", "next")
+
     def __init__(self, app, directory=None, language_path=None):
         super().__init__(app, directory, language_path)
         self.media = MediaEngine(self)
@@ -32,7 +35,7 @@ class MediaController(AppController):
         self.queue.repeat = self.store.data["preferences"].get("repeat", "off")
         self.queue.shuffle = bool(self.store.data["preferences"].get("shuffle", False))
         self.album = ""
-        self.controls = 1
+        self.controls = self.player_commands.index("play-pause")
         self.controls_visible = True
         self.inactive = 0
         self.external_cues = []
@@ -50,6 +53,11 @@ class MediaController(AppController):
     @Slot(float)
     def seek(self, seconds):
         self.media.seek(seconds)
+
+    def seek_by_step(self, forward):
+        self.inactive = 0
+        delta = SEEK_STEP_SECONDS if forward else -SEEK_STEP_SECONDS
+        self.media.seek(self.media.player.position() / 1000 + delta)
 
     def play(self, item, seconds=0, queued=False):
         item = self.library.require(item["id"])
@@ -127,15 +135,15 @@ class MediaController(AppController):
         self.inactive = 0
         if self.page == "player" and not self.menus:
             if action in ("left", "right"):
-                self.media.seek(self.media.player.position() / 1000 + (-10 if action == "left" else 10))
+                self.seek_by_step(action == "right")
             elif action in ("up", "down"):
                 previous = self.controls
-                self.controls = max(0, min(2, self.controls + (-1 if action == "up" else 1)))
+                self.controls = max(0, min(len(self.player_commands) - 1, self.controls + (-1 if action == "up" else 1)))
                 if self.controls != previous:
                     self.feedback("navigate")
             elif action == "accept":
                 if self.controls_visible:
-                    self.command(("previous", "play-pause", "next")[self.controls])
+                    self.command(self.player_commands[self.controls])
                 self.controls_visible = True
             elif action in ("previous-tab", "next-tab"):
                 self.command("previous" if action == "previous-tab" else "next")
@@ -161,6 +169,8 @@ class MediaController(AppController):
         elif command in ("previous", "next"):
             self.feedback("accept")
             self.attempt(lambda: self.next_track(-1 if command == "previous" else 1))
+        elif command in ("seek-backward", "seek-forward"):
+            self.seek_by_step(command == "seek-forward")
         elif command == "now-playing" and self.current:
             if self.page != "player":
                 self.enter("player")

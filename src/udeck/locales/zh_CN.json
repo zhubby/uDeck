@@ -935,6 +935,8 @@
   "searching": "搜索中…",
   "seconds_s_remaining": "预计剩余 {seconds} 秒",
   "security": "安全类型",
+  "seek_backward": "快退",
+  "seek_forward": "快进",
   "select": "选择",
   "select_a_window_to_continue": "选择一个窗口，继续工作",
   "select_all": "全选",

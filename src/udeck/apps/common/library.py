@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖 Qt 线程池、文件系统与 ffprobe 元数据。
-[OUTPUT]: 提供共享格式表、内容源身份与有界后台索引。
+[INPUT]: 依赖 Qt 线程池、文件系统、ffprobe 和视频封面提取器。
+[OUTPUT]: 提供共享格式表、内容源身份、后台索引与封面更新。
 [POS]: 内置应用的库扫描层；Files 共用格式表选择应用。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -17,6 +17,8 @@ from pathlib import Path
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
 
 from udeck.i18n import Msg, error_text, tr
+
+from .video_cover import generate_video_cover, video_cover_dir
 
 EXTENSIONS = {
     "music": {".mp3", ".flac", ".ogg", ".opus", ".m4a", ".aac", ".wav", ".aiff"},
@@ -79,7 +81,7 @@ def probe(path):
         return {}
 
 
-def scan(source, app, cancelled=lambda: False, metadata=False, cache=None):
+def scan(source, app, cancelled=lambda: False, metadata=False, cache=None, *, covers=None):
     items = []
     cache = cache or {}
     root = Path(source.path)
@@ -107,6 +109,10 @@ def scan(source, app, cancelled=lambda: False, metadata=False, cache=None):
                 tags = {k.lower(): v for k, v in info.get("format", {}).get("tags", {}).items()}
                 cover = next((p for p in (path.with_suffix(".jpg"), path.with_suffix(".png"),
                              path.parent / "cover.jpg", path.parent / "folder.jpg") if p.is_file() and not p.is_symlink()), None)
+                if cover is None and covers is not None:
+                    cached_cover = covers / (digest + ".jpg")
+                    if cached_cover.is_file():
+                        cover = cached_cover
                 items.append({"id": identifier, "sourceId": source.id, "path": str(path),
                               "relative": relative, "fingerprint": digest,
                               "stamp": [stat.st_size, stat.st_mtime_ns], "metadata": info,
@@ -127,6 +133,7 @@ def scan(source, app, cancelled=lambda: False, metadata=False, cache=None):
 
 class ScanSignals(QObject):
     done = Signal(int, str, list, object)
+    covers = Signal(int, str, object)
 
 
 class ScanTask(QRunnable):
@@ -134,14 +141,34 @@ class ScanTask(QRunnable):
         super().__init__()
         self.generation, self.source, self.app = generation, source, app
         self.cancel, self.cache = cancel, cache
+        self.cover_dir = video_cover_dir() if app == "video" else None
         self.signals = ScanSignals()
 
     def run(self):
         try:
-            items, error = scan(self.source, self.app, self.cancel.is_set, True, self.cache), ""
+            items, error = scan(self.source, self.app, self.cancel.is_set, True, self.cache, covers=self.cover_dir), ""
         except (OSError, ValueError) as exception:
             items, error = [], error_text(exception)
         self.signals.done.emit(self.generation, self.source.id, items, error)
+        if self.cover_dir is not None and items and (ffmpeg := shutil.which("ffmpeg")):
+            self.extract_covers(ffmpeg, items)
+
+    def extract_covers(self, ffmpeg, items):
+        batch = {}
+        for item in items:
+            if self.cancel.is_set() or not self.source.available():
+                return
+            if item["cover"]:
+                continue
+            target = self.cover_dir / (item["fingerprint"] + ".jpg")
+            cover = generate_video_cover(ffmpeg, item, target, self.cancel.is_set)
+            if cover is not None:
+                batch[item["id"]] = cover.as_uri()
+                if len(batch) == 8:
+                    self.signals.covers.emit(self.generation, self.source.id, batch)
+                    batch = {}
+        if batch:
+            self.signals.covers.emit(self.generation, self.source.id, batch)
 
 
 class Library(QObject):
@@ -200,6 +227,7 @@ class Library(QObject):
             self.pending.add(source.id)
             task = ScanTask(self.generation, source, self.app, self.cancel, cache)
             task.signals.done.connect(self._done)
+            task.signals.covers.connect(self._covers)
             self.tasks.append(task)
             QThreadPool.globalInstance().start(task)
         self.changed.emit()
@@ -217,6 +245,15 @@ class Library(QObject):
             self.state.save()
         except OSError as exception:
             self.errors[source_id] = error_text(exception)
+        self.changed.emit()
+
+    def _covers(self, generation, source_id, covers):
+        if generation != self.generation or self.cancel.is_set() or source_id in self.unavailable:
+            return
+        self.items = [
+            {**item, "cover": covers[item["id"]]} if item["id"] in covers else item
+            for item in self.items
+        ]
         self.changed.emit()
 
     def check_sources(self):

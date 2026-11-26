@@ -1,15 +1,18 @@
 """
 [INPUT]: 依赖真实媒体库、模拟器列表库和默认用户目录夹具。
-[OUTPUT]: 验证默认源发现、条目身份恢复和自定义源保留。
+[OUTPUT]: 验证默认源发现、条目身份恢复、自定义源保留和视频封面缓存。
 [POS]: 默认源回归；通过 Qt 事件泵和 GIL 让步等待扫描。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
+import shutil
+import subprocess
 import time
 from pathlib import Path
 
 import pytest
 from PySide6.QtCore import QCoreApplication, QThreadPool
+from PySide6.QtGui import QImage
 from test_games_catalog import installed
 
 from udeck.apps.common.library import Library, Source
@@ -57,6 +60,48 @@ def refresh(library):
     QCoreApplication.processEvents()
     assert not library.pending, {"pending": library.pending, "errors": library.errors}
     assert not any(library.errors.values())
+
+
+@pytest.mark.parametrize("embedded", [True, False])
+def test_video_library_fills_missing_cover_and_reuses_it(home, tmp_path, monkeypatch, embedded):
+    if not shutil.which("ffmpeg"):
+        pytest.skip("FFmpeg is required for the video cover fixture")
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "cache"))
+    source = home / "Video"
+    source.mkdir()
+    command = ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "color=blue:s=96x64:r=10:d=1"]
+    if embedded:
+        command += ["-f", "lavfi", "-i", "color=red:s=96x64:r=1:d=1", "-map", "0:v", "-map", "1:v",
+                    "-c:v:1", "mjpeg", "-disposition:v:1", "attached_pic", "-frames:v:1", "1"]
+    subprocess.run([*command, "-c:v:0", "mpeg4", str(source / "sample.mp4")],
+                   capture_output=True, check=True, timeout=10)
+    library = Library("video", AppState("video", tmp_path / "state"))
+    try:
+        refresh(library)
+        deadline = time.monotonic() + 5
+        while not library.items[0]["cover"] and time.monotonic() < deadline:
+            QCoreApplication.processEvents()
+            time.sleep(0.01)
+        cover_url = library.items[0]["cover"]
+        assert cover_url
+        covers = list((tmp_path / "cache").rglob("*.jpg"))
+        assert len(covers) == 1 and covers[0].as_uri() == cover_url
+        image = QImage(str(covers[0]))
+        assert not image.isNull()
+        pixel = image.pixelColor(image.width() // 2, image.height() // 2)
+        assert (pixel.red() > pixel.blue()) if embedded else (pixel.blue() > pixel.red())
+        stamp = covers[0].stat().st_mtime_ns
+        refresh(library)
+        assert library.items[0]["cover"] == cover_url
+        assert covers[0].stat().st_mtime_ns == stamp
+
+        sidecar = source / "sample.png"
+        assert image.save(str(sidecar))
+        refresh(library)
+        assert library.items[0]["cover"] == sidecar.as_uri()
+    finally:
+        library.close()
+        QThreadPool.globalInstance().waitForDone(5000)
 
 
 def test_default_folder_indexes_nested_content_and_restores_identity(application, tmp_path, home, content):

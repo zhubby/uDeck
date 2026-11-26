@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
-[INPUT]: 依赖视频控制器、共享主题和播放状态。
-[OUTPUT]: 显示视频、字幕和控件；报告窗口坐标中的指针活动。
+[INPUT]: 依赖视频控制器、共享主题、应用按钮和播放状态。
+[OUTPUT]: 显示视频、字幕和居中的播放图标；报告窗口坐标中的指针活动。
 [POS]: 视频应用的播放视图；页面过渡不计入指针活动。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Shapes
 import QtMultimedia
 import "../../../qml" as Shared
 import "../../common/qml"
@@ -19,6 +20,25 @@ Item {
     required property var host
     property var appState: host ? host.state : ({current:{},media:{}})
     function tr(s){return host?host.tr(s):s}
+
+    component PlaybackButton: SuiteButton {
+        id: playbackButton
+        required property string symbolPath
+        required property string command
+        colors: surface.colors
+        fontFamily: surface.host.fontFamily
+        iconComponent: Shape {
+            width: 24
+            height: 24
+            ShapePath {
+                fillColor: surface.colors.text
+                strokeColor: "transparent"
+                PathSvg { path: playbackButton.symbolPath }
+            }
+        }
+        onActivated: controller.command(command)
+    }
+
     Rectangle { anchors.fill: parent; color: "black" }
     Loader {
         anchors.fill: parent; z: 1
@@ -75,14 +95,54 @@ Item {
                 Slider { palette: surface.colors.controls; Layout.fillWidth: true; from:0;to:appState.media.duration||1;value:appState.media.position||0;onMoved:controller.seek(value) }
                 Text { font.family: surface.host.fontFamily; text:host?host.time(appState.media.position)+" / "+host.time(appState.media.duration):"";color:surface.colors.text;font.pixelSize:20 }
             }
-            RowLayout {
-                spacing: 18
-                SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: surface.tr(msg.PREVIOUS_CHAPTER); selected: appState.control===0; onActivated: controller.command("previous") }
-                SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: appState.media.playing?surface.tr(msg.PAUSE):surface.tr(msg.PLAY); selected: appState.control===1; onActivated: controller.command("play-pause") }
-                SuiteButton { fontFamily: surface.host.fontFamily; colors: surface.colors; text: surface.tr(msg.NEXT_CHAPTER); selected: appState.control===2; onActivated: controller.command("next") }
-                Item { Layout.fillWidth: true }
-                Shared.InputPrompt { keys: ["gamecube_button_x"]; label: surface.tr(msg.OPTIONS); fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 18 }
-                Shared.InputPrompt { keys: ["gamecube_button_color_b"]; label: surface.tr(msg.BACK); fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 18 }
+            Item {
+                Layout.fillWidth: true
+                Layout.preferredHeight: Math.max(playbackControls.implicitHeight, playbackHints.implicitHeight)
+                RowLayout {
+                    id: playbackControls
+                    anchors.centerIn: parent
+                    spacing: 18
+                    PlaybackButton {
+                        text: surface.tr(msg.PREVIOUS_CHAPTER)
+                        symbolPath: "M 4,4 H 7 V 20 H 4 Z M 20,4 L 8,12 L 20,20 Z"
+                        selected: appState.control === 0
+                        command: "previous"
+                    }
+                    PlaybackButton {
+                        text: surface.tr(msg.SEEK_BACKWARD)
+                        symbolPath: "M 12,5 L 2,12 L 12,19 Z M 22,5 L 12,12 L 22,19 Z"
+                        selected: appState.control === 1
+                        command: "seek-backward"
+                    }
+                    PlaybackButton {
+                        text: surface.tr(appState.media.playing ? msg.PAUSE : msg.PLAY)
+                        symbolPath: appState.media.playing
+                            ? "M 6,4 H 10 V 20 H 6 Z M 14,4 H 18 V 20 H 14 Z"
+                            : "M 7,4 L 20,12 L 7,20 Z"
+                        selected: appState.control === 2
+                        command: "play-pause"
+                    }
+                    PlaybackButton {
+                        text: surface.tr(msg.SEEK_FORWARD)
+                        symbolPath: "M 2,5 L 12,12 L 2,19 Z M 12,5 L 22,12 L 12,19 Z"
+                        selected: appState.control === 3
+                        command: "seek-forward"
+                    }
+                    PlaybackButton {
+                        text: surface.tr(msg.NEXT_CHAPTER)
+                        symbolPath: "M 4,4 L 16,12 L 4,20 Z M 17,4 H 20 V 20 H 17 Z"
+                        selected: appState.control === 4
+                        command: "next"
+                    }
+                }
+                RowLayout {
+                    id: playbackHints
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 18
+                    Shared.InputPrompt { keys: ["gamecube_button_x"]; label: surface.tr(msg.OPTIONS); fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 18 }
+                    Shared.InputPrompt { keys: ["gamecube_button_color_b"]; label: surface.tr(msg.BACK); fontFamily: surface.host.fontFamily; textColor: surface.colors.muted; fontSize: 18 }
+                }
             }
         }
     }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
 [INPUT]: 依赖应用控制器、增量库模型、共享短过渡与圆点组件。
-[OUTPUT]: 提供交接后的窗口、连续切页、封面和非交互指针层。
+[OUTPUT]: 提供交接后的窗口、连续切页、菜单右侧当前值、封面和非交互指针层。
 [POS]: 五类应用的窗口外壳，内容视图由各应用加载。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -473,9 +473,23 @@ Window {
                             id: optionContents; anchors.verticalCenter: parent.verticalCenter
                             visible: !menuOption.singleLine
                             x: modelData.icon ? appSettingIcon.x + appSettingIcon.width + 14 : 14
-                            width: parent.width-x-14; spacing: 4
+                            width: Math.max(0, parent.width - x - 14 - (optionValue.visible ? optionValue.width + 18 : 0))
+                            spacing: 4
                             Text { font.family: window.fontFamily; width: parent.width; text: modelData.title; color: window.ink; wrapMode: Text.Wrap; font.pixelSize: 22 }
                             Text { font.family: window.fontFamily; width: parent.width; visible: !!modelData.subtitle; text: modelData.subtitle; color: window.muted; wrapMode: Text.Wrap; font.pixelSize: 17 }
+                        }
+                        Text {
+                            id: optionValue
+                            objectName: "appMenuOptionValue"
+                            visible: !menuOption.singleLine && !!text
+                            anchors.right: parent.right; anchors.rightMargin: 14
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: Math.min(implicitWidth, parent.width * 0.48)
+                            text: modelData.current ? "✓" : (modelData.value || "")
+                            textFormat: Text.PlainText; horizontalAlignment: Text.AlignRight
+                            font.family: window.fontFamily; font.pixelSize: 22
+                            color: modelData.current ? window.accent : window.muted
+                            elide: modelData.path ? Text.ElideMiddle : Text.ElideRight
                         }
                         MouseArea { anchors.fill: parent; enabled: !parent.singleLine && !parent.modelData.disabled; onClicked: controller.choose(parent.index) }
                     }

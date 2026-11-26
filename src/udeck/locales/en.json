@@ -935,6 +935,8 @@
   "searching": "Searching…",
   "seconds_s_remaining": "{seconds}s remaining",
   "security": "Security",
+  "seek_backward": "Rewind",
+  "seek_forward": "Fast-forward",
   "select": "Select",
   "select_a_window_to_continue": "Select a window to continue",
   "select_all": "Select all",

@@ -43,6 +43,38 @@ def test_video_settings_ignore_the_legacy_music_resume_preference(video):
     assert all("checked" not in row for row in options)
 
 
+def test_video_menu_displays_the_current_speed_after_returning_from_the_submenu(video):
+    video.page = "player"
+    video.dispatch("context")
+
+    def speed_option():
+        return next(row for row in video.snapshot()["menu"]["options"] if row["title"] == tr(Msg.SPEED))
+
+    assert speed_option()["value"] == "1×"
+    video.choose(video.snapshot()["menu"]["options"].index(speed_option()))
+    rates = video.snapshot()["menu"]["options"]
+    assert [row["title"] for row in rates if row.get("current")] == ["1×"]
+    video.choose(next(index for index, row in enumerate(rates) if row["title"] == "1.5×"))
+
+    assert speed_option()["value"] == "1.5×"
+
+
+def test_video_transport_focus_reaches_both_seek_buttons_and_chapter_buttons(video, monkeypatch):
+    calls = []
+    monkeypatch.setattr(video.media.player, "position", lambda: 25000)
+    monkeypatch.setattr(video.media, "seek", lambda seconds: calls.append(("seek", seconds)))
+    monkeypatch.setattr(video, "next_track", lambda direction: calls.append(("chapter", direction)))
+    video.page = "player"
+
+    assert video.snapshot()["control"] == 2
+    for action in ("up", "accept", "up", "accept", "down", "down", "down", "accept", "down", "accept"):
+        video.dispatch(action)
+    video.dispatch("left")
+    video.dispatch("right")
+
+    assert calls == [("seek", 15), ("chapter", -1), ("seek", 35), ("chapter", 1), ("seek", 15), ("seek", 35)]
+
+
 @pytest.mark.parametrize("value", ["nan", "inf", "-inf", "1e309", "-1e309"])
 def test_seek_rejects_nonfinite_input_and_keeps_the_prompt(video, value):
     video.command("seek")

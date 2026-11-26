@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖共享媒体控制器、Qt 媒体元数据与字幕提取器。
-[OUTPUT]: 提供续播、章节、字幕、播放指针与桌面返回。
+[OUTPUT]: 提供续播、五键播放导航、字幕、播放选项当前值与桌面返回。
 [POS]: 视频控制边界；返回桌面前保存播放进度。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -17,6 +17,8 @@ from .subtitles import EmbeddedSubtitles, parse_srt
 
 
 class VideoController(MediaController):
+    player_commands = ("previous", "seek-backward", "play-pause", "seek-forward", "next")
+
     def __init__(self, directory=None, language_path=None):
         super().__init__("video", directory, language_path)
         self.pointer_pressed = False
@@ -81,15 +83,33 @@ class VideoController(MediaController):
 
     def context(self):
         if self.page == "player":
-            self.menu(tr(Msg.PLAYBACK_OPTIONS), [
-                (tr(Msg.SUBTITLES), lambda: self.track_menu(True)),
-                (tr(Msg.EXTERNAL_SUBTITLES_SRT), self.external_subtitles),
-                (tr(Msg.AUDIO_TRACKS), lambda: self.track_menu(False)),
-                (tr(Msg.CHAPTERS), self.chapter_menu), (tr(Msg.SPEED), self.speed_menu),
-                (tr(Msg.GO_TO_POSITION), lambda: self.command("seek")),
-                (tr(Msg.HIDE_CONTROLS), lambda: self.command("hide-controls"))])
+            self.menu(tr(Msg.PLAYBACK_OPTIONS), self.playback_options)
         else:
             super().context()
+
+    def playback_options(self):
+        player = self.media.player
+        subtitles = player.subtitleTracks()
+        audio_tracks = player.audioTracks()
+        subtitle_index = self.subtitle_index()
+        audio_index = player.activeAudioTrack()
+        subtitle = tr(Msg.OFF)
+        if self.embedded_subtitles.process is not None:
+            subtitle = tr(Msg.LOADING_SUBTITLES)
+        elif 0 <= subtitle_index < len(subtitles):
+            subtitle = self.track_label(subtitles[subtitle_index], subtitle_index)
+        audio = (self.track_label(audio_tracks[audio_index], audio_index)
+                 if 0 <= audio_index < len(audio_tracks) else tr(Msg.NONE))
+        external = Path(self.external_name).name if self.external_name else tr(Msg.OFF)
+        return [
+            (tr(Msg.SUBTITLES), lambda: self.track_menu(True), "", "", {"value": subtitle}),
+            (tr(Msg.EXTERNAL_SUBTITLES_SRT), self.external_subtitles, "", "", {"value": external, "path": True}),
+            (tr(Msg.AUDIO_TRACKS), lambda: self.track_menu(False), "", "", {"value": audio}),
+            (tr(Msg.CHAPTERS), self.chapter_menu),
+            (tr(Msg.SPEED), self.speed_menu, "", "", {"value": f"{player.playbackRate():g}×"}),
+            (tr(Msg.GO_TO_POSITION), lambda: self.command("seek")),
+            (tr(Msg.HIDE_CONTROLS), lambda: self.command("hide-controls")),
+        ]
 
     @Slot(QObject)
     def setVideoSink(self, sink):
@@ -105,15 +125,27 @@ class VideoController(MediaController):
             self.persist()
         return super().back()
 
+    def subtitle_index(self):
+        if self.embedded_subtitles.cues is not None:
+            return self.embedded_subtitles.index
+        return self.media.player.activeSubtitleTrack()
+
+    @staticmethod
+    def track_label(metadata, index):
+        return (metadata.stringValue(QMediaMetaData.Key.Title)
+                or metadata.stringValue(QMediaMetaData.Key.Language)
+                or str(index + 1))
+
     def track_menu(self, subtitles):
         player = self.media.player
         tracks = player.subtitleTracks() if subtitles else player.audioTracks()
-        options = [(tr(Msg.OFF), lambda: self.set_track(True, -1))] if subtitles else []
-        for index, metadata in enumerate(tracks):
-            title = metadata.stringValue(QMediaMetaData.Key.Title)
-            language = metadata.stringValue(QMediaMetaData.Key.Language)
-            options.append((title or language or str(index + 1),
-                            lambda i=index: self.set_track(subtitles, i)))
+        active = self.subtitle_index() if subtitles else player.activeAudioTrack()
+        options = []
+        if subtitles:
+            off = active < 0 and not self.external_name and self.embedded_subtitles.process is None
+            options.append((tr(Msg.OFF), lambda: self.set_track(True, -1), "", "", {"current": off}))
+        options.extend((self.track_label(metadata, index), lambda i=index: self.set_track(subtitles, i),
+                        "", "", {"current": index == active}) for index, metadata in enumerate(tracks))
         self.menu(tr(Msg.SUBTITLES) if subtitles else tr(Msg.AUDIO_TRACKS), options)
 
     def set_track(self, subtitles, index):
@@ -166,8 +198,10 @@ class VideoController(MediaController):
         self.pop_menu()
 
     def speed_menu(self):
-        self.menu(tr(Msg.SPEED), [(f"{rate:g}×", lambda r=rate: self.set_speed(r))
-                               for rate in (0.75, 1.0, 1.25, 1.5, 2.0)])
+        current = self.media.player.playbackRate()
+        self.menu(tr(Msg.SPEED), [(f"{rate:g}×", lambda r=rate: self.set_speed(r),
+                                   "", "", {"current": rate == current})
+                                  for rate in (0.75, 1.0, 1.25, 1.5, 2.0)])
 
     def set_speed(self, rate):
         self.media.player.setPlaybackRate(rate)
@@ -178,7 +212,8 @@ class VideoController(MediaController):
             return
         self.library.require(self.current["id"])
         paths = list(Path(self.current["path"]).parent.glob("*.srt"))
-        self.menu(tr(Msg.EXTERNAL_SUBTITLES_SRT), [(p.name, lambda p=p: self.load_subtitles(p)) for p in paths])
+        self.menu(tr(Msg.EXTERNAL_SUBTITLES_SRT), [(p.name, lambda p=p: self.load_subtitles(p),
+                                                 "", "", {"current": str(p) == self.external_name}) for p in paths])
 
     def load_subtitles(self, path):
         self.library.require(self.current["id"])

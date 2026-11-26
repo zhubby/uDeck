@@ -1044,6 +1044,8 @@ class Msg(StrEnum):
     SEARCH_VALUE0_SUFFIX = "search_value0_suffix"
     SECONDS_S_REMAINING = "seconds_s_remaining"
     SECURITY = "security"
+    SEEK_BACKWARD = "seek_backward"
+    SEEK_FORWARD = "seek_forward"
     SELECT = "select"
     SELECTED = "selected"
     SELECTED_CORE_IS_UNAVAILABLE_CORE = "selected_core_is_unavailable_core"

@@ -77,7 +77,7 @@ terminal_device_probe.py: 独立进程探针，验证 terminal_device 流程。
 terminal_font_probe.py: 独立进程探针，验证 terminal_font 流程。
 terminal_input_device_probe.py: 独立进程探针，验证 terminal_input_device 流程。
 terminal_ipc_probe.py: 独立进程探针，验证 terminal_ipc 流程。
-test_app_default_sources.py: 默认内容源发现、后台扫描终态与自定义源保留回归。
+test_app_default_sources.py: 默认内容源、自定义源保留、视频封面优先级与缓存回归。
 test_app_menu_icons.py: pytest 回归入口，验证 app_menu_icons 边界。
 test_app_performance.py: pytest 回归入口，验证 app_performance 边界。
 test_build_info.py: 构建来源冻结、内容哈希与运行时读取回归。
