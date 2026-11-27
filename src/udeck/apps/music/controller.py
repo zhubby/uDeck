@@ -1,5 +1,5 @@
 """[INPUT]: 依赖共享媒体控制器、曲库封面和本地歌词解析。
-[OUTPUT]: 提供专辑封面、当前曲目歌词、播放队列和后台播放。
+[OUTPUT]: 提供专辑封面、歌词、播放队列与播放器音量。
 [POS]: Music 界面与共享媒体引擎之间的控制层。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -21,6 +21,53 @@ class MusicController(MediaController):
     def __init__(self, directory=None, language_path=None):
         super().__init__("music", directory, language_path)
         self._lyrics = {"timed": False, "lines": []}
+        preferences = self.store.data["preferences"]
+        volume = preferences.get("playbackVolume", 80)
+        if type(volume) is int:
+            self.media.output.setVolume(max(0, min(100, volume)) / 100)
+        self.media.output.setMuted(preferences.get("playbackMuted") is True)
+
+    @Slot(int)
+    def setVolume(self, percent):
+        self.media.output.setVolume(max(0, min(100, percent)) / 100)
+
+    @Slot()
+    def toggleMute(self):
+        self.media.output.setMuted(not self.media.output.isMuted())
+        self.attempt(self.persist)
+
+    def persist(self):
+        self.store.data["preferences"].update(
+            playbackVolume=round(self.media.output.volume() * 100),
+            playbackMuted=self.media.output.isMuted(),
+        )
+        super().persist()
+
+    def settings_options(self):
+        return super().settings_options() + [
+            self.setting_option(tr(Msg.VOLUME), self.volume_menu, "audio-volume-high", self.volume_status()),
+        ]
+
+    def volume_status(self):
+        state = self.media.snapshot()
+        return tr(Msg.MUTE) if state["muted"] else f"{state['volume']}%"
+
+    def volume_menu(self):
+        def options():
+            state = self.media.snapshot()
+            return [
+                self.setting_option(tr(Msg.VOLUME_DOWN), lambda: self.adjust_volume(-5), "audio-volume-high",
+                                    self.volume_status(), navigate=False),
+                self.setting_option(tr(Msg.VOLUME_UP), lambda: self.adjust_volume(5), "audio-volume-high",
+                                    self.volume_status(), navigate=False),
+                self.setting_option(tr(Msg.UNMUTE if state["muted"] else Msg.MUTE), self.toggleMute,
+                                    "audio-volume-muted", navigate=False),
+            ]
+        self.menu(tr(Msg.VOLUME), options, icon="audio-volume-high")
+
+    def adjust_volume(self, delta):
+        self.setVolume(self.media.snapshot()["volume"] + delta)
+        self.attempt(self.persist)
 
     @Property("QVariantMap", notify=lyricsChanged)
     def lyrics(self):

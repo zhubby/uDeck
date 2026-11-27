@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
 [INPUT]: 依赖 Music 控制器、当前曲目、播放状态和共享主题。
-[OUTPUT]: 展示封面、曲目信息、歌词和固定播放栏。
+[OUTPUT]: 展示封面、曲目信息、歌词和带音量控制的固定播放栏。
 [POS]: Music 播放页；歌词可用时与封面并列。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -226,18 +226,52 @@ Item {
                     spacing: 2
                     Text {
                         width: parent.width
-                        text: surface.media.loading ? surface.host.tr(surface.msg.LOADING) : surface.media.output || ""
+                        text: surface.media.loading ? surface.host.tr(surface.msg.LOADING)
+                            : [surface.track.format, surface.media.output].filter(Boolean).join(" · ")
                         textFormat: Text.PlainText
                         color: surface.colors.text
                         font.family: surface.host.fontFamily
-                        font.pixelSize: 17
+                        font.pixelSize: 15
                         elide: Text.ElideRight
                     }
-                    Text {
-                        text: surface.track.format || ""
-                        color: surface.colors.muted
-                        font.family: surface.host.fontFamily
-                        font.pixelSize: 15
+                    RowLayout {
+                        width: Math.min(parent.width, 200)
+                        spacing: 6
+
+                        SuiteButton {
+                            objectName: "musicMute"
+                            colors: surface.colors
+                            fontFamily: surface.host.fontFamily
+                            text: surface.host.tr(surface.media.muted ? surface.msg.UNMUTE : surface.msg.MUTE)
+                            implicitWidth: 34
+                            implicitHeight: 30
+                            iconComponent: Image {
+                                width: 22; height: 22
+                                source: "image://desktop/audio-volume-" + (surface.media.muted ? "muted" : "high")
+                            }
+                            onActivated: controller.toggleMute()
+                        }
+                        Slider {
+                            objectName: "musicVolume"
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 30
+                            palette: surface.colors.controls
+                            focusPolicy: Qt.NoFocus
+                            Accessible.name: surface.host.tr(surface.msg.VOLUME)
+                            to: 100
+                            stepSize: 1
+                            value: surface.media.volume
+                            opacity: surface.media.muted ? 0.5 : 1
+                            onMoved: controller.setVolume(Math.round(value))
+                        }
+                        Text {
+                            Layout.preferredWidth: 34
+                            horizontalAlignment: Text.AlignRight
+                            text: surface.media.volume + "%"
+                            color: surface.colors.muted
+                            font.family: surface.host.fontFamily
+                            font.pixelSize: 15
+                        }
                     }
                 }
 

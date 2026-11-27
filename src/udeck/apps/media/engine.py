@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖 Qt Multimedia 和 SeekableSource 的临时定位源。
-[OUTPUT]: 提供异步加载、暂停与定位、播放状态和软件帧。
+[OUTPUT]: 提供异步加载、暂停、定位、播放音量与软件帧。
 [POS]: Music 与 Video 共用的播放引擎；不读取应用配置。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -62,7 +62,8 @@ class MediaEngine(QObject):
         for signal in (self.player.positionChanged, self.player.durationChanged,
                        self.player.playbackStateChanged, self.player.tracksChanged,
                        self.player.activeTracksChanged, self.player.playbackRateChanged,
-                       self.output.deviceChanged, self.devices.audioOutputsChanged):
+                       self.output.deviceChanged, self.output.volumeChanged, self.output.mutedChanged,
+                       self.devices.audioOutputsChanged):
             signal.connect(lambda *args: self.changed.emit())
 
     def load(self, item, position=0):
@@ -107,6 +108,7 @@ class MediaEngine(QObject):
                 "playing": self.player.playbackState() == QMediaPlayer.PlaybackState.PlayingState,
                 "loading": self.loading, "rate": self.player.playbackRate(),
                 "output": self.output.device().description() or tr(Msg.SYSTEM_DEFAULT),
+                "volume": round(self.output.volume() * 100), "muted": self.output.isMuted(),
                 "error": self.player.errorString(), "status": self.player.mediaStatus().name}
 
     def video_frame(self, frame):

@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实 Qt 引擎、原始媒体和本地网页。
-[OUTPUT]: 验证原生应用工作流、曲目布局、歌词同步、输入焦点与内容隔离。
+[OUTPUT]: 验证原生应用工作流、曲目布局、歌词、音量与输入焦点。
 [POS]: 独立应用集成探针；以页面状态确认异步输入。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -213,6 +213,25 @@ def run(app, root, language="en", width=1280, height=720):
         wait(lambda: controller.media.player.position()>300)
         assert controller.media.player.duration()>10000
         wait(lambda: active_lyric() == "Opening")
+        slider = window.findChild(QObject, "musicVolume")
+        mute = window.findChild(QObject, "musicMute")
+        assert slider.property("value") == controller.media.snapshot()["volume"] == 80
+        position = slider.mapToScene(QPointF(slider.width() / 2, slider.height() / 2))
+        QTest.mouseClick(window, Qt.MouseButton.LeftButton, pos=position.toPoint())
+        assert 45 <= controller.media.snapshot()["volume"] <= 55
+        position = mute.mapToScene(QPointF(mute.width() / 2, mute.height() / 2))
+        QTest.mouseClick(window, Qt.MouseButton.LeftButton, pos=position.toPoint())
+        assert controller.media.snapshot()["muted"]
+        QTest.mouseClick(window, Qt.MouseButton.LeftButton, pos=position.toPoint())
+        assert not controller.media.snapshot()["muted"]
+        controller.volume_menu()
+        before = controller.media.snapshot()["volume"]
+        controller.choose(1)
+        assert controller.media.snapshot()["volume"] == before + 5
+        assert controller.store.data["preferences"]["playbackVolume"] == before + 5
+        controller.clear_menus()
+        wait(lambda: visible_item(window.contentItem(), "applicationModal") is None)
+        completed.append("player-volume-and-mute")
         capture("playing")
         controller.media.player.pause()
         controller.seek(4)
