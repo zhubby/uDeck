@@ -1,5 +1,5 @@
 """
-[INPUT]: 依赖 Qt 线程池、文件系统、ffprobe 和视频封面提取器。
+[INPUT]: 依赖 Qt 线程池、文件系统、ffprobe 和媒体封面提取器。
 [OUTPUT]: 提供共享格式表、内容源身份、后台索引与封面更新。
 [POS]: 内置应用的库扫描层；Files 共用格式表选择应用。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
@@ -18,7 +18,7 @@ from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
 
 from udeck.i18n import Msg, error_text, tr
 
-from .video_cover import generate_video_cover, video_cover_dir
+from .media_cover import generate_media_cover, media_cover_dir
 
 EXTENSIONS = {
     "music": {".mp3", ".flac", ".ogg", ".opus", ".m4a", ".aac", ".wav", ".aiff"},
@@ -70,12 +70,13 @@ def fingerprint(path, cancelled=lambda: False):
     return digest.hexdigest()
 
 
-def probe(path):
+def probe(path, *, attached_pictures=False):
     if not shutil.which("ffprobe"):
         return {}
+    stream_options = ["-show_entries", "stream_disposition=attached_pic"] if attached_pictures else []
     try:
         result = subprocess.run(["ffprobe", "-v", "error", "-show_format", "-show_chapters",
-                                 "-of", "json", str(path)], capture_output=True, timeout=8)
+                                 *stream_options, "-of", "json", str(path)], capture_output=True, timeout=8)
         return json.loads(result.stdout) if result.returncode == 0 else {}
     except (OSError, ValueError, subprocess.TimeoutExpired):
         return {}
@@ -104,8 +105,8 @@ def scan(source, app, cancelled=lambda: False, metadata=False, cache=None, *, co
                 digest = cached["fingerprint"] if unchanged else fingerprint(path, cancelled)
                 identifier = hashlib.sha256(f"{source.id}/{relative}/{digest}".encode()).hexdigest()
                 info = cached.get("metadata", {}) if unchanged else {}
-                if metadata and app in ("music", "video") and not info:
-                    info = probe(path)
+                if metadata and app in ("music", "video") and (not info or (app == "music" and "streams" not in info)):
+                    info = probe(path, attached_pictures=app == "music") or info
                 tags = {k.lower(): v for k, v in info.get("format", {}).get("tags", {}).items()}
                 cover = next((p for p in (path.with_suffix(".jpg"), path.with_suffix(".png"),
                              path.parent / "cover.jpg", path.parent / "folder.jpg") if p.is_file() and not p.is_symlink()), None)
@@ -141,7 +142,7 @@ class ScanTask(QRunnable):
         super().__init__()
         self.generation, self.source, self.app = generation, source, app
         self.cancel, self.cache = cancel, cache
-        self.cover_dir = video_cover_dir() if app == "video" else None
+        self.cover_dir = media_cover_dir(app) if app in ("music", "video") else None
         self.signals = ScanSignals()
 
     def run(self):
@@ -155,13 +156,17 @@ class ScanTask(QRunnable):
 
     def extract_covers(self, ffmpeg, items):
         batch = {}
+        video = self.app == "video"
         for item in items:
             if self.cancel.is_set() or not self.source.available():
                 return
             if item["cover"]:
                 continue
+            if not video and not any(stream.get("disposition", {}).get("attached_pic") == 1
+                                     for stream in item["metadata"].get("streams", ())):
+                continue
             target = self.cover_dir / (item["fingerprint"] + ".jpg")
-            cover = generate_video_cover(ffmpeg, item, target, self.cancel.is_set)
+            cover = generate_media_cover(ffmpeg, item, target, self.cancel.is_set, video=video)
             if cover is not None:
                 batch[item["id"]] = cover.as_uri()
                 if len(batch) == 8:

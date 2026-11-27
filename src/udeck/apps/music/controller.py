@@ -1,4 +1,8 @@
-"""Music albums, playback queue and background lifecycle."""
+"""[INPUT]: 依赖共享媒体控制器和曲库封面更新。
+[OUTPUT]: 提供专辑封面、播放队列和后台播放。
+[POS]: Music 界面与共享媒体引擎之间的控制层。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import hashlib
 from pathlib import Path
@@ -27,12 +31,22 @@ class MusicController(MediaController):
                 if key not in groups:
                     groups[key] = {**row, "id": key, "title": row["album"], "kind": "album",
                                    "subtitle": row["artist"] or Path(row["folder"]).name, "tracks": 0}
-                groups[key]["tracks"] += 1
+                album = groups[key]
+                if not album["cover"]:
+                    album["cover"] = row["cover"]
+                album["tracks"] += 1
             return list(groups.values())
         if self.tab == 2:
             by_id = {r["id"]: r for r in rows}
             return [by_id[i] for i in self.queue.items if i in by_id]
         return rows
+
+    def _library_changed(self):
+        if self.current:
+            track = next((item for item in self.library.items if item["id"] == self.current["id"]), None)
+            if track:
+                self.current["cover"] = track["cover"]
+        super()._library_changed()
 
     def prepare_play(self, item, seconds, queued):
         if not queued:

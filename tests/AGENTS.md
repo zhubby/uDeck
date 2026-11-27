@@ -84,7 +84,7 @@ test_build_info.py: 构建来源冻结、内容哈希与运行时读取回归。
 test_session_supervisor.py: 独立桌面进程的崩溃预算、终止与重启回归。
 test_suite_runner.py: 逐文件测试调度、超时清理与证据保留回归。
 test_app_settings.py: pytest 回归入口，验证 app_settings 边界。
-test_apps_core.py: pytest 回归入口，验证 apps_core 边界。
+test_apps_core.py: 库索引、内嵌封面、队列与网页地址回归。
 test_apps_native.py: 首次窗口交接、应用引擎、菜单和翻译的集成回归。
 test_apps_review.py: 应用文件索引等待、启动、游戏暂停与异步取消回归。
 test_apps_routing.py: 手柄队列轮转、代次隔离、断线回退与受控窗口激活确认回归。

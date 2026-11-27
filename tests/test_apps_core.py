@@ -1,11 +1,23 @@
+"""[INPUT]: 依赖临时文件、应用状态和媒体扫描。
+[OUTPUT]: 验证库索引、播放队列、音频封面和网页地址契约。
+[POS]: 内置应用的核心回归入口。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
+import shutil
+import subprocess
+import threading
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 import pytest
+from PySide6.QtGui import QImage
 
 from udeck.apps.browser.controller import address_url
-from udeck.apps.common.library import Source, scan
+from udeck.apps.common.library import ScanTask, Source, scan
 from udeck.apps.common.state import AppState, PlayQueue
+from udeck.apps.music.controller import MusicController
 
 
 def test_atomic_state_preserves_old_file_on_failed_replace(tmp_path, monkeypatch):
@@ -54,6 +66,72 @@ def test_source_replacement_at_same_path_is_not_the_original_mount(tmp_path):
     root.rename(tmp_path / "old-card")
     root.mkdir()
     assert not source.available()
+
+
+def test_music_scan_finds_embedded_cover_from_legacy_index(tmp_path, monkeypatch):
+    if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+        pytest.skip("ffmpeg and ffprobe are required")
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "cache"))
+    source_dir = tmp_path / "album"
+    source_dir.mkdir()
+    track = source_dir / "02.mp3"
+    plain = source_dir / "01.mp3"
+    for path in (track, plain):
+        arguments = ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "sine=frequency=440:duration=0.2"]
+        if path == track:
+            arguments += ["-f", "lavfi", "-i", "color=c=red:s=96x96", "-map", "0:a", "-map", "1:v",
+                          "-c:v", "mjpeg", "-frames:v", "1", "-disposition:v", "attached_pic"]
+        subprocess.run([*arguments, "-c:a", "mp3", "-metadata", "album=专辑",
+                        "-metadata", "artist=艺人", str(path)], check=True, timeout=8)
+
+    source = Source.create(source_dir)
+    previous = scan(source, "music", metadata=True)
+    for item in previous:
+        item["metadata"].pop("streams", None)
+    tasks = []
+
+    def run_scan():
+        task = ScanTask(1, source, "music", threading.Event(), {item["path"]: item for item in previous})
+        indexed, covers = [], {}
+        task.signals.done.connect(lambda _g, _s, items, _e: indexed.extend(items))
+        task.signals.covers.connect(lambda _g, _s, batch: covers.update(batch))
+        tasks.append(task)
+        task.run()
+        return indexed, covers
+
+    indexed, covers = run_scan()
+    assert [x["id"] for x in indexed] == [x["id"] for x in previous]
+    assert set(covers) == {indexed[1]["id"]}
+    extracted = Path(unquote(urlsplit(covers[indexed[1]["id"]]).path))
+    image = QImage(str(extracted))
+    assert extracted.is_relative_to(tmp_path / "cache")
+    assert not image.isNull() and image.width() == image.height()
+    assert image.pixelColor(0, 0).red() > 200
+
+    sidecar = source_dir / "cover.jpg"
+    assert image.save(str(sidecar))
+    indexed, covers = run_scan()
+    assert {item["cover"] for item in indexed} == {sidecar.as_uri()}
+    assert not covers
+
+
+def test_music_cover_updates_album_and_current_track(qt_application, tmp_path):
+    controller = MusicController(tmp_path)
+    try:
+        source = tmp_path / "album"
+        source.mkdir()
+        (source / "01.mp3").write_bytes(b"first")
+        (source / "02.mp3").write_bytes(b"second")
+        first, second = scan(Source.create(source), "music")
+        controller.library.items = [first, second]
+        controller.current = dict(second)
+        cover = (tmp_path / "cover.jpg").as_uri()
+        controller.library._covers(0, second["sourceId"], {second["id"]: cover})
+        assert controller.rows()[0]["cover"] == cover
+        assert controller.current["id"] == second["id"]
+        assert controller.current["cover"] == cover
+    finally:
+        controller.close()
 
 
 def test_middle_content_edits_change_identity_even_with_same_head_tail_and_size(tmp_path):

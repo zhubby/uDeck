@@ -11,7 +11,7 @@ agent/: ACP 会话、版本管理和 Agent 界面。
 browser/: 浏览器控制器与网页导航。见该目录 AGENTS.md。
 emulator/: 游戏库、RetroArch 进程协议与存档。见该目录 AGENTS.md。
 media/: 音乐与视频共用播放引擎。见该目录 AGENTS.md。
-music/: 音乐库与队列。
+music/: 专辑、封面更新与播放队列。
 reader/: 文档解析、分页与阅读窗口。见该目录 AGENTS.md。
 video/: 视频库、字幕与播放指针观测。见该目录 AGENTS.md。
 
