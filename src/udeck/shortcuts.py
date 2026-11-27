@@ -1,7 +1,7 @@
 """
 [INPUT]: 依赖系统动作、配置文件和 labwc 快捷键格式。
 [OUTPUT]: 提供快捷键身份、分组、录制与配置持久化。
-[POS]: 终端固定原生入口；窗口切换统一进入 Console。
+[POS]: 系统动作表向设置与 labwc 提供默认绑定。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
 
@@ -36,6 +36,7 @@ ACTIONS = (
     SystemAction('files', tr(Msg.FILES_APP), 'navigation', ('C-A-f',), 'udeckctl files'),
     SystemAction('settings', tr(Msg.SYSTEM_SETTINGS), 'navigation', ('C-A-comma',), 'udeckctl settings'),
     SystemAction('quick-settings', tr(Msg.QUICK_SETTINGS), 'navigation', ('C-A-s', 'XF86PowerOff'), 'udeckctl quick-settings'),
+    SystemAction('cycle-input-method', tr(Msg.INPUT_METHOD_CYCLE), 'navigation', ('C-A-space',), 'udeckctl cycle-input-method'),
     SystemAction('terminal', tr(Msg.OPEN_TERMINAL), 'navigation', ('C-A-t',), 'udeck-terminal'),
     SystemAction('next-window', tr(Msg.NEXT_WINDOW), 'windows', ('A-Tab',), 'udeckctl switcher'),
     SystemAction('previous-window', tr(Msg.PREVIOUS_WINDOW), 'windows', ('A-S-Tab',), 'udeckctl switcher'),
@@ -111,7 +112,7 @@ def normalize(value):
 def label(sequence):
     parts = sequence.split('-')
     names = {'C': 'Ctrl', 'A': 'Alt', 'S': 'Shift', 'W': 'Super', 'Escape': 'Esc',
-             'comma': ',', 'Print': 'PrintScreen', 'Return': 'Enter',
+             'comma': ',', 'Print': 'PrintScreen', 'Return': 'Enter', 'space': 'Space',
              'XF86AudioRaiseVolume': tr(Msg.VOLUME_UP_KEY), 'XF86AudioLowerVolume': tr(Msg.VOLUME_DOWN_KEY),
              'XF86AudioMute': tr(Msg.MUTE_KEY), 'XF86MonBrightnessUp': tr(Msg.BRIGHTNESS_UP_KEY),
              'XF86MonBrightnessDown': tr(Msg.BRIGHTNESS_DOWN_KEY), 'XF86PowerOff': tr(Msg.POWER_KEY)}
@@ -185,7 +186,12 @@ class ShortcutStore:
 
     def bindings(self, overrides=None):
         overrides = self.overrides if overrides is None else overrides
-        return {action.id: list(overrides.get(action.id, action.defaults)) for action in ACTIONS}
+        bindings = {action.id: list(overrides.get(action.id, action.defaults)) for action in ACTIONS}
+        if 'cycle-input-method' not in overrides:
+            # 已保存的用户绑定优先于新增的输入法默认键。
+            occupied = {sequence for values in overrides.values() for sequence in values}
+            bindings['cycle-input-method'] = [key for key in bindings['cycle-input-method'] if key not in occupied]
+        return bindings
 
     def validate(self, overrides):
         result = {}

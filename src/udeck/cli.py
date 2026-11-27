@@ -1,3 +1,9 @@
+"""[INPUT]: 依赖桌面会话 D-Bus 和系统诊断接口。
+[OUTPUT]: 提供诊断报告和固定的桌面控制命令。
+[POS]: labwc 快捷键通过本模块调用桌面动作。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import argparse
 import importlib.util
 import json
@@ -74,7 +80,7 @@ def doctor():
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="uDeck 本机会话控制、快捷键配置与诊断")
-    parser.add_argument("command", choices=("home", "switcher", "console", "bind-console", "quick-settings", "doctor", "app-menu", "input-mode", "input-ack", "lock", "apps", "files", "settings", "screenshot", "blank", "logout", "reboot", "poweroff", "volume-up", "volume-down", "mute", "brightness-up", "brightness-down"))
+    parser.add_argument("command", choices=("home", "switcher", "console", "bind-console", "quick-settings", "doctor", "app-menu", "input-mode", "input-ack", "lock", "apps", "files", "settings", "screenshot", "blank", "logout", "reboot", "poweroff", "volume-up", "volume-down", "mute", "brightness-up", "brightness-down", "cycle-input-method"))
     parser.add_argument('value', nargs='?')
     parser.add_argument("--json", action="store_true", help="输出 JSON 诊断报告")
     options = parser.parse_args(argv)
@@ -104,7 +110,7 @@ def main(argv=None):
             print(json.dumps(result, ensure_ascii=False))
             return 0 if result['available'] and not result['error'] and (result['pending'] or result['applied']) else 1
         if options.command in ('apps', 'files', 'settings', 'screenshot', 'blank', 'logout', 'reboot', 'poweroff',
-                               'volume-up', 'volume-down', 'mute', 'brightness-up', 'brightness-down'):
+                               'volume-up', 'volume-down', 'mute', 'brightness-up', 'brightness-down', 'cycle-input-method'):
             response = interface.call('GlobalAction', options.command)
             if response.type() == QDBusMessage.MessageType.ErrorMessage or response.arguments() != [True]:
                 raise RuntimeError('当前图形会话已锁定或此功能不可用')

@@ -73,6 +73,7 @@ Y 打开应用控制菜单，模式按 app_id / WM_CLASS 保存。
 | Console 窗口列表 | Ctrl+Alt+Tab、Alt+Tab、Alt+Shift+Tab |
 | 应用 / 文件 / 设置 | Ctrl+Alt+A / Ctrl+Alt+F / Ctrl+Alt+, |
 | 快捷设置 | Ctrl+Alt+S、电源键 |
+| 切换输入法 | Ctrl+Alt+空格 |
 | Terminal | Ctrl+Alt+T |
 | 关闭当前窗口 | Alt+F4 |
 | 游戏暂停菜单 | Ctrl+Alt+M |
@@ -82,6 +83,8 @@ Y 打开应用控制菜单，模式按 app_id / WM_CLASS 保存。
 | 注销 / 重启 / 关机 | 默认未绑定 |
 
 系统设置的快捷键绑定支持录制、别名、清除和恢复默认。
+输入法快捷键在 Fcitx 5 当前组的已启用成员间循环，保留应用焦点。
+如果旧配置已占用 Ctrl+Alt+空格，输入法快捷键默认留空。
 冲突转移需明确确认；危险电源动作仍打开默认取消的确认框。
 录制在独立窗口中暂停该窗口的全局绑定。
 失焦、关闭或 15 秒超时退出录制，F23/F24 保留给内部协议。

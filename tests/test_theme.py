@@ -37,7 +37,7 @@ def test_theme_menu_applies_persists_and_restores_focus(controller, language, na
     controller.setPage("settings")
     settings = controller._items()
     position = next(i for i, item in enumerate(settings) if item["id"] == "theme")
-    assert settings[position - 1]["id"] == "language"
+    assert [item["id"] for item in settings[position - 2:position]] == ["language", "input-method"]
     controller.select(position)
     controller.dispatch("accept")
     owner = controller.modal["key"]

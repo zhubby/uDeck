@@ -109,3 +109,17 @@ def test_global_window_and_terminal_shortcuts_stay_inside_udeck(tmp_path):
     assert actions['A-Tab'] == {'name': 'Execute', 'command': 'udeckctl switcher'}
     assert actions['A-S-Tab'] == {'name': 'Execute', 'command': 'udeckctl switcher'}
     assert actions['C-A-t'] == {'name': 'Execute', 'command': 'udeck-terminal'}
+    assert actions['C-A-space'] == {'name': 'Execute', 'command': 'udeckctl cycle-input-method'}
+
+
+def test_existing_binding_takes_precedence_over_new_input_method_default(tmp_path):
+    path = tmp_path / 'shortcuts.json'
+    path.write_text(json.dumps({'version': 1, 'bindings': {'terminal': ['Ctrl+Alt+Space']}}))
+    store = shortcuts.ShortcutStore(path)
+    assert store.bindings()['terminal'] == ['C-A-space']
+    assert store.bindings()['cycle-input-method'] == []
+    with pytest.raises(shortcuts.ShortcutConflict):
+        store.propose('cycle-input-method', None)
+    store.save(store.propose('cycle-input-method', None, transfer=True))
+    assert store.bindings()['terminal'] == []
+    assert store.bindings()['cycle-input-method'] == ['C-A-space']

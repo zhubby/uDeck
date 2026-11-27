@@ -1,4 +1,8 @@
-"""System menu presentation, independent of labels and action payloads."""
+"""[INPUT]: 依赖系统设置行及随包图标标识。
+[OUTPUT]: 为主列表和弹层条目提供图标及单行样式。
+[POS]: 系统设置菜单的呈现规则。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 SETTING_ICON_PREFIX = "udeck-setting:"
 SETTING_ARTWORK = {
@@ -49,6 +53,7 @@ SETTING_ICONS = {
     "shortcuts": "udeck-setting:command",
     "system-info": "dialog-information",
     "language": "preferences-desktop-locale", "theme": "preferences-desktop-theme",
+    "input-method": "input-keyboard",
     "ui-sounds": "audio-volume-high", "timezone": "preferences-system-time",
     "sharing": "network-connect",
     "lock": "system-lock-screen", "blank": "video-display",
@@ -57,6 +62,7 @@ SETTING_ICONS = {
 
 ACTION_ICONS = {
     "language": "preferences-desktop-locale", "theme": "preferences-desktop-theme",
+    "input-method-set": "input-keyboard",
     "timezone-region": "preferences-system-time", "timezone-set": "preferences-system-time",
     "power-menu": "system-shutdown", "switcher": "preferences-system-windows",
     "audio-card": "audio-card", "audio-profile": "audio-card", "device": "bluetooth",
@@ -92,7 +98,7 @@ NAVIGATION_ACTIONS = {
 
 def system_menu_icons(options, source=""):
     settings_menu = source in {
-        "settings", "quick-settings", "language", "theme", "timezone-areas", "timezone-cities",
+        "settings", "quick-settings", "language", "input-method", "theme", "timezone-areas", "timezone-cities",
         "wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details",
         "hotspot", "hotspot-device", "bluetooth", "volume", "audio-input", "audio-output", "audio-cards", "audio-profiles",
         "shortcuts", "shortcuts-group", "shortcut-action", "system-info",

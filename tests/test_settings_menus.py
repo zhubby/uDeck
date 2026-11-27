@@ -1,4 +1,8 @@
-"""Settings stay application-scoped while using the shared desktop icon path."""
+"""[INPUT]: 依赖桌面、应用设置控制器与模拟系统服务。
+[OUTPUT]: 验证设置作用域、图标与输入法切换回读。
+[POS]: 桌面和应用设置弹层的交互回归。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import json
 from copy import deepcopy
@@ -61,8 +65,45 @@ def shell(application, tmp_path):
     controller.close()
 
 
+def test_input_method_selection_updates_header_and_keeps_settings_focus(shell):
+    shell.setLanguage("zh_CN")
+    shell.setPage("settings")
+    index = next(i for i, row in enumerate(shell._items()) if row["id"] == "input-method")
+    shell.select(index)
+    shell.dispatch("accept")
+    assert shell.inputMethodName == "英文（美国）"
+    assert shell.modal["source"] == "input-method"
+    owner = shell.modal["key"]
+    shell.dispatch("down")
+    shell.dispatch("accept")
+    assert shell.inputMethodName == "拼音"
+    assert shell.modal["key"] == owner and shell.modal["index"] == 1
+    assert json.loads(shell.viewSnapshotJson)["modal"]["options"][1]["subtitle"] == "✓ 当前"
+    shell.input_method.select_input_method("keyboard-us")
+    assert shell.inputMethodName == "英文（美国）"
+    assert shell.modal["index"] == 1
+    shell.dispatch("back")
+    assert not shell.modal and shell.navigation.index == index
+
+
+def test_input_method_menu_recovers_after_service_unavailable(shell):
+    method = shell.input_method
+    options = method.choices
+    method._publish([], "", False)
+    shell.activateSetting("input-method")
+    assert not shell.inputMethodName
+    assert not shell.inputMethodStatus
+    assert shell.modal["options"][0]["disabled"]
+    method._publish(options, "", True, "pinyin")
+    assert shell.inputMethodStatus == "Awaiting input"
+    assert shell.modal["options"][1]["subtitle"] == "Pending focus"
+    method._publish(options, "pinyin", True)
+    assert shell.inputMethodStatus == "Pinyin"
+    assert all(not row.get("disabled") for row in shell.modal["options"])
+
+
 @pytest.mark.parametrize("setting", ["wifi", "hotspot", "bluetooth", "volume", "output", "microphone",
-                                     "language", "theme", "timezone", "shortcuts"])
+                                     "language", "input-method", "theme", "timezone", "shortcuts"])
 def test_settings_children_use_inline_rows_while_main_keeps_descriptions(shell, setting):
     assert all(row.get("subtitle") and not row.get("singleLine") for row in shell._settings())
     shell.activateSetting(setting)

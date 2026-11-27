@@ -1,6 +1,6 @@
 /*
-[INPUT]: 依赖桌面控制器、ShellDialog 与页面组件。
-[OUTPUT]: 同步发布页面快照和模型，再恢复选择与切页反馈。
+[INPUT]: 依赖桌面控制器的页面快照、输入法状态和 ShellDialog。
+[OUTPUT]: 发布页面模型与切页反馈，显示当前输入法。
 [POS]: ConsoleScreen 展示运行模型，其余页面沿用各自布局。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -207,13 +207,50 @@ Window {
             objectName: "statusBar"
             anchors.right: parent.right; anchors.rightMargin: 28
             y: 24; height: 36; spacing: 24
+            readonly property real availableExtraWidth: window.width - brandRow.x - brandRow.width
+                - anchors.rightMargin - 28 - wirelessStatus.width - batteryStatus.width
+                - statusClock.width - spacing * 2
             Text {
-                visible: viewState.busy
+                visible: viewState.busy && width > 0
                 anchors.verticalCenter: parent.verticalCenter
-                width: Math.min(implicitWidth, 280, Math.max(0, window.width - brandRow.width - wirelessStatus.width - batteryStatus.width - statusClock.width - 56 - statusBar.spacing * 3 - 28))
+                width: Math.min(implicitWidth, 280, Math.max(0, statusBar.availableExtraWidth - statusBar.spacing
+                    - (inputMethodStatus.visible ? inputMethodStatus.width + statusBar.spacing : 0)))
                 textFormat: Text.PlainText; elide: Text.ElideRight
                 text: viewState.busyLabel
                 font.family: window.fontFamily; font.pixelSize: 24; color: window.accent
+            }
+            Row {
+                id: inputMethodStatus
+                objectName: "inputMethodStatus"
+                anchors.verticalCenter: parent.verticalCenter
+                readonly property string methodStatus: controller.inputMethodStatus
+                readonly property real iconSpace: inputMethodIcon.width + spacing
+                spacing: 8
+                width: Math.min(200, iconSpace + inputMethodLabel.implicitWidth,
+                                Math.max(0, statusBar.availableExtraWidth - statusBar.spacing))
+                visible: methodStatus !== "" && width >= iconSpace + Math.min(24, inputMethodLabel.implicitWidth)
+                Accessible.role: Accessible.StaticText
+                Accessible.name: window.tr(msg.INPUT_METHOD) + " · " + methodStatus
+
+                Image {
+                    id: inputMethodIcon
+                    width: 24; height: 24
+                    anchors.verticalCenter: parent.verticalCenter
+                    source: inputMethodStatus.visible ? "image://desktop/" + encodeURIComponent(
+                        "udeck-setting:keyboard-fill/" + window.muted.toString()) : ""
+                    Accessible.ignored: true
+                }
+                Text {
+                    id: inputMethodLabel
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: Math.max(0, parent.width - parent.iconSpace)
+                    text: inputMethodStatus.methodStatus
+                    textFormat: Text.PlainText
+                    elide: Text.ElideRight
+                    font.family: window.fontFamily; font.pixelSize: 20; font.weight: Font.Medium
+                    color: window.ink
+                    Accessible.ignored: true
+                }
             }
             Row {
                 id: wirelessStatus

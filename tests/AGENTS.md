@@ -95,7 +95,7 @@ test_backend.py: pytest 回归入口，验证 backend 边界。
 test_battery.py: pytest 回归入口，验证 battery 边界。
 test_battery_qml.py: pytest 回归入口，验证 battery_qml 边界。
 test_browser_interactions.py: 网页输入、协议和文件/颜色选择器零系统分发回归。
-test_cli.py: pytest 回归入口，验证 cli 边界。
+test_cli.py: 设备诊断、快捷键重载与输入法命令路由回归。
 test_compatibility.py: 输入交接、激活恢复、相对指针与外部返回拒绝回归。
 test_console.py: 全局面板、内置焦点恢复与受控引擎归属撤销回归。
 test_console_qml.py: pytest 回归入口，验证 console_qml 边界。
@@ -137,6 +137,7 @@ test_hotspot_ui.py: pytest 回归入口，验证 hotspot_ui 边界。
 test_i18n.py: pytest 回归入口，验证 i18n 边界。
 test_i18n_qml.py: pytest 回归入口，验证 i18n_qml 边界。
 test_input.py: 焦点前事件保留、启动按键隔离、交接重试与断线重连回归。
+test_input_method.py: Fcitx 候选列表、组内循环、延迟切换与当前项读回。
 test_input_prompts.py: 正式按键资源许可、哈希、图片规格与缩放呈现回归。
 test_interface_sounds.py: 语义音效限频、前台取消与播放线程连续性回归。
 test_interface_audio.py: 单流复用、空闲暂停、PCM 短写和设备恢复回归。
@@ -168,10 +169,10 @@ test_samba_install_guard.py: pytest 回归入口，验证 samba_install_guard �
 test_screenshot.py: pytest 回归入口，验证 screenshot 边界。
 test_session_config.py: pytest 回归入口，验证 session_config 边界。
 test_session_shortcuts.py: 快捷键备份、幂等写入与固定 Console 切换回归。
-test_settings_menus.py: pytest 回归入口，验证 settings_menus 边界。
+test_settings_menus.py: 设置作用域、菜单焦点、图标与输入法切换回读。
 test_settings_qml.py: pytest 回归入口，验证 settings_qml 边界。
 test_sharing_controls.py: pytest 回归入口，验证 sharing_controls 边界。
-test_shortcut_controls.py: pytest 回归入口，验证 shortcut_controls 边界。
+test_shortcut_controls.py: 快捷键设置、冲突转移、锁屏与动作分发回归。
 test_shortcut_session.py: pytest 回归入口，验证 shortcut_session 边界。
 test_shortcuts.py: 快捷键格式、持久化与固定内置命令回归。
 test_shortcuts_qml.py: pytest 回归入口，验证 shortcuts_qml 边界。

@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖内置应用启动边界、系统后端与窗口服务。
-[OUTPUT]: 提供轻量视图、完整诊断、局部导航与 Console 模态操作。
+[INPUT]: 依赖内置应用启动边界、系统后端、输入法与窗口服务。
+[OUTPUT]: 提供轻量视图、系统设置、局部导航与 Console 模态操作。
 [POS]: 桌面交互入口；运行采样和进程终止由 runtime_console 承担。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -25,6 +25,7 @@ from .home import home_shortcuts
 from .hotspot import hotspot_summary, validate_hotspot_name
 from .i18n import LANGUAGES, Msg, error_text, render, tr
 from .i18n import translate as translate_message
+from .input_method import InputMethodController
 from .key_test import KeyTestControls
 from .launch_controller import LaunchControls
 from .menu_icons import system_menu_icons
@@ -42,6 +43,7 @@ from .wifi_controller import WifiControls
 
 CATEGORY_NAMES = {"All": tr(Msg.ALL_APPS), "Development": tr(Msg.DEVELOPMENT), "Network": tr(Msg.NETWORK), "System": tr(Msg.SYSTEM),
                   "Utility": tr(Msg.UTILITIES), "Game": tr(Msg.GAMES), "Graphics": tr(Msg.GRAPHICS), "Office": tr(Msg.OFFICE), "AudioVideo": tr(Msg.MULTIMEDIA), "Other": tr(Msg.OTHER)}
+_INPUT_METHOD_LABELS = {"keyboard-us": Msg.INPUT_METHOD_KEYBOARD, "pinyin": Msg.INPUT_METHOD_PINYIN}
 
 
 class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiControls, FileControls, ShortcutControls, SharingControls, SoundFeedback):
@@ -72,6 +74,7 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         self.language = self.config.data["preferences"]["language"]
         self.theme = self.config.data["preferences"]["theme"]
         self.mock = mock
+        self.input_method = InputMethodController(self, mock=mock)
         self.navigation = Navigation(self.config.data["focus"])
         self.catalog = catalog or DesktopCatalog(locale=self.language)
         self.applications = [] if defer_startup else self._native_applications(mock_apps() if mock else self.catalog.entries())
@@ -130,6 +133,8 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         elif not defer_startup:
             self._browse(Path.home())
         self._init_console()
+        self.input_method.stateChanged.connect(self._input_method_changed)
+        self.input_method.selectionFailed.connect(self._input_method_failed)
 
     @property
     def modal(self):
@@ -165,6 +170,8 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
             {"id": "key-test", "name": tr(Msg.KEY_TEST), "subtitle": tr(Msg.FULL_KEYBOARD_CONTROLS_AND_TRACKBALL), "icon": "udeck-setting:keyboard-fill"},
             {"id": "shortcuts", "name": tr(Msg.SHORTCUT_BINDINGS), "subtitle": tr(Msg.SYSTEM_ACTIONS_AND_KEYBOARD_COMBINATIONS), "icon": "udeck-setting:command"},
             {"id": "language", "name": tr(Msg.LANGUAGE), "subtitle": LANGUAGES[self.language], "icon": "preferences-desktop-locale"},
+            {"id": "input-method", "name": tr(Msg.INPUT_METHOD), "icon": "input-keyboard",
+             "subtitle": self.inputMethodStatus or tr(Msg.INPUT_METHOD_UNAVAILABLE)},
             {"id": "theme", "name": tr(Msg.THEME), "subtitle": THEMES[self.theme], "icon": "preferences-desktop-theme"},
             {"id": "ui-sounds", "name": tr(Msg.INTERFACE_SOUNDS), "subtitle": tr(Msg.ON) if self.config.data["preferences"]["uiSounds"] else tr(Msg.OFF), "checked": self.config.data["preferences"]["uiSounds"], "icon": "audio-volume-high"},
             {"id": "timezone", "name": tr(Msg.TIME_ZONE), "subtitle": zone_summary(self.data["timezone"]), "icon": "preferences-system-time"},
@@ -183,6 +190,41 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
     @Property(str, notify=viewChanged)
     def viewSnapshotJson(self):
         return self._snapshot(compact=True)
+
+    @Property(str, notify=viewChanged)
+    def inputMethodName(self):
+        method = self.input_method
+        return self._input_method_label(method.current_id, method.current_label) if method.current_id else ""
+
+    @Property(str, notify=viewChanged)
+    def inputMethodStatus(self):
+        if self.input_method.available:
+            return self.inputMethodName or render(tr(Msg.INPUT_METHOD_WAITING), self.language)
+        return ""
+
+    def _input_method_label(self, identifier, label):
+        key = _INPUT_METHOD_LABELS.get(identifier)
+        return render(tr(key), self.language) if key else label
+
+    def _input_method_options(self):
+        method = self.input_method
+        subtitles = {method.current_id: tr(Msg.INPUT_METHOD_CURRENT),
+                     method.pending_id: tr(Msg.INPUT_METHOD_PENDING)}
+        return [
+            {"id": item["id"], "label": self._input_method_label(item["id"], item["label"]),
+             "subtitle": subtitles.get(item["id"], ""),
+             "action": "input-method-set"}
+            for item in method.choices
+        ] or [{"id": "unavailable", "label": tr(Msg.INPUT_METHOD_UNAVAILABLE), "action": "none", "disabled": True}]
+
+    @Slot()
+    def _input_method_changed(self):
+        self._refresh_open_menu()
+        self._publish()
+
+    @Slot()
+    def _input_method_failed(self):
+        self.notify(tr(Msg.INPUT_METHOD_SWITCH_FAILED))
 
     @Property(int, notify=changed)
     def selectedIndex(self):
@@ -271,7 +313,7 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         return True
 
     def _quick_options(self):
-        controls = {"volume", "brightness", "output", "microphone", "wifi", "hotspot", "bluetooth", "sharing", "battery", "input", "key-test", "language", "theme", "timezone", "ui-sounds"}
+        controls = {"volume", "brightness", "output", "microphone", "wifi", "hotspot", "bluetooth", "sharing", "battery", "input", "key-test", "language", "input-method", "theme", "timezone", "ui-sounds"}
         return [{"label": entry["name"], "subtitle": entry["subtitle"], "action": "setting", "id": entry["id"],
                  "icon": entry["icon"], "checked": entry.get("checked"), "disabled": entry.get("disabled", False)} for entry in self._settings() if entry["id"] in controls] + [
             {"label": tr(Msg.POWER_AND_SESSION), "action": "power-menu"}, {"label": tr(Msg.CONSOLE), "action": "switcher"}]
@@ -320,6 +362,7 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         for modal in self._modals:
             if modal.get("source") == "language":
                 modal["options"] = system_menu_icons(self._language_options(), "language")
+        self._refresh_open_menu()
         self._publish()
         return True
 
@@ -422,6 +465,8 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
                 options = self._audio_profile_options(cards[modal["cardId"]])
             elif source == "theme":
                 options = self._theme_options()
+            elif source == "input-method":
+                options = self._input_method_options()
             elif source in ("timezone-areas", "timezone-cities"):
                 options = self._timezone_options(modal.get("region"))
                 modal["body"] = self._timezone_body()
@@ -738,6 +783,12 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         elif identifier == "language":
             self._menu(tr(Msg.INTERFACE_LANGUAGE), self._language_options(), source="language",
                        index=list(LANGUAGES).index(self.language))
+        elif identifier == "input-method":
+            self.input_method.refresh()
+            options = self._input_method_options()
+            selected = self.input_method.pending_id or self.input_method.current_id
+            index = next((i for i, option in enumerate(options) if option["id"] == selected), 0)
+            self._menu(tr(Msg.INPUT_METHOD), options, source="input-method", index=index)
         elif identifier == "theme":
             self._menu(tr(Msg.INTERFACE_THEME), self._theme_options(), source="theme",
                        index=list(THEMES).index(self.theme))
@@ -967,7 +1018,7 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
                     self.feedback("error")
                     self.notify(option.get("reason") or tr(Msg.THIS_ITEM_IS_CURRENTLY_UNAVAILABLE))
                     return
-                keep_parent = modal.get('source', '').startswith('sharing') or modal.get('source') in ('console', 'shortcuts', 'shortcuts-group', 'shortcut-action', 'system-info') or (modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot", "shortcuts", "sharing"))
+                keep_parent = modal.get('source', '').startswith('sharing') or modal.get('source') in ('console', 'shortcuts', 'shortcuts-group', 'shortcut-action', 'system-info', 'input-method') or (modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot", "shortcuts", "sharing", "input-method"))
                 if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "hotspot", "hotspot-device", "bluetooth", "volume", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
                     self._pop()
                 self._execute_option(option)
@@ -1064,6 +1115,9 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
             self._activate(item)
         elif action == "language":
             self.setLanguage(option["language"])
+        elif action == "input-method-set":
+            if option["id"] != self.input_method.current_id and not self.input_method.select_input_method(option["id"]):
+                self._input_method_failed()
         elif action == "theme":
             self.setTheme(option["theme"])
         elif action == "system-info-detail":
@@ -1336,6 +1390,7 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         self._publish()
 
     def close(self):
+        self.input_method.close()
         self.runtime_console.close()
         self._close_sharing()
         self._close_shortcuts()

@@ -1,4 +1,8 @@
-"""Button-first settings for the registered system shortcuts."""
+"""[INPUT]: 依赖系统动作表、会话状态和桌面控制器。
+[OUTPUT]: 提供快捷键设置和全局动作分发。
+[POS]: 在活动会话中调用系统服务或输入法控制器。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import os
 import shutil
@@ -206,6 +210,12 @@ class ShortcutControls:
     def globalAction(self, action):
         state = self.data.get('sessionInput', {})
         if not self.mock and not (state.get('available') and state.get('active') and not state.get('locked')):
+            return False
+        if action == 'cycle-input-method':
+            if self.input_method.cycle_input_method():
+                return True
+            message = Msg.INPUT_METHOD_ENABLE_TWO if self.input_method.available else Msg.INPUT_METHOD_UNAVAILABLE
+            self.notify(tr(message))
             return False
         if action in ('apps', 'files', 'settings'):
             self._cancel_modals()

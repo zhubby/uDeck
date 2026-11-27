@@ -10,7 +10,7 @@ assets/: 随包图标、品牌、输入提示与界面音效。
 audio.py: PulseAudio 与 PipeWire 设备状态归一。
 backend.py: 系统服务、音频状态去重、蓝牙授权和网络授权。
 battery.py: 电池测量读取与展示数据。
-cli.py: 命令入口、诊断和控制请求。
+cli.py: 命令入口、诊断与桌面会话动作请求。
 compatibility.py: 输入预释放、原生窗口恢复与相对指针路由。
 console.py: 全局 Console 面板、受控引擎授权与原生焦点恢复。
 controller.py: 桌面交互编排；局部选择与轻量视图独立于完整诊断。
@@ -35,6 +35,7 @@ hotspot_controller.py: 热点菜单与按钮导航。
 i18n.py: 稳定消息标识、翻译和错误文案渲染。
 icons.py: 随包图像与应用图标提供器。
 input.py: sysfs 预筛选、启动按键隔离、事件投递开关与交接重试。
+input_method.py: 查询 Fcitx 5 输入法，按当前组循环，等待文本焦点并回读切换。
 interface_audio.py: 单条复用 PCM 音频流、空闲暂停、字节写入与设备恢复。
 ipc_client.py: 无 Qt 依赖的已有实例启动转发。
 key_test.py: 诊断弹窗中的按键边沿观测。
@@ -61,10 +62,10 @@ session_shortcuts.py: 共用系统动作表的离线快捷键工具。
 share_settings.py: 共享偏好保存的事务与回滚。
 sharing.py: 共享菜单、草稿与状态去重；隐藏且已关闭的服务停止查询。
 sharing_messages.py: 共享服务错误到界面消息的转换。
-shortcut_controller.py: 系统快捷键设置的按钮交互。
+shortcut_controller.py: 系统快捷键设置与活动会话动作分发。
 shortcut_recorder.py: 临时抑制 labwc 快捷键的录制窗口。
 shortcut_session.py: 串行协调快捷键变更与方向隔离。
-shortcuts.py: 系统动作、固定原生终端和 Console 窗口切换快捷键。
+shortcuts.py: 系统动作表、默认绑定与 labwc 快捷键生成。
 smb_files/: Samba 共享服务与访问边界。
 sounds.py: 前台音效、单事件合并与独立线程调度；复用持续音频流。
 system_info.py: 硬件和操作系统信息读取。

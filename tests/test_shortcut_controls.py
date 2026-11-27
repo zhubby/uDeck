@@ -1,3 +1,9 @@
+"""[INPUT]: 依赖桌面控制器、模拟服务和会话状态。
+[OUTPUT]: 验证快捷键设置、冲突和全局动作分发。
+[POS]: 通过桌面入口检查锁屏与焦点行为。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 
 import pytest
@@ -70,6 +76,32 @@ def test_dangerous_global_actions_only_open_confirmation(tmp_path):
             assert not controller.backend.actions
         controller.globalAction('apps')
         assert json.loads(controller.snapshotJson)['page'] == 'apps'
+    finally:
+        controller.close()
+    assert app
+
+
+def test_input_method_shortcut_uses_session_guard_without_changing_focus(tmp_path):
+    app, controller = create(tmp_path)
+    try:
+        controller.activateSetting('shortcuts')
+        choose(controller, 'navigation')
+        choose(controller, 'cycle-input-method')
+        assert controller.modal['options'][0]['label'] == 'Ctrl+Alt+Space'
+        menu = controller.modal['key']
+        presented = []
+        controller.present.connect(lambda: presented.append(True))
+        controller.mock = False
+        session = {'available': True, 'active': True, 'locked': True}
+        controller.data['sessionInput'] = session
+        assert not controller.globalAction('cycle-input-method')
+        assert controller.inputMethodStatus == 'English (US)'
+        session['locked'] = False
+        assert controller.globalAction('cycle-input-method')
+        assert controller.inputMethodStatus == 'Pinyin'
+        assert controller.globalAction('cycle-input-method')
+        assert controller.inputMethodStatus == 'English (US)'
+        assert controller.modal['key'] == menu and not presented
     finally:
         controller.close()
     assert app

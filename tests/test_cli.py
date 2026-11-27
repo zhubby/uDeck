@@ -1,3 +1,9 @@
+"""[INPUT]: 依赖 CLI 与模拟 Qt D-Bus 接口。
+[OUTPUT]: 验证设备诊断、快捷键重载和输入法命令路由。
+[POS]: CLI 回归；通过模拟会话总线截取控制请求。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import json
 import sys
 from types import SimpleNamespace
@@ -63,3 +69,18 @@ def test_bind_console_reports_live_reload_result(monkeypatch, capsys, state, cod
     assert cli.main(['bind-console']) == code
     assert calls == ['ReloadShortcuts']
     assert json.loads(capsys.readouterr().out) == state
+
+
+def test_cycle_input_method_uses_global_action_on_the_session_bus(monkeypatch):
+    from PySide6 import QtDBus
+
+    calls = []
+
+    def call(*args):
+        calls.append(args)
+        return SimpleNamespace(type=lambda: QtDBus.QDBusMessage.MessageType.ReplyMessage,
+                               arguments=lambda: [True])
+
+    monkeypatch.setattr(QtDBus, 'QDBusInterface', lambda *args: SimpleNamespace(isValid=lambda: True, call=call))
+    assert cli.main(['cycle-input-method']) == 0
+    assert calls == [('GlobalAction', 'cycle-input-method')]
