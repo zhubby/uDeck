@@ -14,6 +14,27 @@
   </libinput>
   <windowRules>
     <windowRule identifier="*" type="normal"><action name="Maximize"/></windowRule>
+    <windowRule identifier="io.github.zhubby.uDeck" title="uDeck" serverDecoration="no">
+      <action name="MoveToOutput" output="DSI-1"/>
+    </windowRule>
     <windowRule identifier="io.github.zhubby.uDeck" serverDecoration="no"/>
+    <windowRule identifier="at.yrlf.wl_mirror"
+                serverDecoration="no" skipTaskbar="yes" skipWindowSwitcher="yes"
+                ignoreFocusRequest="yes" fixedPosition="yes">
+      <action name="FocusOutput" output="DSI-1"/>
+      <action name="ForEach">
+        <query monitor="HDMI-A-1"/>
+        <query monitor="HDMI-A-2"/>
+        <then>
+          <action name="If">
+            <query identifier="at.yrlf.wl_mirror"/>
+            <else>
+              <action name="MoveToOutput" output="DSI-1"/>
+              <action name="Focus"/>
+            </else>
+          </action>
+        </then>
+      </action>
+    </windowRule>
   </windowRules>
 </labwc_config>

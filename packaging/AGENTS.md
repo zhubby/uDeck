@@ -3,8 +3,8 @@
 
 bin/: 已安装命令包装与独立会话入口。
 apps/: 独立应用的桌面注册、图标与许可证，包含 Agent 固定入口。
-labwc/: 合成器环境、窗口规则和自动启动。
-session: labwc 会话服务、桌面监督器与退出清理。
+labwc/: 合成器环境、复制窗口焦点规则和自动启动。
+session: 内屏方向与位置、会话服务、桌面监督器与退出清理。
 terminal.colorscheme: 终端浅色调色板。
 terminal-dark.colorscheme: 终端深色调色板。
 install-release: 离线安装与依赖检查。

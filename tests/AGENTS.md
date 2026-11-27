@@ -102,6 +102,7 @@ test_console_qml.py: pytest 回归入口，验证 console_qml 边界。
 test_core.py: pytest 回归入口，验证 core 边界。
 test_cursor.py: 桌面与内置窗口的圆点动画、焦点和输入策略回归。
 test_directions.py: 方向连接筛选、启动按住隔离与修饰键释放回归。
+test_display.py: 外屏复制、扩展、插拔、失败回退与偏好保存回归。
 test_emulator_engine.py: 受控游戏配置和真实 QProcess 协议、背压与读档屏障回归。
 test_emulator_game_info.py: pytest 回归入口，验证 emulator_game_info 边界。
 test_emulator_migration.py: pytest 回归入口，验证 emulator_migration 边界。

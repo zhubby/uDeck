@@ -89,7 +89,8 @@ class ConfigStore:
         ) / "udeck/settings.json"
         self.data = {"version": 1, "favorites": [], "recent": [], "focus": {}, "input": {}, "applicationInput": {},
                      "fileManager": {"bookmarks": [], "sort": "name", "descending": False, "kind": "all"},
-                     "preferences": {"showHidden": False, "category": "All", "language": "en", "theme": "classic", "uiSounds": True}}
+                     "preferences": {"showHidden": False, "category": "All", "language": "en", "theme": "classic",
+                                     "uiSounds": True, "displayMode": "mirror"}}
         try:
             loaded = json.loads(self.path.read_text())
             if isinstance(loaded, dict):
@@ -132,6 +133,8 @@ class ConfigStore:
                         self.data["preferences"]["showHidden"] = preferences["showHidden"]
                     if type(preferences.get("uiSounds")) is bool:
                         self.data["preferences"]["uiSounds"] = preferences["uiSounds"]
+                    if preferences.get("displayMode") in ("mirror", "extend"):
+                        self.data["preferences"]["displayMode"] = preferences["displayMode"]
                     if isinstance(preferences.get("category"), str):
                         self.data["preferences"]["category"] = preferences["category"]
         except (OSError, ValueError, TypeError):
@@ -141,13 +144,13 @@ class ConfigStore:
 
     def save(self):
         # Apps also update shared preferences. A cached shell store must not
-        # overwrite their language/theme when saving focus or favorites.
+        # overwrite their settings when saving focus or favorites.
         latest_store = ConfigStore(self.path)
         latest = latest_store.data["preferences"]
         if self.data["fileManager"] == self._saved_file_manager:
             self.data["fileManager"] = latest_store.data["fileManager"]
         preferences = dict(self.data["preferences"])
-        for field in ("language", "theme", "uiSounds"):
+        for field in ("language", "theme", "uiSounds", "displayMode"):
             if preferences[field] == self._saved_preferences[field]:
                 preferences[field] = latest[field]
         values = {**self.data, "preferences": preferences}
@@ -164,6 +167,12 @@ class ConfigStore:
             self._saved_file_manager = {**self.data["fileManager"], "bookmarks": list(self.data["fileManager"]["bookmarks"])}
         finally:
             Path(temporary).unlink(missing_ok=True)
+
+    def save_display_mode(self, mode):
+        current = ConfigStore(self.path)
+        if current.data["preferences"]["displayMode"] != mode:
+            current.data["preferences"]["displayMode"] = mode
+            current.save()
 
     def favorite(self, identifier, enabled):
         favorites = self.data["favorites"]

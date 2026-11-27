@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖系统动作、配置文件和 labwc 快捷键格式。
-[OUTPUT]: 提供快捷键身份、分组、录制与配置持久化。
+[OUTPUT]: 提供快捷键身份、分组、录制、跨屏移动与配置持久化。
 [POS]: 系统动作表向设置与 labwc 提供默认绑定。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -41,6 +41,8 @@ ACTIONS = (
     SystemAction('next-window', tr(Msg.NEXT_WINDOW), 'windows', ('A-Tab',), 'udeckctl switcher'),
     SystemAction('previous-window', tr(Msg.PREVIOUS_WINDOW), 'windows', ('A-S-Tab',), 'udeckctl switcher'),
     SystemAction('close-window', tr(Msg.CLOSE_CURRENT_WINDOW), 'windows', ('A-F4',), native='Close'),
+    SystemAction('move-window-to-other-display', tr(Msg.DISPLAY_MOVE_WINDOW), 'windows',
+                 ('C-A-S-m',), feature='display'),
     SystemAction('pause-game', tr(Msg.PAUSE_EMULATOR), 'windows', ('C-A-m',), 'udeck-app emulator --command pause-game'),
     SystemAction('screenshot', tr(Msg.FULL_SCREEN_SCREENSHOT), 'capture', ('C-A-p', 'Print'), 'udeckctl screenshot', feature='screenshot'),
     SystemAction('lock', tr(Msg.LOCK_SCREEN), 'power', ('C-A-l',), 'udeckctl lock'),
@@ -187,10 +189,10 @@ class ShortcutStore:
     def bindings(self, overrides=None):
         overrides = self.overrides if overrides is None else overrides
         bindings = {action.id: list(overrides.get(action.id, action.defaults)) for action in ACTIONS}
-        if 'cycle-input-method' not in overrides:
-            # 已保存的用户绑定优先于新增的输入法默认键。
-            occupied = {sequence for values in overrides.values() for sequence in values}
-            bindings['cycle-input-method'] = [key for key in bindings['cycle-input-method'] if key not in occupied]
+        occupied = {sequence for values in overrides.values() for sequence in values}
+        for action in ('cycle-input-method', 'move-window-to-other-display'):
+            if action not in overrides:
+                bindings[action] = [key for key in bindings[action] if key not in occupied]
         return bindings
 
     def validate(self, overrides):
@@ -231,6 +233,20 @@ class ShortcutStore:
         self.overrides = values
 
 
+def _render_move_display(binding, prefix):
+    action = ET.SubElement(binding, prefix + 'action', name='ForEach')
+    ET.SubElement(action, prefix + 'query', identifier='at.yrlf.wl_mirror')
+    none = ET.SubElement(action, prefix + 'none')
+    action = ET.SubElement(none, prefix + 'action', name='If')
+    ET.SubElement(action, prefix + 'query', identifier='io.github.zhubby.uDeck', title='uDeck')
+    other = ET.SubElement(action, prefix + 'else')
+    action = ET.SubElement(other, prefix + 'action', name='If')
+    ET.SubElement(action, prefix + 'query', monitor='DSI-1')
+    for branch, direction in (('then', 'right'), ('else', 'left')):
+        target = ET.SubElement(action, prefix + branch)
+        ET.SubElement(target, prefix + 'action', name='MoveToOutput', direction=direction)
+
+
 def render_bindings(original, bindings, *, pointer=False, token='startup'):
     if not re.fullmatch(r'[a-zA-Z0-9]{1,64}', token):
         raise ValueError(tr(Msg.SHORTCUT_INVALID_GENERATION))
@@ -252,6 +268,10 @@ def render_bindings(original, bindings, *, pointer=False, token='startup'):
         keyboard.append(ET.Comment('udeck-managed-shortcuts'))
     for action in ACTIONS:
         for sequence in bindings[action.id]:
+            if action.id == 'move-window-to-other-display':
+                if root.find(f"{prefix}windowRules/{prefix}windowRule[@identifier='at.yrlf.wl_mirror']") is not None:
+                    _render_move_display(ET.SubElement(keyboard, prefix + 'keybind', key=normalize(sequence)), prefix)
+                continue
             binding = ET.SubElement(keyboard, prefix + 'keybind', key=normalize(sequence))
             attributes = {'name': action.native} if action.native else {'name': 'Execute', 'command': action.command}
             ET.SubElement(binding, prefix + 'action', **attributes)

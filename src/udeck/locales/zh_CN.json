@@ -1,4 +1,12 @@
 {
+  "display_settings": "显示",
+  "display_mirror": "复制",
+  "display_extend": "扩展",
+  "display_disconnected": "未连接外屏",
+  "display_mode_saved": "显示模式已保存",
+  "display_layout_unavailable": "显示设置不可用",
+  "display_mirror_failed": "复制失败，外屏已切换到扩展。",
+  "display_move_window": "将窗口移到另一块屏幕",
   "udeck_agent": "Agent",
   "agent_subtitle": "通过 ACP 使用编程 Agent",
   "agent_sessions": "会话",

@@ -45,7 +45,7 @@ SETTING_ARTWORK = {
 
 SETTING_ICONS = {
     "volume": "audio-volume-high", "volume-level": "audio-volume-high",
-    "brightness": "display-brightness", "output": "audio-card",
+    "brightness": "display-brightness", "output": "audio-card", "display": "video-display",
     "microphone": "audio-input-microphone", "microphone-level": "audio-input-microphone",
     "wifi": "network-wireless", "hotspot": "network-wireless",
     "bluetooth": "bluetooth", "audio-modes": "audio-card", "battery": "battery",
@@ -80,6 +80,7 @@ ACTION_ICONS = {
 
 SYSTEM_ICONS = {
     "refresh": "view-refresh", "mute": "audio-volume-muted",
+    "display_mode": "video-display",
     "audio_input": "audio-input-microphone", "audio_input_mute": "microphone-sensitivity-muted",
     "audio_output": "audio-card", "bluetooth_power": "bluetooth",
     "bluetooth_scan": "edit-find", "bluetooth_stop": "process-stop",

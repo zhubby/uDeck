@@ -11,6 +11,15 @@ from enum import StrEnum
 class Msg(StrEnum):
     """Use these constants in tr(); locale files map their values to text."""
 
+    DISPLAY_SETTINGS = "display_settings"
+    DISPLAY_MIRROR = "display_mirror"
+    DISPLAY_EXTEND = "display_extend"
+    DISPLAY_DISCONNECTED = "display_disconnected"
+    DISPLAY_MODE_SAVED = "display_mode_saved"
+    DISPLAY_LAYOUT_UNAVAILABLE = "display_layout_unavailable"
+    DISPLAY_MIRROR_FAILED = "display_mirror_failed"
+    DISPLAY_MOVE_WINDOW = "display_move_window"
+
     EXTERNAL_APPLICATIONS_DISABLED = "external_applications_disabled"
     WEB_PAGE_SYSTEM_DIALOGS_ARE_DISABLED = "web_page_system_dialogs_are_disabled"
     UDECK_DESKTOP_UNAVAILABLE = "udeck_desktop_unavailable"

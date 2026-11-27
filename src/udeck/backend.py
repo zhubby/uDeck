@@ -1,5 +1,5 @@
 """
-[INPUT]: 依赖系统 D-Bus、音频命令、硬件读数与异步事件循环。
+[INPUT]: 依赖系统 D-Bus、音频命令、Wayland 显示布局、硬件读数与异步事件循环。
 [OUTPUT]: 提供隔离状态快照、系统操作和授权提示。
 [POS]: 系统服务线程；音频播放活动不重复发布相同控制状态。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
@@ -21,6 +21,7 @@ from PySide6.QtCore import QObject, Signal
 
 from .audio import AUDIO_ACTIONS, audio_state
 from .battery import read_battery
+from .display import DisplayLayout
 from .i18n import Msg, error_text, tr
 from .mock import initial_state
 from .timezone import TIMEDATE, TIMEDATE_PATH
@@ -126,10 +127,12 @@ class SystemBackend(WifiBackend, QObject):
     prompt = Signal(object)
     completed = Signal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, *, display_config=None):
         super().__init__(parent)
         self.state = initial_state()
         self.loop = asyncio.new_event_loop()
+        self.display_config = display_config
+        self.display = DisplayLayout(self.command, display_config.data["preferences"]["displayMode"]) if display_config else None
         self.thread = None
         self.bus = None
         self.pending_prompts = {}
@@ -188,6 +191,8 @@ class SystemBackend(WifiBackend, QObject):
         await self.call(destination, path, PROPERTIES, "Set", "ssv", [interface, name, Variant(signature, value)])
 
     async def _start(self):
+        if self.display:
+            self.loop.create_task(self._watch_display())
         try:
             self.bus = await MessageBus(bus_type=BusType.SYSTEM).connect()
             self.bus.add_message_handler(self._message)
@@ -295,6 +300,20 @@ class SystemBackend(WifiBackend, QObject):
         # Python object signals preserve deferred messages. Detach the payload
         # so queued UI deliveries cannot share mutable service state.
         self.updated.emit(deepcopy({component: value}))
+
+    async def _refresh_display(self):
+        try:
+            state = await self.display.refresh()
+        except (OSError, RuntimeError, ValueError):
+            state = {**self.state["display"], "available": False, "activeMode": "",
+                     "error": tr(Msg.DISPLAY_LAYOUT_UNAVAILABLE)}
+        if state != self.state["display"]:
+            self.publish("display", state)
+
+    async def _watch_display(self):
+        while True:
+            await self._refresh_display()
+            await asyncio.sleep(2)
 
     async def refresh_timezone(self):
         async with self.timezone_refresh_lock:
@@ -493,7 +512,16 @@ class SystemBackend(WifiBackend, QObject):
         future.add_done_callback(complete)
 
     async def _execute(self, action, payload):
-        if action == "timezone_set":
+        if action == "display_mode":
+            if self.display is None:
+                raise RuntimeError(tr(Msg.DISPLAY_LAYOUT_UNAVAILABLE))
+            try:
+                state = await self.display.select(payload.get("mode"), self.display_config.save_display_mode)
+            except (OSError, RuntimeError, ValueError):
+                await self._refresh_display()
+                raise
+            self.publish("display", state)
+        elif action == "timezone_set":
             async with self.timezone_operation_lock:
                 await self._set_timezone(payload)
         elif action == "wifi_cancel_connect":
@@ -616,9 +644,10 @@ class SystemBackend(WifiBackend, QObject):
                     await self._execute("bluetooth_stop", {})
             except Exception:
                 pass
-            for task in asyncio.all_tasks(self.loop):
-                if task is not asyncio.current_task():
-                    task.cancel()
+            for task in asyncio.all_tasks(self.loop) - {asyncio.current_task()}:
+                task.cancel()
+            if self.display:
+                await self.display.close()
             for process in list(self.processes):
                 if process.returncode is None:
                     process.terminate()

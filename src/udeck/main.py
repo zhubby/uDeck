@@ -193,7 +193,9 @@ def main(argv=None):
     else:
         from .backend import SystemBackend
 
-        backend = SystemBackend()
+        managed_display = (not options.windowed and os.environ.get("UDECK_SESSION") == "1"
+                           and application.platformName() == "wayland")
+        backend = SystemBackend(display_config=config if managed_display else None)
         windows = WindowService()
     controller = ShellController(backend, windows, config=config, mock=options.mock, defer_startup=True)
     control = Control(controller, windows)

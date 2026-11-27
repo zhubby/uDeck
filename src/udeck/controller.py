@@ -1,5 +1,5 @@
 """
-[INPUT]: 依赖内置应用启动边界、系统后端、输入法与窗口服务。
+[INPUT]: 依赖内置应用启动边界、系统后端、显示模式、输入法与窗口服务。
 [OUTPUT]: 提供轻量视图、系统设置、局部导航与 Console 模态操作。
 [POS]: 桌面交互入口；运行采样和进程终止由 runtime_console 承担。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
@@ -19,6 +19,7 @@ from .audio import AUDIO_ACTIONS
 from .battery import battery_details, battery_summary
 from .core import ALL_PAGES, PAGE_NAMES, PAGES, ConfigStore, Navigation, move_index
 from .desktop import DesktopCatalog, open_terminal
+from .display import DISPLAY_MODES
 from .file_controller import FileControls
 from .files import FileOperations, file_kind, validate_name
 from .home import home_shortcuts
@@ -44,6 +45,7 @@ from .wifi_controller import WifiControls
 CATEGORY_NAMES = {"All": tr(Msg.ALL_APPS), "Development": tr(Msg.DEVELOPMENT), "Network": tr(Msg.NETWORK), "System": tr(Msg.SYSTEM),
                   "Utility": tr(Msg.UTILITIES), "Game": tr(Msg.GAMES), "Graphics": tr(Msg.GRAPHICS), "Office": tr(Msg.OFFICE), "AudioVideo": tr(Msg.MULTIMEDIA), "Other": tr(Msg.OTHER)}
 _INPUT_METHOD_LABELS = {"keyboard-us": Msg.INPUT_METHOD_KEYBOARD, "pinyin": Msg.INPUT_METHOD_PINYIN}
+_DISPLAY_LABELS = {"mirror": Msg.DISPLAY_MIRROR, "extend": Msg.DISPLAY_EXTEND}
 
 
 class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiControls, FileControls, ShortcutControls, SharingControls, SoundFeedback):
@@ -159,6 +161,7 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         return system_menu_icons([
             {"id": "volume", "name": tr(Msg.VOLUME), "subtitle": tr(Msg.MUTE) if audio.get("muted") else f"{round(audio.get('volume', 0) * 100)}%", "icon": "audio-volume-high", "value": audio.get("volume", 0), "disabled": not audio.get("available") or not audio.get("outputs")},
             {"id": "brightness", "name": tr(Msg.SCREEN_BRIGHTNESS), "subtitle": f"{round(brightness.get('value', 0) * 100)}%", "icon": "display-brightness", "value": brightness.get("value", 0), "disabled": not brightness.get("available")},
+            {"id": "display", "name": tr(Msg.DISPLAY_SETTINGS), "subtitle": self._display_summary(), "icon": "video-display"},
             {"id": "output", "name": tr(Msg.AUDIO_OUTPUT), "subtitle": next((output["name"] for output in audio.get("outputs", []) if output.get("active")), tr(Msg.NO_AUDIO_OUTPUT_DETECTED)), "icon": "audio-card", "disabled": not audio.get("available")},
             {"id": "microphone", "name": tr(Msg.MICROPHONE_INPUT), "subtitle": microphone.get("name", tr(Msg.NO_MICROPHONE_DETECTED)), "icon": "audio-input-microphone", "disabled": not audio.get("available")},
             {"id": "wifi", "name": "Wi-Fi", "subtitle": wifi_summary(wifi), "icon": "network-wireless", "disabled": not wifi.get("available")},
@@ -457,6 +460,9 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
                 options = self._bluetooth_options()
             elif source == "volume":
                 options = self._volume_options()
+            elif source == "display":
+                options = self._display_options()
+                modal["body"] = self._display_summary()
             elif source in ("audio-input", "audio-output"):
                 options = self._audio_endpoint_options(source == "audio-input")
             elif source == "audio-cards":
@@ -517,7 +523,7 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
         if action in self.pending_system and action != "refresh":
             self.soundRequested.emit("error")
         self.pending_system.discard(action)
-        if action == "timezone_set":
+        if action in ("timezone_set", "display_mode"):
             self._refresh_open_menu()
         if action == 'lock':
             self.inputSuspended.emit(False)
@@ -527,10 +533,12 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
     def _system_completed(self, action):
         if action in self.pending_system and action in {
                 "timezone_set", "wifi_update_password", "wifi_set_autoconnect", "wifi_forget",
-                "audio_output", "audio_input", "audio_profile"}:
+                "audio_output", "audio_input", "audio_profile", "display_mode"}:
             self.soundRequested.emit("success")
         self.pending_system.discard(action)
-        if action == "timezone_set":
+        if action == "display_mode" and self.mock:
+            self.config.save_display_mode(self.data["display"]["mode"])
+        if action in ("timezone_set", "display_mode"):
             self._refresh_open_menu()
         if action == 'lock':
             self.inputSuspended.emit(False)
@@ -544,6 +552,8 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
             self.notify(tr(Msg.HOTSPOT_CONFIGURATION_SAVED_TURN_IT_ON_WHEN_READY))
         elif action == "timezone_set":
             self.notify(tr(Msg.TIME_ZONE_UPDATED) if not self.mock else tr(Msg.PREVIEW_TIME_ZONE_UPDATED))
+        elif action == "display_mode":
+            self.notify(tr(Msg.DISPLAY_MODE_SAVED))
         elif action not in ("refresh", "bluetooth_stop", "wifi_connect", "wifi_connect_saved", "wifi_reconnect", "wifi_scan", "wifi_cancel_connect", "wifi_hotspot_start", "wifi_hotspot_stop"):
             self.notify(tr(Msg.PREVIEW_ACTION_SIMULATED_NO_HARDWARE_CHANGES) if self.mock else tr(Msg.REQUEST_PROCESSED_CHECK_THE_DEVICE_STATUS_FOR_THE_CONNECTION_RESULT))
         self._publish()
@@ -794,6 +804,10 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
                        index=list(THEMES).index(self.theme))
         elif identifier == "volume":
             self._menu(tr(Msg.VOLUME), self._volume_options(), source="volume")
+        elif identifier == "display":
+            options = self._display_options()
+            self._menu(tr(Msg.DISPLAY_SETTINGS), options, source="display", body=self._display_summary(),
+                       index=next((index for index, option in enumerate(options) if option["current"]), 0))
         elif identifier in ("volume-level", "brightness"):
             component = "audio" if identifier == "volume-level" else "brightness"
             if not self.data[component].get("available"):
@@ -882,6 +896,25 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
             {"id": "mute", "label": tr(Msg.MUTE), "checked": bool(audio.get("muted")), "pendingAction": "mute",
              "action": "system", "systemAction": "mute", "disabled": disabled},
         ]
+
+    def _display_summary(self):
+        state = self.data["display"]
+        if state.get("error"):
+            return state["error"]
+        if not state["available"]:
+            return tr(Msg.DISPLAY_LAYOUT_UNAVAILABLE)
+        if not state["outputs"]:
+            return tr(Msg.DISPLAY_DISCONNECTED)
+        return tr(_DISPLAY_LABELS[state["activeMode"]]) + " · " + state["outputs"][0]
+
+    def _display_options(self):
+        state = self.data["display"]
+        selected = state["activeMode"] or state["mode"]
+        return [{"id": mode, "label": tr(_DISPLAY_LABELS[mode]), "current": mode == selected,
+                 "subtitle": tr(Msg.CURRENT_MODE if state["activeMode"] else Msg.SELECTED) if mode == selected else "",
+                 "disabled": not state["available"], "pendingAction": "display_mode",
+                 "action": "system", "systemAction": "display_mode", "payload": {"mode": mode}}
+                for mode in DISPLAY_MODES]
 
     def _audio_endpoint_options(self, inputs=False):
         audio = self.data["audio"]
@@ -1019,7 +1052,7 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
                     self.notify(option.get("reason") or tr(Msg.THIS_ITEM_IS_CURRENTLY_UNAVAILABLE))
                     return
                 keep_parent = modal.get('source', '').startswith('sharing') or modal.get('source') in ('console', 'shortcuts', 'shortcuts-group', 'shortcut-action', 'system-info', 'input-method') or (modal.get("source") == "quick-settings" and option.get("id") in ("theme", "timezone", "key-test", "ui-sounds", "hotspot", "shortcuts", "sharing", "input-method"))
-                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "hotspot", "hotspot-device", "bluetooth", "volume", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
+                if modal.get("source") not in ("wifi", "wifi-device", "wifi-saved", "wifi-network", "wifi-profiles", "wifi-details", "hotspot", "hotspot-device", "bluetooth", "volume", "display", "language", "theme", "timezone-areas", "timezone-cities", "audio-input", "audio-output", "audio-cards", "audio-profiles") and not keep_parent:
                     self._pop()
                 self._execute_option(option)
         elif kind == "confirm":
@@ -1334,7 +1367,7 @@ class ShellController(ConsoleControls, LaunchControls, KeyTestControls, WifiCont
             self.notify(tr(Msg.THIS_REQUEST_IS_BEING_PROCESSED_PLEASE_WAIT))
             return
         self.pending_system.add(action)
-        if action == "timezone_set":
+        if action in ("timezone_set", "display_mode"):
             self._refresh_open_menu()
         if action == 'lock':
             self.inputSuspended.emit(True)

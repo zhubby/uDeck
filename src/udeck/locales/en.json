@@ -1,4 +1,12 @@
 {
+  "display_settings": "Display",
+  "display_mirror": "Mirror",
+  "display_extend": "Extend",
+  "display_disconnected": "No external display connected",
+  "display_mode_saved": "Display mode saved",
+  "display_layout_unavailable": "Display settings are unavailable",
+  "display_mirror_failed": "Mirroring failed. The external display is extended.",
+  "display_move_window": "Move window to the other display",
   "udeck_agent": "Agent",
   "agent_subtitle": "Work with coding agents over ACP",
   "agent_sessions": "Sessions",

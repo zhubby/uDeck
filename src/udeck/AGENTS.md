@@ -8,7 +8,7 @@ apps/: 共享应用框架和独立应用。
 build_info.py: 读取构建时冻结的提交、源码摘要与包身份。
 assets/: 随包图标、品牌、输入提示与界面音效。
 audio.py: PulseAudio 与 PipeWire 设备状态归一。
-backend.py: 系统服务、音频状态去重、蓝牙授权和网络授权。
+backend.py: 系统服务、显示布局监测、音频状态去重、蓝牙授权和网络授权。
 battery.py: 电池测量读取与展示数据。
 cli.py: 命令入口、诊断与桌面会话动作请求。
 compatibility.py: 输入预释放、原生窗口恢复与相对指针路由。
@@ -17,6 +17,7 @@ controller.py: 桌面交互编排；局部选择与轻量视图独立于完整�
 core.py: 导航、偏好存储和主题语言基础。
 cursor.py: 观察合成器鼠标位置，提供圆点与点击反馈。
 desktop.py: 桌面元数据索引、Exec 解析与固定内置模块启动。
+display.py: Micro-HDMI 热插拔、复制进程、扩展坐标与布局回退。
 directions.py: 方向接口连接预筛选、修饰键隔离与松键读取。
 emulator_saves/: 原生存档、历史快照和云同步。
 file_controller.py: 文件浏览、音乐视频文档全格式关联、内置白名单与预览任务。
@@ -56,7 +57,7 @@ preflight.py: 只读 CM4 系统和依赖兼容检测。
 qml/: 桌面视图、控件和动效。
 qml_cache.py: 按源码内容隔离 QML 编译缓存。
 runtime_console/: 应用指标、进程身份和有序终止。
-screenshot.py: Wayland 实际屏幕捕获与 PNG 验证。
+screenshot.py: Wayland 全部输出或单屏捕获与 PNG 验证。
 session_config.py: labwc 会话配置生成与方向隔离。
 session_shortcuts.py: 共用系统动作表的离线快捷键工具。
 share_settings.py: 共享偏好保存的事务与回滚。
@@ -65,7 +66,7 @@ sharing_messages.py: 共享服务错误到界面消息的转换。
 shortcut_controller.py: 系统快捷键设置与活动会话动作分发。
 shortcut_recorder.py: 临时抑制 labwc 快捷键的录制窗口。
 shortcut_session.py: 串行协调快捷键变更与方向隔离。
-shortcuts.py: 系统动作表、默认绑定与 labwc 快捷键生成。
+shortcuts.py: 系统动作表、默认绑定与 labwc 快捷键生成，跨屏移动随独立会话启用。
 smb_files/: Samba 共享服务与访问边界。
 sounds.py: 前台音效、单事件合并与独立线程调度；复用持续音频流。
 system_info.py: 硬件和操作系统信息读取。

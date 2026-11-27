@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Read-only CM4 compatibility check; also runs standalone on the old Python 3.9 image."""
+"""
+[INPUT]: 依赖 Debian 包信息、系统版本与设备文件。
+[OUTPUT]: 报告 CM4 系统和运行依赖的兼容状态。
+[POS]: 只读预检入口；可在旧镜像的 Python 3.9 中独立运行。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import argparse
 import json
@@ -19,7 +24,7 @@ REQUIRED_PACKAGES = (
     "python3-pyside6.qtquickcontrols2", "qml6-module-qtquick", "qml6-module-qtquick-controls",
     "qml6-module-qtquick-layouts", "qml6-module-qtquick-window", "qml6-module-qtqml-workerscript",
     "qml6-module-qtquick-templates", "qt6-svg-plugins", "qt6-wayland", "labwc", "xwayland",
-    "wlr-randr", "grim", "libwayland-client0", "libxkbcommon0", "xkb-data", "procps", "network-manager", "wpasupplicant",
+    "wlr-randr", "wl-mirror", "grim", "libwayland-client0", "libxkbcommon0", "xkb-data", "procps", "network-manager", "wpasupplicant",
     "dnsmasq-base", "nftables", "bluez", "systemd", "samba", "samba-common-bin", "polkitd", "libpam-systemd", "tzdata", "pipewire-audio",
     "pulseaudio-utils", "libglib2.0-bin", "gvfs", "udisks2", "swayidle", "swaylock", "wlopm",
     "fcitx5", "fcitx5-frontend-qt6", "fcitx5-pinyin", "lxpolkit", "dbus-user-session",

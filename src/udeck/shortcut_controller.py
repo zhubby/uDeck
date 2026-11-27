@@ -1,4 +1,4 @@
-"""[INPUT]: 依赖系统动作表、会话状态和桌面控制器。
+"""[INPUT]: 依赖系统动作表、显示布局、会话状态和桌面控制器。
 [OUTPUT]: 提供快捷键设置和全局动作分发。
 [POS]: 在活动会话中调用系统服务或输入法控制器。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from PySide6.QtCore import Slot
 
+from .display import INTERNAL_OUTPUT
 from .i18n import Msg, error_text, tr
 from .menu_icons import system_menu_icons
 from .shortcuts import (
@@ -235,7 +236,8 @@ class ShortcutControls:
             elif not self._capture_pending:
                 from .screenshot import capture_screen
                 self._capture_pending = True
-                future = self._capture_executor.submit(capture_screen)
+                output = INTERNAL_OUTPUT if self.data.get('display', {}).get('activeMode') == 'mirror' else None
+                future = self._capture_executor.submit(capture_screen, output=output)
                 future.add_done_callback(lambda result: self.screenshotFinished.emit(result))
         elif action in ('volume-up', 'volume-down', 'mute', 'brightness-up', 'brightness-down'):
             component = 'brightness' if action.startswith('brightness-') else 'audio'

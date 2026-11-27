@@ -31,7 +31,7 @@
 | Python | `python3 >= 3.11, << 3.14`、`python3-dbus-next`、`python3-evdev`、`python3-gi` |
 | Qt 桌面 | PySide6 QtQuick、QtQml、QtDBus、QtMultimedia、QtQuickControls2；直接使用的 PySide6 模块固定 `>= 6.8, << 6.9` |
 | QML 与图像 | QtQuick、Controls、Layouts、Window、WorkerScript、Templates QML 模块，`qt6-svg-plugins`、`qt6-wayland` |
-| Wayland 会话 | `labwc >= 0.9`、`xwayland`、`wlr-randr`、`libwayland-client0`、`libxkbcommon0`、`xkb-data`、`procps` |
+| Wayland 会话 | `labwc >= 0.9`、`xwayland`、`wlr-randr`、`wl-mirror`、`libwayland-client0`、`libxkbcommon0`、`xkb-data`、`procps` |
 | 系统与授权 | `systemd`、`libpam-systemd`、`dbus-user-session`、`lxpolkit`、`tzdata`；沿用镜像显示管理器 |
 | Wi-Fi 与热点 | `network-manager`、`wpasupplicant`、`dnsmasq-base`、`nftables`；不安装独立 dnsmasq 服务或修改原网络配置 |
 | 蓝牙与音频 | `bluez`、`pipewire-audio`、`pulseaudio-utils`；`pipewire-audio` 依赖 `libspa-0.2-bluetooth`、PipeWire/Pulse 兼容服务及 WirePlumber |

@@ -1,4 +1,9 @@
-"""Capture the actual Wayland desktop and publish only a verified PNG."""
+"""
+[INPUT]: 依赖 grim、可选 Wayland 输出名称和 Qt PNG 解码。
+[OUTPUT]: 将实际画面保存为已验证的 PNG。
+[POS]: Wayland 截图入口；支持截取全部输出或指定屏幕。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import os
 import subprocess
@@ -13,7 +18,7 @@ from PySide6.QtGui import QImageReader
 from .i18n import Msg, tr
 
 
-def capture_screen(directory=None):
+def capture_screen(directory=None, *, output=None):
     pictures = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.PicturesLocation)
     directory = Path(directory) if directory else Path(pictures or Path.home() / 'Pictures') / 'Screenshots'
     directory.mkdir(parents=True, exist_ok=True)
@@ -22,7 +27,9 @@ def capture_screen(directory=None):
     descriptor, temporary = tempfile.mkstemp(prefix='.screenshot-', suffix='.png', dir=directory)
     try:
         with os.fdopen(descriptor, 'wb') as stream:
-            subprocess.run(['grim', '-t', 'png', '-'], stdout=stream, stderr=subprocess.PIPE, check=True, timeout=15)
+            selection = ['-o', output] if output else []
+            subprocess.run(['grim', *selection, '-t', 'png', '-'],
+                           stdout=stream, stderr=subprocess.PIPE, check=True, timeout=15)
             stream.flush()
             os.fsync(stream.fileno())
         reader = QImageReader(temporary, b'png')

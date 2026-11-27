@@ -1,3 +1,10 @@
+"""
+[INPUT]: 依赖 Qt 信号和独立的设备示例数据。
+[OUTPUT]: 提供预览中的系统状态与可交互操作。
+[POS]: 桌面预览后端；模拟 HDMI 布局与系统服务。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 import uuid
 from copy import deepcopy
 
@@ -45,6 +52,7 @@ def initial_state():
         "bluetooth": {"available": False, "powered": False, "discovering": False, "devices": []},
         "audio": {"available": False, "volume": 0, "muted": False, "outputs": [], "inputs": [], "cards": []},
         "brightness": {"available": False, "value": 0},
+        "display": {"available": False, "mode": "mirror", "activeMode": "", "outputs": []},
         "battery": {"available": False, "capacity": 0, "charging": False},
         "timezone": {"available": False, "current": "", "zones": []},
     }
@@ -96,6 +104,7 @@ class MockBackend(QObject):
                           {"id": "headset-head-unit", "name": "HFP mSBC", "active": True, "microphone": True, "available": True},
                       ]}]},
             "brightness": {"available": True, "value": 0.72},
+            "display": {"available": True, "mode": "mirror", "activeMode": "mirror", "outputs": ["HDMI"]},
             "battery": {"available": True, "capacity": 83, "charging": False, "status": "Discharging",
                         "voltage": 3.9, "current": 0.8, "power": 3.12},
         })
@@ -110,7 +119,10 @@ class MockBackend(QObject):
     def request(self, action, payload=None):
         self.actions.append(action)
         payload = payload or {}
-        if action == "timezone_set":
+        if action == "display_mode":
+            display = self.state["display"]
+            display.update(mode=payload["mode"], activeMode=payload["mode"] if display["outputs"] else "")
+        elif action == "timezone_set":
             if payload.get("timezone") not in self.state["timezone"]["zones"]:
                 self.operationFailed.emit(action, tr(Msg.INVALID_TIME_ZONE))
                 return

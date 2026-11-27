@@ -1,6 +1,6 @@
 #!/bin/sh
 # [INPUT]: 依赖 labwc 会话、输入法、授权代理和桌面监督器。
-# [OUTPUT]: 启动会话服务，退出时清理本会话创建的子进程。
+# [OUTPUT]: 固定内屏布局，启动会话服务，退出时清理本会话创建的子进程。
 # [POS]: labwc 的会话入口；崩溃预算由 Python 监督器维护。
 # [PROTOCOL]: Update this header on change, then check AGENTS.md
 set -eu
@@ -20,7 +20,9 @@ trap cleanup EXIT
 trap 'exit 0' HUP INT TERM
 dbus-update-activation-environment --systemd WAYLAND_DISPLAY DISPLAY XAUTHORITY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP QT_IM_MODULE GDK_IM_MODULE XMODIFIERS || true
 if wlr-randr | grep -q '^DSI-1 '; then
-    wlr-randr --output DSI-1 --mode 720x1280 --transform 270 --scale 1
+    # labwc 只在坐标改变时将自动位置转换为固定位置。
+    wlr-randr --output DSI-1 --mode 720x1280 --transform 270 --scale 1 --pos 1,0 || true
+    wlr-randr --output DSI-1 --pos 0,0 || true
 fi
 if ! pgrep -u "$(id -u)" -x fcitx5 >/dev/null; then
     fcitx5 &
