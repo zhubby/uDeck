@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖共享应用状态、库扫描与 Qt 导航信号。
-[OUTPUT]: 提供导航、扫描取消通知、低成本桌面返回、有限计时与有序退出。
+[OUTPUT]: 提供导航、私密输入、扫描取消通知、低成本桌面返回与有序退出。
 [POS]: 独立应用控制器基类；Home 交接跳过无用的库状态重建。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -134,10 +134,14 @@ class AppController(SoundFeedback):
         rows = self._view_rows() if compact else self.rows()
         if not compact:
             self._view_rows()
+        active = self.menus[-1] if self.menus else {}
+        menu = {key: value for key, value in active.items() if key not in ("submit", "pickerParent", "refresh")}
+        if menu.get("secret"):
+            menu["draft"] = ""
         return {"app": self.app, "language": self.language, "theme": self.theme, "page": self.page,
                 "tabs": self.tabs(), "tab": self.tab, **({} if compact else {"cards": rows}), "selected": self.selected,
                 "current": self.current or {}, "filter": self.filter, "folder": self.folder,
-                "menu": {k: v for k, v in self.menus[-1].items() if k not in ("submit", "pickerParent", "refresh")} if self.menus else {}, "error": self.error,
+                "menu": menu, "error": self.error,
                 "notice": self.notice, "scanning": bool(self.library and self.library.pending),
                 "sourceErrors": [value for value in self.library.errors.values() if value] if self.library else [],
                 "count": len(rows), **self.extra_state()}
@@ -262,9 +266,9 @@ class AppController(SoundFeedback):
                            "input": False, "draft": "", "icon": icon, "settings": settings, "refresh": refresh})
         self.publish()
 
-    def prompt(self, title, callback, draft="", body="", owner=None):
+    def prompt(self, title, callback, draft="", body="", owner=None, *, secret=False):
         self.menu(title, [(tr(Msg.CONFIRM), lambda: self.submit(self.menus[-1]["draft"]))], body, owner)
-        self.menus[-1].update(input=True, draft=draft, submit=callback)
+        self.menus[-1].update(input=True, draft="" if secret else draft, submit=callback, secret=secret)
         self.publish()
 
     def pop_menu(self):

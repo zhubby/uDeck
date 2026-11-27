@@ -1,5 +1,5 @@
-"""[INPUT]: 依赖共享窗口、ACP 会话和用户级安装事务。
-[OUTPUT]: 路由会话操作、权限请求和设置中的 Agent 管理。
+"""[INPUT]: 依赖共享窗口、ACP 会话、连接配置和用户级安装事务。
+[OUTPUT]: 路由会话操作、权限请求、模型连接设置和 Agent 管理。
 [POS]: Agent 的 QML 与桌面入口。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -15,6 +15,7 @@ from udeck.i18n import Msg, tr
 from udeck.text_input import composing_action_blocked
 
 from .catalog import AGENTS, version
+from .connection import load_profile, save_profile
 from .content import AUDIO_FORMATS, MAX_TEXT, media_data
 from .conversation import Conversation
 from .install import Installer, command, installed, state, supported_platform
@@ -336,9 +337,14 @@ class AgentController(AppController, SessionActions):
             directory = Path(text).expanduser().resolve(strict=True)
             if not directory.is_dir():
                 raise ValueError()
-            argv, env = command(self.root, key)
-        except (OSError, ValueError, RuntimeError):
+        except (OSError, ValueError):
             self.error = tr(Msg.AGENT_WORKSPACE_ERROR)
+            self.publish()
+            return
+        try:
+            argv, env = command(self.root, key, connection=True)
+        except (OSError, ValueError, RuntimeError):
+            self.error = tr(Msg.AGENT_CONNECTION_ERROR)
             self.publish()
             return
         self.clear_menus()
@@ -491,12 +497,71 @@ class AgentController(AppController, SessionActions):
             self.attempt(lambda: self._install("check", list(AGENTS)[self.provider_index]))
 
     @Slot(str)
+    def configureProvider(self, key):
+        if key not in AGENTS or self.page != "agent-settings" or self.permission_id is not None:
+            return
+        self.attempt(lambda: self._connection_settings(key))
+
+    def _connection_settings(self, key):
+        saved = load_profile(self.root, key)
+        draft = dict(saved)
+
+        def edit(label, field, secret=False):
+            self.prompt(tr(label), lambda value: draft.update({field: value}),
+                        "" if secret else draft.get(field, ""), secret=secret)
+
+        def save(value):
+            save_profile(self.root, key, value)
+            self.verified.discard(key)
+            self.auth_required.discard(key)
+            if self.chat.agent == key and self.chat.state == "auth":
+                self.chat.stop_connection()
+            self.clear_menus()
+            self.notice = tr(Msg.AGENT_CONNECTION_SAVED)
+            self.publish()
+
+        def rows():
+            options = [
+                self.setting_option(tr(Msg.AGENT_API_ADDRESS), lambda: edit(Msg.AGENT_API_ADDRESS, "url"),
+                                    "network-connect", draft.get("url", "")),
+                self.setting_option(tr(Msg.AGENT_MODEL_ID), lambda: edit(Msg.AGENT_MODEL_ID, "model"),
+                                    "applications-development", draft.get("model", "")),
+                self.setting_option(tr(Msg.AGENT_API_KEY), lambda: edit(Msg.AGENT_API_KEY, "key", secret=True),
+                                    "dialog-password", tr(Msg.SAVED) if draft.get("key") else ""),
+                self.setting_option(tr(Msg.SAVE), lambda: save(draft or {"url": ""}),
+                                    "document-save", navigate=False),
+            ]
+            if key == "claude":
+                def authentication():
+                    def select(mode):
+                        draft["auth"] = mode
+                        self.pop_menu()
+
+                    self.menu(tr(Msg.AGENT_API_AUTH), [
+                        (tr(Msg.AGENT_API_KEY), lambda: select("key")),
+                        (tr(Msg.AGENT_BEARER_TOKEN), lambda: select("bearer")),
+                    ])
+
+                auth = Msg.AGENT_BEARER_TOKEN if draft.get("auth") == "bearer" else Msg.AGENT_API_KEY
+                options.insert(3, self.setting_option(tr(Msg.AGENT_API_AUTH), authentication,
+                                                     "dialog-password", tr(auth)))
+            if saved:
+                options.append(self.setting_option(tr(Msg.AGENT_USE_NATIVE_CONNECTION), lambda: save({}),
+                                                   "edit-undo", navigate=False))
+            return options
+
+        protocol = {"claude": "Anthropic Messages", "codex": "OpenAI Responses"}.get(key, "OpenAI Chat Completions")
+        self.menu(tr(Msg.AGENT_MODEL_CONNECTION), rows, protocol, settings=True)
+
+    @Slot(str)
     def providerActions(self, key):
         if key not in AGENTS or self.permission_id is not None:
             return
         self.provider_index = list(AGENTS).index(key)
         self.clear_menus()
         options = [(tr(label), callback) for label, callback, _glyph in self._provider_options(key)]
+        if not self.job:
+            options.append((tr(Msg.AGENT_MODEL_CONNECTION), lambda: self.configureProvider(key)))
         body = tr(Msg.AGENT_PLATFORM) if not supported_platform() else ""
         self.menu(AGENTS[key].name, options, body)
 

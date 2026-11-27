@@ -1,6 +1,6 @@
 /*
 [INPUT]: 依赖 Agent 版本、主题和共享列表焦点。
-[OUTPUT]: 提供四款 Agent 的选择列表、状态和操作面板。
+[OUTPUT]: 提供四款 Agent 的选择列表、连接设置和操作面板。
 [POS]: Agent 应用设置中的管理页。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -120,7 +120,7 @@ RowLayout {
     Rectangle {
         objectName: "agentManageDetails"
         Layout.fillWidth: true
-        Layout.preferredHeight: Math.min(345, manage.height)
+        Layout.preferredHeight: Math.min(390, manage.height)
         Layout.alignment: Qt.AlignTop
         radius: 10
         color: colors.panel
@@ -210,6 +210,17 @@ RowLayout {
                 }
             }
             Item { Layout.fillHeight: true }
+
+            AgentButton {
+                objectName: "agentConfigureProvider"
+                text: host.tr(msg.AGENT_MODEL_CONNECTION)
+                glyph: "plug"
+                enabled: !manage.working
+                compact: manage.width < 1000
+                colors: manage.colors
+                fontFamily: host.fontFamily
+                onActivated: controller.configureProvider(manage.current.id)
+            }
 
             RowLayout {
                 Layout.fillWidth: true

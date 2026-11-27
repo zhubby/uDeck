@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
 [INPUT]: 依赖应用控制器、增量库模型、共享短过渡与圆点组件。
-[OUTPUT]: 提供交接窗口、曲库卡片、单行曲目、按键提示和共享菜单。
+[OUTPUT]: 提供交接窗口、曲库卡片、单行曲目、按键提示和含私密输入的共享菜单。
 [POS]: 独立应用的窗口外壳，媒体和会话视图由各应用加载。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -106,6 +106,7 @@ Window {
             }
             draft.forceActiveFocus()
         } else {
+            draft.clear()
             focusedInputId = ""
             if (state.app === "browser" && state.webMode === "text" && !state.menu.title) {
                 if (surface.item) surface.item.focusWeb()
@@ -118,7 +119,10 @@ Window {
         target: controller
         function onChanged() {
             const previous=window.state.menu
-            window.state=JSON.parse(controller.viewSnapshotJson)
+            const next=JSON.parse(controller.viewSnapshotJson)
+            if (previous.secret && previous.id !== next.menu.id)
+                draft.clear()
+            window.state=next
             window.syncModels()
             if (!window.state.menu.input || !previous.input || previous.id!==window.state.menu.id) Qt.callLater(window.focusInput)
         }
@@ -504,6 +508,9 @@ Window {
                 TextField { font.family: window.fontFamily; palette: window.colors.controls;
                     id: draft; objectName: "menuDraft"; visible: !!modal.menu.input; Layout.fillWidth: true
                     property QtObject inputController: controller
+                    echoMode: modal.menu.secret ? TextInput.Password : TextInput.Normal
+                    inputMethodHints: modal.menu.secret
+                        ? Qt.ImhHiddenText | Qt.ImhSensitiveData | Qt.ImhNoPredictiveText : Qt.ImhNone
                     font.pixelSize: 23; color: window.ink; selectByMouse: true
                     background: Rectangle { color: window.colors.input; radius: 8; border.width: 2; border.color: window.accent }
                     onTextEdited: controller.setDraft(text)

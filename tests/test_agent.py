@@ -23,6 +23,7 @@ from PySide6.QtTest import QTest
 from shiboken6 import delete
 
 from udeck.apps.agent import catalog, install
+from udeck.apps.agent.connection import load_profile, save_profile
 from udeck.apps.agent.controller import AgentController
 from udeck.apps.agent.conversation import Conversation
 from udeck.apps.agent.sessions import SessionStore
@@ -79,6 +80,45 @@ def wait_until(predicate):
         if time.monotonic() >= deadline:
             pytest.fail("Qt event did not arrive")
         QTest.qWait(15)
+
+
+def test_connection_profile_is_private_and_used_by_claude_launch(qt_application, tmp_path):
+    controller = AgentController(tmp_path, tmp_path / "settings.json")
+    controller._show_provider_settings("claude")
+    profile = {"url": "https://gateway.example/anthropic", "model": "example-model",
+               "key": "fixture-secret", "auth": "bearer"}
+    try:
+        controller.configureProvider("claude")
+        controller.choose(0)
+        controller.submit(profile["url"])
+        controller.choose(1)
+        controller.submit(profile["model"])
+        controller.choose(2)
+        controller.setDraft(profile["key"])
+        assert profile["key"] not in controller.snapshotJson
+        assert profile["key"] not in controller.viewSnapshotJson
+        controller.dispatch("accept")
+        controller.choose(3)
+        controller.choose(1)
+        controller.choose(4)
+        assert not controller.menus
+        assert load_profile(controller.root, "claude") == profile
+        assert (controller.root / "claude-connection.json").stat().st_mode & 0o777 == 0o600
+        folder = "c" * 32
+        binary = controller.root / "versions" / folder / "bin" / "claude-agent-acp"
+        binary.parent.mkdir(parents=True)
+        binary.touch()
+        item = {"folder": folder, "version": "0.113.0"}
+        _, env = install.command(controller.root, "claude", item=item, connection=True)
+        assert env["ANTHROPIC_BASE_URL"] == profile["url"]
+        assert env["ANTHROPIC_MODEL"] == profile["model"]
+        assert env["ANTHROPIC_AUTH_TOKEN"] == profile["key"]
+        assert profile["key"] not in controller.snapshotJson
+        with pytest.raises(ValueError):
+            save_profile(controller.root, "claude", {**profile, "url": "https://user:secret@example.com"})
+        assert load_profile(controller.root, "claude") == profile
+    finally:
+        controller.close()
 
 
 def test_structured_updates_batch_and_preserve_history(qt_application, tmp_path):

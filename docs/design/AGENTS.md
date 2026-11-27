@@ -2,7 +2,7 @@
 > L2 | Parent: ../AGENTS.md
 
 app-suite/: 现行原生应用设计、交互与引擎边界。
-agent-app.md: Agent 的 ACP 会话、安装升级与设备验收设计。
+agent-app.md: Agent 的 ACP 会话、模型连接、安装升级与设备验收。
 branding/: 正式 Logo、主题配色和资源同步规则。
 appearance.md: 全局语言、主题、字体与视觉资源职责。
 input-prompts.md: 按键图标来源、尺寸、映射与无障碍。

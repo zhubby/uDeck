@@ -1,4 +1,4 @@
-"""[INPUT]: 依赖固定分发目录、私有目录及 ACP 握手。
+"""[INPUT]: 依赖固定分发目录、连接配置、私有目录及 ACP 握手。
 [OUTPUT]: 提供版本查询、安装、升级、回退和命令解析。
 [POS]: 在后台执行用户级安装事务。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
@@ -26,6 +26,7 @@ from udeck.apps.common.state import atomic_json
 
 from . import catalog
 from .acp import INITIALIZE
+from .connection import connection_environment
 
 _GITHUB = {"github.com", "release-assets.githubusercontent.com", "objects.githubusercontent.com"}
 _LIMIT = 512 * 1024 * 1024
@@ -56,7 +57,7 @@ def _entry(root, item):
     return root / "versions" / folder
 
 
-def command(root, identifier, *, login=False, item=None):
+def command(root, identifier, *, login=False, item=None, connection=False):
     agent = catalog.AGENTS[identifier]
     item = item if item is not None else state(root, identifier).get("active")
     if not isinstance(item, dict):
@@ -85,6 +86,8 @@ def command(root, identifier, *, login=False, item=None):
         if not codex.is_file():
             raise InstallError("missing")
         env["CODEX_PATH"] = str(codex)
+    if connection and not login:
+        env.update(connection_environment(root, identifier))
     return [str(executable), *args], env
 
 

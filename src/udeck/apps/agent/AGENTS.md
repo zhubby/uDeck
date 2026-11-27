@@ -4,7 +4,8 @@
 __init__.py: Agent 应用包。
 acp.py: ACP v1 握手、逐行 JSON-RPC、双向请求取消与进程组回收。
 catalog.py: 固定分发来源、ARM64 发布元数据和登录命令。
-controller.py: 路由会话操作、权限请求和设置中的 Agent 管理。
+connection.py: 读写独立连接配置，将 API 地址、模型和密钥转换为 ACP 启动参数。
+controller.py: 路由会话操作、权限请求、模型连接设置和 Agent 管理。
 content.py: ACP 内容、工具输出与计划条目的大小限制和展示模型。
 client_calls.py: 授权目录内的文本文件操作、终端输出与结构化输入应答。
 client_events.py: 按事件顺序展示客户端请求、终端输出和交互回执。
