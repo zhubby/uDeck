@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Agent
+Comment=Connect to coding agents over ACP
+Comment[zh_CN]=通过 ACP 连接编程 Agent
+Exec=udeck-app agent
+TryExec=udeck-app
+Icon=io.github.zhubby.uDeck.Agent
+Terminal=false
+Categories=Development;
+StartupWMClass=io.github.zhubby.uDeck.Agent

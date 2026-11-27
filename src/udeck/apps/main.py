@@ -1,4 +1,8 @@
-"""Lightweight entry; load the GUI only when no instance owns the session."""
+"""[INPUT]: 依赖固定应用路由和会话 IPC。
+[OUTPUT]: 提供轻量命令入口和单实例转发。
+[POS]: 转发未命中时才加载原生应用运行层。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
 
 import argparse
 import json
@@ -30,6 +34,8 @@ def parse_options(argv=None):
     options = parser.parse_args(argv)
     if options.app == 'browser' and options.source:
         parser.error('--source is only available for local content apps')
+    if options.app == 'agent' and (options.source or options.files):
+        parser.error('Select an Agent working directory in the application')
     if options.smoke_test and not options.isolated:
         parser.error('--smoke-test requires --isolated')
     return options

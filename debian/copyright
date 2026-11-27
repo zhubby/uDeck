@@ -35,6 +35,12 @@ Copyright: 2020-2026 Paweł Kuna
 License: MIT
 Comment: The complete original LICENSE.txt and provenance manifest are installed with the icons.
 
+Files: src/udeck/apps/agent/qml/icons/*.svg
+Copyright: The Bootstrap Authors and LobeHub contributors
+License: MIT
+Comment: Both license notices and the asset manifest ship beside the icons.
+ The provider marks identify their respective Agents.
+
 Files: src/udeck/apps/reader/web/foliate/*
 Copyright: 2022 John Factotum
 License: MIT

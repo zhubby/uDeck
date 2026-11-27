@@ -15,11 +15,13 @@ Rectangle {
     property string text: ""
     property var promptKeys: []
     property Component iconComponent
+    property Component leadingIcon
+    property bool compact: false
     property bool selected: false
     property bool disabled: false
     signal activated()
-    implicitWidth: iconComponent ? 56 : label.implicitWidth + 36
-    implicitHeight: 52
+    implicitWidth: iconComponent ? 56 : labelRow.implicitWidth + (compact ? 28 : 36)
+    implicitHeight: compact ? 38 : 52
     radius: 8
     color: selected ? button.colors.buttonSelected : button.colors.button
     border.width: selected ? 3 : 1
@@ -27,8 +29,27 @@ Rectangle {
     opacity: disabled ? 0.45 : 1
     Accessible.role: Accessible.Button
     Accessible.name: text
-    Accessible.onPressAction: if (!disabled) activated()
-    Shared.InputPrompt { id: label; visible: !button.iconComponent; anchors.centerIn: parent; keys: button.promptKeys; label: button.text; fontFamily: button.fontFamily; textColor: button.colors.text; fontSize: 20; iconSize: 30 }
+    Accessible.onPressAction: if (enabled && !disabled) activated()
+    Row {
+        id: labelRow
+        visible: !button.iconComponent
+        anchors.centerIn: parent
+        spacing: 8
+        Loader {
+            visible: !!button.leadingIcon
+            anchors.verticalCenter: parent.verticalCenter
+            sourceComponent: button.leadingIcon
+        }
+        Shared.InputPrompt {
+            anchors.verticalCenter: parent.verticalCenter
+            keys: button.promptKeys
+            label: button.text
+            fontFamily: button.fontFamily
+            textColor: button.colors.text
+            fontSize: button.compact ? 16 : 20
+            iconSize: button.compact ? 22 : 30
+        }
+    }
     Loader { anchors.centerIn: parent; sourceComponent: button.iconComponent }
     MouseArea {
         id: pointer

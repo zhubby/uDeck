@@ -2,7 +2,7 @@
 > L2 | Parent: ../AGENTS.md
 
 bin/: 已安装命令包装与独立会话入口。
-apps/: 独立应用的桌面注册、图标与许可证。
+apps/: 独立应用的桌面注册、图标与许可证，包含 Agent 固定入口。
 labwc/: 合成器环境、窗口规则和自动启动。
 session: labwc 会话服务、桌面监督器与退出清理。
 terminal.colorscheme: 终端浅色调色板。

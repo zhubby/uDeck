@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
 [INPUT]: 依赖应用控制器、增量库模型、共享短过渡与圆点组件。
-[OUTPUT]: 提供交接后的窗口、连续切页、菜单右侧当前值、封面和非交互指针层。
-[POS]: 五类应用的窗口外壳，内容视图由各应用加载。
+[OUTPUT]: 提供交接窗口、标题栏、按需显示的标签、按键提示和共享菜单。
+[POS]: 独立应用的窗口外壳，媒体和会话视图由各应用加载。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
 import QtQuick
@@ -19,9 +19,9 @@ Window {
     property bool presentationReady: true
     visibility: presentationReady ? (windowed ? Window.Windowed : Window.FullScreen) : Window.Hidden
     color: window.colors.background
-    title: "uDeck " + appName
+    title: state.app === "agent" ? appName : "uDeck " + appName
     readonly property string appName: window.tr(({music: msg.MUSIC, video: msg.VIDEO, browser: msg.BROWSER,
-                                                 reader: msg.READER, emulator: msg.EMULATOR})[state.app])
+                                                 reader: msg.READER, emulator: msg.EMULATOR, agent: msg.UDECK_AGENT})[state.app])
     property var state: JSON.parse(controller.viewSnapshotJson)
     property alias colors: themeColors
     Shared.ThemePalette { id: themeColors; theme: window.state.theme; profile: "apps" }
@@ -58,6 +58,8 @@ Window {
     property bool allowClose: false
     property QtObject pointerCursor: null
     property bool videoFull: state.app === "video" && state.page === "player"
+    readonly property bool isAgent: state.app === "agent"
+    readonly property bool agentSettings: isAgent && state.page === "agent-settings"
     property color ink: window.colors.text
     property color muted: window.colors.muted
     property color accent: window.colors.accent
@@ -69,7 +71,8 @@ Window {
         if (modal.closing && renderedNavigation !== navigation) modal.finish()
         renderedNavigation = navigation
         if (renderedPage && (renderedPage !== state.page || renderedTab !== state.tab)) {
-            const order = {library: 0, album: 1, "game-details": 1, document: 2, player: 2, "game-running": 2}
+            const order = {library: 0, album: 1, "game-details": 1, "agent-settings": 1,
+                           document: 2, player: 2, "game-running": 2}
             const direction = renderedPage === state.page ? Math.sign(state.tab - renderedTab)
                 : Math.sign((order[state.page] || 0) - (order[renderedPage] || 0))
             content.replay(direction || 1)
@@ -91,7 +94,7 @@ Window {
     function ensureSurface() {
         // Bind the video sink before playback can start.
         if (surface.source.toString() === "" && (state.app === "browser" || state.app === "video" || ["library", "album"].indexOf(state.page) < 0))
-            surface.setSource("../../" + state.app + "/qml/" + ({music:"Music", video:"Video", browser:"Browser", reader:"Reader", emulator:"Emulator"})[state.app] + "Surface.qml", {host: window, colors: window.colors})
+            surface.setSource("../../" + state.app + "/qml/" + ({music:"Music", video:"Video", browser:"Browser", reader:"Reader", emulator:"Emulator", agent:"Agent"})[state.app] + "Surface.qml", {host: window, colors: window.colors})
     }
     function focusInput() {
         if (state.menu.input) {
@@ -105,7 +108,9 @@ Window {
             focusedInputId = ""
             if (state.app === "browser" && state.webMode === "text" && !state.menu.title) {
                 if (surface.item) surface.item.focusWeb()
-            } else keys.forceActiveFocus()
+            } else if (state.app !== "agent" || state.menu.title || !surface.item || !surface.item.editing) {
+                keys.forceActiveFocus()
+            }
         }
     }
     Connections {
@@ -124,29 +129,55 @@ Window {
     Shortcut { sequence: "Ctrl+T"; autoRepeat: false; enabled: window.state.app === "browser"; onActivated: controller.command("new-tab") }
     Shortcut { sequence: "Escape"; autoRepeat: false; enabled: window.state.app === "browser" && window.state.webMode === "text" && !window.state.menu.title; onActivated: controller.dispatch("back") }
     Shortcut { sequence: "Ctrl+Shift+M"; autoRepeat: false; onActivated: controller.dispatch("context") }
-    Shortcut { sequence: "Ctrl+,"; autoRepeat: false; onActivated: controller.dispatch("quick-settings") }
+    Shortcut {
+        sequence: "Ctrl+,"
+        autoRepeat: false
+        onActivated: {
+            if (window.isAgent)
+                controller.command("settings")
+            else
+                controller.dispatch("quick-settings")
+        }
+    }
     Shortcut { sequence: "Ctrl+Alt+M"; autoRepeat: false; enabled: window.state.app === "emulator"; onActivated: controller.command("pause-game") }
     ColumnLayout {
         anchors.fill: parent; spacing: 0
         Rectangle {
+            objectName: "appHeader"
             visible: !window.videoFull
             Layout.fillWidth: true; Layout.preferredHeight: 66
             color: window.colors.header
             RowLayout {
                 anchors.fill: parent; anchors.leftMargin: 28; anchors.rightMargin: 28; spacing: 18
                 Shared.BrandLogo { colors: window.colors; Layout.preferredWidth: 34; Layout.preferredHeight: 34 }
-                Text { font.family: window.fontFamily; text: window.appName; color: window.ink; font.pixelSize: 28 }
+                Text { font.family: window.fontFamily; text: window.agentSettings ? window.tr(msg.SETTINGS) : window.appName; color: window.ink; font.pixelSize: 28 }
                 Item { Layout.fillWidth: true }
-                Text { font.family: window.fontFamily; text: window.state.scanning ? window.tr(msg.SCANNING) : window.state.app === "browser" ? window.tr(({navigation:msg.LINK_NAVIGATION,reading:msg.READING,pointer:msg.VIRTUAL_POINTER,text:msg.TEXT_INPUT})[window.state.webMode]||msg.LINK_NAVIGATION) : window.state.app === "emulator" ? window.state.countLabel : window.state.count+" "+window.tr(msg.ITEMS); color: window.muted; font.pixelSize: 18 }
-                SuiteButton { fontFamily: window.fontFamily; colors: window.colors; promptKeys: ["gamecube_button_y"]; text: window.tr(msg.SETTINGS); implicitHeight: 42; onActivated: controller.dispatch("quick-settings") }
+                Text { visible: window.state.app !== "agent"; font.family: window.fontFamily; text: window.state.scanning ? window.tr(msg.SCANNING) : window.state.app === "browser" ? window.tr(({navigation:msg.LINK_NAVIGATION,reading:msg.READING,pointer:msg.VIRTUAL_POINTER,text:msg.TEXT_INPUT})[window.state.webMode]||msg.LINK_NAVIGATION) : window.state.app === "emulator" ? window.state.countLabel : window.state.count+" "+window.tr(msg.ITEMS); color: window.muted; font.pixelSize: 18 }
+                SuiteButton {
+                    objectName: "appSettings"
+                    fontFamily: window.fontFamily
+                    colors: window.colors
+                    promptKeys: window.isAgent ? [] : ["gamecube_button_y"]
+                    text: window.tr(window.agentSettings ? msg.BACK : msg.SETTINGS)
+                    implicitHeight: 42
+                    onActivated: {
+                        if (window.agentSettings)
+                            controller.dispatch("back")
+                        else if (window.isAgent)
+                            controller.command("settings")
+                        else
+                            controller.dispatch("quick-settings")
+                    }
+                }
             }
         }
         Rectangle {
-            visible: !window.videoFull && window.state.page !== "document" && window.state.page !== "game-running"
+            visible: !window.isAgent && !window.videoFull && window.state.page !== "document" && window.state.page !== "game-running"
             Layout.fillWidth: true; Layout.preferredHeight: 54
             color: window.colors.footer
             ListView {
                 id: tabbar
+                objectName: "appTabs"
                 anchors.fill: parent; anchors.leftMargin: 28; anchors.rightMargin: 28
                 orientation: ListView.Horizontal; clip: true; spacing: 14
                 model: window.tabModel; currentIndex: window.state.tab
@@ -340,21 +371,42 @@ Window {
             }
         }
         Rectangle {
+            id: footer
+            objectName: "appFooter"
+            readonly property bool compactHints: window.isAgent && window.width < 1050
             Layout.fillWidth: true; Layout.preferredHeight: 62
             visible: !window.videoFull
             color: window.colors.footer
             RowLayout {
-                anchors.fill: parent; anchors.leftMargin: 28; anchors.rightMargin: 28; spacing: 24
+                anchors.fill: parent; anchors.leftMargin: 28; anchors.rightMargin: 28
+                spacing: footer.compactHints ? 14 : 24
                 Repeater {
-                    model: [["gamecube_button_color_a",window.tr(msg.OPEN)],["gamecube_button_color_b",window.tr(msg.BACK)],["gamecube_button_x",window.tr(msg.ACTIONS)],["gamecube_button_y",window.tr(msg.SETTINGS)]]
+                    model: window.isAgent ? (surface.item ? surface.item.footerHints : []) : [
+                        [["gamecube_button_color_a"], msg.OPEN], [["gamecube_button_color_b"], msg.BACK],
+                        [["gamecube_button_x"], msg.ACTIONS], [["gamecube_button_y"], msg.SETTINGS]
+                    ]
                     delegate: Shared.InputPrompt {
+                        id: footerPrompt
                         required property var modelData
-                        keys: [modelData[0]]; label: modelData[1]
-                        fontFamily: window.fontFamily; textColor: window.muted; fontSize: 19
+                        keys: modelData[0]; label: window.tr(modelData[1])
+                        fontFamily: window.fontFamily; textColor: window.muted
+                        fontSize: footer.compactHints ? 17 : 19
+                        iconSize: footer.compactHints ? 26 : 32
+                        enabled: modelData[3] !== false
+                        opacity: enabled ? 1 : 0.48
+                        TapHandler {
+                            enabled: !!footerPrompt.modelData[2]
+                            onTapped: controller.dispatch(footerPrompt.modelData[2])
+                        }
                     }
                 }
                 Item { Layout.fillWidth: true }
-                Shared.InputPrompt { keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"]; label: window.tr(window.state.page === "document" ? msg.PAGES : msg.TABS); fontFamily: window.fontFamily; textColor: window.muted; fontSize: 18 }
+                Shared.InputPrompt {
+                    visible: !window.isAgent
+                    keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"]
+                    label: window.tr(window.state.page === "document" ? msg.PAGES : msg.TABS)
+                    fontFamily: window.fontFamily; textColor: window.muted; fontSize: 18
+                }
             }
         }
     }
@@ -406,7 +458,7 @@ Window {
                 fadeEnabled: false; enterX: 4; enterDuration: 120
             ColumnLayout {
                 id: modalContents; anchors.fill: parent; anchors.margins: 24; spacing: 16
-                Text { objectName: "appMenuTitle"; font.family: window.fontFamily; Layout.fillWidth: true; text: modal.menu.title||""; font.pixelSize: 30; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
+                Text { objectName: "appMenuTitle"; font.family: window.fontFamily; Layout.fillWidth: true; text: modal.menu.title||""; textFormat: Text.PlainText; font.pixelSize: 30; color: window.ink; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight }
                 Text { font.family: window.fontFamily; objectName: "menuBody"; Layout.fillWidth: true; visible: !!modal.menu.body; text: modal.menu.body||""; textFormat: Text.PlainText; font.pixelSize: 21; color: window.muted; wrapMode: Text.Wrap; maximumLineCount: modal.menu.bodyLines || 5; elide: Text.ElideRight }
                 TextField { font.family: window.fontFamily; palette: window.colors.controls;
                     id: draft; objectName: "menuDraft"; visible: !!modal.menu.input; Layout.fillWidth: true
@@ -475,8 +527,8 @@ Window {
                             x: modelData.icon ? appSettingIcon.x + appSettingIcon.width + 14 : 14
                             width: Math.max(0, parent.width - x - 14 - (optionValue.visible ? optionValue.width + 18 : 0))
                             spacing: 4
-                            Text { font.family: window.fontFamily; width: parent.width; text: modelData.title; color: window.ink; wrapMode: Text.Wrap; font.pixelSize: 22 }
-                            Text { font.family: window.fontFamily; width: parent.width; visible: !!modelData.subtitle; text: modelData.subtitle; color: window.muted; wrapMode: Text.Wrap; font.pixelSize: 17 }
+                            Text { font.family: window.fontFamily; width: parent.width; text: modelData.title; textFormat: Text.PlainText; color: window.ink; wrapMode: Text.Wrap; font.pixelSize: 22 }
+                            Text { font.family: window.fontFamily; width: parent.width; visible: !!modelData.subtitle; text: modelData.subtitle; textFormat: Text.PlainText; color: window.muted; wrapMode: Text.Wrap; font.pixelSize: 17 }
                         }
                         Text {
                             id: optionValue

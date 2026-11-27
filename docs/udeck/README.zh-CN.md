@@ -2,7 +2,7 @@
 
 uDeck 是面向 uConsole 物理按键的原生桌面。
 目标环境为 CM4、Debian 13 arm64、Qt 6.8、labwc 和 1280×720 横屏。
-它提供桌面、文件、系统设置、Console 和六个内置应用。
+它提供桌面、文件、系统设置、Console 和七个内置应用。
 安装与升级见[Debian 发行指南](debian-distribution.md)，
 开发预览见[开发指南](development.md)。
 
@@ -61,7 +61,7 @@ udeckctl doctor --json
 
 ## 内置应用与文件
 
-界面只启动和激活 Terminal、Music、Video、Browser、Reader、Emulator。
+内置应用包括 Terminal、Music、Video、Browser、Reader、Emulator 和 Agent。
 文件按共享格式表进入内置应用，其他格式使用预览或详情。
 网页未知协议不能唤起系统处理器。
 受控 RetroArch、锁屏和授权组件保留。

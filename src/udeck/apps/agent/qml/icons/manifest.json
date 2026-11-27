@@ -1,0 +1,116 @@
+[
+  {
+    "file": "chat-square-text.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "54661421faa50457ab8a92ed6a65b8513dd1915fdb5cd38a2fd90d58da9cd840",
+    "sha256": "bbe4ed52f68f5cac4733f76c353dadbbcf609ca44d576249f585a84f59c7b037"
+  },
+  {
+    "file": "clock-history.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "4e379874f5bc65478455eea51815638c24a0041b087149ffbc7d243535d4d829",
+    "sha256": "a5ec1cae4cfd8fafaa024959c9fa1f808adcd7177d1f4c14e6f4e7362cc0c1d6"
+  },
+  {
+    "file": "plus-lg.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "8c2ae396e9510c8ec02dcd0d3fae301e6ea93eddf87d7576bf77c1b9825b8340",
+    "sha256": "a04873e7749290c5fa7f72d9dd930c3c23cd1566c89d5a35f21fb73aa8477382"
+  },
+  {
+    "file": "folder2.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "f6cabce28c88e7b7cd0bb92cdab274d29d283edd4223884d9ee9424db9d3c2fe",
+    "sha256": "6bbe4e27e27468ae8043a155de4412b2621e677fcd952a7bd835895d3f560d2f"
+  },
+  {
+    "file": "send.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "352292106a3ff63c4d0aae9b500a5874206944ddd1764854cd938da6d5b91d5e",
+    "sha256": "1401fca14318440824f4fbfe968c239f2cc6c33e4b02daeb25b3d6f9784d7e88"
+  },
+  {
+    "file": "stop-fill.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "b7099bb280463c41c9add1e1013b8f5971110cd5afa9cede112a153fc6a54828",
+    "sha256": "b84e93c95b022ec10e38a08c4f178a5b3e757c0fe02b1df4f4087c5933ffdfa6"
+  },
+  {
+    "file": "person.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "e071db1bfc90bd30bc621d14e9b1c9b5d195b932d7027d65e1e30fbd9ffbf6c9",
+    "sha256": "a87d0a0e6deca161bb0221a4e18c2f279bef54ebd1691481e3e35ee2a829e845"
+  },
+  {
+    "file": "list-check.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "cb5883331845d5fc9a75a93dd489b519e2ec2d9077a04e2150d73d79d2d6ed22",
+    "sha256": "f8f3c6bf5685f1207dda54a1e16ad7e606b4b94bc179267eeda1e293b8907c56"
+  },
+  {
+    "file": "terminal.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "86e97f045ff90e731b1463e4b6bb26b95be8eb39bf1c95b3807d18a94d7a23a6",
+    "sha256": "a32e5baff178c0a04b805ba0b74780e57a3e41aa7be0286d06c735e5aa288c4f"
+  },
+  {
+    "file": "chevron-right.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "51b9c4168b12b378acde3131234ffe2b2fa5ed3c80a944a7dc864bb515b469cf",
+    "sha256": "8c482c5f61b5204dc440d40f83ad06aeb2f07ef339a25b00f82239d20181d585"
+  },
+  {
+    "file": "download.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "ef82782835351c43f0e41025888b00459268a767113d33524d4f8fbfe8008c16",
+    "sha256": "249454cfaf60222779026088fe285d5b133679c5275c08456ebb875e092aa23d"
+  },
+  {
+    "file": "arrow-repeat.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "2705f6572d27f2330329a5f87e6d861065d221ee56d60870f60486d2ab747c85",
+    "sha256": "9302f19761a5c6531128763aaf1afa06a82b0eda9f878972efdfbfff3d2e464d"
+  },
+  {
+    "file": "three-dots.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "0c3f46817554f31f9cf386f68834d1a9d8fea2041676599a0f7a3e9c980adb7d",
+    "sha256": "5c7e3b013c95c1b480bad71572cc5ce4ffc79600ee54d790adcb1375e976833f"
+  },
+  {
+    "file": "box-arrow-in-right.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "3d2bf903e7f8035c3c503af7d5f9500311f29e5cec1654809ba5f597898ab03c",
+    "sha256": "b6c8af4b15b54a9c2fde87cbf599e335a9f1686c22466a04a8886148f71dfc5e"
+  },
+  {
+    "file": "plug.svg",
+    "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz",
+    "upstreamSha256": "7225b7711def3e98c5f47a163bd181657e1aa4466418a801e7d2261d4daae15e",
+    "sha256": "e07f6b10a3202cab71bec177419ac10f156a3d6ce44a97e897113496c655f758"
+  },
+  {
+    "file": "codex.svg",
+    "source": "https://registry.npmjs.org/@lobehub/icons-static-svg/-/icons-static-svg-1.106.0.tgz",
+    "upstreamSha256": "d08b4e824cd6727e89617f59e4737273ff53e44c1da849d016dd64dfd08b33e1",
+    "sha256": "436c66628a06de2685992a0c0c8a3ab62471dc4e5425b71742efa6256ea932f3"
+  },
+  {
+    "file": "claude.svg",
+    "source": "https://registry.npmjs.org/@lobehub/icons-static-svg/-/icons-static-svg-1.106.0.tgz",
+    "upstreamSha256": "365a70a7eb3956d9b9a96086058ebe04e1dbd8e291a756ad964e8a283fbd6d38",
+    "sha256": "f24bea689433004eae3de571e6b12cc1b669d441a9968520b46bd8acd0ef58cf"
+  },
+  {
+    "file": "opencode.svg",
+    "source": "https://registry.npmjs.org/@lobehub/icons-static-svg/-/icons-static-svg-1.106.0.tgz",
+    "upstreamSha256": "7cfa6e9d6726f7c9fa26c7d9aef0dfec52d20a137380454340f30f12ccbfd302",
+    "sha256": "dab0f254d92235a7d39a7a8296ec0cad86a2287a84ad4227928a8c95c048c161"
+  },
+  {
+    "file": "pi.svg",
+    "source": "https://registry.npmjs.org/@lobehub/icons-static-svg/-/icons-static-svg-1.106.0.tgz",
+    "upstreamSha256": "d82978781b824273c55473822c1f243a6ed34fc6e8c2dbfe1a90dfc66ae43ee8",
+    "sha256": "dde60f009298978f9122b04319d97c8c0f7cda8486d4cec4c59c8506162b179e"
+  }
+]

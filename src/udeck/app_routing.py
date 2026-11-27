@@ -11,7 +11,7 @@ import hashlib
 import os
 
 APP_IDS = {name: "io.github.zhubby.uDeck." + name.title()
-           for name in ("music", "video", "browser", "reader", "emulator")}
+           for name in ("music", "video", "browser", "reader", "emulator", "agent")}
 NATIVE_APPS = frozenset((*APP_IDS.values(), "io.github.zhubby.uDeck.Terminal"))
 
 

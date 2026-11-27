@@ -20,7 +20,7 @@ def test_home_shortcuts_render_and_receive_real_keyboard_navigation(tmp_path, wi
     report = json.loads(result.stdout.strip().splitlines()[-1])
     assert report["qmlErrors"] == []
     assert report["tabCount"] == 4
-    assert report["shortcutCount"] == 7
+    assert report["shortcutCount"] == 8
     assert report["focusRestored"]
-    assert len(report["captures"]) == 6
+    assert len(report["captures"]) == 7
     assert all((tmp_path / (name + ".png")).stat().st_size > 10000 for name in report["captures"])

@@ -127,6 +127,9 @@ test_games_management.py: pytest 回归入口，验证 games_management 边界�
 test_games_qml.py: pytest 回归入口，验证 games_qml 边界。
 test_games_regressions.py: 目录、引擎退出与受控窗口确认回归。
 test_home.py: 首页固定入口、Console 名称与焦点恢复回归。
+test_agent.py: ACP 会话事件、结束原因、认证、历史、安装回退和 Qt 回复渲染回归。
+test_agent_client_calls.py: ACP 文本文件权限、终端输出边界、表单与取消回归。
+test_agent_session_rpc.py: ACP 会话方法、认证、分页和子会话权限回归。
 test_home_qml.py: pytest 回归入口，验证 home_qml 边界。
 test_hotspot.py: pytest 回归入口，验证 hotspot 边界。
 test_hotspot_qml.py: pytest 回归入口，验证 hotspot_qml 边界。

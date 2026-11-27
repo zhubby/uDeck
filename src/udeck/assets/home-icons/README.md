@@ -4,6 +4,7 @@
 
 | 首页入口 | Bootstrap 图标 |
 | --- | --- |
+| Agent | `robot.svg`（随包文件名为 `agent.svg`） |
 | 终端 | `terminal-fill.svg` |
 | 音乐 | `music-note-beamed.svg` |
 | 视频 | `play-btn-fill.svg` |
@@ -12,7 +13,9 @@
 | 浏览器 | `globe2.svg` |
 | 设置 | `gear-fill.svg` |
 
-七个 SVG 直接选自官方 npm 归档。仅把 `currentColor` 替换为当前首页暖金色 `#e8cc9f`；路径、viewBox、线宽和比例保持原样。首页和启动等待卡复用这些图标，沿用现有的彩色底板、卡片选中边框、文字和禁用反馈。
+八个 SVG 来自官方 npm 归档。将 `currentColor` 替换为首页暖金色 `#e8cc9f`。路径、viewBox、线宽和比例沿用原图。首页和启动等待卡共用这组图标。
+
+桌面应用注册也使用 `agent.svg`。
 
 归档：[bootstrap-icons-1.13.2.tgz](https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.13.2.tgz)，SHA-256 为 `7b5960145e1ab14a49a117f96a9e5a54a94fdf07f21e302d9e4f88d73dd19f9c`。下载同时校验 npm 元数据中的 SHA-512 integrity 和 SHA-1。
 

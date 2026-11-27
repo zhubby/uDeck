@@ -62,6 +62,13 @@
       "sourceSha256": "dca7ce68ef3e4ff59217393da7c8946ac8be1925d3e4d6adea1d2638fab85db8",
       "sha256": "ae3874185cca945687eb77def010a9d682dfbc24a58327dab2b9a6fb339bea83",
       "bytes": 806
+    },
+    "agent.svg": {
+      "homeKind": "agent",
+      "archivePath": "package/icons/robot.svg",
+      "sourceSha256": "c49e80643f48119df9d9363d4e3c21f78c1e490fb2629d60b2b271716410ec64",
+      "sha256": "4aa9a12f684329dedde00c89150c9ce608148b350d095d19138e8b4ed86be139",
+      "bytes": 991
     }
   }
 }

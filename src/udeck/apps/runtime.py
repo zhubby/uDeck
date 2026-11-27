@@ -58,6 +58,10 @@ def present_after_input_handoff(bus, app_id, parent, present, *, prepare=None):
 
 
 def make_controller(app, directory=None, language_path=None):
+    if app == "agent":
+        from udeck.apps.agent.controller import AgentController
+
+        return AgentController(directory, language_path)
     if app == "music":
         from udeck.apps.music.controller import MusicController
 
@@ -126,6 +130,8 @@ class AppControl(QObject):
 
     def open_files(self, files):
         controller = self.controller
+        if controller.app == "agent" and files:
+            raise ValueError("Select an Agent working directory in the application")
         if controller.app == "browser":
             for url in files:
                 controller.openLink(url)
@@ -198,7 +204,8 @@ class AppControl(QObject):
                            "qmlErrors": self.errors,
                            "performance": self.trace.snapshot(),
                            "returnToHome": self.controller.return_trace.snapshot(),
-                           "state": json.loads(self.controller.snapshotJson)}, ensure_ascii=False)
+                           "state": (self.controller.diagnostic_state() if self.controller.app == "agent"
+                                     else json.loads(self.controller.snapshotJson))}, ensure_ascii=False)
 
     @Slot(int, bool)
     def Route(self, generation, enabled):

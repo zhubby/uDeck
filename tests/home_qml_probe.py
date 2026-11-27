@@ -64,7 +64,7 @@ def run():
         assert screen is not None and strip is not None and navigation is not None
         tabs = [item for item in navigation.childItems() if item.objectName().startswith("mainTab-")]
         assert len(tabs) == 4
-        assert strip.property("count") == 7
+        assert strip.property("count") == 8
         first = visual_item("homeTile-0")
         second = visual_item("homeTile-1")
         assert first is not None and second is not None
@@ -95,7 +95,7 @@ def run():
 
         def fully_visible():
             visible = []
-            for index in range(7):
+            for index in range(8):
                 tile = visual_item("homeTile-" + str(index))
                 if tile is None:
                     continue
@@ -108,6 +108,8 @@ def run():
 
         capture("home")
         selected_visible()
+        assert controller.navigation.index == 0
+        assert visual_item("homeIcon-agent").property("source").toString().endswith("agent.svg")
         if options.width >= 1280:
             assert fully_visible() == list(range(6))
             for index in range(6):
@@ -119,9 +121,9 @@ def run():
             key(Qt.Key.Key_Right)
             assert controller.navigation.index == index
             selected_visible()
-            if index == 3:
-                capture("home-reader")
             if index == 5:
+                capture("home-reader")
+            if index == 2:
                 icon = visual_item("homeIcon-browser")
                 assert icon is not None
                 expression = QQmlExpression(QQmlEngine.contextForObject(icon), icon, "Number(status)")
@@ -130,20 +132,27 @@ def run():
                 assert status == 1
                 assert icon.property("source").toString().endswith("globe2.svg")
                 capture("home-browser")
-        key(Qt.Key.Key_Right)
         assert controller.navigation.index == 6
         assert strip.property("contentX") > 0
         if options.width >= 1280:
             assert fully_visible() == list(range(1, 7))
+        assert visual_item("homeIcon-terminal") is not None
+        capture("home-terminal")
+        key(Qt.Key.Key_Right)
+        assert controller.navigation.index == 7
+        selected_visible()
+        assert visual_item("homeIcon-settings") is not None
+        if options.width >= 1280:
+            assert fully_visible() == list(range(2, 8))
         capture("home-settings")
         # Scrolling back must recover the original six visible cards.
-        for index in reversed(range(6)):
+        for index in reversed(range(7)):
             key(Qt.Key.Key_Left)
             assert controller.navigation.index == index
             selected_visible()
         if options.width >= 1280:
             assert fully_visible() == list(range(6))
-        for _ in range(6):
+        for _ in range(7):
             key(Qt.Key.Key_Right)
         key(Qt.Key.Key_Up)
         assert controller.navigation.zone == "tabs"
@@ -152,19 +161,19 @@ def run():
             assert controller.navigation.page == page
         controller.dispatch("home")
         QTest.qWait(40)
-        assert controller.navigation.index == 6
+        assert controller.navigation.index == 7
         key(Qt.Key.Key_Return)
         assert controller.navigation.page == "settings"
         assert json.loads(controller.snapshotJson)["activeTab"] == "home"
         capture("settings")
         key(Qt.Key.Key_Escape)
-        assert controller.navigation.page == "home" and controller.navigation.index == 6
+        assert controller.navigation.page == "home" and controller.navigation.index == 7
         selected_visible()
         key(Qt.Key.Key_F1)
         assert controller.modal.get("source") == "quick-settings"
         capture("quick-settings")
         key(Qt.Key.Key_Escape)
-        assert controller.navigation.page == "home" and controller.navigation.index == 6
+        assert controller.navigation.page == "home" and controller.navigation.index == 7
         assert not controller.backend.actions
         assert not errors, errors
         print(json.dumps({"tabCount": len(tabs), "shortcutCount": strip.property("count"),

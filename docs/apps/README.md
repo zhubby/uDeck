@@ -1,6 +1,6 @@
 # 内置应用
 
-Music、Video、Browser、Reader 和 Emulator 是独立的 PySide6 / Qt Quick 进程。
+Music、Video、Browser、Reader、Emulator 和 Agent 是独立的 PySide6 / Qt Quick 进程。
 Terminal 使用独立的原生终端入口，见 [Terminal 指南](../udeck/terminal.md)。
 完整套件由一个 arm64 `udeck` 包分发，版本来自 `udeck.__version__`。
 
@@ -8,6 +8,7 @@ Terminal 使用独立的原生终端入口，见 [Terminal 指南](../udeck/term
 
 启动命令为 `udeck-music`、`udeck-video`、`udeck-browser`、
 `udeck-reader`、`udeck-emulator`，也可使用 `udeck-app APP`。
+Agent 使用 `udeck-app agent`。
 界面启动固定的 uDeck Python 模块，不执行桌面文件中的自定义命令。
 每个应用通过当前图形会话的 D-Bus 身份转发请求和提供诊断。
 
@@ -22,6 +23,16 @@ L/R 或 PageUp/PageDown 切换集合；文字输入保留原生编辑行为。
 目录不存在时由用户创建并刷新，不替换已有自定义来源。
 来源记录目录身份，后台扫描带代次；失效来源不能继续读取。
 Emulator 使用独立 ROM 根目录和 Libretro 列表，见[模拟器指南](emulator.md)。
+
+## Agent
+
+首页第一张卡片打开 Agent。
+从右上角「设置 → 管理 Agent」进入管理页。
+管理页安装、登录、检查更新和回退 Codex、Claude Code、OpenCode、Pi Agent。
+选择本地工作目录后开始会话。
+按 Enter 或点击输入框内的发送按钮。X 打开历史会话。
+返回首页保留当前会话。退出后通过历史重新打开。
+连接与版本管理见 [Agent 设计](../design/agent-app.md)。
 
 ## Music 与 Video
 

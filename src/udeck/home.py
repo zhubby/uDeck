@@ -1,9 +1,21 @@
+"""[INPUT]: 依赖桌面应用目录和本地化消息。
+[OUTPUT]: 提供首页固定入口和安装状态。
+[POS]: 桌面首页模型。
+[PROTOCOL]: Update this header on change, then check AGENTS.md
+"""
+
 from .i18n import Msg, tr
 
 HOME_SHORTCUTS = (
-    {"id": "io.github.zhubby.uDeck.Terminal.desktop", "homeKind": "terminal",
-     "name": tr(Msg.TERMINAL), "subtitle": tr(Msg.LOCAL_SHELL_SESSIONS_AND_COMMAND_LINE_TOOLS),
-     "icon": "io.github.zhubby.uDeck.Terminal", "category": "System"},
+    {"id": "io.github.zhubby.uDeck.Agent.desktop", "homeKind": "agent",
+     "name": tr(Msg.UDECK_AGENT), "subtitle": tr(Msg.AGENT_SUBTITLE),
+     "icon": "io.github.zhubby.uDeck.Agent", "category": "Development"},
+    {"id": "io.github.zhubby.uDeck.Emulator.desktop", "homeKind": "emulator",
+     "name": tr(Msg.EMULATOR), "subtitle": tr(Msg.OPEN_YOUR_GAME_LIBRARY_AND_SAVED_PROGRESS),
+     "icon": "io.github.zhubby.uDeck.Emulator", "category": "Game"},
+    {"id": "io.github.zhubby.uDeck.Browser.desktop", "homeKind": "browser",
+     "name": tr(Msg.BROWSER), "subtitle": tr(Msg.BROWSE_THE_WEB_WITH_TABS_AND_BOOKMARKS),
+     "icon": "io.github.zhubby.uDeck.Browser", "category": "Network"},
     {"id": "io.github.zhubby.uDeck.Music.desktop", "homeKind": "music",
      "name": tr(Msg.MUSIC), "subtitle": tr(Msg.BROWSE_ALBUMS_TRACKS_AND_PLAYLISTS),
      "icon": "io.github.zhubby.uDeck.Music", "category": "AudioVideo"},
@@ -13,12 +25,9 @@ HOME_SHORTCUTS = (
     {"id": "io.github.zhubby.uDeck.Reader.desktop", "homeKind": "reader",
      "name": tr(Msg.READER), "subtitle": tr(Msg.READ_EPUB_MOBI_PDF_AND_TEXT_BOOKS),
      "icon": "io.github.zhubby.uDeck.Reader", "category": "Office"},
-    {"id": "io.github.zhubby.uDeck.Emulator.desktop", "homeKind": "emulator",
-     "name": tr(Msg.EMULATOR), "subtitle": tr(Msg.OPEN_YOUR_GAME_LIBRARY_AND_SAVED_PROGRESS),
-     "icon": "io.github.zhubby.uDeck.Emulator", "category": "Game"},
-    {"id": "io.github.zhubby.uDeck.Browser.desktop", "homeKind": "browser",
-     "name": tr(Msg.BROWSER), "subtitle": tr(Msg.BROWSE_THE_WEB_WITH_TABS_AND_BOOKMARKS),
-     "icon": "io.github.zhubby.uDeck.Browser", "category": "Network"},
+    {"id": "io.github.zhubby.uDeck.Terminal.desktop", "homeKind": "terminal",
+     "name": tr(Msg.TERMINAL), "subtitle": tr(Msg.LOCAL_SHELL_SESSIONS_AND_COMMAND_LINE_TOOLS),
+     "icon": "io.github.zhubby.uDeck.Terminal", "category": "System"},
     {"id": "settings", "homeKind": "settings", "name": tr(Msg.SETTINGS),
      "subtitle": tr(Msg.NETWORK_AUDIO_DISPLAY_AND_DEVICE_PREFERENCES),
      "icon": "preferences-system", "category": "System"},

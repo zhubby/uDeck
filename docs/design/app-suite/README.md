@@ -1,6 +1,6 @@
 # 应用套件设计
 
-当前套件包含 Music、Video、Browser、Reader 和 Emulator。
+当前套件包含 Music、Video、Browser、Reader、Emulator 与 Agent。
 Terminal 的交互契约单独见[Terminal 指南](../../udeck/terminal.md)。
 这些应用已使用原生 PySide6 / Qt Quick 实现。
 本目录描述现行产品规则，运行入口见[应用说明](../../apps/README.md)。
@@ -31,6 +31,7 @@ Terminal 的交互契约单独见[Terminal 指南](../../udeck/terminal.md)。
 | Browser | 标签、地址、历史、书签与网页 | 各标签保留页面与交互模式 |
 | Reader | 书库、PDF 与重排文档 | 保存逻辑位置，布局改变保持锚点 |
 | Emulator | 列表、平台、核心与游戏 | 游戏输入释放，暂停和存档受控 |
+| Agent | 本机 ACP 会话与 Agent 版本管理 | 返回首页保留会话，历史在本机保存 |
 
 - [交互规范](interaction-spec.md)：输入、主路径、确认和异常。
 - [原生架构](native-integration.md)：当前引擎、状态与安全边界。

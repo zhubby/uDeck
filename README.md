@@ -16,7 +16,7 @@
 ![uDeck Home on uConsole CM4](docs/readme/home.png)
 
 - Navigate with physical buttons, a keyboard, or the trackball.
-- Open Terminal, Music, Video, Browser, Reader, and Emulator from one desktop.
+- Open Terminal, Music, Video, Browser, Reader, Emulator, and Agent from one desktop.
 - Browse files, share folders, and configure Wi-Fi, Bluetooth, audio, and display settings.
 - Inspect app resources in Console; pause games and save progress through RetroArch.
 

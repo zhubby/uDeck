@@ -7,6 +7,7 @@ __init__.py: 应用包版本。
 main.py: 轻量启动入口；先转发已有实例请求。
 runtime.py: 会话 D-Bus、文件索引、交接显示与共享圆点生命周期。
 common/: 应用共享状态、输入、菜单与 QML 窗口。
+agent/: ACP 会话、版本管理和 Agent 界面。
 browser/: 浏览器控制器与网页导航。见该目录 AGENTS.md。
 emulator/: 游戏库、RetroArch 进程协议与存档。见该目录 AGENTS.md。
 media/: 音乐与视频共用播放引擎。见该目录 AGENTS.md。
