@@ -1,5 +1,5 @@
-"""[INPUT]: 依赖共享媒体控制器和曲库封面更新。
-[OUTPUT]: 提供专辑封面、播放队列和后台播放。
+"""[INPUT]: 依赖共享媒体控制器、曲库封面和本地歌词解析。
+[OUTPUT]: 提供专辑封面、当前曲目歌词、播放队列和后台播放。
 [POS]: Music 界面与共享媒体引擎之间的控制层。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -7,15 +7,30 @@
 import hashlib
 from pathlib import Path
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Property, Signal, Slot
 
 from udeck.apps.media.controller import MediaController
 from udeck.i18n import Msg, tr
 
+from .lyrics import track_lyrics
+
 
 class MusicController(MediaController):
+    lyricsChanged = Signal()
+
     def __init__(self, directory=None, language_path=None):
         super().__init__("music", directory, language_path)
+        self._lyrics = {"timed": False, "lines": []}
+
+    @Property("QVariantMap", notify=lyricsChanged)
+    def lyrics(self):
+        return self._lyrics
+
+    def snapshot(self, compact=False):
+        state = super().snapshot(compact)
+        if compact:
+            state["current"] = {key: value for key, value in state["current"].items() if key != "metadata"}
+        return state
 
     def tabs(self):
         return [tr(Msg.ALBUMS), tr(Msg.TRACKS), tr(Msg.QUEUE), tr(Msg.FOLDERS)]
@@ -49,6 +64,8 @@ class MusicController(MediaController):
         super()._library_changed()
 
     def prepare_play(self, item, seconds, queued):
+        self._lyrics = track_lyrics(item)
+        self.lyricsChanged.emit()
         if not queued:
             ids = [r["id"] for r in self.rows() if r.get("kind") == "item"]
             self.queue.replace(ids or [item["id"]], item["id"])

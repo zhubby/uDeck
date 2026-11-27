@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
 [INPUT]: 依赖应用控制器、增量库模型、共享短过渡与圆点组件。
-[OUTPUT]: 提供交接窗口、标题栏、按需显示的标签、按键提示和共享菜单。
+[OUTPUT]: 提供交接窗口、标题栏、按页面显示的标签和按键提示，以及共享菜单。
 [POS]: 独立应用的窗口外壳，媒体和会话视图由各应用加载。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -58,6 +58,7 @@ Window {
     property bool allowClose: false
     property QtObject pointerCursor: null
     property bool videoFull: state.app === "video" && state.page === "player"
+    readonly property bool musicPlayer: state.app === "music" && state.page === "player"
     readonly property bool isAgent: state.app === "agent"
     readonly property bool agentSettings: isAgent && state.page === "agent-settings"
     property color ink: window.colors.text
@@ -152,7 +153,7 @@ Window {
                 Shared.BrandLogo { colors: window.colors; Layout.preferredWidth: 34; Layout.preferredHeight: 34 }
                 Text { font.family: window.fontFamily; text: window.agentSettings ? window.tr(msg.SETTINGS) : window.appName; color: window.ink; font.pixelSize: 28 }
                 Item { Layout.fillWidth: true }
-                Text { visible: window.state.app !== "agent"; font.family: window.fontFamily; text: window.state.scanning ? window.tr(msg.SCANNING) : window.state.app === "browser" ? window.tr(({navigation:msg.LINK_NAVIGATION,reading:msg.READING,pointer:msg.VIRTUAL_POINTER,text:msg.TEXT_INPUT})[window.state.webMode]||msg.LINK_NAVIGATION) : window.state.app === "emulator" ? window.state.countLabel : window.state.count+" "+window.tr(msg.ITEMS); color: window.muted; font.pixelSize: 18 }
+                Text { visible: window.state.app !== "agent" && !window.musicPlayer; font.family: window.fontFamily; text: window.state.scanning ? window.tr(msg.SCANNING) : window.state.app === "browser" ? window.tr(({navigation:msg.LINK_NAVIGATION,reading:msg.READING,pointer:msg.VIRTUAL_POINTER,text:msg.TEXT_INPUT})[window.state.webMode]||msg.LINK_NAVIGATION) : window.state.app === "emulator" ? window.state.countLabel : window.state.count+" "+window.tr(msg.ITEMS); color: window.muted; font.pixelSize: 18 }
                 SuiteButton {
                     objectName: "appSettings"
                     fontFamily: window.fontFamily
@@ -172,7 +173,8 @@ Window {
             }
         }
         Rectangle {
-            visible: !window.isAgent && !window.videoFull && window.state.page !== "document" && window.state.page !== "game-running"
+            visible: !window.isAgent && !window.videoFull && !window.musicPlayer
+                     && window.state.page !== "document" && window.state.page !== "game-running"
             Layout.fillWidth: true; Layout.preferredHeight: 54
             color: window.colors.footer
             ListView {
@@ -382,18 +384,29 @@ Window {
                 spacing: footer.compactHints ? 14 : 24
                 Repeater {
                     model: window.isAgent ? (surface.item ? surface.item.footerHints : []) : [
-                        [["gamecube_button_color_a"], msg.OPEN], [["gamecube_button_color_b"], msg.BACK],
+                        [["gamecube_button_color_a"], window.musicPlayer ? msg.CONFIRM : msg.OPEN],
+                        [["gamecube_button_color_b"], msg.BACK, window.musicPlayer ? "back" : ""],
                         [["gamecube_button_x"], msg.ACTIONS], [["gamecube_button_y"], msg.SETTINGS]
                     ]
                     delegate: Shared.InputPrompt {
                         id: footerPrompt
                         required property var modelData
+                        readonly property bool musicBack: window.musicPlayer && modelData[2] === "back"
+                        objectName: musicBack ? "musicPlayerBack" : ""
+                        Accessible.role: musicBack ? Accessible.Button : Accessible.StaticText
+                        Accessible.onPressAction: if (musicBack) controller.dispatch("back")
                         keys: modelData[0]; label: window.tr(modelData[1])
-                        fontFamily: window.fontFamily; textColor: window.muted
+                        fontFamily: window.fontFamily
+                        textColor: musicBack && backHover.hovered ? window.ink : window.muted
                         fontSize: footer.compactHints ? 17 : 19
                         iconSize: footer.compactHints ? 26 : 32
                         enabled: modelData[3] !== false
                         opacity: enabled ? 1 : 0.48
+                        HoverHandler {
+                            id: backHover
+                            enabled: footerPrompt.musicBack
+                            cursorShape: Qt.PointingHandCursor
+                        }
                         TapHandler {
                             enabled: !!footerPrompt.modelData[2]
                             onTapped: controller.dispatch(footerPrompt.modelData[2])
@@ -404,7 +417,8 @@ Window {
                 Shared.InputPrompt {
                     visible: !window.isAgent
                     keys: ["gamecube_trigger_l", "/", "gamecube_trigger_r"]
-                    label: window.tr(window.state.page === "document" ? msg.PAGES : msg.TABS)
+                    label: window.tr(window.musicPlayer ? msg.CHANGE_TRACK
+                                     : window.state.page === "document" ? msg.PAGES : msg.TABS)
                     fontFamily: window.fontFamily; textColor: window.muted; fontSize: 18
                 }
             }

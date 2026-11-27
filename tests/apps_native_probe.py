@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实 Qt 引擎、原始媒体和本地网页。
-[OUTPUT]: 验证原生应用工作流、输入焦点与内容隔离。
+[OUTPUT]: 验证原生应用工作流、歌词同步、输入焦点与内容隔离。
 [POS]: 独立应用集成探针；以页面状态确认异步输入。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -21,7 +21,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from mobi_fixture import mobi_bytes
-from PySide6.QtCore import QEventLoop, QObject, Qt, QTimer, QUrl, Slot
+from PySide6.QtCore import QEventLoop, QObject, QPointF, Qt, QTimer, QUrl, Slot
 from PySide6.QtGui import QPageSize, QPainter, QPdfWriter
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow  # noqa: F401
@@ -64,8 +64,10 @@ def fixtures(root):
             stream.writeframes(b"".join(struct.pack("<h", int(1500 * math.sin(2*math.pi*220*i/16000)))
                                        for i in range(16000 * 12)))
         for extension in ("flac", "mp3", "m4a"):
+            lyrics = ["-metadata", "lyrics=[00:00.00]Embedded lyrics"] if extension == "mp3" else []
             subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(wav),
-                            "-metadata", "album=uDeck Originals", "-metadata", "artist=uDeck", str(wav.with_suffix("."+extension))], check=True)
+                            "-metadata", "album=uDeck Originals", "-metadata", "artist=uDeck",
+                            *lyrics, str(root / f"Original {extension.upper()} tone.{extension}")], check=True)
         (root / "captions.srt").write_text("1\n00:00:00,000 --> 00:00:09,000\nOriginal uDeck subtitle 中文\n")
         subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i",
                         "testsrc2=duration=12:size=640x360:rate=24", "-i", str(wav), "-i", str(root/"captions.srt"),
@@ -161,16 +163,56 @@ def run(app, root, language="en", width=1280, height=720):
         assert controller.library.items
         capture("library")
     if app == "music":
+        def visible_item(parent, name):
+            for child in parent.childItems():
+                if child.isVisible():
+                    if child.objectName() == name:
+                        return child
+                    if match := visible_item(child, name):
+                        return match
+            return None
+
+        def lyrics_view():
+            return window.findChild(QObject, "musicLyrics")
+
+        def active_line_item():
+            return visible_item(window.contentItem(), "activeLyricLine")
+
+        def active_lyric():
+            line = active_line_item()
+            return line.findChild(QObject, "lyricText").property("text") if line else ""
+
         first = next(i for i in controller.library.items if i["format"] == "FLAC")
+        first_path = Path(first["path"])
+        first_path.with_suffix(".lrc").write_text(
+            "[ti:Original tone]\n[offset:+100]\n[00:00.00]Opening\n"
+            "[00:02.00][00:08.00]Chorus 中文\n[00:02.00]Translation\n[00:05.00]\n",
+            encoding="utf-8-sig")
         controller.open_item(first["id"])
         wait(lambda: controller.media.player.position()>300)
         assert controller.media.player.duration()>10000
+        wait(lambda: active_lyric() == "Opening")
         capture("playing")
         controller.media.player.pause()
         controller.seek(4)
         wait(lambda: controller.media.player.position()>=3900)
+        wait(lambda: active_lyric() == "Chorus 中文\nTranslation")
+        active = active_line_item()
+        pos = active.mapToScene(QPointF(active.width() / 2, active.height() / 2))
+        QTest.mouseClick(window, Qt.MouseButton.LeftButton, pos=pos.toPoint())
+        wait(lambda: controller.media.player.position() == 2100)
+        controller.seek(6)
+        wait(lambda: lyrics_view().property("activeIndex") == 2 and not active_lyric())
+        QTest.keyClick(window, Qt.Key.Key_Up)
+        assert window.findChild(QObject, "musicPrevious").property("selected")
+        QTest.keyClick(window, Qt.Key.Key_Down)
+        assert window.findChild(QObject, "musicPlayPause").property("selected")
+        controller.seek(4)
+        wait(lambda: controller.media.player.position() >= 3900)
         position = controller.media.player.position()
-        controller.back()
+        back = visible_item(window.contentItem(), "musicPlayerBack")
+        pos = back.mapToScene(QPointF(back.width() / 2, back.height() / 2))
+        QTest.mouseClick(window, Qt.MouseButton.LeftButton, pos=pos.toPoint())
         assert controller.page=="library" and controller.media.player.position()==position
         controller.media.player.play()
         controller.library.refresh()
@@ -184,9 +226,22 @@ def run(app, root, language="en", width=1280, height=720):
         completed.extend(["real-flac-playback", "seek", "background-browsing", "refresh-keeps-session"])
         for extension in ("MP3", "M4A", "WAV"):
             item = next(i for i in controller.library.items if i["format"]==extension)
+            sidecar = Path(item["path"]).with_suffix(".lrc")
+            if extension == "M4A":
+                sidecar.write_text("Plain text line\nSecond line", encoding="utf-16")
+            elif extension == "MP3":
+                sidecar.write_text("[ti:No usable sidecar]", encoding="utf-8")
             controller.play(item)
             wait(lambda: not controller.media.loading and controller.media.player.position()>150)
             assert not controller.media.player.errorString()
+            if extension == "MP3":
+                wait(lambda: active_lyric() == "Embedded lyrics")
+            elif extension == "M4A":
+                assert lyrics_view().isVisible() and lyrics_view().property("activeIndex") == -1
+                assert controller.lyrics["lines"] == [{"text": "Plain text line"}, {"text": "Second line"}]
+            else:
+                assert not lyrics_view().isVisible()
+        completed.extend(["timed-lyrics-seek-and-instrumental-gap", "embedded-plain-and-missing-lyrics"])
         controller.media.player.pause()
         controller.open_item(first["id"])
         wait(lambda: controller.media.player.position()>300)
@@ -207,6 +262,10 @@ def run(app, root, language="en", width=1280, height=720):
         wait(lambda: controller.media.player.duration() > 10000 and not controller.media.loading)
         controller.media.seek(11.6)
         wait(lambda: controller.current["id"] == first["id"] and controller.media.player.position() > 0)
+        QTest.keyClick(window, Qt.Key.Key_PageUp)
+        wait(lambda: controller.current["id"] == other["id"] and not lyrics_view().isVisible())
+        QTest.keyClick(window, Qt.Key.Key_PageDown)
+        wait(lambda: controller.current["id"] == first["id"] and lyrics_view().isVisible())
         completed.append("real-end-of-file-queue-transition")
         completed.extend(["real-mp3-aac-wav-playback", "language-preserves-playback-and-draft"])
         theme_cycle()

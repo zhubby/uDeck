@@ -28,7 +28,7 @@ app_lazy_surface_probe.py: 独立进程探针，验证 app_lazy_surface 流程�
 app_settings_device_probe.py: 独立进程探针，验证 app_settings_device 流程。
 apps_games_probe.py: 独立进程探针，验证 apps_games 流程。
 apps_ipc_probe.py: 独立进程探针，验证 apps_ipc 流程。
-apps_native_probe.py: 原生应用内容工作流与网页生命周期、异步输入就绪探针。
+apps_native_probe.py: 原生应用工作流、歌词同步与定位、网页生命周期及异步输入探针。
 audio_qml_probe.py: 等待弹窗过渡结束，校验音频菜单布局、焦点和设备选择。
 battery_qml_probe.py: 等待弹窗几何终态，验证电池测量刷新、文字与边界。
 browser_interaction_probe.py: 网页缩放输入、协议零系统分发与原生选择器拒绝探针。
