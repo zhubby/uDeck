@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
 [INPUT]: 依赖应用控制器、增量库模型、共享短过渡与圆点组件。
-[OUTPUT]: 提供交接窗口、标题栏、按页面显示的标签和按键提示，以及共享菜单。
+[OUTPUT]: 提供交接窗口、曲库卡片、单行曲目、按键提示和共享菜单。
 [POS]: 独立应用的窗口外壳，媒体和会话视图由各应用加载。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -234,27 +234,54 @@ Window {
                             id: card
                             required property var entry
                             readonly property var modelData: entry
+                            readonly property bool musicTrack: window.state.app === "music"
+                                && cards.listMode && modelData.kind === "item"
+                            readonly property string artist: musicTrack ? modelData.artist || "" : ""
                             required property int index
                             width: cards.cellWidth-12; height: cards.cellHeight-12
                             radius: 10
                             color: modelData.id===window.state.selected ? window.colors.selected : window.colors.panel
                             border.width: 1; border.color: window.colors.border
-                            Artwork { objectName: "cardArtwork"; fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-(window.state.app==="emulator"?cardTitleMetrics.height+cardSubtitleMetrics.height+32:80); identity: card.modelData.gameId || card.modelData.id; cover: card.modelData.cover||""; fallbackIcon: window.state.app === "emulator" ? controller.platformIcon(card.modelData.platform || "") : ""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" || card.modelData.kind === "playlist" }
+                            Artwork { objectName: "cardArtwork"; fontFamily: window.fontFamily; colors: window.colors; id: art; x: 10; y: card.musicTrack ? (parent.height-height)/2 : 10; width: cards.listMode?54:parent.width-20; height: cards.listMode?54:parent.height-(window.state.app==="emulator"?cardTitleMetrics.height+cardSubtitleMetrics.height+32:80); identity: card.modelData.gameId || card.modelData.id; cover: card.modelData.cover||""; fallbackIcon: window.state.app === "emulator" ? controller.platformIcon(card.modelData.platform || "") : ""; kind: card.modelData.kind==="folder"?"reader":window.state.app; iconOnly: card.modelData.kind === "platform" || card.modelData.kind === "playlist" }
                             Column {
-                                x: cards.listMode ? 80 : 12; y: cards.listMode ? 12 : art.y+art.height+8
+                                x: cards.listMode ? 80 : 12
+                                y: card.musicTrack ? (parent.height-cardTitleMetrics.height)/2
+                                                  : cards.listMode ? 12 : art.y+art.height+8
                                 width: parent.width-x-12; spacing: 4
-                                ScrollingTitle {
-                                    objectName: "cardTitleViewport"
+                                Item {
                                     width: parent.width; height: cardTitleMetrics.height
-                                    fontFamily: window.fontFamily; pixelSize: cards.listMode ? 22 : 20
-                                    text: ((card.modelData.gameId||card.modelData.id)===window.state.current.id ? "▶  " : "")+card.modelData.title
-                                    textColor: window.ink
-                                    resetKey: card.modelData.id
-                                    reducedMotion: controller.reducedMotion
-                                    selected: card.modelData.id === window.state.selected
-                                    active: cards.visible && window.active && !window.state.menu.title
+                                    ScrollingTitle {
+                                        id: cardTitle
+                                        objectName: "cardTitleViewport"
+                                        width: trackArtist.visible
+                                            ? Math.min(implicitWidth, parent.width - trackArtist.width - 8)
+                                            : parent.width
+                                        height: parent.height
+                                        fontFamily: window.fontFamily; pixelSize: cards.listMode ? 22 : 20
+                                        text: ((card.modelData.gameId||card.modelData.id)===window.state.current.id ? "▶  " : "")+card.modelData.title
+                                        textColor: window.ink
+                                        resetKey: card.modelData.id
+                                        reducedMotion: controller.reducedMotion
+                                        selected: card.modelData.id === window.state.selected
+                                        active: cards.visible && window.active && !window.state.menu.title
+                                    }
+                                    Text {
+                                        id: trackArtist
+                                        objectName: "musicTrackArtist"
+                                        anchors.left: cardTitle.right
+                                        anchors.leftMargin: 8
+                                        anchors.verticalCenter: cardTitle.verticalCenter
+                                        visible: card.artist.length > 0
+                                        width: Math.min(implicitWidth, parent.width / 3)
+                                        text: "· " + card.artist.replace(/[\r\n\u2028\u2029]+/g, " ")
+                                        textFormat: Text.PlainText
+                                        color: window.muted
+                                        font.family: window.fontFamily
+                                        font.pixelSize: 17
+                                        elide: Text.ElideRight
+                                    }
                                 }
-                                Text { font.family: window.fontFamily; width: parent.width; height: cardSubtitleMetrics.height; text: card.modelData.subtitle||""; color: window.muted; font.pixelSize: 17; elide: Text.ElideRight }
+                                Text { visible: !card.musicTrack; font.family: window.fontFamily; width: parent.width; height: cardSubtitleMetrics.height; text: card.modelData.subtitle||""; color: window.muted; font.pixelSize: 17; elide: Text.ElideRight }
                             }
                             MouseArea { anchors.fill: parent; onClicked: {controller.select(card.modelData.id);controller.dispatch("accept")} }
                         }

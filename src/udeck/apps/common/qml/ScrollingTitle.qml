@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
 [INPUT]: 依赖选中身份、文字尺寸、前台状态与减少动画。
-[OUTPUT]: 提供单次滚动；前台恢复保留完成状态，重选重播。
+[OUTPUT]: 提供标题自然宽度与单次滚动；前台恢复保留完成状态。
 [POS]: 选中卡片的主标题；次要文字保持静止。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 */
@@ -24,6 +24,7 @@ Item {
     readonly property bool eligible: selected && active && visible && !reducedMotion && overflow > 0
     readonly property bool scrolling: eligible && !completed
     readonly property bool animating: scroll.running
+    implicitWidth: label.implicitWidth
     implicitHeight: metrics.height
     clip: true
 

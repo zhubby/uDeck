@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖真实 Qt 引擎、原始媒体和本地网页。
-[OUTPUT]: 验证原生应用工作流、歌词同步、输入焦点与内容隔离。
+[OUTPUT]: 验证原生应用工作流、曲目布局、歌词同步、输入焦点与内容隔离。
 [POS]: 独立应用集成探针；以页面状态确认异步输入。
 [PROTOCOL]: Update this header on change, then check AGENTS.md
 """
@@ -181,6 +181,27 @@ def run(app, root, language="en", width=1280, height=720):
         def active_lyric():
             line = active_line_item()
             return line.findChild(QObject, "lyricText").property("text") if line else ""
+
+        album = next(row for row in controller.rows() if row["artist"] == "uDeck")
+        controller.activate(album)
+        controller.publish()
+        for tab in (None, 1):
+            if tab is not None:
+                controller.setTab(tab)
+            artist = None
+
+            def artist_is_visible():
+                nonlocal artist
+                artist = visible_item(window.contentItem(), "musicTrackArtist")
+                return artist is not None and artist.property("text") == "· uDeck"
+
+            wait(artist_is_visible)
+            row = artist.parentItem()
+            title = visible_item(row, "cardTitleViewport")
+            assert artist.x() >= title.x() + title.width()
+            assert abs(artist.y() + artist.height() / 2 - title.height() / 2) <= 1
+        controller.setTab(0)
+        completed.append("inline-artist-in-album-and-track-lists")
 
         first = next(i for i in controller.library.items if i["format"] == "FLAC")
         first_path = Path(first["path"])
